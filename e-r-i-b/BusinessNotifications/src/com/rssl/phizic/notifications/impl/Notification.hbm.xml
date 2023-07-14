@@ -1,0 +1,86 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.rssl.phizic.notifications.impl.NotificationBase" table="PAYMENT_NOTIFICATIONS">
+
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_PAYMENT_NOTIFICATIONS</param>
+			</generator>
+		</id>
+
+		<discriminator column="NAME"    type="string"/>
+		<property name="loginId"        type="long"     column="LOGIN"         not-null="false"/>
+        <property name="dateCreated"    type="calendar" column="DATE_CREATED"  not-null="false"/>
+		
+	</class>
+
+    <subclass name="com.rssl.phizic.notifications.impl.AccountNotificationBase"
+              extends="com.rssl.phizic.notifications.impl.NotificationBase"
+              discriminator-value="AccountNotification">
+
+        <property name="accountNumber"  type="string" column="ACCOUNT_NUMBER"  not-null="false"/>
+        <property name="accountResourceType" type="string" column="ACCOUNT_RESOURCE_TYPE" not-null="false"/>
+        <property name="recipientAccountNumber"  type="string" column="RECIPIENT_ACCOUNT_NUMBER"  not-null="false"/>
+        <property name="recipientAccountResourceType" type="string" column="RECIPIENT_ACCOUNT_TYPE" not-null="false"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.notifications.impl.PaymentExecuteNotification"
+	          extends="com.rssl.phizic.notifications.impl.AccountNotificationBase"
+	          discriminator-value="PaymentExecuteNotification">
+
+        <property name="transactionSum" type="double" column="TRANSACTION_SUM" not-null="false"/>
+        <property name="currencyCode"   type="string" column="CURRENCY"        not-null="false"/>
+        <property name="nameOrType"     type="string" column="NAME_OR_TYPE" not-null="false"/>
+        <property name="documentState"  type="string" column="DOCUMENT_STATE"  not-null="true"/>
+        <property name="documentType"   type="string" column="DOCUMENT_TYPE"   not-null="true"/>
+        <property name="nameAutoPayment"   type="string" column="NAME_AUTO_PAYMENT"   not-null="false"/>
+	</subclass>
+
+    <!--Случайная выборка loginId для оповещения
+        Опорный объект: IND_PAY_NOTIF2
+        Предикаты доступа: "NOTIFICATION"."DATE_CREATED">TO_TIMESTAMP(:STARTDATE))
+        Кардинальность: 2000 значений индекса
+    -->
+	<sql-query name="com.rssl.phizic.notifications.service.NotificationService.getNotifiedLogins">
+        <return-scalar column="LOGIN" type="long"/>
+        <![CDATA[
+            SELECT LOGIN FROM
+            (SELECT LOGIN FROM
+                (SELECT notification.LOGIN FROM PAYMENT_NOTIFICATIONS notification
+                  WHERE notification.DATE_CREATED > :startDate AND rownum < 2000
+                  ORDER BY notification.DATE_CREATED)
+             ORDER BY dbms_random.value)
+            WHERE rownum<=10
+        ]]>
+	</sql-query >
+
+    <!--Выборка оповещений для клиента
+        Опорный объект: IND_PAY_NOTIF1
+        Предикаты доступа: "LOGIN"=TO_NUMBER(:LOGINID) AND "DATE_CREATED">TO_TIMESTAMP(:STARTDATE)
+        Кардинальность: равна максимальному количеству операций, которое может создать клиент за период
+        актуальности оповещений об исполнении операций (см. настройку job.notifications.payment.period.actual, на текущий момент = 1 сутки)
+    -->
+    <sql-query name="com.rssl.phizic.notifications.service.NotificationService.findPaymentNotifications">
+        <return alias="notification" class="com.rssl.phizic.notifications.impl.PaymentExecuteNotification"/>
+        <![CDATA[
+            SELECT * FROM PAYMENT_NOTIFICATIONS
+             WHERE LOGIN = :loginId
+               AND DATE_CREATED > :startDate
+             ORDER BY DATE_CREATED
+         ]]>
+	</sql-query>
+
+    <!--Удаление оповещений для клиента
+        Опорный объект: IND_PAY_NOTIF1
+        Предикаты доступа: "LOGIN"=TO_NUMBER(:LOGINID)
+        Кардинальность: равна максимальному количеству операций, которое может создать клиент за 2 месяца (с учетом, что своевременно сотрудниками будут очищаться старые секции таблицы).
+    -->
+    <query name="com.rssl.phizic.notifications.service.NotificationService.deletePaymentNotifications4Login">
+        delete from com.rssl.phizic.notifications.impl.NotificationBase
+         WHERE loginId = :loginId
+	</query>
+
+</hibernate-mapping>

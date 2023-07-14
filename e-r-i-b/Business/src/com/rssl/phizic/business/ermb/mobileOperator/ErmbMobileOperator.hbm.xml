@@ -1,0 +1,71 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ermb.mobileOperator.ErmbMobileOperator" table="ERMB_MOBILE_OPERATOR">
+        <id         name="mnc"              type="long"     column="MNC"/>
+        <property   name="name"             type="string"   column="NAME"               not-null="true"/>
+        <property   name="useIntegration"   type="boolean"  column="USE_INTEGRATION"    not-null="true"/>
+        <property   name="serviceUrl"       type="string"   column="SERVICE_URL"        not-null="false"/>
+        <property   name="serviceLogin"     type="string"   column="SERVICE_LOGIN"      not-null="false"/>
+        <property   name="servicePassword"  type="string"   column="SERVICE_PASSWORD"   not-null="false"/>
+    </class>
+
+    <!-- Найти настройки интеграции ОСС-ЕРМБ по телефону-->
+    <!--
+        Опорный объект: IDX_DEFCODES_PHONE_RANGE
+        Предикаты доступа:  SYS_OP_DESCEND("DEF_CODE_FROM")>=SYS_OP_DESCEND(TO_NUMBER(:PHONE)) AND SYS_OP_DESCEND("DEF_CODE_FROM") IS NOT NULL
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ermb.mobileOperator.ErmbMobileOperator.findByDefCodes">
+        <return alias="settings" class="com.rssl.phizic.business.ermb.mobileOperator.ErmbMobileOperator"/>
+        <![CDATA[
+            select
+                *
+            from
+                ERMB_MOBILE_OPERATOR
+            where
+                MNC in (
+                    select
+                        MNC
+                    from (
+                        select
+                            DEF_CODE_TO, MNC
+                        from (
+                            select
+                                DEF_CODE_TO, MNC
+                            from
+                                DEF_CODES
+                            where
+                                DEF_CODE_FROM <= :phone
+                            order by
+                                DEF_CODE_FROM desc
+                        )
+                        where
+                            rownum<=1
+                    )
+                    where
+                        def_code_to >= :phone
+                )
+        ]]>
+    </sql-query>
+
+    <!--
+        Поиск мобильного оператора по телефону по таблице mnp-телефонов
+        Опорный объект: MNP_PHONE_IDX
+        Предикаты доступа:
+            access("MNPPHONE"."PHONE_NUMBER"=:PHONE)
+            access("OPERATORS"."MNC"="MNPPHONE"."MNC")
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ermb.mobileOperator.ErmbMobileOperator.findByMNPPhones">
+        <return alias="operators" class="com.rssl.phizic.business.ermb.mobileOperator.ErmbMobileOperator"/>
+        <![CDATA[
+            SELECT {operators.*}
+                FROM ERMB_MOBILE_OPERATOR operators
+                join MNP_PHONES mnpPhone on operators.MNC = mnpPhone.MNC
+                where mnpPhone.PHONE_NUMBER = :phone
+        ]]>
+    </sql-query>
+</hibernate-mapping>

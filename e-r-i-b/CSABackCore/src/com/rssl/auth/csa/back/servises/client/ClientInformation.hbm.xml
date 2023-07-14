@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <typedef name="CreationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+   		<param name="enumClass">com.rssl.phizic.common.types.client.CreationType</param>
+   	</typedef>
+    <typedef name="ClientNodeState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+   		<param name="enumClass">com.rssl.auth.csa.back.servises.client.ClientNodeInfo$State</param>
+   	</typedef>
+    <typedef name="ClientNodeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+   		<param name="enumClass">com.rssl.auth.csa.back.servises.client.ClientNodeInfo$Type</param>
+   	</typedef>
+
+    <class name="com.rssl.auth.csa.back.servises.client.ClientInformation" table="CSA_PROFILES" lazy="false" mutable="false">
+        <id       name="id"                 column="ID"                             type="long"             access="field"/>
+        <property name="firstname"          column="FIRST_NAME"                     type="string"           access="field"/>
+        <property name="surname"            column="SUR_NAME"                       type="string"           access="field"/>
+        <property name="patrname"           column="PATR_NAME"                      type="string"           access="field"/>
+        <property name="birthday"           column="BIRTHDATE"                      type="calendar"         access="field"/>
+        <property name="document"           column="PASSPORT"                       type="string"           access="field"/>
+        <property name="tb"                 column="TB"                             type="string"           access="field"/>
+        <property name="creationType"       column="CREATION_TYPE"                  type="CreationType"     access="field"/>
+        <property name="agreementNumber"    column="AGREEMENT_NUMBER"               type="string"           access="field"/>
+        <property name="login"              formula="login.LOGIN"                   type="string"           access="field"/>
+        <property name="userId"             formula="connectors.USER_ID"            type="string"           access="field"/>
+        <property name="lastLoginDate"      formula="connectors.LAST_SESSION_DATE"  type="calendar"         access="field"/>
+        <bag name="locks" table="CSA_PROFILES_LOCK" lazy="false" fetch="subselect" mutable="false" access="field"
+             where="current_date >= DATE_FROM and (DATE_TO is null or DATE_TO > current_date)">
+            <key column="PROFILE_ID"/>
+			<one-to-many class="com.rssl.auth.csa.back.servises.ProfileLock"/>
+        </bag>
+        <bag name="locksCHG071536" table="CSA_PROFILES_LOCK_CHG071536" lazy="false" fetch="subselect" mutable="false" access="field"
+             where="current_date >= DATE_FROM and (DATE_TO is null or DATE_TO > current_date)">
+            <key column="PROFILE_ID"/>
+            <one-to-many class="com.rssl.auth.csa.back.servises.ProfileLockCHG071536"/>
+        </bag>
+        <bag name="nodes" table="CSA_PROFILE_NODES" lazy="false" fetch="subselect" mutable="false" access="field">
+            <key column="PROFILE_ID"/>
+            <composite-element class="com.rssl.auth.csa.back.servises.client.ClientNodeInfo">
+                <property name="id"    column="NODE_ID"      type="long"            not-null="true"/>
+                <property name="state" column="STATE"        type="ClientNodeState" not-null="true"/>
+                <property name="type"  column="PROFILE_TYPE" type="ClientNodeType"  not-null="true"/>
+            </composite-element>
+        </bag>
+        <!--
+         Опорный элемент: CSA_CONNECTORS_PTS
+         Предикат доступа: "ACTIVEERMB0_"."PROFILE_ID"=TO_NUMBER(:PROFILEID) AND "ACTIVEERMB0_"."TYPE"='ERMB' AND "ACTIVEERMB0_"."STATE"='ACTIVE'
+         Кардинальность: 1 (не более 1 активного ермб коннектора)
+        -->
+        <bag name="activeErmbConnectors" table="CSA_CONNECTORS" lazy="false" fetch="subselect" mutable="false" access="field"
+             where="type = 'ERMB' and state='ACTIVE'">
+            <key column="PROFILE_ID"/>
+            <one-to-many class="com.rssl.auth.csa.back.servises.connectors.ERMBConnector"/>
+        </bag>
+    </class>
+
+    <resultset name="com.rssl.auth.csa.back.servises.client.list.resultset">
+        <return alias="profiles" class="com.rssl.auth.csa.back.servises.client.ClientInformation"/>
+    </resultset>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.client.list"/>
+
+</hibernate-mapping>

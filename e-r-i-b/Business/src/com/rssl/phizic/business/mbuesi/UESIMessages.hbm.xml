@@ -1,0 +1,81 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <typedef name="State" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.mbuesi.State</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.mbuesi.UESICancelLimitMessage" table="UESI_MESSAGES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_UESI_MESSAGES</param>
+            </generator>
+        </id>
+
+        <property name="creationDate" column="CREATION_DATE" type="calendar" not-null="true"/>
+        <property name="externalId" column="EXTERNAL_ID" type="string" not-null="false"/>
+        <property name="phone" column="PHONE" type="string" not-null="false"/>
+        <property name="eventDateTime" column="EVENT_DATE_TIME" type="calendar" not-null="false"/>
+        <property name="state" column="STATE" type="State" not-null="true"/>
+    </class>
+
+    <!--
+        Поиск сообщения по внешнему идентификатору за максимально допустимый период
+        Опорный объект: UESI_EXT_ID_IDX
+        Предикаты доступа: "EXTERNAL_ID"=:EXTERNALID
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.mbuesi.UESICancelLimitMessage.findByExternalId">
+        select message
+        from   com.rssl.phizic.business.mbuesi.UESICancelLimitMessage message
+        where  message.externalId = :externalId and
+                message.creationDate >= :minDate
+    </query>
+
+    <!--
+        Получение новых сообщений за максимально допустимый период
+        Опорный объект: UESI_STATE_IDX
+        Предикаты доступа: "STATE"='NEW' AND "CREATION_DATE">=TO_TIMESTAMP(:MINDATE)
+        Кардинальность: количество необработанных сообщений, ограниченное датой добавления
+    -->
+    <query name="com.rssl.phizic.business.mbuesi.UESICancelLimitMessage.getNewMessages">
+        <![CDATA[
+        select message
+        from   com.rssl.phizic.business.mbuesi.UESICancelLimitMessage message
+        where  message.state = 'NEW' and
+                message.creationDate >= :minDate
+        ]]>
+    </query>
+
+    <!--
+        Обновление состояния сообщения
+        Опорный объект: UESI_ID_IDX
+        Предикаты доступа: "ID"=TO_NUMBER(:ID)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.mbuesi.UESICancelLimitMessage.updateState">
+        <![CDATA[
+        update com.rssl.phizic.business.mbuesi.UESICancelLimitMessage
+        set state = :state
+        where id=:id and
+              creationDate = :creationDate
+        ]]>
+    </query>
+
+    <!--
+        Обновление состояния и внешнего идентификатора сообщения
+        Опорный объект: UESI_ID_IDX
+        Предикаты доступа: "ID"=TO_NUMBER(:ID)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.mbuesi.UESICancelLimitMessage.updateStateAndExtId">
+        <![CDATA[
+        update com.rssl.phizic.business.mbuesi.UESICancelLimitMessage
+        set state = :state, externalId = :externalId
+        where id=:id and
+              creationDate = :creationDate
+        ]]>
+    </query>
+
+</hibernate-mapping>

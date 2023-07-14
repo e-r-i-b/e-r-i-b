@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="AnswerType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.loanclaim.questionnaire.AnswerType</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="Status" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.loanclaim.questionnaire.Status</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.loanclaim.questionnaire.LoanClaimQuestion" table="LOAN_CLAIM_QUESTION">
+        <id name="id" type="long"/>
+        <property name="question" type="string" column="QUESTION" not-null="true"/>
+        <property name="answerType" type="AnswerType" column="ANSWER_TYPE" not-null="true"/>
+        <property name="status" type="Status" column="STATUS" not-null="false"/>
+    </class>
+    <!--
+      Получение отсортированного списка записей
+      Опорный объект: LOAN_CLAIM_QUESTION
+      Кардинальность: 1000
+    -->
+    <query name="com.rssl.phizic.operations.loanclaim.questionnaire.ListLoanClaimQuestionOperation.list">
+        select question
+        from com.rssl.phizic.business.loanclaim.questionnaire.LoanClaimQuestion as question
+        where
+            (:extra_questionId is null) OR (question.id = :extra_questionId)
+        order by question.id, question.status
+    </query>
+    <!--
+      Запрос на получение количества записей по заданному статусу
+      Опорный объект: LOAN_CLAIM_QUESTION
+      Предикаты доступа: "STATUS"=0
+      Кардинальность: не более 20 (по максимальному количеству записей с таким статусом)
+    -->
+    <query name="com.rssl.phizic.business.loanclaim.questionnaire.count">
+        select count(question)
+        from com.rssl.phizic.business.loanclaim.questionnaire.LoanClaimQuestion as question
+        where question.status = :status
+    </query>
+
+    <!--
+      Запрос на наличие опубликованных вопросов
+      Опорный объект: IDX_STATUS
+      Предикаты доступа: access("LOAN_CLAIM_QUESTION"."STATUS"=0)
+      Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.loanclaim.question.isPublishedExist">
+        select 1
+        from com.rssl.phizic.business.loanclaim.questionnaire.LoanClaimQuestion as question
+        where question.status = 0
+    </query>
+</hibernate-mapping>

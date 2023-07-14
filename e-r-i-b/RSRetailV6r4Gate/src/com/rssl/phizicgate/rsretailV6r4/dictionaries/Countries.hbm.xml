@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping catalog="RSRetailV51">
+
+    <class name="com.rssl.phizic.gate.dictionaries.Country" table="COUNTRIES">
+	    <id name="id" type="long" column="ID"/>
+        <property name="code" type="string" column="CODE_LAT" not-null="true"/>
+		<property name="name" type="string" column="NAME"/>
+	    <property name="fullName" type="string" column="FULL_NAME"/>
+	    <property name="intCode" type="string" column="INT_CODE"/>
+    </class>
+
+    <sql-query name="GetCountries">
+        <return alias="country" class="com.rssl.phizic.gate.dictionaries.Country">
+	        <return-property name="id"     column="countryId"/>
+	        <return-property name="code"   column="codeLat3"/>
+	        <return-property name="name"    column="tname"/>
+	        <return-property name="fullName" column="fullName"/>
+	        <return-property name="intCode"  column="codeNum3"/>
+        </return>
+        <![CDATA[
+	    SELECT
+        	countries.t_CountryID      AS countryId,
+	        countries.t_CodeLat3       AS codeLat3,
+	        countries.t_Name           AS tname,
+	        countries.t_FullName       AS fullName,
+	        countries.t_CodeNum3       AS codeNum3
+	    FROM dcountry_dbt countries
+	    ORDER BY CountryID
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

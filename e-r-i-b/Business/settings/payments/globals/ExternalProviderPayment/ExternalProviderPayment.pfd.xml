@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="ExternalProviderPayment" description="Оплата с внешней ссылки"
+              detailedDescription="Для продолжения совершения платежа заполните поля данной формы и нажмите на кнопку «Оплатить»."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.JurPayment"/>
+	<statemachine name="PaymentStateMachine"/>
+    <extended-metadata-loader
+            class="com.rssl.phizic.business.payments.forms.meta.externalPayments.ExternalPaymentMetadataLoader"/>
+
+    <fields>
+         <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true">
+		</field>
+
+        <!--URL перехода после оплаты-->
+        <field name="backUrl"
+               description="URL перехода после оплаты"
+               type="string"
+               source="extra-parameters/parameter[@name='backUrl']/@value">
+        </field>
+
+        <!--Действия после оплаты-->
+        <field name="backUrlAction"
+               description="URL возврата"
+               type="string"
+               source="extra-parameters/parameter[@name='backUrlAction']/@value">
+        </field>
+
+        <!--Данные получателя-->
+        <field name="receiverId"
+               description="Идентифкатор поставщика услуг"
+               type="string"
+               source="receiverId">
+        </field>
+
+        <!--Данные получателя-->
+        <field name="recipient"
+               description="Идентифкатор поставщика услуг"
+               type="string"
+               source="recipient">
+        </field>
+
+        <!-- Сумма платежа -->
+        <field name="amount"
+               description="Сумма платежа"
+               type="string"
+               source="destination-amount"
+               signable="true">
+        </field>
+
+        <!-- Валюта платежа -->
+        <field name="currency"
+               description="Валюта платежа"
+               type="string"
+               source="destination-amount-currency"
+               signable="true">
+        </field>
+
+        <field name="exactAmount"
+               source="exact-amount"
+               description="«Сумма» («Сумма зачисления»)"
+               type="string">
+        </field>
+
+        <!-- Номер заказа -->
+        <field name="orderNumber"
+               description="Номер заказа"
+               type="string"
+               source="extra-parameters/parameter[@name='orderNumber']/@value"
+               signable="true"/>
+
+        <field  name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Оплата с"
+                type="resource">
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field
+                name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+		<field
+                name="fromAccountSelect"
+                description="Счет/карта списания"
+                type="string"
+                source="payer-account"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getNumber()">
+		</field>
+
+        <field
+                name="fromAccountType"
+                source="extra-parameters/parameter[@name='from-account-type']/@value"
+                description="Тип (описание) источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getValue().getDescription()">
+        </field>
+
+        <field
+                name="fromAccountName"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                description="Наименование источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getName()">
+        </field>
+
+        <field
+                name="fromResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                type="string"
+                value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+                signable="true"/>        
+
+		<field name="receiverName"
+               description="Наименование"
+               type="string"
+               source="receiver-name"
+               signable="true"/>
+
+        <field name="receiverAccount"
+		       description="Счет зачисления"
+		       type="string"
+		       source="receiver-account"
+			  signable="true"/>
+
+		<field name="receiverINN"
+               description="ИНН"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-inn']/@value"
+               signable="true"/>
+
+		<field name="receiverKPP"
+               description="КПП"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-kpp']/@value"
+               signable="true"/>
+
+        <field name="receiverBankCode"
+               description="БИК"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-bic']/@value"
+               signable="true">
+        </field>
+
+		<field name="receiverBankName"
+               description="Наименование банка Получателя"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-bank']/@value"
+               signable="true"/>
+
+		<field name="receiverCorAccount"
+               description="Кор.Счет"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-cor-account']/@value"
+               signable="true"/>        
+
+        <field
+                name="authorizeCode"
+                description="Код авторизации"
+                type="string"
+                source="extra-parameters/parameter[@name='AUTHORIZE_CODE']/@value">
+        </field>
+
+		<field name="operationDate"
+               source="operation-date-short-year"
+               description="Дата отправки платежа"
+               type="string"/>
+
+        <field name="operationTime"
+			source="operation-time"
+			description="Время отправки платежа"
+			type="string"/>
+
+		<field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+        <field  name="currentDepartmentId"
+                description="Департамент клиента"
+                type="string"
+                source="ignored"
+                value="xpath:phiz:document('currentPersonData.xml')//field[@name='currentDepartmentId']">
+        </field>
+
+        <field name="promoCode"
+           source="promoCode"
+           description="Промо-код"
+           type="string"/>
+
+        <field
+                name="phoneNumber"
+                description="Телефон для обращений клиентов"
+                type="string"
+                source="extra-parameters/parameter[@name='receiver-phone-number']/@value">
+        </field>
+
+        <field name="nameOnBill"
+               description="Наименование получателя, выводимое в чеке"
+               type="string"
+               source="extra-parameters/parameter[@name='name-on-bill']/@value">
+        </field>
+
+        <field  name="checkStatusCountResult"
+                source="extra-parameters/parameter[@name='check-status-count-result']/@value"
+                description="Признак превышения допустимого значения проверок статуса платежа во ВС"
+                type="boolean"/>
+
+        <field  name="isEinvoicing"
+                source="extra-parameters/parameter[@name='is-einvoicing']/@value"
+                description="Признак оплаты заказа"
+                type="boolean"
+                value="true"/>
+
+        <field name="printDesc"
+               description="Информация о заказе для печатной формы"
+               type="string"
+               source="extra-parameters/parameter[@name='print-desc']/@value"/>
+
+        <field  name="provider-billing-code"
+                description="Идентфикатор билинговой системы"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='provider-billing-code']/@value"/>
+
+        <field  name="commission"
+                description="Сумма коммисии"
+                source="commission"
+                type="money"
+                signable="true"
+                value="'Значение только для чтения: не должно приходить от клиента и сеттиться в БД'"/>
+
+        <field  name="commissionCurrency"
+                description="Сумма коммисии"
+                source="commission-currency"
+                type="string"
+                signable="true"
+                value="'Значение только для чтения: не должно приходить от клиента и сеттиться в БД'"/>
+    </fields>
+
+	<form-validators>
+        <form-validator mode="document|mobile"
+                        class="com.rssl.phizic.business.payments.forms.validators.UserResourceAmountCurrencyValidator">
+            <message text="Вы ввели сумму, превышающую остаток средств на Вашем счете. Пожалуйста, введите другую сумму."/>
+            <field-ref name="resource">fromResource</field-ref>
+            <field-ref name="amount">amount</field-ref>
+            <field-ref name="currency">currency</field-ref>
+            <field-ref name="currentDepartmentId">currentDepartmentId</field-ref>
+        </form-validator>
+    </form-validators>
+    
+</payment-form>    

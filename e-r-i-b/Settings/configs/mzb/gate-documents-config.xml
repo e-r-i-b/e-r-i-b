@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documents xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="./../../schemas/gate-documents-config.xsd">
+
+	<document description="Перевод между счетами клиента."
+	          class="com.rssl.phizic.gate.payments.ClientAccountsTransfer">
+		<commission-calculator
+				class="com.rssl.phizicgate.rsV51.commission.DefaultPaymentCommissionCalculator">
+			<parameter name="operation-type" value="@operation.tranfer.other.account@"/>
+			<parameter name="suboperation-type" value="0"/>
+		</commission-calculator>
+
+		<sender class="com.rssl.phizicgate.rsV51.senders.ClientAccountsTransferSender">
+			<parameter name="operation-type" value="@operation.tranfer.other.account@"/>
+			<parameter name="pack-number" value="79"/>
+		</sender>
+	</document>
+
+	<document description="Перевод физическому\юридическому лицу в другой банк через платежную систему России"
+	          class="com.rssl.phizic.gate.payments.AbstractRUSPayment">
+		<commission-calculator class="com.rssl.phizicgate.rsV51.commission.RUSPaymentCommissionCalculator">
+			<parameter name="operation-type" value="@operation.tranfer.other.bank@"/>
+			<parameter name="suboperation-type-korr" value="@suboperation.transfer.korr.bank@"/>
+			<parameter name="suboperation-type-transfer-jur" value="@suboperation.transfer.other.bank.jur@"/>
+			<parameter name="suboperation-type-transfer-fiz" value="@suboperation.transfer.other.bank.fiz@"/>
+		</commission-calculator>
+
+		<sender class="com.rssl.phizicgate.rsV51.senders.RUSPaymentSender">
+			<parameter name="operation-type" value="@operation.tranfer.other.bank@"/>
+			<parameter name="suboperation-type-korr" value="@suboperation.transfer.korr.bank@"/>
+			<parameter name="suboperation-type-transfer-jur" value="@suboperation.transfer.other.bank.jur@"/>
+			<parameter name="suboperation-type-transfer-fiz" value="@suboperation.transfer.other.bank.fiz@"/>
+		    <parameter name="pack-number" value="79"/>
+		</sender>
+	</document>
+
+	<document description="Налоговый платеж РФ"
+	          class="com.rssl.phizic.gate.payments.RUSTaxPayment">
+		<commission-calculator class="com.rssl.phizicgate.rsV51.commission.DefaultPaymentCommissionCalculator">
+			<parameter name="operation-type" value="@operation.tranfer.other.bank@"/>
+			<parameter name="suboperation-type" value="@suboperation.tax.payment@"/>
+		</commission-calculator>
+
+		<sender class="com.rssl.phizicgate.rsV51.senders.TaxPaymentSender">
+			<parameter name="operation-type" value="@operation.tranfer.other.bank@"/>
+			<parameter name="suboperation-tax-type" value="@suboperation.tax.payment@"/>
+			<parameter name="priority" value="@priority.tax.payment@"/>
+			<parameter name="pack-number" value="0"/>
+		</sender>
+	</document>
+
+	<document description="Оплата услуг ЖКХ"
+	          class="com.rssl.phizic.gate.payments.UtilityPayment">
+		<commission-calculator
+				class="com.rssl.phizicgate.rsV51.commission.UtilityPaymentCommissionCalculator">
+			<parameter name="payment-kind" value="@municipal.payment.kind@"/>
+			<parameter name="payment-receiver" value="@municipal.payment.receiver@"/>
+		</commission-calculator>
+<!--
+		  <sender class="com.rssl.phizicgate.rsV51.senders.UtilityPaymentSender"/>
+-->
+	</document>
+
+	<document description="Перевод иностранной валюты на счет в другом банке"
+	          class="com.rssl.phizic.gate.payments.SWIFTPayment">
+		<commission-calculator class="com.rssl.phizicgate.rsV51.commission.SWIFTPaymentCommissionCalculator">
+			<parameter name="operation-type" value="@operation.tranfer.other.bank@"/>
+			<parameter name="suboperation-type-spot" value="@currency.transfer.suboperation.spot@"/>
+			<parameter name="suboperation-type-tom" value="@currency.transfer.suboperation.tom@"/>
+			<parameter name="suboperation-type-tod" value="@currency.transfer.suboperation.tod@"/>
+		</commission-calculator>
+		<sender class="com.rssl.phizicgate.rsV51.senders.SWIFTPaymentSender">
+			<parameter name="operation-type" value="@operation.tranfer.other.bank@"/>
+			<parameter name="suboperation-type-spot" value="@currency.transfer.suboperation.spot@"/>
+			<parameter name="suboperation-type-tom" value="@currency.transfer.suboperation.tom@"/>
+			<parameter name="suboperation-type-tod" value="@currency.transfer.suboperation.tod@"/>
+			<parameter name="pack-number" value="@payment.pack.number@"/>
+		</sender>
+	</document>
+
+	<document description="Покупка\продажа\конвертация валюты"
+	          class="com.rssl.phizic.gate.payments.CurrencyExchangeTransfer">
+		<sender class="com.rssl.phizicgate.rsV51.senders.CurrencyExchangeTransferSender">
+			<parameter name="operation-type" value="@operation.tranfer.convert@"/>
+			<parameter name="pack-number" value="@payment.pack.number@"/>
+		</sender>
+	</document>
+
+	<document description="Заявка на открытие депозита"
+	          class="com.rssl.phizic.gate.deposit.DepositOpeningClaim">
+<!--TODO<commission-calculator class=""/>-->
+		<sender class="com.rssl.phizicgate.rsV51.senders.DepositOpeningClaimSender">
+			<parameter name="currentRUB"       value="@deposit.current.id.RUB@"/>
+			<parameter name="currentUSD"       value="@deposit.current.id.USD@"/>
+			<parameter name="currentEUR"       value="@deposit.current.id.EUR@"/>
+			<parameter name="posteRestanteRUB" value="@deposit.posteRestante.id.RUB@"/>
+			<parameter name="posteRestanteUSD" value="@deposit.posteRestante.id.USD@"/>
+			<parameter name="posteRestanteEUR" value="@deposit.posteRestante.id.EUR@"/>
+			<parameter name="pack-number" value="@payment.pack.number@"/>
+		</sender>
+	</document>
+
+	<document description="Заявка на закрытие депозита"
+	          class="com.rssl.phizic.gate.claims.DepositClosingClaim">
+<!--TODO<commission-calculator class=""/>-->
+		<sender class="com.rssl.phizicgate.rsV51.senders.DepositClosingClaimSender">
+			<parameter name="pack-number" value="@payment.pack.number@"/>
+		</sender>
+	</document>
+
+	<document description="Заявка на закрытие счета"
+	          class="com.rssl.phizic.gate.claims.AccountClosingClaim">
+<!--TODO<commission-calculator class=""/>-->
+		<sender class="com.rssl.phizicgate.rsV51.senders.AccountClosingClaimSender">
+			<parameter name="pack-number" value="@payment.pack.number@"/>
+		</sender>
+	</document>
+
+	<document description="Перевод по сети Rapida"
+	          class="com.rssl.phizic.gate.payments.systems.AccountPaymentSystemPayment">
+		<commission-calculator class="com.rssl.phizicgate.rsV51.commission.DefaultPaymentCommissionCalculator">
+		    <parameter name="operation-type" value = "@operation.account.pay@"/>
+			<parameter name="suboperation-type" value="0"/>
+		</commission-calculator>
+		<sender class="com.rssl.phizicgate.rsV51.senders.RapidaDocumentManager">
+			<parameter name="retail-sender" value="com.rssl.phizicgate.rsV51.senders.RapidaPaymentRetailSender"/>
+			<parameter name="rapida-sender" value="com.rssl.phizic.rapida.senders.RapidaPaymentSender"/>
+			<parameter name="retail-operation-type" value = "@operation.tranfer.other.bank@"/>
+			<parameter name="retail-suboperation-type" value="301"/>
+			<parameter name="pack-number" value="80"/>
+
+			<parameter name="receiver-name" value="ООО НКО 'Платежная ситема РАПИДА'"/>
+			<parameter name="receiver-bic" value="@our.bank.bic@"/>
+			<parameter name="receiver-corraccount" value="@our.bank.coracc@"/>
+			<parameter name="receiver-bank-name" value='@our.bank.name@'/>
+		</sender>
+	</document>
+
+	<revoke-payment
+			class="com.rssl.phizic.gate.documents.WithdrawDocument"
+			document-type-field="withdrawType"/>
+	<!--TODO EditDocument-->
+</documents>

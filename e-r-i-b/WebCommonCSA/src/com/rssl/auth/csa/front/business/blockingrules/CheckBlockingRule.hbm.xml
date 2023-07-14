@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.auth.csa.front.business.blockingrules.BlockingRules" table="BLOCKINGRULES">
+        <id name="id" type="long" column="ID"/>
+
+        <property name="departments"         type="string"   column="DEPARTMENTS"/>
+        <property name="fromPublishDate"     type="calendar" column="FROM_PUBLISH_DATE"/>
+        <property name="toPublishDate"       type="calendar" column="TO_PUBLISH_DATE"/>
+        <property name="fromRestrictionDate" type="calendar" column="FROM_RESTRICTION_DATE"/>
+        <property name="toRestrictionDate"   type="calendar" column="TO_RESTRICTION_DATE"/>
+    </class>
+
+    <sql-query name="com.rssl.auth.csa.front.business.blockingrules.CheckBlockingRuleService.regionBlokingList">
+        <return alias="blockingRule" class="com.rssl.auth.csa.front.business.blockingrules.BlockingRules"/>
+        <![CDATA[
+            SELECT
+                {blockingRule.*}
+            FROM
+                BLOCKINGRULES blockingRule
+            WHERE
+                blockingRule.ERIB = 1
+                AND
+                ( blockingRule.FROM_PUBLISH_DATE is null OR blockingRule.FROM_PUBLISH_DATE <= :publishDate )
+                 AND
+                 ( blockingRule.TO_PUBLISH_DATE is null OR :publishDate <= blockingRule.TO_PUBLISH_DATE )
+                AND
+                  (blockingRule.FROM_PUBLISH_DATE is not null OR blockingRule.TO_PUBLISH_DATE is not null
+                  OR blockingRule.FROM_RESTRICTION_DATE is not null OR blockingRule.TO_RESTRICTION_DATE is not null)
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.auth.csa.front.business.blockingrules.CheckBlockingRuleService.isGlobalBloking">
+    <![CDATA[
+        select
+            case
+                when exists (select * from BLOCKINGRULES where DEPARTMENTS = 'global' and STATE = 'blocked') then 'true'
+                else 'false'
+            end
+        from dual
+    ]]>
+    </sql-query>
+</hibernate-mapping>    

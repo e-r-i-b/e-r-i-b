@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.rssl.phizicgate.rsV55.bankroll">
+    <class name="com.rssl.phizicgate.rsV55.bankroll.CardOperationImpl">
+	    <id name="operationId"/>
+
+	    <property name="operationDate"/>
+	    <property name="creditSum" type="com.rssl.phizicgate.rsV55.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalCreditSum"/>
+		    <column name="currencyId"/>
+	    </property>
+	    <property name="debitSum" type="com.rssl.phizicgate.rsV55.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalDebitSum"/>
+		    <column name="currencyId"/>
+	    </property>
+	    <property name="accountCreditSum" type="com.rssl.phizicgate.rsV55.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalAccountCreditSum"/>
+		    <column name="currencyId"/>
+	    </property>
+	    <property name="accountDebitSum" type="com.rssl.phizicgate.rsV55.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalAccountDebitSum"/>
+		    <column name="currencyId"/>
+	    </property>
+	    <property name="transactionFlag"/>
+	    <property name="transactionKind"/>
+	    <property name="date"/>
+	    <property name="description"/>
+
+    </class>
+
+	<sql-query name="GetOperations">
+		<return alias="trans" class="com.rssl.phizicgate.rsV55.bankroll.CardOperationImpl">
+			<return-property name="operationId"                    column="operationId"/>
+			<return-property name="operationDate"                  column="operationDate"/>
+			<return-property name="creditSum">
+				<return-column name="doubleCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="debitSum">
+				<return-column name="doubleDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountCreditSum">
+				<return-column name="doubleAccountCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountDebitSum">
+				<return-column name="doubleAccountDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="transactionFlag"                column="transactionFlag"/>
+			<return-property name="transactionKind"                column="transactionKind"/>
+			<return-property name="date"                           column="chargeDate"/>
+			<return-property name="description"                    column="description"/>
+		</return>
+		<![CDATA[
+			SELECT CONVERT(opers.Date_Document, SQL_CHAR)
+				    + CONVERT(opers.NumDayDoc, SQL_CHAR)  AS operationId
+			      ,opers.Date_Document 		              AS operationDate
+			      ,opers.Code_Currency 		              AS operationCurrencyId
+			      ,opers.InSum         		              AS doubleCreditSum
+			      ,opers.OutSum        		              AS doubleDebitSum
+			      ,opers.InSum         		              AS doubleAccountCreditSum
+			      ,opers.OutSum        		              AS doubleAccountDebitSum
+			      ,CONVERT('0', SQL_INTEGER)              AS transactionFlag
+			      ,CONVERT('0', SQL_INTEGER)              AS transactionKind
+			      ,CONVERT(opers.Date_Document, SQL_TIMESTAMP) AS chargeDate
+			      ,CONVERT('0', SQL_INTEGER)              AS transactionCurrencyId
+			      ,opers.Ground        		 	          AS description
+			FROM sbdepdoc_dbt opers
+			WHERE -- Проверка 11-го бита (&& 0x0800)
+				  MOD(opers.Flags, 4096) - MOD(opers.Flags, 2048) = 0
+			  AND opers.Referenc = :accountId
+			  AND opers.Date_Document >= :fromDate
+			  AND opers.Date_Document <= :toDate
+              -- Ф-я IsServDocWithEst из Mac\DEPOSITR\issrvdoc.mac
+			  AND opers.KindOp NOT IN (8, 9, 14, 15, 16)
+			  AND opers.Action  <> 2
+			  AND (MOD(opers.Flags, 262144) - MOD(opers.Flags, 131072)) = 0
+			    -- Проверка FlagStorn = "" (актуальность документа)
+			  AND opers.FlagStorn = ''
+
+				UNION
+
+			SELECT CONVERT(opers.Date_Document, SQL_CHAR)
+				    + CONVERT(opers.NumDayDoc, SQL_CHAR)
+			  ,opers.Date_Document
+			  ,opers.Code_Currency
+			  ,opers.InSum
+			  ,opers.OutSum
+			  ,opers.Rest
+			  ,CONVERT('1', SQL_INTEGER)
+			  ,authTransSum
+			  ,authKindOp
+			  ,CONVERT(CONVERT(authDate, SQL_CHAR) + ' ' + CONVERT(authTime, SQL_CHAR), SQL_TIMESTAMP)
+			  ,authTransCodCur
+			  ,descr.codName
+			FROM sbdepdoc_dbt opers
+				,scTran_dbt   trans
+				,scLink_dbt   links
+				,scCodif_dbt  descr
+			WHERE trans.FNCash = 1
+			  AND opers.ListTransfer = trans.authRef
+			  AND trans.accCardLinkRef = links.accCardLinkRef
+			  AND trans.authTypeCode = descr.codCode
+			  -- Проверка 11-го бита (&& 0x0800)
+			  AND MOD(opers.Flags, 4096) - MOD(opers.Flags, 2048) <> 0
+			  AND opers.Referenc = :accountId
+			  AND opers.Date_Document >= :fromDate
+			  AND opers.Date_Document <= :toDate
+			  -- Ф-я IsServDocWithEst из Mac\DEPOSITR\issrvdoc.mac
+			  AND opers.KindOp NOT IN (8, 9, 14, 15, 16)
+			  AND opers.Action  <> 2
+			  AND (MOD(opers.Flags, 262144) - MOD(opers.Flags, 131072)) = 0
+			    -- Проверка FlagStorn = "" (актуальность документа)
+			  AND opers.FlagStorn = ''
+
+			  AND links.cardRef = :cardId
+			  AND descr.codType = 20
+			  AND ( descr.psRef = 0 OR descr.psRef = trans.psRef )
+			ORDER BY 2
+		]]>
+	</sql-query>
+
+	<sql-query name="GetUnsettledOperations">
+		<return alias="trans" class="com.rssl.phizicgate.rsV55.bankroll.CardOperationImpl">
+			<return-property name="operationId"                    column="operationId"/>
+			<return-property name="operationDate"                  column="operationDate"/>
+			<return-property name="creditSum">
+				<return-column name="doubleCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="debitSum">
+				<return-column name="doubleDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountCreditSum">
+				<return-column name="doubleAccountCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountDebitSum">
+				<return-column name="doubleAccountDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="transactionFlag"                column="transactionFlag"/>
+			<return-property name="transactionKind"                column="transactionKind"/>
+			<return-property name="date"                           column="chargeDate"/>
+			<return-property name="description"                    column="description"/>
+		</return>
+		<![CDATA[
+			SELECT CONVERT(trans.authDate, SQL_CHAR)
+				    + CONVERT(trans.authCode, SQL_CHAR)   AS operationId
+			  ,trans.authDate    		                  AS operationDate
+			  ,trans.authSumCodCur  	                  AS operationCurrencyId
+			  ,trans.authSum       		                  AS doubleCreditSum
+			  ,CONVERT('0', SQL_DOUBLE)	                  AS doubleDebitSum
+			  ,trans.authSum       		                  AS doubleAccountCreditSum
+			  ,CONVERT('0', SQL_DOUBLE)	                  AS doubleAccountDebitSum
+			  ,CONVERT('1', SQL_INTEGER)                  AS transactionFlag
+			  ,trans.authKindOp 		                  AS transactionKind
+			  ,CONVERT(NULL(), SQL_TIMESTAMP)             AS chargeDate
+			  ,trans.authTransCodCur	                  AS transactionCurrencyId
+			  ,trans.authNotes                             AS description
+			FROM scTran_dbt   trans
+				,scLink_dbt   links
+				,scCodif_dbt  descr
+			WHERE trans.FNCash = 1
+			  AND trans.accCardLinkRef = links.accCardLinkRef
+			  AND trans.authTypeCode = descr.codCode
+			  AND links.cardAccRef = :accountId
+			  AND trans.authDate >= :fromDate
+			  AND trans.authDate <= :toDate
+			  AND links.cardRef = :cardId
+			  AND descr.codType = 20
+			  AND trans.authKindOp = 1
+			  AND trans.authStateCode = 'AUTH'
+			  AND ( descr.psRef = 0 OR descr.psRef = trans.psRef )
+
+			UNION
+
+			SELECT CONVERT(trans.authDate, SQL_CHAR)
+				    + CONVERT(trans.authCode, SQL_CHAR)
+			  ,trans.authDate
+			  ,trans.authSumCodCur
+			  ,CONVERT('0', SQL_DOUBLE)
+			  ,trans.authSum
+			  ,CONVERT('0', SQL_DOUBLE)
+			  ,CONVERT('1', SQL_INTEGER)
+			  ,trans.authSum
+			  ,trans.authKindOp
+			  ,CONVERT(NULL(), SQL_TIMESTAMP)
+			  ,trans.authTransCodCur
+			  ,trans.authNotes
+			FROM scTran_dbt   trans
+				,scLink_dbt   links
+				,scCodif_dbt  descr
+			WHERE trans.FNCash = 1
+			  AND trans.accCardLinkRef = links.accCardLinkRef
+			  AND trans.authTypeCode = descr.codCode
+			  AND links.cardAccRef = :accountId
+			  AND trans.authDate >= :fromDate
+			  AND trans.authDate <= :toDate
+			  AND links.cardRef = :cardId
+			  AND descr.codType = 20
+			  AND trans.authKindOp = 2
+			  AND (trans.authStateCode = 'AUTH_' OR trans.authStateCode = 'INI__')
+			  AND ( descr.psRef = 0 OR descr.psRef = trans.psRef )
+            ORDER BY 2
+		]]>
+	</sql-query>
+</hibernate-mapping>

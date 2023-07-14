@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RurPayJurSB" description="Оплата покупок и услуг" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.GoodsAndServicesPayment"/>
+	<extended-metadata-loader class="com.rssl.phizic.business.forms.PaymentReceiversMetadataLoader"/>
+	<sender class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+	<open-actions>
+		<action class="com.rssl.phizic.business.payments.ValidatePaymentAccountAction" order="1">
+			<parameter name="checkType">payer</parameter>
+		</action>		
+	</open-actions>
+	<fields>
+		<field name="documentNumber"
+			   description="Номер перевода" 
+			   source="document-number"
+			   type="string"
+				signable="true"/>
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+			   type="string"/>
+		<field name="payerAccountSelect" 
+			   description="Счет списания" 
+			   type="account"
+			   source="payer-account"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator"/>
+			</validators>
+		</field>
+
+		<field name="receiverName" 
+			   description="Наименование" 
+			   type="string" 
+			   source="receiver-name"
+				signable="true"/>
+
+
+		<field name="amount" 
+			   description="Сумма" 
+			   source="amount" 
+			   type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение суммы должно быть в диапазоне 10 - 999999999,99"/>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение суммы должно быть в диапазоне 10 - 999999999,99"/>
+					<parameter name="minValue">10.00</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="commissionAmount"
+			   description="Комиссия" 
+			   source="commission"
+			   type="money"
+				signable="true"/>
+
+		<field name="appointment" 
+			   description="Назначение платежа" 
+			   type="string" 
+			   source="extra-parameters/parameter[@name='appointment']/@value"
+				signable="true"/>
+
+		<field name="receiverKey" 
+			   description="Идентификатор получателя" 
+			   type="string" 
+			   source="extra-parameters/parameter[@name='receiver-key']/@value"
+				signable="true"/>
+
+		<field
+				name="amountCurrency"
+				description="Валюта"
+				source="extra-parameters/parameter[@name='amount-currency']/@value"
+				type="string"
+				signable="true"/>
+		<field
+				name="fromAccountAmount"
+				description="Количество средств на счете списания"
+				source="extra-parameters/parameter[@name='from-account-amount']/@value"
+				type="string"
+				signable="true"/>
+		<field
+				name="fromAccountType"
+				description="Тип счета списания"
+				source="extra-parameters/parameter[@name='from-account-type']/@value"
+				type="string"
+				signable="true"/>
+
+		<field name="ground" source="ground" description="ground" type="string"/>
+
+		<field name="destination"
+		       source="extra-parameters/parameter[@name='destination']/@value"
+		       description="Назначение платежа"
+			   type="string"
+			   signable="false"/>
+	</fields>
+	<need-parent value="true"/>
+	<form-validators>
+		<form-validator mode="document" enabled="form.appointment!='gkh-payment' &amp;&amp; form.receiverKey!=0" class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">payerAccountSelect</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

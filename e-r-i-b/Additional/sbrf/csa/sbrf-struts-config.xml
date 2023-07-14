@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+
+<struts-config>
+
+	<form-beans>
+		<!-- выбор способа аутентификации -->
+		<form-bean name="IndexForm"
+		           type="com.rssl.phizic.web.client.security.IndexForm"/>
+		<!-- выписка по счету -->
+		<form-bean name="ShowAccountAbstractForm"
+		           type="com.rssl.phizic.web.client.ext.sbrf.accounts.ShowAccountAbstractExtendedForm"/>
+		<!-- печать по счету -->
+		<form-bean name="PrintAccountAbstractForm"
+		           type="com.rssl.phizic.web.client.ext.sbrf.accounts.PrintAccountAbstractExtendedForm"/>
+
+		<form-bean name="LoginForm"
+		           type="com.rssl.phizic.web.client.ext.sbrf.security.LoginClosePasswordStageForm"/>
+
+		<form-bean name="ConfirmPasswordLoginForm"
+		           type="com.rssl.phizic.web.client.ext.sbrf.security.LoginClosePasswordStageForm"/>
+	    <form-bean name="ListServicesPaymentForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.payment.services.ListServicesPaymentForm"/>
+        <form-bean name="ListServicesPaymentSearchForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.payment.services.ListServicesPaymentSearchForm"/>
+        <form-bean name="ServicesPaymentForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.payment.services.ServicesPaymentForm"/>
+        <form-bean name="SelectDebtForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.payment.services.SelectDebtForm"/>
+        <form-bean name="ExternalFieldsInputForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.payment.services.ExternalFieldsInputForm"/>
+        <form-bean name="ListKBKForm"
+		           type="com.rssl.phizic.web.dictionaries.kbk.ListKBKForm"/>
+        <form-bean name="PaymentsIndexForm"
+                   type="com.rssl.phizic.web.client.payments.IndexForm"/>
+        <!-- Regions -->
+        <form-bean name="ShowRegionsListForm"
+		           type="com.rssl.phizic.web.client.dictionaries.ShowRegionsListForm"/>
+
+        <!-- Мобильный Банк -->
+        <form-bean name="ListMobileBankRegistrationsForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.ListRegistrationsForm"/>
+        <form-bean name="EditMobileBankRegistrationForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.EditRegistrationForm"/>
+        <form-bean name="SelectMobileBankServiceProviderForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.SelectServiceProviderForm"/>
+        <form-bean name="CreateMobileBankPaymentTemplateForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.PaymentTemplateForm"/>
+        <form-bean name="ConfirmMobileBankPaymentTemplateForm"
+                   type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.PaymentTemplateForm"/>
+
+
+    </form-beans>
+
+    <global-exceptions>
+		<exception key="error.system"
+		           scope="request"
+		           type="java.lang.Exception"
+		           handler="com.rssl.phizic.web.actions.ExceptionHandler"
+		           path="/WEB-INF/jsp-sbrf/errorPage.jsp"/>
+
+    </global-exceptions>
+	<action-mappings>
+        <!-- Регионы -->
+        <action path="/dictionaries/regions/list"
+                        type="com.rssl.phizic.web.client.dictionaries.ShowRegionsListAction"
+                        name="ShowRegionsListForm" scope="request"
+                        validate="false">
+                    <forward name="Start" path="/WEB-INF/jsp-sbrf/dictionaries/regions/list.jsp"/>
+         </action>
+
+		<!-- информация по счетам и картам -->
+		<action path="/private/accounts" type="com.rssl.phizic.web.client.ext.sbrf.accounts.ShowAccountsExtendedAction"
+		        name="ShowAccountsForm" scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sbrf/accounts/accounts.jsp"/>
+			<forward name="Abstract" path="/private/accounts/abstract.do" redirect="true"/>
+            <forward name="Denied" path="/private/test.do" redirect="true"/>
+			<forward name="ShowLongOffer" path="/private/accounts/showlong.do" redirect="true"/>
+		</action>
+		<!-- печать выписки по картам -->
+		<action path="/private/accounts/abstract" type="com.rssl.phizic.web.client.ext.sbrf.accounts.ShowAccountAbstractExtendedAction" name="ShowAccountAbstractForm" scope="request" validate="false">
+			<forward name="ShowAbstract" path="/WEB-INF/jsp-sbrf/abstr/abstractFilter.jsp"/>
+			<forward name="ShowInformation" path="/WEB-INF/jsp-sbrf/abstr/abstractFilter.jsp"/>
+		</action>
+		<!-- печать выписки по счетам и картам -->
+		<action path="/private/accounts/print" type="com.rssl.phizic.web.client.ext.sbrf.accounts.PrintAccountAbstractExtendedAction" name="PrintAccountAbstractForm" scope="request" validate="false">
+			<forward name="PrintAbstract" path="/WEB-INF/jsp-sbrf/abstr/abstractPrint.jsp"/>
+			<forward name="PrintInformation" path="/WEB-INF/jsp-sbrf/abstr/abstractPrint.jsp"/>
+		</action>
+		<!-- список видов платежей -->
+		<action path="/private/payments"
+		        type="com.rssl.phizic.web.client.payments.IndexAction"
+		        name="PaymentsIndexForm"
+		        scope="request" validate="false">
+				<forward name="Show" path="/WEB-INF/jsp-sbrf/payments/index.jsp"/>
+		</action>
+
+        <!-- список оплата услуг -->
+		<action path="/private/payments/servicesPayments"
+		        type="com.rssl.phizic.web.client.ext.sbrf.payment.services.ListServicesPaymentAction"
+		        name="ListServicesPaymentForm"
+		        scope="request" validate="false">
+				<forward name="Start" path="/WEB-INF/jsp-sbrf/payments/listServicesPayment.jsp"/>
+		</action>
+
+        <action path="/private/payments/servicesPayments/search"
+		        type="com.rssl.phizic.web.client.ext.sbrf.payment.services.ListServicesPaymentSearchAction"
+		        name="ListServicesPaymentSearchForm"
+		        scope="request" validate="false">
+				<forward name="Start" path="/WEB-INF/jsp-sbrf/payments/listServicesPaymentSearch.jsp"/>
+		</action>
+
+        <action path="/private/payments/servicesPayments/edit"
+		        type="com.rssl.phizic.web.client.ext.sbrf.payment.services.ServicesPaymentAction"
+		        name="ServicesPaymentForm"
+		        scope="request" validate="false">
+				<forward name="Start" path="/WEB-INF/jsp-sbrf/payments/servicesPayment.jsp"/>
+                <forward name="InputFields" path="/private/payments/servicesPayments/inputFields.do" redirect="true"/>
+
+                <forward name="SelectDebt" path="/private/payments/servicesPayments/selectDebt.do" redirect="true"/>
+                <forward name="EditPayment" path="/private/payments/servicesPayment.do?form=RurPayJurSB" redirect="true"/>
+		</action>
+
+        <action path="/private/payments/servicesPayments/selectDebt"
+		        type="com.rssl.phizic.web.client.ext.sbrf.payment.services.SelectDebtAction"
+		        name="SelectDebtForm"
+		        scope="request" validate="false">
+                <forward name="Start" path="/WEB-INF/jsp-sbrf/payments/chooseDebt.jsp"/>
+                <forward name="Close" path="/private/payments/servicesPayments/edit.do?back=true" redirect="true"/>
+                <forward name="EditPayment" path="/private/payments/servicesPayment.do?form=RurPayJurSB" redirect="true"/>
+		</action>
+
+        <action path="/private/payments/servicesPayments/inputFields"
+		        type="com.rssl.phizic.web.client.ext.sbrf.payment.services.ExternalFieldsInputAction"
+		        name="ExternalFieldsInputForm"
+		        scope="request" validate="false">
+                <forward name="Start" path="/WEB-INF/jsp-sbrf/payments/inputFields.jsp"/>
+                <forward name="Close" path="/private/payments/servicesPayments/edit.do?back=true" redirect="true"/>
+                <forward name="SelectDebt" path="/private/payments/servicesPayments/selectDebt.do" redirect="true"/>
+		</action>
+		<!-- форма логина -->
+
+
+ <action path="/login" type="com.rssl.phizic.web.client.ext.sbrf.security.PostCSALoginAction"
+                name="DummyForm" scope="request" validate="false">
+            <forward name="Show" path="/WEB-INF/jsp-sbrf/login.jsp"/>
+            <forward name="Block" path="/WEB-INF/jsp-sbrf/loginBlockCSA.jsp"/>
+        </action>
+
+        <action path="/logoff"
+                type="com.rssl.phizic.web.security.CSALogoffAction"/>
+
+        <action path="/confirm/csa" type="com.rssl.phizic.web.client.ext.sbrf.security.ConfirmCSAPasswordAction"
+		        name="DummyForm" scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sbrf/login.jsp"/>
+        </action>
+            <!--<forward name="Redirect" path="WEB-INF/jsp-sbrf/confirmRedirect.jsp"/>-->
+
+        <action path="/confirm/password" type="com.rssl.phizic.web.client.ext.sbrf.security.ConfirmPasswordLoginAction"
+		        name="ConfirmPasswordLoginForm" scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sbrf/confirm/confirmPassword.jsp"/>
+		</action>
+
+        <action path="/confirm/sms" type="com.rssl.phizic.web.client.security.ConfirmSmsLoginAction"
+		        name="ConfirmSmsLoginForm" scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sbrf/confirm/confirmSms.jsp"/>
+		</action>
+		<!-- журнал операций -->
+		  <action path="/private/payments/common"
+				  type="com.rssl.phizic.web.client.payments.ShowCommonPaymentListAction"
+				  name="ShowCommonPaymentListForm" scope="request" validate="false"
+				 parameter="Start">
+			 <forward name="Start" path="/WEB-INF/jsp-sbrf/list-payments.jsp"/>
+			 <forward name="Create" path="/private/payments/payment.do" redirect="true"/>
+		  </action>
+
+        <action path="/private/payments/payment" type="com.rssl.phizic.web.client.payments.forms.EditPaymentAction" name="CreatePaymentForm" scope="request" validate="false">
+            <forward name="ShowForm" path="/WEB-INF/jsp-sbrf/payments/edit-payment.jsp"/>
+            <forward name="DefaultForward" path="/private/payments/default-action.do" redirect="true"/>
+            <forward name="Close" path="/private/payments.do" redirect="true"/>
+            <forward name="CloseRurPayJurSB" path="/private/payments/servicesPayments/edit.do?back=true" redirect="true"/>
+			<forward name="ShowList" path="/private/payments/payments.do" redirect="true"/>
+            <forward name="EditTemplate" path="/private/payments/template.do" redirect="true"/>
+        </action>
+
+        <action path="/private/payments/template" type="com.rssl.phizic.web.client.payments.forms.EditTemplateAction" name="CreatePaymentForm" scope="request" validate="false">
+            <forward name="EditTemplate" path="/WEB-INF/jsp-sbrf/payments/edit-template.jsp"/>
+            <forward name="ViewTemplate" path="/private/payments/template/view.do" redirect="true"/>
+        </action>
+
+        <action path="/private/payments/template/view" type="com.rssl.phizic.web.client.payments.forms.ViewTemplateAction" name="ViewDocumentForm" scope="request" validate="false">
+			<forward name="Start" path="/WEB-INF/jsp/private/payments/forms/view-template.jsp"/>
+		</action>
+
+        <action path="/private/payments/servicesPayment"
+                type="com.rssl.phizic.web.client.ext.sbrf.payment.services.EditServicePaymentAction"
+                name="CreatePaymentForm" scope="request"
+                validate="false">
+            <forward name="ShowForm" path="/WEB-INF/jsp-sbrf/payments/edit-payment.jsp"/>
+            <forward name="DefaultForward" path="/private/payments/default-action.do" redirect="true"/>
+            <forward name="Close" path="/private/payments/servicesPayments/edit.do?back=true" redirect="true"/>
+            <forward name="ShowList" path="/private/payments/payments.do" redirect="true"/>
+        </action>
+
+
+        <!-- вывод курса валют -->
+        <action path="/private/rate" type="com.rssl.phizic.web.client.payments.ShowCurrenciesRateAction"
+                  name="ShowCurrenciesRateForm"
+                  scope="request"
+                validate="false"
+                >
+            <forward name="Show" path="/WEB-INF/jsp-sbrf/currenciesRate.jsp"/>
+        </action>
+
+       <!-- получатели платежей -->
+       <action path="/private/receivers/edit"
+		        type="com.rssl.phizic.web.client.ext.sbrf.dictionaries.EditPaymentReceiverClientAction"
+		        name="EditPaymentReceiverForm" scope="request"
+		        parameter="PaymentReceiverList"
+		        validate="false">
+			<forward name="StartP" path="/WEB-INF/jsp-sbrf/private/receivers/edit.jsp"/>
+			<forward name="StartJ" path="/WEB-INF/jsp-sbrf/private/receivers/edit.jsp"/>
+            <forward name="StartB" path="/WEB-INF/jsp-sbrf/private/receivers/edit.jsp"/>
+			<forward name="Success" path="/private/receivers/confirm.do" redirect="true"/>
+		</action>
+
+        <action path="/private/receivers/confirm"
+		        type="com.rssl.phizic.web.client.dictionaries.ConfirmPaymentReceiverAction"
+		        name="ConfirmPaymentReceiverForm" scope="request"
+		        validate="false">
+			<forward name="Start" path="/WEB-INF/jsp-sbrf/private/receivers/confirm.jsp"/>
+			<forward name="Success" path="/private/receivers/list.do?kind=PJB" redirect="true"/>
+		</action>
+
+        <action path="/private/receivers/list"
+		        type="com.rssl.phizic.web.client.dictionaries.ShowPaymentReceiverListClientAction"
+		        name="ShowPaymentReceiverListForm"
+		        scope="request"
+		        parameter="PaymentReceiverList"
+		        validate="false">
+			<forward name="StartP"   path="/WEB-INF/jsp-sbrf/private/receivers/list.jsp"/>
+			<forward name="StartJ"   path="/WEB-INF/jsp-sbrf/private/receivers/list.jsp"/>
+            <forward name="StartPJ"  path="/WEB-INF/jsp-sbrf/private/receivers/list.jsp"/>
+            <forward name="StartPJB" path="/WEB-INF/jsp-sbrf/private/receivers/list.jsp"/>
+		</action>
+
+        <!-- печать бланков -->
+        <action path="/private/printForm" type="com.rssl.phizic.web.client.payments.forms.PrintFormAction"
+                  name="DummyForm"
+                  scope="request"
+                validate="false"
+                >
+            <forward name="Show" path="/WEB-INF/jsp-sbrf/common/printForm.jsp"/>
+        </action>
+
+        <!-- печать ПД-4-->
+		<action path="/private/PD4"
+		        type="com.rssl.phizic.web.PD4Action"
+		        name="PD4Form" scope="request" validate="false">
+			<forward name="Start" path="/WEB-INF/jsp-sbrf/common/PD4Form.jsp"/>
+			<forward name="Print" path="/WEB-INF/jsp/common/PD4PrintTemplate.jsp"/>
+			<forward name="PrintNalog" path="/WEB-INF/jsp/common/PD4PrintTemplateNalog.jsp"/>
+			<forward name="PrintLetterOffer" path="/WEB-INF/jsp/common/offerTemplate.jsp"/>
+			<forward name="PrintPayOffer" path="/WEB-INF/jsp/common/offerTemplate.jsp"/>
+			<!-- заполнение полей -->
+			<forward name="StatusFill" path="/WEB-INF/jsp/common/PD4StatusFill.jsp"/>
+			<forward name="TypeFill" path="/WEB-INF/jsp/common/PD4TypeFill.jsp"/>
+			<forward name="FundFill" path="/WEB-INF/jsp/common/PD4FundFill.jsp"/>
+			<forward name="PeriodFill" path="/WEB-INF/jsp/common/PD4PeriodFill.jsp"/>
+		</action>
+        <!-- показ подтвержденных платежей-->
+        <action path="/private/payments/view" type="com.rssl.phizic.web.client.payments.forms.ViewDocumentAction" name="ViewDocumentForm" scope="request" validate="false">
+            <forward name="Start" path="/WEB-INF/jsp-sbrf/payments/view-payment.jsp"/>
+            <forward name="DefaultForward" path="/private/payments/default-action.do" redirect="true"/>
+            <forward name="ShowList" path="/private/payments/payments.do" redirect="true"/>
+        </action>
+
+        <!-- подтверждение платежа на базе формы -->
+        <action path="/private/payments/confirm" type="com.rssl.phizic.web.client.payments.forms.ConfirmDocumentAction" name="ConfirmPaymentByFormForm" scope="request" validate="false">
+            <forward name="ShowForm" path="/WEB-INF/jsp-sbrf/payments/confirm-payment.jsp"/>
+            <forward name="DefaultForward" path="/private/payments/default-action.do" redirect="true"/>
+        </action>
+
+        <!--Помощь-->
+        <action path="/help" type="com.rssl.phizic.web.client.help.HelpActionC" name="HelpForm" scope="request" validate="false">
+        <forward name="Show" path="/WEB-INF/jsp-sbrf/common/helpPage.jsp"/>
+        </action>
+
+        <!-- Мобильный банк -->
+        <action path="/private/mobilebank/main"
+                type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.ListRegistrationsAction"
+                name="ListMobileBankRegistrationsForm"
+                scope="request"
+                validate="false">
+            <forward name="Start" path="/WEB-INF/jsp-sbrf/mobilebank/main.jsp"/>
+        </action>
+
+        <action path="/private/mobilebank/payments/list"
+                type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.EditRegistrationAction"
+                name="EditMobileBankRegistrationForm"
+                scope="request"
+                validate="false">
+            <forward name="Start" path="/WEB-INF/jsp-sbrf/mobilebank/payments.jsp"/>
+            <forward name="Close" path="/private/mobilebank/main.do" redirect="true"/>
+        </action>
+
+        <action path="/private/mobilebank/payments/select-service-provider"
+                type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.SelectServiceProviderAction"
+                name="SelectMobileBankServiceProviderForm"
+                scope="request"
+                validate="false">
+            <forward name="Start" path="/WEB-INF/jsp-sbrf/mobilebank/select-service-provider.jsp"/>
+        </action>
+
+        <action path="/private/mobilebank/payments/create-template"
+                type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.CreatePaymentTemplateAction"
+                name="CreateMobileBankPaymentTemplateForm"
+                scope="request"
+                validate="false">
+            <forward name="Start" path="/WEB-INF/jsp-sbrf/mobilebank/create-template.jsp"/>
+            <forward name="Close" path="/private/mobilebank/main.do" redirect="true"/>
+            <forward name="Save" path="/private/mobilebank/payments/confirm-template.do" redirect="true"/>
+        </action>
+
+        <action path="/private/mobilebank/payments/confirm-template"
+                type="com.rssl.phizic.web.client.ext.sbrf.mobilebank.ConfirmPaymentTemplateAction"
+                name="ConfirmMobileBankPaymentTemplateForm"
+                scope="request"
+                validate="false">
+            <forward name="Start" path="/WEB-INF/jsp-sbrf/mobilebank/confirm-template.jsp"/>
+            <forward name="Success" path="/private/mobilebank/payments/list.do" redirect="true"/>
+        </action>
+
+        <!-- справочник КБК -->
+        <action path="/private/dictionary/kbk/list"
+                type="com.rssl.phizic.web.dictionaries.kbk.ListKBKAction"
+                name="ListKBKForm"
+                scope="request">
+           <forward name="Start" path="/WEB-INF/jsp/common/dictionaries/kbk/list.jsp"/>
+        </action>
+
+
+	</action-mappings>
+	
+    <message-resources
+        factory="com.rssl.phizic.web.struts.MultiPropertyMessageResourcesFactory"
+        parameter="com.rssl.phizic.operations.validators.messages;
+                   com.rssl.phizic.business.payments.forms.validator;
+                   com.rssl.phizic.web.dictionaries.kbk.resources"
+        key="kbk"/>
+
+
+	<plug-in className="org.apache.struts.tiles.TilesPlugin">
+		<set-property property="definitions-config"
+		              value="
+		                /WEB-INF/tiles/tiles-components.xml,
+		                /WEB-INF/tiles/tiles-global-templates.xml,
+		                /WEB-INF/tiles-definitions.xml"/>
+	</plug-in>
+
+</struts-config>
+
+

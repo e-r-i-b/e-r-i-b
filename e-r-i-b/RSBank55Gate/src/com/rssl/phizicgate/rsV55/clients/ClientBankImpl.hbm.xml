@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.rssl.phizicgate.rsV55.clients.ClientImpl" entity-name="FullClient">
+		<cache usage="read-write"/>
+
+		<id name="longId" column="PersonID"/>
+
+		<property name="shortName" type="string" column="shortName"/>
+		<property name="fullName" type="string" column="fullName"/>
+		<property name="residental" type="string" column="residental"/>
+		<property name="surName" type="string" column="surName"/>
+		<property name="firstName" type="string" column="firstName"/>
+		<property name="patrName" type="string" column="patrName"/>
+		<property name="birthDay" type="calendar" column="birthDay"/>
+		<property name="birthPlace" type="string" column="birthPlace"/>
+		<property name="genderRetail" type="string" column="sex"/>
+		<property name="email" type="string" column="email"/>
+    	<property name="homePhone" type="string" column="homePhone"/>
+    	<property name="jobPhone" type="string" column="jobPhone"/>
+    	<property name="mobilePhone" type="string" column="mobilePhone"/>
+		<property name="INN" type="string" column="inn"/>
+		<property name="citizenship" type="string" column="citizenship"/>
+	</class>
+
+	<class name="com.rssl.phizicgate.rsV55.clients.ClientImpl" entity-name="LigthClient">
+
+		<id name="longId" column="PersonID"/>
+
+		<property name="shortName" type="string" column="shortName"/>
+		<property name="fullName" type="string" column="fullName"/>
+		<property name="residental" type="string" column="residental"/>
+		<property name="surName" type="string" column="surName"/>
+		<property name="firstName" type="string" column="firstName"/>
+		<property name="patrName" type="string" column="patrName"/>
+		<property name="birthDay" type="calendar" column="birthDay"/>
+		<property name="birthPlace" type="string" column="birthPlace"/>
+		<property name="genderRetail" type="string" column="sex"/>
+		<property name="email" type="string" column="email"/>
+    	<property name="homePhone" type="string" column="homePhone"/>
+    	<property name="jobPhone" type="string" column="jobPhone"/>
+    	<property name="mobilePhone" type="string" column="mobilePhone"/>
+		<property name="INN" type="string" column="inn"/>
+		<property name="citizenship" type="string" column="citizenship"/>
+		<bag name="documents" lazy="false">
+			<key column="kPersonId"/>
+			<one-to-many class="com.rssl.phizicgate.rsV55.clients.ClientDocumentImpl" />
+			<loader query-ref="com.rssl.phizicgate.rsV55.clients.ClientDocumentImpl.GetClientDocuments"/>
+		</bag>
+	</class>
+
+
+	<sql-query name="GetFullClientInfo">
+		<return alias="person" entity-name="FullClient">
+			<return-property name="longId" column="longId"/>
+			<return-property name="shortName" column="shortName"/>
+			<return-property name="fullName" column="fullName"/>
+			<return-property name="residental" column="residental"/>
+			<return-property name="surName" column="surName"/>
+			<return-property name="firstName" column="firstName"/>
+			<return-property name="patrName" column="patrName"/>
+			<return-property name="birthDay" column="birthDay"/>
+			<return-property name="birthPlace" column="birthPlace"/>
+			<return-property name="sex" column="sex"/>
+			<return-property name="email" column="email"/>
+    	    <return-property name="homePhone" column="homePhone"/>
+    	    <return-property name="jobPhone" column="jobPhone"/>
+    	    <return-property name="mobilePhone" column="mobilePhone"/>
+			<return-property name="inn" column="inn"/>
+			<return-property name="citizenship" column="citizenship"/>
+		</return>
+		SELECT
+		client.client AS longId,
+		client.szShortName AS shortName,
+		CONVERT(client.Name_Client + client.Name_Client_2, SQL_CHAR) AS fullName,
+		client.NotResident as residental,
+		persn.LastName AS surName,
+		persn.Name AS firstName,
+		persn.Patronymic AS patrName,
+		persn.BirthDate AS birthDay,
+		'' AS birthPlace,
+		persn.Sex as sex,
+		addressEmail.Address as email,
+        addressHomePhone.Address as homePhone,
+        addressJobPhone.Address as jobPhone,
+		addressMobilePhone.Address as mobilePhone,
+		regDocInn.RegNum as inn,
+		country.FullName as citizenship
+
+		FROM
+		client_dbt AS client
+		INNER JOIN persn_dbt AS persn ON client.client = persn.ClientID AND client.LegalForm = 2
+		LEFT JOIN address_dbt as addressEmail ON addressEmail.Client = persn.ClientID and addressEmail.AdrType = 3 and addressEmail.ConType=2
+		LEFT JOIN address_dbt as addressJobPhone ON addressJobPhone.Client = persn.ClientID and addressJobPhone.AdrType = 1 and addressJobPhone.ConType=2 and addressJobPhone.ConKind='Рабочий'
+		LEFT JOIN address_dbt as addressHomePhone ON addressHomePhone.Client = persn.ClientID and addressHomePhone.AdrType = 1 and addressHomePhone.ConType=2 and addressHomePhone.ConKind='Домашний'
+		LEFT JOIN address_dbt as addressMobilePhone ON addressMobilePhone.Client = persn.ClientID and addressMobilePhone.AdrType = 1 and addressMobilePhone.ConType=2 and addressMobilePhone.ConKind='Мобильный'
+		LEFT JOIN regdoc_dbt as regDocInn ON regDocInn.Client = persn.ClientID and regDocInn.RDKind = 100
+		LEFT JOIN clcoun_dbt as country ON country.CodeLat3 = client.szCountryNR
+		WHERE
+		client.client = :personId
+	</sql-query>
+
+	<sql-query name="GetLightClientByName" fetch-size="100" >
+		<return alias="party" entity-name="LigthClient">
+			<return-property name="longId" column="longId"/>
+			<return-property name="shortName" column="shortName"/>
+			<return-property name="fullName" column="fullName"/>
+			<return-property name="residental" column="residental"/>
+			<return-property name="surName" column="surName"/>
+			<return-property name="firstName" column="firstName"/>
+			<return-property name="patrName" column="patrName"/>
+			<return-property name="birthDay" column="birthDay"/>
+			<return-property name="birthPlace" column="birthPlace"/>
+			<return-property name="sex" column="sex"/>
+			<return-property name="email" column="email"/>
+    	    <return-property name="homePhone" column="homePhone"/>
+    	    <return-property name="jobPhone" column="jobPhone"/>
+    	    <return-property name="mobilePhone" column="mobilePhone"/>
+    	    <return-property name="inn" column="inn"/>
+    	    <return-property name="citizenship" column="citizenship"/>
+		</return>
+		SELECT
+			client.client AS longId,
+			client.szShortName AS shortName,
+			CONVERT(client.Name_Client + client.Name_Client_2, SQL_CHAR) AS fullName,
+			client.NotResident as residental,
+			client.Name_Client AS surName,
+			client.Name_Client_2 AS firstName,
+			persn.Patronymic AS patrName,
+			persn.BirthDate AS birthDay,
+			'' AS birthPlace,
+			persn.Sex as sex,
+			'' as email,
+			'' as homePhone,
+			'' as jobPhone,
+			'' as mobilePhone,
+			'' as inn,
+		    '' as citizenship
+
+		FROM
+			client_dbt AS client
+			INNER JOIN persn_dbt AS persn ON client.client = persn.ClientID AND client.LegalForm = 2
+		WHERE
+			(:extra_like_surName IS NULL OR persn.LastName LIKE :extra_like_surName)
+			AND (:extra_like_firstName IS NULL OR persn.Name LIKE :extra_like_firstName)
+			AND (:extra_like_patrName IS NULL OR persn.Patronymic LIKE :extra_like_patrName)
+	</sql-query>
+
+	<sql-query name="com.rssl.phizicgate.rsV55.clients.ClientDocumentImpl.GetClientDocuments">
+		<load-collection alias="documents" role="LigthClient.documents"/>
+		<return alias="documents" class="com.rssl.phizicgate.rsV55.clients.ClientDocumentImpl">
+			<return-property name="documentType" column="documentType"/>
+			<return-property name="docTypeName" column="docTypeName"/>
+			<return-property name="docNumber" column="docNumber"/>
+			<return-property name="docSeries" column="docSeries"/>
+			<return-property name="docIssueDate" column="docIssueDate"/>
+			<return-property name="docIssueBy" column="docIssueBy"/>
+		    <return-property name="docIssueByCode" column="docIssueByCode"/>
+			<return-property name="docIdentify" column="docIdentify"/>
+		</return>
+
+		SELECT
+			regdoc.Client                                        AS kPersonId,
+			regdoc.RDKind                                        AS kPaperKind,
+			docInfo.Name                                         AS documentType,
+			regdoc.DocNum                                        AS docNumber,
+			regdoc.Series                                        AS docSeries,
+			regdoc.IssueDate                                     AS docIssueDate,
+			CONVERT(regdoc.RegName + regdoc.RegName_2, SQL_CHAR) AS docIssueBy,
+			docInfo.Name                                         AS docTypeName,
+			regdoc.Subdivision                                   AS docIssueByCode,
+			1                                                    AS docIdentify
+		FROM
+			regdoc_dbt AS regdoc, paprkind_dbt AS docInfo,
+			client_dbt AS client
+		WHERE
+			client.client = :kPersonId AND
+			regdoc.Client = :kPersonId AND
+			docInfo.PaperKind = regDoc.RDKind AND
+			regdoc.IsMain = 'X' And
+			((Select rdkind.DocType from rdkind_dbt As rdkind where rdkind.RDKind = regdoc.RDKind) = 1)
+	</sql-query>
+
+</hibernate-mapping>

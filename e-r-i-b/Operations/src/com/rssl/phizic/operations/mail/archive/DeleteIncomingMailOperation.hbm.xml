@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<sql-query name="com.rssl.phizic.operations.mail.archive.DeleteIncomingMailOperation.list">
+        <return alias="mail"          class="com.rssl.phizic.business.mail.Mail"/>
+    <![CDATA[
+        SELECT
+            {mail.*}
+        FROM
+            MAIL mail
+        JOIN
+            RECIPIENTS recipient ON recipient.MAIL_ID = mail.ID
+        WHERE
+            mail.creation_date <= :extra_toDate
+        AND
+            mail.direction = 'ADMIN'
+        AND
+            recipient.deleted = '0'
+        AND
+            mail.state = 'NEW'
+        AND
+            recipient.STATE != 'NEW'
+        ORDER BY
+            mail.creation_date DESC
+    ]]>
+    </sql-query>
+</hibernate-mapping>

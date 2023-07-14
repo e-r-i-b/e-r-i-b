@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef  name="SessionState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.csaadmin.business.session.SessionState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.csaadmin.business.session.Session" table="SESSIONS">
+        <id name="sid" type="string" column="SID">
+            <generator class="guid"/>
+        </id>
+        <many-to-one name="login" column="LOGIN_ID" class="com.rssl.phizic.csaadmin.business.login.Login" lazy="false" not-null="true"/>
+        <property name="creationDate" type="calendar"     column="CREATION_DATE" not-null="true"/>
+        <property name="closeDate"    type="calendar"     column="CLOSE_DATE"    not-null="false"/>
+        <property name="state"        type="SessionState" column="STATE"         not-null="true"/>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2010 (http://www.altova.com) by KES (SBRF) -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:simpleType name="String">
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="UUID">
+		<xsd:annotation>
+			<xsd:documentation/>
+		</xsd:annotation>
+		<xsd:restriction base="String">
+			<xsd:pattern value="[0-9a-zA-Z]{32}"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="DateTime">
+		<xsd:annotation>
+			<xsd:documentation/>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2}(\.[0-9]{6})?((-|\+)[0-9]{2}:[0-9]{2})?)?)?"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="Decimal">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для представления сумм</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:decimal"/>
+	</xsd:simpleType>
+
+    <xsd:simpleType name="Long">
+        <xsd:annotation>
+            <xsd:documentation/>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:long"/>
+    </xsd:simpleType>
+
+	<xsd:simpleType name="RqUID_Type">
+		<xsd:annotation>
+			<xsd:documentation>Уникальный идентификатор запроса</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="UUID"/>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="OperUID_Type">
+		<xsd:annotation>
+			<xsd:documentation>Идентификатор операции</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="UUID"/>
+	</xsd:simpleType>
+
+	<xsd:element name="RqUID" type="RqUID_Type">
+		<xsd:annotation>
+			<xsd:documentation>Уникальный идентификатор запроса</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="OperUID" type="OperUID_Type">
+		<xsd:annotation>
+			<xsd:documentation>Идентификатор операции</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="RqTm" type="DateTime">
+		<xsd:annotation>
+			<xsd:documentation>Дата и время передачи сообщения</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:simpleType name="OrderId_Type">
+		<xsd:annotation>
+			<xsd:documentation>Номер приказа об изменении курса</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="String">
+			<xsd:maxLength value="30"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="Code_Type">
+		<xsd:annotation>
+			<xsd:documentation>Буквенный iso код валюты</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="String">
+			<xsd:maxLength value="3"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="TarifPlanCode_Type">
+		<xsd:annotation>
+			<xsd:documentation>Код тарифного плана</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="MsText_Type">
+		<xsd:annotation>
+			<xsd:documentation>Неформализованное текстовое сообщение</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="String">
+			<xsd:maxLength value="255"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+    <xsd:simpleType name="Nil_String">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="0"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+	<xsd:simpleType name="Nil_Decimal">
+        <xsd:union memberTypes="Decimal Nil_String"/>
+    </xsd:simpleType>
+
+    <xsd:complexType name="CurListItem_Type">
+		<xsd:sequence>
+			<xsd:element name="Tarif_plan" type="TarifPlanCode_Type"/>
+			<xsd:element name="Pr_code" type="Code_Type"/>
+			<xsd:element name="Pr_quot" type="Decimal"/>
+			<xsd:element name="Pr_cb" type="Decimal"/>
+			<xsd:element name="Pr_buy" type="Nil_Decimal" minOccurs="0"/>
+			<xsd:element name="Pr_sale" type="Nil_Decimal" minOccurs="0"/>
+			<xsd:element name="Pr_buy3" type="Nil_Decimal" minOccurs="0"/>
+			<xsd:element name="Pr_sale3" type="Nil_Decimal" minOccurs="0"/>
+			<xsd:element name="Pr_code2" type="Code_Type" minOccurs="0"/>
+			<xsd:element name="Pr_straight" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="Pr_cb_delta" type="Nil_Decimal" minOccurs="0"/>
+			<xsd:element name="Pr_buy_delta" type="Nil_Decimal" minOccurs="0"/>
+			<xsd:element name="Pr_sale_delta" type="Nil_Decimal" minOccurs="0"/>
+			<xsd:element name="Pr_buy3_delta" type="Nil_Decimal" minOccurs="0"/>
+			<xsd:element name="Pr_sale3_delta" type="Nil_Decimal" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="CurListItem" type="CurListItem_Type">
+		<xsd:annotation>
+			<xsd:documentation>Запись справочника единицы валюты</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="CurListRec_Type">
+		<xsd:sequence>
+			<xsd:element name="EffDt" type="DateTime"/>
+			<xsd:element ref="CurListItem" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="CurListRec" type="CurListRec_Type">
+		<xsd:annotation>
+			<xsd:documentation>Запись справочника валют</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:simpleType name="BranchId_Type">
+		<xsd:annotation>
+			<xsd:documentation>Номер филиала(ВСП).
+				Значение поля с именем SUBBRANCH из таблицы SUBBRANCH действующего на момент отправки сообщения
+				справочника ЦАС НСИ, без лидирующих нулей.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="String">
+			<xsd:maxLength value="5"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="AgencyId_Type">
+		<xsd:annotation>
+			<xsd:documentation>Номер подразделения(ОСБ).
+				Значение поля с именем BRANCH из таблицы SUBBRANCH действующего на момент отправки сообщения
+				справочника ЦАС НСИ, без лидирующих нулей.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="String">
+			<xsd:maxLength value="5"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="RegionId_Type">
+		<xsd:annotation>
+			<xsd:documentation>Номер тербанка(ТБ).
+				Значение поля с именем TERBANK из таблицы SUBBRANCH действующего на момент отправки сообщения
+				справочника ЦАС НСИ, без лидирующих нулей.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:maxLength value="3"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="BranchId" type="BranchId_Type">
+		<xsd:annotation>
+			<xsd:documentation>Номер филиала</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="AgencyId" type="AgencyId_Type">
+		<xsd:annotation>
+			<xsd:documentation>Номер отделения(ОСБ)</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="RegionId" type="RegionId_Type">
+		<xsd:annotation>
+			<xsd:documentation>Региональный код банка</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+
+	<xsd:complexType name="BankInfo_Type">
+		<xsd:annotation>
+			<xsd:documentation>Информация о банке BankInfo</xsd:documentation>
+			<xsd:documentation>Этот агрегат содержит дополнительную информацию для идентификации банка.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="BranchId" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Номер филиала.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element ref="AgencyId" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Номер отделения.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element ref="RegionId">
+				<xsd:annotation>
+					<xsd:documentation>Номер террбанка.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="BankInfo" type="BankInfo_Type">
+		<xsd:annotation>
+			<xsd:documentation>Информация о банке</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+
+	<xsd:simpleType name="StatusCode_Type">
+		<xsd:annotation>
+			<xsd:documentation>Код ответа. Если все хорошо, то значение равно 0</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Long"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="StatusDesc_Type">
+		<xsd:annotation>
+			<xsd:documentation>Описание ответа - причина ошибки (заполняется только при значении StatusCode отличного от 0.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="String">
+			<xsd:maxLength value="255"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="StatusCode" type="StatusCode_Type"/>
+	<xsd:element name="StatusDesc" type="StatusDesc_Type"/>
+
+	<xsd:complexType name="Status_Type">
+		<xsd:annotation>
+			<xsd:documentation>Статус ответа &lt;Status&gt;. Агрегат &lt;Status&gt; используется для возврата статуса сообщения. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="StatusCode">
+				<xsd:annotation>
+					<xsd:documentation>Статусный код возврата.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element ref="StatusDesc" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Описание статуса.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="Status" type="Status_Type">
+		<xsd:annotation>
+			<xsd:documentation>Статусное сообщение (результат выполнения операции)</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="CurListInqRq_Type">
+		<xsd:sequence>
+			<xsd:element ref="RqUID"/>
+			<xsd:element ref="RqTm"/>
+			<xsd:element ref="OperUID"/>
+			<xsd:element ref="BankInfo"/>
+			<xsd:element name="OrderId" type="OrderId_Type"/>
+			<xsd:element name="OrderDt" type="DateTime"/>
+			<xsd:element ref="CurListRec"/>
+			<xsd:element name="MsText" type="MsText_Type"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="CurListInqRq" type="CurListInqRq_Type">
+		<xsd:annotation>
+			<xsd:documentation>Формат сообщения для приема обновления курсов валют</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="CurListInqRs_Type">
+		<xsd:sequence>
+			<xsd:element ref="RqUID"/>
+			<xsd:element ref="RqTm"/>
+			<xsd:element ref="OperUID"/>
+			<xsd:element name="ReqUIDRep" type="RqUID_Type"/>
+			<xsd:element ref="Status"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="CurListInqRs" type="CurListInqRs_Type">
+		<xsd:annotation>
+			<xsd:documentation>Формат сообщения для подтверждения приема сообщения об обновлении курсов валют</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+</xsd:schema>

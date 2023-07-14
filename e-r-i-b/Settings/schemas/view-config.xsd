@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="com.rssl.phizic.web.config.view"/>
+				<jxb:nameXmlTransform>
+					<jxb:elementName suffix="Element"/>
+				</jxb:nameXmlTransform>
+			</jxb:schemaBindings>
+		</xsd:appinfo>
+	</xsd:annotation>
+	<xsd:element name="view-config">
+		<xsd:annotation>
+			<xsd:documentation>Настройки визуальных форм</xsd:documentation>
+			<xsd:appinfo>
+				<jxb:class name="ViewConfigRoot"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="lists" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="list" type="ListDefinition" minOccurs="0" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:appinfo>
+										<jxb:property name="listDefinitions"/>
+									</xsd:appinfo>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:complexType name="ListDefinition">
+		<xsd:sequence>
+			<xsd:element name="id" type="IDType"/>
+			<xsd:element name="description" type="xsd:string"/>
+			<xsd:element name="column" maxOccurs="unbounded" type="ColumnType">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ColumnType">
+		<xsd:sequence>
+			<xsd:element name="id" type="IDType"/>
+			<xsd:element name="action" type="ActionType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="IDType">
+		<xsd:restriction base="xsd:Name"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ActionType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<jxb:javaType 
+					name="com.rssl.phizic.web.config.view.ActionType"
+					parseMethod="com.rssl.phizic.web.config.view.ViewConfigUtils.parseActionType"
+					printMethod="com.rssl.phizic.web.config.view.ViewConfigUtils.printActionType"
+				/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="hide"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

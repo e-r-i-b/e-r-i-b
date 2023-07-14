@@ -1,0 +1,114 @@
+import "rt_ib_xml.mac";
+class(cGetAccount) 
+    cGetClientAccounts( inXml, outXml ) 
+   
+   var clientId;   
+
+   private macro readParameters( nodeElement )
+      var nodeComPay;
+      nodeComPay = nodeElement;
+      while( nodeComPay )
+         if   ( nodeComPay.NodeName == "clientId" )
+            clientId = int( nodeComPay.text );
+         end;
+         nodeComPay = nodeComPay.nextSibling();
+      end;// while( nodeComPay )
+   end;//private macro readParameters( nodeElement )   
+
+    private macro getAccountByReferenc(inXml, outXml)
+      var cmd, rs;
+      var accountsNode;
+
+      cmd = RsdCommand("SELECT "+
+         "owned.t_Referenc       AS id, "+
+         "owned.t_Account        AS tnumber, "+
+         "owned.t_Code_Currency  AS currencyId, "+
+         "owned.t_Type_Account   AS accType, "+
+         "owned.t_Open_Date      AS OpenDate, "+
+         "owned.t_FNCash         AS FNCash, "+
+         "types.t_name           AS fullDescription, "+
+         "(person.t_name1 ||' ' || person.t_name2 || ' ' || person.t_name3) as fullName, "+
+         " case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=owned.t_type_account and t_flagcur=owned.t_iscur)=0 "+
+         "      then (case "+
+         "               when(select count (*) from DSB_TYPOP_DBT where t_kind = owned.t_type_account "+
+         "               and t_iscur=owned.t_iscur and t_numopert in ( 62, 63, 64, 65, 66, 67) "+
+         "               and t_sysNumb = 0) > 0 then 1 else 0 end) "+
+         "       else (case "+
+         "               when (select count(*) from DSB_TYPOP_DBT where t_kind = "+
+         "                       (select t_aptype from DPC_APLTP_DBT where t_iscur=owned.t_iscur "+
+         "                           and t_type = owned.t_type_account "+
+         "                           and t_typerec = 1003 "+
+         "                           and t_appltype = 3010) "+
+         "                        and t_iscur=owned.t_iscur and t_numopert in ( 63, 64, 65, 66, 67) "+
+         "                       and t_sysNumb =0)>0 then 1 else 0 end) "+
+         "end "+
+         "as debitAllowed, "+
+         "case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=owned.t_type_account and t_flagcur=owned.t_iscur)=0 "+
+         "      then (case "+
+         "               when(select count(*) from DSB_TYPOP_DBT where t_kind = owned.t_type_account "+
+         "               and t_iscur=owned.t_iscur and t_numopert in (70, 71, 73) "+
+         "               and t_SysNumb=0) >0 then 1 else 0 end) "+
+         "       else (case "+
+         "               when (select count(*)  from DSB_TYPOP_DBT where t_kind = "+
+         "                       (select t_aptype from DPC_APLTP_DBT where t_iscur=owned.t_iscur "+
+         "                           and t_type = owned.t_type_account "+
+         "                           and t_typerec = 1003 "+
+         "                           and t_appltype = 3010) "+
+         "                        and t_iscur=owned.t_iscur and t_numopert in (70, 71, 73) "+
+         "                       and t_SysNumb =0) >0 then 1 else 0 end) "+
+         "      end "+
+         "as creditAllowed "+
+         "FROM ddepositr_dbt owned "+
+         "INNER JOIN dpersn_dbt person "+
+         "    ON owned.t_codclient = person.t_personid "+
+         "inner join DSB_DTYP_DBT  types "+
+         "    on owned.t_type_account = types.t_kind and owned.t_iscur = types.t_flagcur "+
+         "WHERE owned.t_CodClient = ? "+
+         "And owned.t_UserTypeAccount NOT LIKE '%Š%' "+
+         "And (owned.t_Account LIKE '423%' or owned.t_Account LIKE '426%')"+
+         "and owned.t_action < 2 "+
+         "and owned.t_open_close not like '%‡%'");
+
+      cmd.addParam( "clientId", RSDBP_IN, V_STRING);
+      cmd.value("clientId") = clientId;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+      accountsNode = nodeAnswer.appendChild( outXML.createNode(1, "accounts", "") );
+      while((rs.moveNext))
+         createAccountXml(rs, outXml,accountsNode);
+      end;   
+
+      return outXml;
+   end;//private macro getAccountByReferenc(inXml, outXml)
+
+   macro start(inXml, outXml)
+      var nodeParentElement;
+      var stat = 0;
+
+      if(not outXml )
+         outXml = CreateXMLObject();
+         
+         if(not outXml) return; end;
+         CreateBeginTag( outXml );
+         nodeParentElement = inXml.documentElement.selectSingleNode( "//getClientAccounts_q" );
+         nodeElement = nodeParentElement.firstChild();
+
+        if( nodeElement )
+            readParameters( nodeElement );
+            outXML = getAccountByReferenc( inXml, outXML );
+         end;
+      end;//if(not outXml )
+      return outXml;
+   end;//private macro start(inXml, outXml)
+
+end;  //class(cBaseDeposit) 
+
+macro GetAccountList( inXml, outXml )
+
+  var t = cGetClientAccounts;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;
+

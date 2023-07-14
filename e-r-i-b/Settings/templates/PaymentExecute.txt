@@ -1,0 +1,166 @@
+<@compress single_line=true>
+    <#list entries as info>
+        Сбербанк Онлайн.
+        <#if info.documentType != "LossPassbookApplicationClaim">
+            <#if info.isLongOffer == "true">
+                <#if translit == "false">
+                    <#if info.documentState == 'WAIT_CONFIRM'>
+                        <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                            Otmenu
+                        <#else>
+                            Sozdanie
+                        </#if>
+                        regularnogo platega po
+                    <#elseif info.documentState == 'REFUSED'>
+                        <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                            V otmene
+                        <#else>
+                            V sozdanii
+                        </#if>
+                        regularnogo platega po
+                    <#else>
+                        Regularniy plateg po
+                    </#if>
+
+                    <#if isCard(info.accountType) >
+                        karte ${getCutCardNumber(info.accountNumber)}
+                    <#else>
+                        scetu ${info.accountNumber}
+                    </#if>
+
+                    <#if info.documentState == 'WAIT_CONFIRM'>
+                        neobhodimo podtverdit' v kontaktnom centre Banka po telefonam, ukazannym na bankovskoj karte ili sajte Sberbanka.
+                    <#elseif info.documentState == 'REFUSED'>
+                        otkazano bankom.
+                    <#else>
+                         <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                             otmenen.
+                         <#else>
+                             sozdan.
+                         </#if>
+                    </#if>
+                <#else>
+                    <#if info.documentState == 'WAIT_CONFIRM'>
+                        <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                            Отмену
+                        <#else>
+                            Создание
+                        </#if>
+                        регулярного платежа по
+                    <#elseif info.documentState == 'REFUSED'>
+                        <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                            В отмене
+                        <#else>
+                            В создании
+                        </#if>
+                        регулярного платежа по
+                    <#else>
+                        Регулярный платеж по
+                    </#if>
+
+                    <#if isCard(info.accountType) >
+                        карте ${getCutCardNumber(info.accountNumber)}
+                    <#else>
+                        счету ${info.accountNumber}
+                    </#if>
+
+                    <#if info.documentState == 'WAIT_CONFIRM'>
+                        необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                    <#elseif info.documentState == 'REFUSED'>
+                        отказано банком.
+                    <#else>
+                         <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                             отменен.
+                         <#else>
+                             создан.
+                         </#if>
+                    </#if>
+                </#if>
+            <#else>
+                <#if translit == "false">
+
+                    <#if info.documentState == 'WAIT_CONFIRM'>
+                        Platezh s
+                    <#elseif info.documentState == 'REFUSED'>
+                        V ispolnenii platezha s
+                    <#else>
+                        S
+                    </#if>
+
+                    <#if isCard(info.accountType) >
+                        Vashej karty ${getCutCardNumber(info.accountNumber)}
+                    <#else>
+                        Vashego scheta ${info.accountNumber}
+                    </#if>
+
+                   <#if info.documentState != 'WAIT_CONFIRM' && info.documentState != 'REFUSED'>
+                       proizveden platezh
+                   </#if>
+                    <#if info.recipientAccountNumber?if_exists != "">
+	                    <#if isCard(info.recipientAccountType) >
+	                        na kartu № ${getCutCardNumber(info.recipientAccountNumber)}
+	                    <#else>
+	                        na schet № ${info.recipientAccountNumber}
+	                    </#if>
+                    </#if>
+
+                    na summu ${info.transactionSum} ${info.currency}.
+
+
+                    <#if info.documentState == 'WAIT_CONFIRM'>
+                        neobhodimo podtverdit' v kontaktnom centre Banka po telefonam, ukazannym na bankovskoj karte ili sajte Sberbanka.
+                    <#elseif info.documentState == 'REFUSED'>
+                        otkazano bankom.
+                    </#if>
+                <#else>
+                    <#if info.documentState == 'WAIT_CONFIRM'>
+                        Платеж с
+                    <#elseif info.documentState == 'REFUSED'>
+                        В исполнении платежа с
+                    <#else>
+                        С
+                    </#if>
+
+                    <#if isCard(info.accountType) >
+                        Вашей карты ${getCutCardNumber(info.accountNumber)}
+                    <#else>
+                        Вашего счета ${info.accountNumber}
+                    </#if>
+
+                    <#if info.documentState != 'WAIT_CONFIRM' && info.documentState != 'REFUSED'>
+                        произведен платеж
+                    </#if>
+                    <#if info.recipientAccountNumber?if_exists != "">
+	                    <#if isCard(info.recipientAccountType) >
+	                        на карту № ${getCutCardNumber(info.recipientAccountNumber)}
+	                    <#else>
+	                        на счет № ${info.recipientAccountNumber}
+	                    </#if>
+                    </#if>
+
+                    <#if info.documentState == 'WAIT_CONFIRM'>
+                        на сумму ${info.transactionSum} ${info.currency} необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                    <#elseif info.documentState == 'REFUSED'>
+                        на сумму ${info.transactionSum} ${info.currency} отказано банком.
+                    <#else>
+                        на сумму ${info.transactionSum} ${info.currency}.
+                    </#if>
+                </#if>
+            </#if>
+        <#else>
+            <#if translit == "false">
+                <#if info.documentState == 'REFUSED'>
+                    Zajavlenie ob utere sberknizhki ${info.accountNumber} otkloneno bankom.
+                <#else>
+                    Vashe zajavlenie ob utere sberknizhki ${info.accountNumber} obrabotano. Ostatok poluchite nalichnymi v banke.
+                </#if>
+            <#else>
+                <#if info.documentState == 'REFUSED'>
+                    Заявление об утере сберкнижки ${info.accountNumber} отклонено банком.
+                <#else>
+                    Ваше заявление об утере сберкнижки ${info.accountNumber} обработано. Остаток получите наличными в банке.
+                </#if>
+            </#if>
+        </#if>
+    </#list>
+</@compress>

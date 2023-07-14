@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="TranslitMode" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.messaging.TranslitMode</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.employees.EmployeeImpl" table="EMPLOYEES">
+
+        <id name="id" type="long">
+         <generator class="native">
+          <param name="sequence">S_EMPLOYEES</param>
+         </generator>
+        </id>
+
+        <many-to-one name="login" class="com.rssl.phizic.auth.BankLoginImpl" column="LOGIN_ID" not-null="false" lazy="false"/>
+
+        <property name="firstName"   type="string"          column="FIRST_NAME" not-null="true"/>
+        <property name="surName"     type="string"          column="SUR_NAME"   not-null="true"/>
+        <property name="patrName"    type="string"          column="PATR_NAME"/>
+        <property name="info"        type="not-null-string" column="INFO"/>
+        <property name="email"       type="not-null-string" column="E_MAIL"/>
+        <property name="mobilePhone" type="not-null-string" column="MOBILE_PHONE"/>
+	    <property name="SMSFormat"   type="TranslitMode" column="SMS_FORMAT"/>
+	    <property name="departmentId" type="long" column="DEPARTMENT_ID" not-null="false"/>
+	    <property name="loanOfficeId" type="big_decimal" column="LOAN_OFFICE_ID" not-null="false"/>
+        <property name="CAAdmin"     type="boolean"         column="CA_ADMIN"   not-null="true"/>
+        <property name="VSPEmployee" type="boolean"         column="VSP_EMPLOYEE" not-null="true"/>
+        <property name="managerId"   type="string" column="MANAGER_ID" not-null="false"/>
+        <property name="managerPhone"     type="string" column="MANAGER_PHONE" not-null="false"/>
+        <property name="managerEMail"     type="string" column="MANAGER_EMAIL" not-null="false"/>
+        <property name="managerLeadEMail" type="string" column="MANAGER_LEAD_EMAIL" not-null="false"/>
+        <property name="channelId"        type="long"   column="CHANNEL_ID"         not-null="false"/>
+        <property name="SUDIRLogin"       type="string" column="SUDIR_LOGIN" not-null="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.employees.ClientManagerInfo" table="EMPLOYEES">
+        <id name="id" column="MANAGER_ID" type="string"/>
+        <property name="name" formula="SUR_NAME || ' ' || FIRST_NAME || decode(PATR_NAME, null, '', ' ' || PATR_NAME)" type="string"/>
+        <property name="email" column="MANAGER_EMAIL" type="string"/>
+        <property name="phone" column="MANAGER_PHONE" type="string"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.employees.findByManagerId">
+        select employee FROM com.rssl.phizic.business.employees.EmployeeImpl as employee
+        where employee.managerId = :managerId
+    </query>
+
+    <query name="com.rssl.phizic.business.employees.Employee.clearManagerInfo">
+        update com.rssl.phizic.business.employees.EmployeeImpl employee
+        set employee.managerId = null, employee.managerEMail = null,
+            employee.managerLeadEMail = null, employee.managerPhone = null
+        where employee.id = :employeeId
+    </query>
+
+    <!--
+        Опорный объект: AK_MANAGER_ID_UNIQUE
+        Предикат доступа: "access("EMPLOYEE"."MANAGER_ID"=:MANAGERID)
+        Кардинальность: не более одного(уникальный managerId)
+    -->
+
+    <query name="com.rssl.phizic.business.employees.Employee.clearManagerInfoByManagerId">
+        update com.rssl.phizic.business.employees.EmployeeImpl employee
+        set employee.managerId = null, employee.managerEMail = null,
+            employee.managerLeadEMail = null, employee.managerPhone = null
+        where employee.managerId = :managerId
+    </query>
+
+</hibernate-mapping>

@@ -1,0 +1,282 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="OrderState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.einvoicing.OrderState</param>
+	</typedef>
+
+    <typedef name="RecallState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.gate.einvoicing.RecallState</param>
+    </typedef>
+    
+    <typedef name="OrderKind" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.einvoicing.OrderKind</param>
+	</typedef>
+
+    <typedef name="TypeOrder" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.gate.einvoicing.TypeOrder</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="NotificationStatus">
+        <param name="enumClass">com.rssl.phizic.gate.einvoicing.NotificationStatus</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="RecallType">
+        <param name="enumClass">com.rssl.phizic.gate.einvoicing.RecallType</param>
+    </typedef>
+
+    <!-- заказы -->
+    <class name="com.rssl.phizic.einvoicing.ShopOrderImpl" table="SHOP_ORDERS">
+        <!-- поля заказа -->
+        <id name="id" type="long" column="ID"> <!-- идентификатор заказа для МБ-->
+            <generator class="native">
+                <param name="sequence">S_SHOP_ORDERS</param>
+            </generator>
+        </id>
+        <property name="uuid" type="string" column="UUID"/>
+        <property name="externalId" column="EXTERNAL_ID" type="string" not-null="true" update="false"/> <!-- Внутренний идентификатор заказа у получателя-->
+        <property name="type" column="TYPE" type="TypeOrder" not-null="true"/> <!-- Partial, full,offline-->
+        <property name="date" column="ORDER_DATE" type="calendar" not-null="true" update="false"/> <!-- Дата регистрации заказа-->
+        <property name="state" column="STATE" type="OrderState" not-null="true"/> <!-- Внутренний статус заказа-->
+        <property name="kind" column="KIND" type="OrderKind" not-null="true"/> <!-- вид заказа. -->
+        <many-to-one name="profile" column="PROFILE_ID" class="com.rssl.phizic.einvoicing.ShopProfileImpl" fetch="join"  lazy="false" not-null="false"/> <!-- FK на таблицу SHOP_ORDER_PROFILE-->
+        <property name="phone" column="PHONE" type="string"/> <!-- номер телефона клиента для MobileCheckout-->
+        <property name="receiverCode" column="RECEIVER_CODE" type="string" not-null="true"/> <!-- Код получателя-->
+        <property name="receiverName" column="RECEIVER_NAME" type="string"/> <!-- Наименование получателя (для отображения пользователю)-->
+        <property name="facilitatorProviderCode" column="FACILITATOR_PROVIDER_CODE" type="string"/> <!-- Код КПУ (поставщика за фасилитатором)-->
+        <property name="description" column="DESCRIPTION" type="string"/> <!-- Описание заказа-->
+        <property name="receiverAccount" column="RECEIVER_ACCOUNT" type="string"/> <!-- Номер счета получателя-->
+        <property name="bic" column="BIC" type="string"/> <!-- БИК банка получателя-->
+        <property name="corrAccount" column="CORR_ACCOUNT" type="string"/> <!-- кор. счет банка получателя-->
+        <property name="inn" column="INN" type="string"/> <!-- ИНН получателя-->
+        <property name="kpp" column="KPP" type="string"/> <!-- КПП получателя-->
+        <property name="printDescription" column="PRINT_DESCRIPTION" type="string"/> <!-- информация о заказе для печатной формы-->
+        <property name="backUrl" column="BACK_URL" type="string"/> <!-- url редиректа для перехода после оплаты заказа (для partial/full)-->
+        <property name="nodeId" column="NODE_ID" type="long"/> <!-- Номер блока, в котором инициирована оплата заказа-->
+        <property name="utrrno" column="UTRRNO" type="string"/> <!-- Идентификатор документа оплаты заказа в биллинге-->
+        <property name="mobileCheckout" column="MOBILE_CHECKOUT" type="boolean" not-null="true"/> <!-- признак MC -->
+        <property name="delayedPayDate" column="DELAYED_PAY_DATE" type="calendar"/>
+        <property name="isNew" column="IS_NEW" type="boolean" not-null="true"/>
+
+        <property name="amount"  type="money">      <!-- сумма заказа -->
+			<column name="AMOUNT"  not-null="false"/>
+			<column name="CURRENCY"  not-null="false"/>
+		</property>
+    </class>
+
+    <!-- связанный с заказом профиль -->
+    <class name="com.rssl.phizic.einvoicing.ShopProfileImpl" table="SHOP_PROFILES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_SHOP_PROFILES</param>
+            </generator>
+        </id>
+
+        <property name="firstName" column="FIRST_NAME" type="string" not-null="true" update="false"/> <!-- Имя -->
+        <property name="surName" column="SUR_NAME" type="string" not-null="true" update="false"/> <!-- Фамилия -->
+        <property name="patrName" column="PATR_NAME" type="string" update="false"/> <!-- Отчество -->
+        <property name="passport" column="PASSPORT" type="string" not-null="true" update="false"/> <!-- ДУЛ -->
+        <property name="birthdate" column="BIRTHDATE" type="calendar" not-null="true" update="false"/> <!-- Дата рождения -->
+        <property name="tb" column="TB" type="string" not-null="true" update="false"/> <!-- ТБ -->
+    </class>
+
+    <!-- Информация об отменах/возвратах -->
+    <class name="com.rssl.phizic.einvoicing.ShopRecallImpl" table="SHOP_RECALLS">
+        <id name="uuid" type="string" column="UUID"/>
+        <property name="orderUuid" column="ORDER_UUID" type="string" not-null="true" update="false"/>
+        <property name="externalId" column="EXTERNAL_ID" type="string" not-null="true" /> <!-- Внутренний идентификатор документа отмены/возврата у получателя -->
+        <property name="receiverCode" column="RECEIVER_CODE" type="string" not-null="true" /> <!-- Код получателя -->
+        <property name="date" column="RECALL_DATE" type="calendar" not-null="true"/> <!-- Дата регистрации -->
+        <property name="utrrno" column="UTRRNO" type="string"  /> <!-- Идентификатор документа оплаты заказа в биллинге -->
+        <property name="state" column="STATE" type="RecallState" not-null="true" /> <!-- Внутренний статус отмены/возврата -->
+        <property name="type" column="TYPE" type="RecallType" not-null="true" /> <!-- тип -->
+
+        <property name="amount"  type="money">      <!-- Сумма отмены платежа/возврата товара -->
+            <column name="AMOUNT"  not-null="false"/>
+			<column name="CURRENCY"  not-null="false"/>
+		</property>
+    </class>
+
+    <class name="com.rssl.phizic.einvoicing.ShopNotificationImpl" table="SHOP_NOTIFICATIONS">
+        <composite-id>
+            <key-property name="uuid"       type="string" column="UUID"/>
+            <key-property name="externalId" type="string" column="EXTERNAL_ID"/>
+            <key-property name="state"      type="string" column="STATE"/>
+        </composite-id>
+
+        <property name="utrrno" column="UTRRNO" type="string"  /> <!-- Уникальный код операции SVFE -->
+        <property name="date" column="CREATE_DATE" type="calendar" not-null="true" update="false"/> <!-- Дата создания записи-->
+        <property name="receiverCode" column="RECEIVER_CODE" type="string" not-null="true"/> <!-- Код получателя-->
+        <property name="notifStatus" column="NOTIF_STATUS" type="NotificationStatus" not-null="true" /> <!-- Статус оповещения -->
+        <property name="notifTime" column="NOTIF_DATE" type="calendar"  /> <!-- Время оповещения -->
+        <property name="notifCount" column="NOTIF_COUNT" type="long" not-null="true" /> <!-- Количество попыток оповещения -->
+        <property name="notifStatusDescription" column="NOTIF_STATUS_DESCRIPTION" type="string"  /> <!-- Текст ошибки (для оповещений, завершившихся ошибкой) -->
+    </class>
+
+    <resultset name="com.rssl.phizic.einvoicing.userOrders.resultset">
+        <return class="com.rssl.phizic.einvoicing.ShopOrderImpl"/>
+    </resultset>
+
+    <!-- получение профиля клиента для связи с заказом. -->
+    <sql-query name="com.rssl.phizic.einvoicing.ShopOrders.findShopPerson" >
+        <return alias="profile" class="com.rssl.phizic.einvoicing.ShopProfileImpl"/>
+        <![CDATA[
+         SELECT {profile.*} FROM SHOP_PROFILES profile
+         WHERE
+             UPPER(TRIM(REGEXP_REPLACE(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+             AND REPLACE(profile.PASSPORT,' ','') = REPLACE(:passport,' ','')
+             AND profile.birthdate = :birthdate
+             AND profile.tb = :tb
+        ]]>
+    </sql-query>
+
+    <!-- Получение информации о заказе или броне. -->
+    <sql-query name="com.rssl.phizic.einvoicing.ShopOrders.getOrderInfo" >
+        <return-scalar column="info" type="string"/>
+        <![CDATA[
+            select DETAIL_INFO info from SHOP_ORDERS
+            where UUID = :uuid
+        ]]>
+    </sql-query>
+
+    <!-- установка информации о заказе или броне. -->
+    <sql-query name="com.rssl.phizic.einvoicing.ShopOrders.setOrderInfo" >
+        update SHOP_ORDERS set DETAIL_INFO = :extra_detailInfo where UUID = :extra_uuid
+    </sql-query>
+
+    <!-- Получение информации о выпущенных авиабилетах -->
+    <sql-query name="com.rssl.phizic.einvoicing.ShopOrders.getTicketsInfo" >
+        <return-scalar column="info" type="string"/>
+        <![CDATA[
+            select TICKETS_INFO info from SHOP_ORDERS
+            where UUID = :uuid
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.einvoicing.ShopOrders.setTicketsInfo" >
+        update SHOP_ORDERS set TICKETS_INFO = :extra_ticketsInfo
+        where UUID = :extra_uuid
+    </sql-query>
+
+    <!-- Получение списка оповещений -->
+    <query name="com.rssl.phizic.einvoicing.ShopOrders.getNotifications" >
+        select notification from com.rssl.phizic.einvoicing.ShopNotificationImpl notification
+         where notification.notifStatus = 'CREATED'
+           and notification.date between :periodStart and :periodEnd
+    </query>
+
+    <!-- удаляем заказы , непривязанные к клиенту -->
+    <query name="com.rssl.phizic.einvoicing.ShopOrders.removeOldOrders">
+        delete com.rssl.phizic.einvoicing.ShopOrderImpl orders
+         where :date > orders.date
+            and orders.profile is null
+    </query>
+
+    <!-- Список зависших заказов в статусах «списание средств» или «ошибка исполнения» -->
+    <query name="com.rssl.phizic.einvoicing.ShopOrders.getDelayedOrders">
+        select orders from com.rssl.phizic.einvoicing.ShopOrderImpl orders
+         where (orders.state = 'WRITE_OFF' or orders.state = 'ERROR')
+           and orders.date between :periodStart and :periodEnd
+    </query>
+
+    <!-- Список зависших отмен/возвратов в статусах «принят» или «ошибка» -->
+    <query name="com.rssl.phizic.einvoicing.ShopOrders.getDelayedRecalls">
+        select recalls from com.rssl.phizic.einvoicing.ShopRecallImpl recalls
+         where (recalls.state = 'CREATED' or recalls.state = 'ERROR')
+           and recalls.date between :periodStart and :periodEnd
+    </query>
+
+    <sql-query name="com.rssl.phizic.einvoicing.userOrders" resultset-ref="com.rssl.phizic.einvoicing.userOrders.resultset">
+    </sql-query>
+
+    <!--  Список интернет-заказов клиента по временному диапазону и статусам
+
+    Отложенными заказами, считаем те, у которых наличествует дата отложенности и при этом она превышает текущее системное время (Не взирая на статус заказа).
+    Поэтому при getDelayed = true (Означает, что среди запрошенных типов заказов были отложенные) - проверяем факт отложенности в обход проверки статусов.
+    Также в ходе проверки статуса на принадлежность переданному списку ("STATE in"), проверяем на пустоту дату отложенности, чтобы не пропустить отложенный заказ
+    с допустимым статусом, но датой отложенности не указанной в лежащем диапазоне (до :extra_to_delayed_date).
+
+    Опорный элемент: IDX_SHOP_PROFILE_UNIQ
+    Предикат доступа: (UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'( )+',' ')))=UPPER(TRIM(
+                  REGEXP_REPLACE (:EXTRA_PERSONSURNAME||' '||:EXTRA_PERSONFIRSTNAME||' '||:EXTRA_PERSONPATRNAME,'( )+',' '))) AND
+                  "P"."BIRTHDATE"=TO_TIMESTAMP(:EXTRA_PERSONBIRTHDATE) AND "P"."TB"=:EXTRA_PERSONTB AND REPLACE("PASSPORT",'
+                 				 ','')=REPLACE(:EXTRA_PERSONPASSPORT,' ',''))
+    			Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.einvoicing.ShopOrders.selectUserOrders">
+        <return class="com.rssl.phizic.einvoicing.ShopOrderImpl" alias="orders"/>
+            <![CDATA[
+            select ord.ID, ord.UUID, ord.EXTERNAL_ID, ord.TYPE, ord.ORDER_DATE, ord.STATE, ord.KIND,
+            ord.PROFILE_ID, ord.PHONE, ord.RECEIVER_CODE, ord.RECEIVER_NAME, ord.FACILITATOR_PROVIDER_CODE, ord.DESCRIPTION,
+            ord.RECEIVER_ACCOUNT, ord.BIC, ord.CORR_ACCOUNT, ord.INN, ord.KPP, ord.PRINT_DESCRIPTION, ord.BACK_URL, ord.NODE_ID,
+            ord.UTRRNO, ord.MOBILE_CHECKOUT, ord.DELAYED_PAY_DATE, ord.IS_NEW, ord.AMOUNT, ord.CURRENCY
+                from
+                ( select *
+                    from SHOP_ORDERS orders
+                        where
+                        orders.PROFILE_ID = (select p.id from SHOP_PROFILES p
+                                        where (UPPER(TRIM(REGEXP_REPLACE(p.SUR_NAME||' '||p.FIRST_NAME||' '||p.PATR_NAME,'( )+',' '))) =
+                                                UPPER(TRIM(REGEXP_REPLACE(:extra_personSurName||' '||:extra_personFirstName||' '||:extra_personPatrName,'( )+',' '))))
+                                            and (REPLACE(p.PASSPORT,' ','') = REPLACE(:extra_personPassport,' ',''))
+                                            and (p.TB        = :extra_personTb)
+                                            and (p.BIRTHDATE = :extra_personBirthdate))
+                        and (orders.ORDER_DATE <= :extra_to_date)
+                        and (:extra_from_date <= orders.ORDER_DATE)
+                        and (:extra_from_amount is null or :extra_from_amount <= orders.AMOUNT)
+                        and (:extra_to_amount is null or orders.AMOUNT <= :extra_to_amount)
+                        and (:extra_currency is null or orders.CURRENCY = :extra_currency)
+                        and (:extra_noStates = 'true'
+                            or (:extra_noStates = 'false'
+		                        and ((:extra_getDelayed = 'true'
+				                    and (STATE in (:extra_state1, :extra_state2, :extra_state3)
+					                    and (orders.DELAYED_PAY_DATE is null or :extra_to_delayed_date >= orders.DELAYED_PAY_DATE)))
+                                or (:extra_getDelayed = 'false' and STATE in (:extra_state1, :extra_state2, :extra_state3)))))
+                        ORDER by orders.ORDER_DATE
+                ) ord
+                where (:extra_limit is null or :extra_limit > ROWNUM)
+            ]]>
+    </sql-query>
+
+    <!-- Получить список отложенных интернет-заказов с внутренней сортировкой по дате отложенности
+            Опорный элемент - IDX_SHOP_PROFILE_UNIQ
+            Предикат доступа -  UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'( )+',' ')))=UPPER(TRIM(
+                       REGEXP_REPLACE (:EXTRA_PERSONSURNAME||' '||:EXTRA_PERSONFIRSTNAME||' '||:EXTRA_PERSONPATRNAME,'( )+',' '))) AND
+                       "P"."BIRTHDATE"=TO_TIMESTAMP(:EXTRA_PERSONBIRTHDATE) AND "P"."TB"=:EXTRA_PERSONTB AND REPLACE("PASSPORT",'
+                       ','')=REPLACE(:EXTRA_PERSONPASSPORT,' ','')
+            Кардинальность - 1
+
+            Источник запроса - сотрудник.
+            Интенсивность - 1 вызов на открытие страницы списка инвойсов.
+    -->
+    <sql-query name="com.rssl.phizic.einvoicing.ShopOrders.selectUserOrders.employee.delayed">
+        <return class="com.rssl.phizic.einvoicing.ShopOrderImpl" alias="orders"/>
+        <![CDATA[
+            select ord.ID, ord.UUID, ord.EXTERNAL_ID, ord.TYPE, ord.ORDER_DATE, ord.STATE, ord.KIND,
+            ord.PROFILE_ID, ord.PHONE, ord.RECEIVER_CODE, ord.RECEIVER_NAME, ord.FACILITATOR_PROVIDER_CODE, ord.DESCRIPTION,
+            ord.RECEIVER_ACCOUNT, ord.BIC, ord.CORR_ACCOUNT, ord.INN, ord.KPP, ord.PRINT_DESCRIPTION, ord.BACK_URL, ord.NODE_ID,
+            ord.UTRRNO, ord.MOBILE_CHECKOUT, ord.DELAYED_PAY_DATE, ord.IS_NEW, ord.AMOUNT, ord.CURRENCY
+                from
+                ( select orders.*
+                    from SHOP_ORDERS orders
+                        where
+                        orders.PROFILE_ID = (select p.id from SHOP_PROFILES p
+                                        where (UPPER(TRIM(REGEXP_REPLACE(p.SUR_NAME||' '||p.FIRST_NAME||' '||p.PATR_NAME,'( )+',' '))) =
+                                                UPPER(TRIM(REGEXP_REPLACE(:extra_personSurName||' '||:extra_personFirstName||' '||:extra_personPatrName,'( )+',' '))))
+                                            and (REPLACE(p.PASSPORT,' ','') = REPLACE(:extra_personPassport,' ',''))
+                                            and (p.TB        = :extra_personTb)
+                                            and (p.BIRTHDATE = :extra_personBirthdate))
+                        and (orders.ORDER_DATE <= :extra_to_date)
+                        and (:extra_from_date <= orders.ORDER_DATE)
+                        and (:extra_from_amount is null or :extra_from_amount <= orders.AMOUNT)
+                        and (:extra_to_amount is null or orders.AMOUNT <= :extra_to_amount)
+                        and (:extra_currency is null or orders.CURRENCY = :extra_currency)
+                        and  orders.DELAYED_PAY_DATE > CURRENT_DATE
+                        ORDER BY orders.DELAYED_PAY_DATE
+                ) ord
+                where (:extra_limit is null or :extra_limit > ROWNUM)
+        ]]>
+    </sql-query>
+</hibernate-mapping>

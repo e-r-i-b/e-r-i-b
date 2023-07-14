@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="ElectricPayment" description="Оплата электроэнергии"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.RurPayment"/>
+	<sender class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+	<send-actions>
+		<action class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction" order="1">
+			<parameter name="checkTime">com.rssl.iccs.end.of.day.trigger.time.ElectricPayment</parameter>
+			<parameter name="datePropertyName">admissionDate</parameter>
+		</action>
+	</send-actions>
+	<fields>
+		<field name="accountsSelect" description="Счет плательщика" type="account" source="payer-account">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field name="code1Select" description="Код РР" source="extra-parameters/parameter[@name='code1Select']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<parameter name="regexp">1[24]</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="code2Select" description="Код" source="extra-parameters/parameter[@name='code2Select']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<parameter name="regexp">[-\d]</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="receiverName" description="Получатель платежа" type="string" source="receiver-name">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field name="receiverINN" description="ИНН" type="string" source="receiver-inn">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="ИНН должен состоять из 10 или 12 цифр"/>
+					<parameter name="regexp">^\d{10,12}$</parameter>
+				</validator>
+			</validators>		
+		</field>
+		<field name="receiverAccount" description="Счет зачисления" type="string" source="receiver-account">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Счет зачисления должен состоять из 20 цифр"/>
+					<parameter name="regexp">^\d{20}$</parameter>
+				</validator>				
+			</validators>
+		</field>
+		<field name="bankName" description="Банк получателя" type="string" source="extra-parameters/parameter[@name='receiver-bank']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field name="receiverBIC" description="БИК" type="string" source="receiver-bic">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="БИК должен состоять из 9 цифр"/>
+					<parameter name="regexp">^\d{9}$</parameter>
+				</validator>				
+			</validators>
+		</field>
+		<field name="receiverCorAccount" description="Кор.Счет" type="string" source="receiver-cor-account">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Кор.Счет должен состоять из 20 цифр"/>
+					<parameter name="regexp">^\d{20}$</parameter>
+				</validator>				
+			</validators>
+		</field>
+		<field name="abonentBook" description="Книга абонента" type="integer" source="extra-parameters/parameter[@name='abonentBook']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Книга абонента должна состоять из 5 цифр"/>
+					<parameter name="regexp">\d{5}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="abonentNumber" description="Номер абонента" type="integer" source="extra-parameters/parameter[@name='abonentNumber']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Номер абонента должен состоять из трех цифр"/>
+					<parameter name="regexp">\d{3}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="abonentCD" description="К.Р. абонента" type="integer" source="extra-parameters/parameter[@name='abonentCD']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="К.Р. абонента должен состоять из двух цифр"/>
+					<parameter name="regexp">\d{2}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="abonentName" description="Ф.И.О. абонента" type="string" source="extra-parameters/parameter[@name='abonentName']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Ф.И.О. абонента не должено превышать 80 символов"/>
+					<parameter name="regexp">.{1,80}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="abonentStreet" description="Улица адреса абонента" type="string" source="extra-parameters/parameter[@name='abonentStreet']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Улица адреса абонента не должна превышать 80 символов"/>
+					<parameter name="regexp">.{1,80}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field 
+			name="abonentHouse" 
+			description="Номер дома адреса абонента" 
+			type="string" 
+			source="extra-parameters/parameter[@name='abonentHouse']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Номер дома адреса абонента не должен превышать 80 символов"/>
+					<parameter name="regexp">.{1,80}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="abonentBuilding" description="Корпус дома адреса абонента" type="string" source="extra-parameters/parameter[@name='abonentBuilding']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Корпус дома адреса абонента не должен превышать 80 символов"/>
+					<parameter name="regexp">.{1,80}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="abonentFlat" description="Номер квартиры абонента" type="string" source="extra-parameters/parameter[@name='abonentFlat']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Номер квартиры абонента не должен превышать 80 символов"/>
+					<parameter name="regexp">.{1,80}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="counterCurr" description="Текущее показание счетчика" type="integer" source="extra-parameters/parameter[@name='counterCurr']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Текущее показание счетчика не должно превышать 5 цифр"/>
+					<parameter name="regexp">\d{1,5}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="counterPrev" description="Предыдущее показание счетчика" type="integer" source="extra-parameters/parameter[@name='counterPrev']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Предыдущее показание счетчика не должно превышать 5 цифр"/>
+					<parameter name="regexp">\d{1,5}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="consumption" description="Расход" type="integer" source="extra-parameters/parameter[@name='consumption']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="расход не должен превышать 5 цифр"/>
+					<parameter name="regexp">\d{1,5}</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="tarif" description="Тариф" type="money" source="extra-parameters/parameter[@name='tarif']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator"/>
+			</validators>
+		</field>
+		<field name="amount" description="Сумма" type="money" source="amount">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+			</validators>
+		</field>
+		<field name="dayPartSelect" description="Выбор части суток" type="string" source="extra-parameters/parameter[@name='dayPartSelect']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<parameter name="regexp">[0-2]</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="monthSelect" description="Месяц" type="integer" source="extra-parameters/parameter[@name='monthSelect']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<parameter name="regexp">[1-9]|1[012]</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="yearSelect" description="Год" type="integer" source="extra-parameters/parameter[@name='yearSelect']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<parameter name="regexp">20\d\d</parameter>
+				</validator>
+			</validators>
+		</field>
+	</fields>
+	<form-validators>
+		<form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">accountsSelect</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

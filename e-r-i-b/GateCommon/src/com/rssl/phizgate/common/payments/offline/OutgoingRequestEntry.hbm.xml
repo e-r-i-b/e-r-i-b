@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizgate.common.payments.offline.OutgoingRequestEntry" table="OUTGOING_REQUESTS">
+        <id         name="rqUID"        type="string"   access="field"  column="RQ_UID"/>
+	    <property   name="rqTime"       type="calendar" access="field"  column="REQUEST_TIME"       not-null="true"/>
+        <property   name="rqType"       type="string"   access="field"  column="REQUEST_TYPE"       not-null="true"/>
+        <property   name="operUID"      type="string"   access="field"  column="OPER_UID"           not-null="false"/>
+        <property   name="nodeNumber"   type="long"     access="field"  column="NODE_ID"            not-null="true"/>
+        <property   name="loginId"      type="long"     access="field"  column="LOGIN_ID"           not-null="true"/>
+        <property   name="paymentId"    type="long"     access="field"  column="PAYMENT_ID"         not-null="false"/>
+        <property   name="tb"           type="string"   access="field"  column="TB"                 not-null="false"/>
+	</class>
+
+    <!--удалить по UID-->
+    <!--
+        Опорный объект: PK_RQ_UID
+        Предикаты доступа: "ENTRY"."RQ_UID"=:RQUID
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizgate.common.payments.offline.OutgoingRequestEntry.delete">
+        delete from com.rssl.phizgate.common.payments.offline.OutgoingRequestEntry entry
+        where entry.rqUID = :rqUID
+    </query>
+</hibernate-mapping>

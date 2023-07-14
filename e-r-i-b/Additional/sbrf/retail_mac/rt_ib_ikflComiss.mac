@@ -1,0 +1,60 @@
+import alg_vars, rsd, deprintr;
+
+ 
+
+record dd( sbdepdoc );
+
+ 
+var cmd, rs;
+
+ALG_RESULT = OK_RES;
+
+ClearRecord(dd);
+
+  cmd = RsdCommand( "select T_PERCOPRSUM commiss,t_appltype subtype, T_FLAGS2 flags "
+                  "from DPSDEPDOC_DBT "
+                  "where T_IAPPLICATIONKIND = ? " 
+          "and T_APPLICATIONKEY = ?");
+  cmd.addParam("T_IAPPLICATIONKIND", RSDBP_IN, V_INTEGER );
+  cmd.value("T_IAPPLICATIONKIND") = ALG_SBDEPDOC.iApplicationKind;
+
+  cmd.addParam("T_APPLICATIONKEY",RSDBP_IN, V_String );
+  cmd.value("T_APPLICATIONKEY") = ALG_SBDEPDOC.ApplicationKey;
+
+  cmd.execute;
+  rs = RsdRecordSet( cmd );
+  if( rs.moveNext )
+    if((rs.value("flags")!=4) or (rs.value("subtype")!=52) or (rs.value("commiss") ==0 ))
+        ALG_RESULT = OK_RES;
+    else
+    dd.Referenc         = ALG_SBDEPDOC.Referenc;
+    dd.IsCur            = ALG_SBDEPDOC.IsCur;
+    dd.FNCash           = ALG_SBDEPDOC.FNCash;
+    dd.RealFNCash       = ALG_SBDEPDOC.RealFNCash;
+    dd.Type_Account     = ALG_SBDEPDOC.Type_Account;
+    dd.Account          = ALG_SBDEPDOC.Account;
+    dd.Code_Currency    = ALG_SBDEPDOC.Code_Currency;
+    dd.CodClient        = ALG_SBDEPDOC.CodClient;
+    dd.Oper             = 0;
+    dd.YesSbook         = "X";
+    dd.Date_Document    = ALG_SBDEPDOC.Date_Document;
+    dd.DepDate_Document = ALG_SBDEPDOC.DepDate_Document;
+    dd.TypeComplexOper  = ALG_SBDEPDOC.TypeComplexOper;
+    dd.TypeOper         = 62;
+    dd.ApplType         = 7;
+    dd.KindOp           = 3;//D_GET;
+    setOutput("ikflComiss.txt", false);
+    print("commission =" + rs.value("commiss"));
+    println(time);
+    setOutput(null);
+    dd.OutSum           = rs.value("commiss");
+    dd.iApplicationKind = 1;
+    dd.ApplicationKey   = FormApplicationKey(1);
+    dd.Ground           = "Б/н плата";
+    if (NOT InsertDocToGDDList(dd))
+      ALG_RESULT = ERR_RES;
+    else
+      ALG_RESULT = SKIP_RES;
+    end;
+    end;
+  end; 

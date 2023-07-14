@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:annotation>
+        <xsd:documentation>
+            Схема для валидации запроса на добавление транзакции
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="addTransactionRq" type="addTransactionRq_Type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Запрос на добаление тразакции
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="addTransactionRq_Type">
+        <xsd:sequence>
+            <xsd:element name="profileInfo" type="profileInfo_Type" minOccurs="1"/>
+            <xsd:element name="transaction" type="transaction_Type" minOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="profileInfo_Type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Информация о профиле клиента
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="firstName"   type="length100String"  minOccurs="1"/>
+            <xsd:element name="surName"     type="length100String"  minOccurs="1"/>
+            <xsd:element name="patrName"    type="length100String"  minOccurs="1"/>
+            <xsd:element name="passport"    type="length10String"   minOccurs="1"/>
+            <xsd:element name="birthDate"   type="String"           minOccurs="1"/>
+            <xsd:element name="tb"          type="tb_Type"          minOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="transaction_Type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Информация о транзакции документа
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="externalId"          type="length100String"  minOccurs="1"/>
+            <xsd:element name="documentExternalId"  type="length100String"  minOccurs="1"/>
+            <xsd:element name="amount"              type="amount_Type"      minOccurs="0"/>
+            <xsd:element name="operationDate"       type="String"           minOccurs="1"/>
+            <xsd:element name="channelType"         type="length25String"   minOccurs="1"/>
+            <xsd:element name="limits"              type="limits_Type"      minOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="limits_Type">
+        <xsd:sequence>
+            <xsd:element name="limit"   type="limit_Type" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="limit_Type">
+        <xsd:sequence>
+            <xsd:element name="limitType"           type="length100String" minOccurs="1"/>
+            <xsd:element name="restrictionType"     type="length100String" minOccurs="1"/>
+            <xsd:element name="externalGroupRiskId" type="length100String" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="amount_Type">
+        <xsd:sequence>
+            <xsd:element name="amountValue"       type="xsd:decimal"      minOccurs="1"/>
+            <xsd:element name="amountCur"         type="currency_Type"    minOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="String">
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="length100String">
+        <xsd:restriction base="String">
+            <xsd:maxLength value="100"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="length10String">
+        <xsd:restriction base="String">
+            <xsd:maxLength value="10"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="length25String">
+        <xsd:restriction base="String">
+            <xsd:maxLength value="25"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="tb_Type">
+        <xsd:restriction base="String">
+            <xsd:maxLength value="4"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="currency_Type">
+        <xsd:restriction base="String">
+            <xsd:length value="3"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

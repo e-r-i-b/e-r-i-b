@@ -1,0 +1,182 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="SendSMSPreferredMethod" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.departments.SendSMSPreferredMethod</param>
+	</typedef>
+
+    <typedef name="DepartmentAutoType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.offices.extended.DepartmentAutoType</param>
+	</typedef>
+
+	<subclass name="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment"
+              extends="com.rssl.phizic.business.departments.Department"
+              discriminator-value="S" batch-size="500">
+	
+        <component name="code" class="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedCodeImpl">
+            <property name="region" type="string" column="TB"/>
+            <property name="branch" type="string" column="OSB"/>
+            <property name="office" type="string" column="OFFICE"/>
+        </component>
+
+        <property name="sbidnt" type="string" column="SBIDNT"/>
+        
+        <property name="esbSupported" type="boolean" column="ESB_SUPPORTED" not-null="true"/>
+
+
+        <property name="sendSMSPreferredMethod" type="SendSMSPreferredMethod" column="SEND_SMS_METHOD" not-null="false"/>
+        <property name="automationType" type="DepartmentAutoType" column="AUTOMATION_TYPE" not-null="false"/>
+	</subclass>
+
+    <query name="department.by.synchKey.com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment">
+        select office
+        from com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment as office
+        where office.synchKey = :synchKey
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment.updateLoanAvailability">
+        update com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment office
+        set office.possibleLoansOperation = :loanAvailability
+        where office.code.region = :tb
+        and (office.code.branch = :osb or office.code.branch is null or office.code.branch = '')
+        and (office.code.office = :office or office.code.office is null or office.code.office = '')
+    </query>
+
+    <!--
+        Получаются подраздления для репликации:
+        1) порядок следования подраздлений в выборке неважен
+        2) Отсутсвие повторов неважно.
+        Подразделения получаются как множество родителей и множество всех детей переданных
+    -->
+    <sql-query name="com.rssl.phizic.business.departments.getReplicationDepartments">
+        <return alias="department" class="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment"/>
+        <![CDATA[
+             select {department.*}
+             from DEPARTMENTS department,
+                 (select * from DEPARTMENTS where ID in (:ids)) selectedDepts
+             where
+                department.TB = selectedDepts.TB AND
+                (selectedDepts.OSB is null or department.OSB is null or nvl(department.OSB, 'NULL') = nvl(selectedDepts.OSB, 'NULL') ) AND
+                (selectedDepts.OFFICE is null or nvl(department.OFFICE, 'NULL') = nvl(selectedDepts.OFFICE, 'NULL'))
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.departments.getCodesByNodeType">
+        <return-scalar column="TB"/>
+        <return-scalar column="OSB"/>
+        <return-scalar column="OFFICE"/>
+        <![CDATA[
+             select
+                department.TB,
+                department.OSB,
+                department.OFFICE
+             from DEPARTMENTS department
+             where
+                department.ID in (:ids)
+        ]]>
+    </sql-query>
+
+    <!-- список тербанков доступных сотруднику-->
+    <sql-query name="com.rssl.phizic.business.departments.GetAllowedTerbanks">
+        <return alias="department" class="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment"/>
+        SELECT
+            {department.*}
+        FROM DEPARTMENTS department
+        WHERE
+            DECODE(OFFICE||OSB,NULL,TB,NULL) is not null
+            AND exists(select 1 from ALLOWED_DEPARTMENTS ad
+                    where ad.LOGIN_ID = :employeeLoginId
+                    and ad.TB in (department.tb,'*')
+                    and ad.OSB = '*'
+                    and ad.VSP = '*'
+                   )
+        order by department.name
+    </sql-query>
+
+    <!--Список Тербанков без учета прав доступа-->
+    <!--Признак ТБ: tb != null, osb == null, office == null-->
+    <sql-query name="com.rssl.phizic.business.departments.getTerbanks">
+        <return alias="department" class="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment"/>
+        SELECT
+            {department.*}
+        FROM DEPARTMENTS department
+        WHERE
+            DECODE(OFFICE||OSB,NULL,TB,NULL) is not null
+        order by department.name
+    </sql-query>
+
+    <!--Список ТБ, к которым относятся доступные сотруднику подразделения-->
+    <!--Признак ТБ: tb != null, osb == null, office == null-->
+    <sql-query name="com.rssl.phizic.business.departments.getTerbanksByAllowedDepartments">
+        <return alias="department" class="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment"/>
+        SELECT
+            {department.*}
+        FROM DEPARTMENTS department
+        WHERE
+            DECODE(OFFICE||OSB,NULL,TB,NULL) is not null
+            AND exists(select 1 from ALLOWED_DEPARTMENTS ad
+                    where ad.LOGIN_ID = :employeeLoginId
+                    and ad.TB in (department.tb,'*'))
+        order by department.name
+    </sql-query>
+
+    <!--Список ОСБ заданного ТБ без учета прав доступа-->
+    <!--Признак ОСБ:  tb != null, osb != null, office == null-->
+    <sql-query name="com.rssl.phizic.business.departments.getOSBs">
+        <return alias="department" class="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment"/>
+        SELECT
+            {department.*}
+        FROM DEPARTMENTS department
+        WHERE
+           department.TB = :tb AND
+           nvl(department.OSB, 'NULL') != 'NULL' AND
+           nvl(department.OFFICE, 'NULL') = 'NULL'
+    </sql-query>
+
+    <!--Список VSP заданного ОСБ без учета прав доступа-->
+    <!--Признак VSP:  tb != null, osb != null, office != null-->
+    <sql-query name="com.rssl.phizic.business.departments.getVSPs">
+        <return alias="department" class="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment"/>
+        SELECT
+            {department.*}
+        FROM DEPARTMENTS department
+        WHERE
+           department.TB = :tb AND
+           nvl(department.OSB, 'NULL') =:osb AND
+           nvl(department.OFFICE, 'NULL') != 'NULL'
+    </sql-query>
+
+    <!--Список номеров ТБ без учета прав доступа-->
+    <!--Признак ТБ: tb != null, osb == null, office == null-->
+    <sql-query name="com.rssl.phizic.business.departments.getTerbanksNumbers">
+        <return-scalar column="TB"/>
+        SELECT
+            DECODE(OFFICE||OSB,NULL,TB,NULL) as TB
+        FROM DEPARTMENTS department
+        WHERE
+            DECODE(OFFICE||OSB,NULL,TB,NULL) is not null
+    </sql-query>
+
+    <!--Список номеров ТБ с учетом прав доступа-->
+    <!--Признак ТБ: tb != null, osb == null, office == null-->
+    <sql-query name="com.rssl.phizic.business.departments.GetAllowedTerbanksNumbers">
+        <return-scalar column="TB"/>
+        select
+            DECODE(OFFICE||OSB,NULL,TB,NULL) as TB
+        FROM DEPARTMENTS department
+        WHERE
+            DECODE(OFFICE||OSB,NULL,TB,NULL) is not null
+            AND exists(select 1 from ALLOWED_DEPARTMENTS ad
+                 where ad.LOGIN_ID = :employeeLoginId
+                 and ad.TB in (department.TB,'*')
+                 and ad.OSB = '*'
+                 and ad.VSP = '*'
+                )
+   	</sql-query>
+
+
+
+</hibernate-mapping>

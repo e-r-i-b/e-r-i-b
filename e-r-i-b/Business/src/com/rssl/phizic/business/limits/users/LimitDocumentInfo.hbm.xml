@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="OperType">
+        <param name="enumClass">com.rssl.phizic.business.limits.users.OperType</param>
+    </typedef>
+
+    <typedef name="ChannelType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.limits.ChannelType</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="RestrictionType">
+        <param name="enumClass">com.rssl.phizic.business.limits.RestrictionType</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="LimitType">
+        <param name="enumClass">com.rssl.phizic.business.limits.LimitType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.limits.users.LimitDocumentInfo" table="DOCUMENT_OPERATIONS_JOURNAL">
+        <id name="externalId" type="string" column="EXTERNAL_ID">
+            <generator class="com.rssl.phizic.dataaccess.common.counters.AssignedOrGUIDGenerator"/>
+        </id>
+
+        <property    name="documentExternalId"  column="DOCUMENT_EXTERNAL_ID"   type="string" not-null="true"/>
+        <property name="operationDate"          column="OPERATION_DATE"         type="calendar"     not-null="false"/>
+        <property    name="profileId"           column="PROFILE_ID"             type="long"     not-null="true"/>
+        <property name="amount" type="money" not-null="true">
+            <column name="AMOUNT"/>
+            <column name="AMOUNT_CURRENCY"/>
+        </property>
+        <property name="operationType"          column="OPERATION_TYPE" type="OperType"     not-null="true"/>
+        <property name="channelType"            column="CHANNEL_TYPE"   type="ChannelType"  not-null="true"/>
+        <property name="limitInfosAsString"     column="LIMITS_INFO"    type="string"       not-null="false"/>
+        <property name="externalCard"           column="EXTERNAL_CARD"  type="string"       not-null="false"/>
+        <property name="externalPhone"          column="EXTERNAL_PHONE" type="string"       not-null="false"/>
+    </class>
+
+    <!--Получить записи из журнала лимитов по логину
+        Опорный элемент: IDX_USR_LOGIN
+        Предикаты доступа: access("USERS"."LOGIN_ID"=TO_NUMBER(:LOGIN_ID))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.limits.users.LimitDocumentInfo.getByLogin">
+        <return alias="journal" class="com.rssl.phizic.business.limits.users.LimitDocumentInfo"/>
+        <![CDATA[
+            select {journal.*}
+            from
+                DOCUMENT_OPERATIONS_JOURNAL journal inner join
+                USERS users on users.ID = journal.PROFILE_ID
+            where
+                users.LOGIN_ID = :login_id and
+                journal.OPERATION_DATE >= :operation_date and
+                (:channel_type is null or journal.CHANNEL_TYPE = :channel_type)
+        ]]>
+    </sql-query>
+    
+</hibernate-mapping>

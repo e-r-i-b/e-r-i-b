@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<typedef name="CreationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.client.CreationType</param>
+	</typedef>
+
+    <typedef name="MDMState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.person.MDMState</param>
+	</typedef>
+
+    <typedef name="TranslitMode" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.messaging.TranslitMode</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="SegmentCodeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.SegmentCodeType</param>
+    </typedef>
+
+    <typedef name="SecurityType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.security.SecurityType</param>
+    </typedef>
+
+    <typedef name="UserRegistrationMode" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.auth.modes.UserRegistrationMode</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.person.Person" table="USERS" abstract="true">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_USERS</param>
+            </generator>
+        </id>
+
+        <discriminator formula="STATUS" type="string" not-null="true"/>
+
+        <property name="discriminator" type="string" column="STATUS" not-null="true"/>
+	                                                 
+        <property name="clientId"      type="string" column="CLIENT_ID" not-null="false"/>
+        <property name="displayClientId"      type="string" column="DISPLAY_CLIENT_ID" not-null="false"/>
+
+        <many-to-one name="login"                 class="com.rssl.phizic.auth.LoginImpl"  column="LOGIN_ID" fetch="join" lazy="false" not-null="false"/>
+	    <many-to-one name="registrationAddress"   class="com.rssl.phizic.person.Address" column="REGISTRATION_ADDRESS" cascade="all" lazy="false" not-null="false"/>
+	    <many-to-one name="residenceAddress"      class="com.rssl.phizic.person.Address" column="RESIDENCE_ADDRESS"    cascade="all" lazy="false" not-null="false"/>
+        
+	    <set name="personDocuments"
+             table="DOCUMENTS" 
+             lazy="false"
+             cascade="all-delete-orphan">
+			<key column="PERSON_ID" not-null="false"/>
+			<one-to-many class="com.rssl.phizic.business.persons.PersonDocumentImpl"/>
+		</set>
+
+	    <property name="trustingPersonId"          type="long"            column="TRUSTING_ID"                 not-null="false"/>
+
+	    <property name="status"                    type="string"          column="STATE"                       not-null="true"/>
+        <property name="creationType"              type="CreationType"    column="CREATION_TYPE"               not-null="true"/>
+        <property name="firstName"                 type="not-null-string" column="FIRST_NAME"                  not-null="true"/>
+        <property name="surName"                   type="not-null-string" column="SUR_NAME"                    not-null="true"/>
+        <property name="patrName"                  type="string"          column="PATR_NAME"                   not-null="false"/>
+
+        <property name="birthDay"                  type="calendar"        column="BIRTHDAY"                    not-null="false"/>
+        <property name="birthPlace"                type="not-null-string" column="BIRTH_PLACE"                 not-null="false"/>
+
+        <property name="homePhone"                 type="string"          column="HOME_PHONE"                  not-null="false"/>
+        <property name="jobPhone"                  type="string"          column="JOB_PHONE"                   not-null="false"/>
+
+        <property name="mobileOperator"            type="not-null-string" column="MOBILE_OPERATOR"             not-null="false"/>
+        <property name="agreementNumber"           type="string"          column="AGREEMENT_NUMBER"            not-null="false"/>
+        <property name="agreementDate"             type="calendar"        column="AGREEMENT_DATE"              not-null="false"/>
+        <property name="serviceInsertionDate"      type="calendar"        column="INSERTION_OF_SERVICE"        not-null="false"/>
+        <property name="gender"                    type="string"          column="GENDER"                      not-null="false"/>
+        <property name="citizenship"               type="not-null-string" column="CITIZEN_RF"                  not-null="false"/>
+        <property name="prolongationRejectionDate" type="calendar"        column="PROLONGATION_REJECTION_DATE" not-null="false"/>
+        <property name="contractCancellationCouse" type="not-null-string" column="CONTRACT_CANCELLATION_COUSE" not-null="false"/>
+
+        <property name="departmentId"              type="long"            column="DEPARTMENT_ID"               not-null="false"/>
+	    <property name="secretWord"                type="string"          column="SECRET_WORD"                 not-null="false"/>
+	    <property name="isResident"                type="boolean"         column="RESIDENTAL"                  not-null="false"/>
+
+        <property name="isRegisteredInDepo"        type="boolean"         column="REG_IN_DEPO"                 not-null="false"/>
+
+        <property name="lastUpdateDate"            type="calendar"        column="LAST_UPDATE_DATE"           not-null="true"/>
+        <property name="mdmState"                  type="MDMState"        column="MDM_STATE"                  not-null="true"/>
+
+        <property name="employeeId"                type="string"          column="EMPLOYEE_ID"                not-null="false"/>
+        <property name="segmentCodeType"           type="SegmentCodeType" column="SEGMENT_CODE"               not-null="false"/>
+        <property name="tarifPlanCodeType"         type="string"          column="TARIF_PLAN_CODE"            not-null="false"/>
+        <property name="tarifPlanConnectionDate"   type="calendar"        column="TARIF_PLAN_CONNECT_DATE"    not-null="false"/>
+        <property name="managerId"                 type="string"          column="MANAGER_ID"                 not-null="false"/>
+        <property name="securityType"              type="SecurityType"    column="SECURITY_TYPE"              not-null="false"/>
+        <property name="storeSecurityType"         type="SecurityType"    column="STORE_SECURITY_TYPE"        not-null="false"/>
+        <property name="managerTB"                 type="string"          column="MANAGER_TB"                 not-null="false"/>
+        <property name="managerOSB"                type="string"          column="MANAGER_OSB"                not-null="false"/>
+        <property name="managerVSP"                type="string"          column="MANAGER_VSP"                not-null="false"/>
+
+
+	    <subclass name="com.rssl.phizic.business.persons.ActivePerson"  discriminator-value="A">
+            <property name="checkLoginCount" type="long" column="CHECK_LOGIN_COUNT" not-null="false"/>
+            <property name="lastFailureLoginCheck" type="calendar" column="LAST_FAILURE_LOGIN_CHECK"/>
+            <property name="userRegistrationMode"      type="UserRegistrationMode"    column="USER_REGISTRATION_MODE"              not-null="false"/>
+        </subclass>
+        <subclass name="com.rssl.phizic.business.persons.DeletedPerson" discriminator-value="D"/>
+
+	    <filter name="person.no.incomplete.empowered"/>
+	    <filter name="person_filter_by_department"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.persons.PersonTiming" table="USER_TIMINGS">
+        <id name="personId" column="USER_ID"/>
+        <property name="accountListLastUpdate"     type="calendar"        column="ACCOUNT_LIST_LAST_UPDATE" not-null="false"/>
+        <property name="cardListLastUpdate"        type="calendar"        column="CARD_LIST_LAST_UPDATE"    not-null="false"/>
+        <property name="loanListLastUpdate"        type="calendar"        column="LOAN_LIST_LAST_UPDATE"    not-null="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.persons.PersonKey" table="USER_KEY_HISTORY">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_USER_KEY_HISTORY</param>
+            </generator>
+        </id>
+
+        <property name="loginId" type="long" column="LOGIN_ID" not-null="true"/>
+        <property name="firstName" type="string" column="FIRST_NAME" not-null="true"/>
+        <property name="surName" type="string" column="SUR_NAME" not-null="true"/>
+        <property name="patrName" type="string" column="PATR_NAME" not-null="false"/>
+        <property name="passport" type="string" column="PASSPORT" not-null="true"/>
+        <property name="birthDay" type="calendar" column="BIRTHDATE" not-null="true"/>
+        <property name="tb" type="string" column="TB" not-null="true"/>
+        <property name="creationDate" type="calendar" column="DATE_CREATED" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.persons.PersonSocialID" table="USER_SOCIAL_IDS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_USER_SOCIAL_IDS</param>
+            </generator>
+        </id>
+
+        <property name="loginId" type="long" column="LOGIN_ID" not-null="true"/>
+        <property name="socialNetworkType" type="string" column="SOCIAL_NETWORK_TYPE" not-null="true"/>
+        <property name="socialNetworkId" type="string" column="SOCIAL_NETWORK_ID" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.persons.LightPerson">
+        <id name="id" type="long"/>
+        <property name="creationType"           type="CreationType"/>
+        <property name="firstName"              type="string"/>
+        <property name="surName"                type="string"/>
+        <property name="patrName"               type="string"/>
+        <property name="departmentId"           type="long"/>
+        <property name="birthDay"               type="calendar"/>
+        <property name="userRegistrationMode"   type="UserRegistrationMode"/>
+    </class>
+
+    <!--
+        Опорный объект: DXUSER_SOC_IDS_TO_LOGINS
+        Предикаты доступа: "PERSONSOCI0_"."LOGIN_ID"=TO_NUMBER(:loginId)
+        Кардинальность: не более 3х (количество обслуживаемых соц сетей)
+    -->
+    <query name="com.rssl.phizic.business.profile.ProfileService.getClientSocialIds">
+        select socialIds
+        from com.rssl.phizic.business.persons.PersonSocialID socialIds
+        where socialIds.loginId = :loginId
+    </query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findByClientId">
+        select person
+        from ActivePerson as person
+        where person.clientId = :clientId
+    </query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findPersonByLogin">
+        select person
+        from Person as person
+        where person.login = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findByLogin">
+        select person
+        from ActivePerson as person
+        where person.login = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findDeletedByLogin">
+        select person
+        from DeletedPerson as person
+        where person.login = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findByLoginId">
+        select person
+        from ActivePerson as person
+        where person.login.id = :loginId
+    </query>
+
+    <!--Получить легкую версию клиента по логину
+        Опорный элемент: IDX_USR_LOGIN
+        Предикаты доступа: access("PERSON"."LOGIN_ID"=TO_NUMBER(:LOGIN_ID))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.persons.PersonService.getLightPersonByLogin">
+        <return class="com.rssl.phizic.business.persons.LightPerson">
+            <return-property name="id"                      column="personId"/>
+            <return-property name="creationType"            column="personCreationType"/>
+            <return-property name="firstName"               column="personFirstName"/>
+            <return-property name="surName"                 column="personSurName"/>
+            <return-property name="patrName"                column="personPatrName"/>
+            <return-property name="departmentId"            column="personDepartmentId"/>
+            <return-property name="birthDay"                column="personBirthDay"/>
+            <return-property name="userRegistrationMode"    column="personUserRegistrationMode"/>
+        </return>
+        <![CDATA[
+            select
+                person.ID as personId,
+                person.CREATION_TYPE as personCreationType,
+                person.FIRST_NAME as personFirstName,
+                person.SUR_NAME as personSurName,
+                person.PATR_NAME as personPatrName,
+                person.DEPARTMENT_ID as personDepartmentId,
+                person.BIRTHDAY as personBirthDay,
+                person.USER_REGISTRATION_MODE as personUserRegistrationMode
+            from USERS person
+            where person.LOGIN_ID = :login_id
+        ]]>
+    </sql-query>
+
+    <!--
+        Опорный элемент: DXFK_DOCUMENTS_TO_USERS
+        Предикаты доступа: access("DOCUMENT"."PERSON_ID"=TO_NUMBER(:PERSON_ID))
+        Кардинальность: до 10 (на проме максимальное количество документов клиента 10)
+    -->
+    <sql-query name="com.rssl.phizic.business.persons.PersonService.getPersonDocuments">
+        <return alias="document" class="com.rssl.phizic.business.persons.PersonDocumentImpl"/>
+        <![CDATA[
+            select {document.*}
+            from DOCUMENTS document
+            where document.PERSON_ID = :person_id
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findPersonsByDepartmentId">
+        select count(*) from Person
+        where status in ('A','T')
+        and :departmentId = departmentId
+    </query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findByAttributes">
+        select person
+        from ActivePerson as person
+        where person.creationType != 'POTENTIAL'
+            and ((person.firstName = :firstName)
+	        and (person.surName = :surName)
+	        and (:patrName is null or person.patrName = :patrName)
+	        and (person.birthDay = :birthDay))
+    </query>
+
+    <!--Поиск клиента по номеру и дате договора-->
+    <query name="com.rssl.phizic.business.persons.PersonService.getByAgreement">
+        select person
+        from ActivePerson as person
+        where ((person.agreementNumber = :agreementNumber)
+	         and (person.agreementDate is null or person.agreementDate = :agreementDate))
+    </query>
+    
+    <!--Поиск клиента по ФИО+ДУЛ+ДР-->
+    <query name="com.rssl.phizic.business.persons.PersonService.findByFIOAndDoc">
+        select person
+        from ActivePerson as person
+        where person.creationType != 'POTENTIAL'
+        and upper(concat(replace(person.surName,' ',''),concat(replace(person.firstName,' ',''), replace(person.patrName,' ','')))) = :FIO
+        and (select count(person.personDocuments.id)
+             from  person.personDocuments
+             where concat(replace(person.personDocuments.documentSeries,' ',''), replace(person.personDocuments.documentNumber,' ',''))  = :Doc) > 0
+        and person.birthDay = :birthDay
+    </query>
+
+    <!--Поиск клиента по ФИО+ДУЛ+ДР-->
+    <query name="com.rssl.phizic.business.persons.PersonService.findPotentialByFIOAndDoc">
+        select person
+        from ActivePerson as person
+        where person.creationType = 'POTENTIAL'
+        and upper(concat(replace(person.surName,' ',''),concat(replace(person.firstName,' ',''), replace(person.patrName,' ','')))) = :FIO
+        and (select count(person.personDocuments.id)
+             from  person.personDocuments
+             where concat(replace(person.personDocuments.documentSeries,' ',''), replace(person.personDocuments.documentNumber,' ',''))  = :Doc) > 0
+        and person.birthDay = :birthDay
+    </query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findByLasLogonCardNumber">
+        select person
+        from ActivePerson as person
+        where person.login.lastLogonCardNumber = :cardNumber
+    </query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findByCSAUserId">
+        select person
+        from ActivePerson as person
+        where person.login.csaUserId = :csaUserId
+    </query>
+
+    <query name="com.rssl.phizic.business.persons.PersonService.findByCSAUserIds">
+        select person
+        from ActivePerson as person
+        where person.login.csaUserId in(:csaUserIds)
+    </query>
+
+    <!-- Возвращает тайминги клиента -->
+    <query name="com.rssl.phizic.business.clients.getPersonTimings">
+        from PersonTiming
+        where personId = :personId
+    </query>
+
+    <!--Проверяет существование линков с пустым автоматическим смс алиасом-->
+    <sql-query name="com.rssl.phizic.business.clients.findNullableSmsAutoAlias">
+        <return-scalar column="id" type="long"/>
+        <![CDATA[
+            select id
+            from
+                (select id from account_links where login_id = :loginId and sms_auto_alias is null
+                union all
+                select id from card_links where login_id = :loginId and sms_auto_alias is null
+                union all
+                select id from loan_links where login_id = :loginId and sms_auto_alias is null)
+            where rownum = 1
+        ]]>
+    </sql-query>
+
+	<!--Выборка email-адресов для новостной рассылки.
+        Опорный объект: SUBSCR_NEWS_IND
+        Предикаты доступа: "SUBSCR"."NOTIFICATION_TYPE"='newsNotification' AND "SUBSCR"."TB"=:TERBANK AND "SUBSCR"."LOGIN_ID">TO_NUMBER(:LASTID)
+        Кардинальность: 1...20 (стоп условие - количество писем в пачке, устанавливается сотрудником банка.)-->
+    <sql-query name="com.rssl.phizic.business.clients.getNewsDistributionEmailPack">
+        <return-scalar column="loginId"         type="long"/>
+        <return-scalar column="email"           type="string"/>
+        <return-scalar column="mailFormat"      type="string"/>
+        <![CDATA[
+            select subscrData.LOGIN_ID as loginId, subscrData.EMAIL_ADDRESS as email, subscrData.MAIL_FORMAT as mailFormat
+            from SUBSCRIPTIONS subscr
+            inner join PERSONAL_SUBSCRIPTION_DATA subscrData on subscrData.LOGIN_ID = subscr.LOGIN_ID
+            where subscr.NOTIFICATION_TYPE = 'newsNotification'
+            and subscr.TB = :terbank
+            and subscr.LOGIN_ID > :lastId
+            order by subscr.LOGIN_ID
+        ]]>
+    </sql-query>
+
+	<!-- Не выбирать персон-представителей без договора (неактивных) -->
+	<!-- TODO SBRF Надо все таки выводить в списке людей с договором -->
+	<filter-def name="person.no.incomplete.empowered" condition="NOT (TRUSTING_ID IS NULL)"/>
+
+	<filter-def name="person_filter_by_department"
+                condition="(exists(
+                                    SELECT
+                                        1
+                                    FROM
+                                        DEPARTMENTS dep
+                                    WHERE
+                                        dep.id = DEPARTMENT_ID
+                                        AND exists(SELECT 1 FROM ALLOWED_DEPARTMENTS ad
+                                                         WHERE ad.LOGIN_ID = :employeeLoginId
+                                                         AND ad.TB||'|'||ad.OSB||'|'||ad.VSP in (
+                                                                                                 dep.TB||'|*|*',
+                                                                                                 dep.TB||'|'||dep.OSB||'|*',
+                                                                                                 dep.TB||'|'||dep.OSB||'|'||dep.OFFICE,
+                                                                                                 '*|*|*'
+                                                                                                 )
+                                                    )
+                                   )
+                            )"
+           >
+		<filter-param name="employeeLoginId" type="long"/>
+	</filter-def>
+
+</hibernate-mapping>

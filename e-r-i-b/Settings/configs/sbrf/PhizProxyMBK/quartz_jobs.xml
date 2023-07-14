@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<quartz xmlns="http://www.opensymphony.com/quartz/JobSchedulingData"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.opensymphony.com/quartz/JobSchedulingData http://www.quartz-scheduler.org/xml/job_scheduling_data_1_5.xsd"
+        version="1.5">
+
+    <!-- Загрузка связок МБК-->
+    <job>
+		<job-detail>
+			<name>LoadMBKRegistrationsJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.job.mbk.LoadMBKRegistrationsJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>LoadMBKRegistrationsTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>LoadMBKRegistrationsJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--Повторяем обновление данных раз в 30 секунд-->
+                <repeat-interval>30000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!-- Синхронизация ЕРМБ телефонов с МБК-->
+    <job>
+		<job-detail>
+			<name>UploadPhonesJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.job.mbk.UploadPhonesJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>UploadPhonesTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>UploadPhonesJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--Повторяем обновление данных раз в 30 секунд-->
+                <repeat-interval>30000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!-- Маршрутизатор P2P-запросов МБК -->
+    <job>
+		<job-detail>
+			<name>MBKP2PProxyJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.mbk.P2PProxyJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>MBKP2PProxyTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>MBKP2PProxyJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <repeat-interval>5000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+</quartz>

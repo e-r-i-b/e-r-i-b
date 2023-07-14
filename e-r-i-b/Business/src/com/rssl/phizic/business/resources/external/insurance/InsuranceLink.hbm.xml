@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="BusinessProcess" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+         <param name="enumClass">com.rssl.phizic.business.resources.external.insurance.BusinessProcess</param>
+     </typedef>
+
+   <class name="com.rssl.phizic.business.resources.external.insurance.InsuranceLink"
+           table="INSURANCE_LINKS" >
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_INSURANCE_LINKS</param>
+            </generator>
+        </id>
+        <property name="externalId"  type="string"    column="EXTERNAL_ID" not-null="true"/>
+        <property name="loginId" type="long" not-null="true" column="LOGIN_ID" />
+	    <property name="number"     type="string"     not-null="true"  column="REFERENCE"/>
+        <property name="name"       type="string"     not-null="true"  column="INSURANCE_NAME"/>
+        <property name="showInSystem" type="boolean" not-null="true" column="SHOW_IN_SYSTEM"/>
+        <property name="businessProcess" type="BusinessProcess"  not-null="true"   column="BUSINESS_PROCESS"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.resources.external.insurance.InsuranceLink.list.inSystem">
+        select link
+        from   com.rssl.phizic.business.resources.external.insurance.InsuranceLink link
+        where  link.loginId = :login and link.showInSystem = true
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.insurance.InsuranceLink.list">
+        select link
+        from   com.rssl.phizic.business.resources.external.insurance.InsuranceLink link
+        where  link.loginId = :login
+    </query>
+</hibernate-mapping>

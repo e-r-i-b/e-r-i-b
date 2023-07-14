@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+
+<project name="PhizIC-load" default="loadAll">
+
+	<loadproperties srcfile="${basedir}/load.properties"/>
+
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties">
+          <classpath>
+            <pathelement location="${phizic.target.dir}/Libraries/ForAnt/ant-contrib-1.0b3.jar"/>
+          </classpath>
+    </taskdef>
+
+    <taskdef name="svn" classname="org.tigris.subversion.svnant.SvnTask"/>
+
+    <target name="load">
+		<echo message="url ${svn.url}"/>
+		<echo message="dir ${targetDir}"/>
+		<echo message="revision ${svn.revision}"/>
+		<echo message="username ${svn.username}"/>
+		<echo message="password ${svn.password}"/>
+		<svn username="${svn.username}" password="${svn.password}">
+			<export srcUrl="${svn.url}" destPath="${load.base.dir}/${targetDir}" revision="${svn.revision}"/>
+		</svn>
+	</target>
+
+	<target name="clean">
+		<delete includeemptydirs="true" failonerror="false" dir="${dir}"/>
+	</target>
+
+    <target  name="cleanPhizic" if="phizic.svn.url" description="Чистим собираемые библиотеки и внешние сорсы">
+
+        <echo message="Start clean PhizIC"/>
+
+        <delete  failonerror="false">
+   			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/Armour">
+				<include name="armour_jni.jar"/>
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+   			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/Retail">
+				<include name="retail_jni.jar"/>
+                <include name="retail_jni_src.jar"/>
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+  			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/Crypto">
+				<include name="plugin_jni.jar"/>
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+            <fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/Common">
+				<include name="commons-lang-2.5-sources.jar"/>
+                <include name="commons-pool-1.5.4-javadoc.jar"/>
+                <include name="commons-pool-1.5.4-sources.jar"/>  
+				<include name="commons-beanutils-1.7.0-src.zip"/>
+                <include name="commons-codec-1.3-src.zip"/>
+                <include name="commons-collections-3.2.0-src.zip"/>
+                <include name="commons-digester-1.7.0-src.zip"/>
+                <include name="commons-fileupload-1.1.1-src.zip"/>
+                <include name="commons-io-1.2-src.zip"/>
+                <include name="commons-logging-1.1.0-src.zip"/>
+                <include name="commons-validator-1.3.0-src.zip"/>
+                <include name="log4j-1.2.14.zip"/>                
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+  			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/FreeMarker">
+				<include name="freemarker-2.3.8.zip"/>
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+  			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/Hibernate">
+				<include name="cglib-2.1.3-src.zip"/>
+                <include name="ehcache-1.2.3-src.zip"/>
+                <include name="hibernate-3.1.3.zip"/>                
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+  			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/J2EE">
+				<include name="j2ee-1.4-doc-api.zip"/>
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+  			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/JSTL">
+				<include name="jakarta-taglibs-standard-1.1.2-src.zip"/>
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+  			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/JUnit">
+				<include name="junit-3.8.1.zip"/>
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+  			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/Quartz">
+				<include name="quartz-1.6.0.zip"/>
+		    </fileset>
+        </delete>
+        <delete  failonerror="false">
+  			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/Struts">
+				<include name="struts-1.2.9-src.zip"/>
+                <include name="struts-layout-1.2-src.zip"/>
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+   			<fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/ForStylusStudio">
+				<include name="*.*"/>
+			</fileset>
+        </delete>
+        <delete  failonerror="false">
+            <fileset dir="${load.base.dir}/${phizic.target.dir}/Libraries/JDBC">
+				<include name="jtds-1.2.jar"/>
+			</fileset>
+        </delete>
+
+        <echo message="End clean PhizIC"/>
+
+    </target>
+
+	<target name="loadPhizIC" if="phizic.svn.url" >
+		<echo message="Load PhizIC"/>
+		<antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${phizic.target.dir}"/>
+		</antcall>	
+		<antcall target="load">
+			<param name="svn.url" value="${phizic.svn.url}"/>
+			<param name="svn.revision" value="${phizic.svn.revision}"/>
+			<param name="targetDir" value="${phizic.target.dir}"/>
+            	        <param name="svn.username" value="${svn.access.username}"/>
+	                <param name="svn.password" value="${svn.access.password}"/>
+		</antcall>
+
+       <if>
+         <equals arg1="${phizic.svn.revision}" arg2="HEAD" />
+         <then>
+             <svn javahl="false">
+                 <info target="${phizic.svn.url}"/>
+             </svn>
+
+             <copy file="${load.base.dir}/${phizic.target.dir}/Settings/configs/global/version.properties.template"
+                   tofile="${load.base.dir}/${phizic.target.dir}/Settings/configs/global/version.properties"
+                   overwrite="true"/>
+             <propertyfile file="${load.base.dir}/${phizic.target.dir}/Settings/configs/global/version.properties">
+                 <entry key="com.rssl.iccs.revision" value="${svn.info.lastRev}" operation="="/>
+             </propertyfile>
+         </then>
+         <else>
+             <propertyfile file="${load.base.dir}/${phizic.target.dir}/Settings/configs/global/version.properties">
+                 <entry key="com.rssl.iccs.revision" value="${phizic.svn.revision}" operation="="/>
+             </propertyfile>
+         </else>
+        </if>
+
+		<copy todir="${load.base.dir}">
+			<fileset dir="${load.base.dir}/${phizic.target.dir}/Builder/${current.config.name}/buildScripts">
+				<include name="*.cmd"/>
+				<include name="*.bat"/>
+				<include name="*.txt"/>
+			</fileset>                                                    
+		</copy>
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${load.base.dir}/${phizic.target.dir}/Builder/${current.config.name}">
+				<include name="load.ant"/>
+				<include name="load.bat"/>
+				<include name="buildScripts"/>
+			</fileset>
+		</delete>
+        <unzip src="${load.base.dir}/${phizic.target.dir}/Libraries/configs/russlav.jar"
+               dest="${load.base.dir}/${phizic.target.dir}/contact"
+               overwrite="true"/>
+        <unzip src="${load.base.dir}/${phizic.target.dir}/Libraries/configs/sbrf.jar"
+               dest="${load.base.dir}/${phizic.target.dir}/officeList"
+               overwrite="true"/>
+
+        <antcall target="cleanPhizic"/>
+
+		<echo message="End load PhizIC"/>
+	</target>
+
+   <target name="loadPhizICDocs" if="phizic.docs.svn.url" >
+
+		<echo message="Load IKFL Documentation"/>
+
+       	<antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${phizic.docs.target.dir}"/>
+		</antcall>
+
+		<antcall target="load">
+			<param name="svn.url" value="${phizic.docs.svn.url}"/>
+			<param name="targetDir" value="${phizic.docs.target.dir}"/>
+			<param name="svn.revision" value="${phizic.docs.svn.revision}"/>
+            <param name="svn.username" value="${svn.access.username}"/>
+            <param name="svn.password" value="${svn.access.password}"/>
+		</antcall>
+
+		<echo message="End load IKFL Documentation"/>
+	</target>
+
+	<target name="loadApi" if="api.svn.url" >
+
+		<echo message="Load API"/>
+
+		<antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${api.target.dir}"/>
+		</antcall>
+		<antcall target="load">
+			<param name="svn.url" value="${api.svn.url}"/>
+			<param name="targetDir" value="${api.target.dir}"/>
+			<param name="svn.revision" value="${api.svn.revision}"/>
+            <param name="svn.username" value="${svn.access.username}"/>
+            <param name="svn.password" value="${svn.access.password}"/>
+		</antcall>
+
+        <antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${api.target.dir}/armour/doc"/>
+		</antcall>
+        <antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${api.target.dir}/retail/doc"/>
+		</antcall>
+
+		<echo message="End load API"/>
+	</target>
+
+	<target name="loadAlarm" if="alarm.svn.url" >
+
+		<echo message="Load Alarm"/>
+
+		<antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${alarm.target.dir}"/>
+		</antcall>
+
+		<antcall target="load">
+			<param name="svn.url" value="${alarm.svn.url}"/>
+			<param name="targetDir" value="${alarm.target.dir}"/>
+			<param name="svn.revision" value="${alarm.svn.revision}"/>
+            <param name="svn.username" value="${svn.access.username}"/>
+            <param name="svn.password" value="${svn.access.password}"/>
+		</antcall>
+
+		<echo message="End load Alarm"/>
+	</target>
+
+	<target name="loadRSBridge" if="rsbridge.svn.url" >
+
+		<echo message="Load RSBridge"/>
+
+		<antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${rsbridge.target.dir}"/>
+		</antcall>
+
+		<antcall target="load">
+			<param name="svn.url" value="${rsbridge.svn.url}"/>
+			<param name="targetDir" value="${rsbridge.target.dir}"/>
+			<param name="svn.revision" value="${rsbridge.svn.revision}"/>
+            <param name="svn.username" value="${svn.access.username}"/>
+            <param name="svn.password" value="${svn.access.password}"/>
+		</antcall>
+
+		<antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${rsbridge.target.dir}/Doc"/>
+		</antcall>
+
+		<echo message="End load RSBridge"/>
+	</target>
+
+	<target name="loadCrypto" if="crypto.svn.url" >
+
+		<echo message="Load Crypto"/>
+
+		<antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${crypto.target.dir}"/>
+		</antcall>
+
+		<antcall target="load">
+			<param name="svn.url" value="${crypto.svn.url}"/>
+			<param name="targetDir" value="${crypto.target.dir}"/>
+			<param name="svn.revision" value="${crypto.svn.revision}"/>
+            <param name="svn.username" value="${svn.access.username}"/>
+            <param name="svn.password" value="${svn.access.password}"/>
+		</antcall>
+
+		<antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${crypto.target.dir}/doc"/>
+		</antcall>
+
+		<echo message="End load Crypto"/>
+	</target>
+
+	<target name="loadMQBridge" if="mqbridge.svn.url" >
+		<echo message="Load MQBridge"/>
+
+		<antcall target="clean">
+			<param name="dir" value="${load.base.dir}/${mqbridge.target.dir}"/>
+		</antcall>	
+		<antcall target="load">
+			<param name="svn.url" value="${mqbridge.svn.url}"/>
+			<param name="targetDir" value="${mqbridge.target.dir}"/>
+			<param name="svn.revision" value="${mqbridge.svn.revision}"/>
+            <param name="svn.username" value="${svn.access.username}"/>
+            <param name="svn.password" value="${svn.access.password}"/>            
+		</antcall>
+
+		<echo message="End load MQBridge"/>
+	</target>
+
+	<target name="loadAll">
+
+		<antcall target="loadPhizIC"/>
+
+        <antcall target="loadPhizICDocs"/>
+
+		<antcall target="loadApi"/>
+
+		<antcall target="loadAlarm"/>
+
+		<antcall target="loadRSBridge"/>
+
+        <antcall target="loadCrypto"/>
+                
+		<antcall target="loadMQBridge"/>
+		
+	</target>
+
+</project>

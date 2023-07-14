@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping catalog="RSBankV55">
+
+    <class name="com.rssl.phizic.gate.dictionaries.KBKRecord" table="KBK">
+	    <id name="id" type="long" column="ID"/>
+	    <property name="taxonomy" type="long" column="TAXONOMY"/>
+        <property name="code" type="string" column="CODE" not-null="true"/>
+		<property name="note" type="string" column="NOTE"/>
+	    <property name="superior" type="long" column="SUPERIOR"/>
+    </class>
+
+    <sql-query name="GetKBK">
+        <return alias="kbk" class="com.rssl.phizic.gate.dictionaries.KBKRecord">
+	        <return-property name="id"     column="ID"/>
+	        <return-property name="taxonomy"   column="Taxonomy"/>
+	        <return-property name="code"   column="Code"/>
+	        <return-property name="note"    column="Note"/>
+	        <return-property name="superior" column="Superior"/>
+        </return>
+        <![CDATA[
+	    SELECT
+        	KBKRecords.ID           AS id,
+        	KBKRecords.Taxonomy     AS taxonomy,
+        	KBKRecords.Code         AS code,
+        	KBKRecords.Note         AS note,
+        	KBKRecords.Superior     AS superior
+	    FROM bt_tx_dbt AS KBKRecords where KBKRecords.Taxonomy ='9'
+	    ORDER BY ID
+        ]]>
+    </sql-query>
+
+   <sql-query name="GetKBKByTemplate">
+        <return alias="kbk" class="com.rssl.phizic.gate.dictionaries.KBKRecord">
+	        <return-property name="id"     column="ID"/>
+	        <return-property name="taxonomy"   column="Taxonomy"/>
+	        <return-property name="code"   column="Code"/>
+	        <return-property name="note"    column="Note"/>
+	        <return-property name="superior" column="Superior"/>
+        </return>
+        <![CDATA[
+	    SELECT
+        	KBKRecords.ID           AS id,
+        	KBKRecords.Taxonomy     AS taxonomy,
+        	KBKRecords.Code         AS code,
+        	KBKRecords.Note         AS note,
+        	KBKRecords.Superior     AS superior
+	    FROM bt_tx_dbt AS KBKRecords
+	    where KBKRecords.Taxonomy ='9'
+	        and ( :code is null or KBKRecords.code = :code)
+	        and (:superior is null or KBKRecords.superior = :superior)
+	    ORDER BY ID
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

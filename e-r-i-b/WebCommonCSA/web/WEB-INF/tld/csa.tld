@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.2//EN" "http://java.sun.com/dtd/web-jsptaglibrary_1_2.dtd">-->
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee web-jsptaglibrary_2_0.xsd"
+        version="2.0">
+    <tlib-version>1.2</tlib-version>
+    <jsp-version>1.1</jsp-version>
+    <short-name>csa</short-name>
+    <uri>http://rssl.com/tags/csa</uri>
+    <!--Тег для вывода на страницу ошибок валидации, сохраненных в реквесте-->
+    <tag>
+        <name>messages</name>
+        <tag-class>com.rssl.phizic.web.tags.MessagesTag</tag-class>
+        <body-content>JSP</body-content>
+        <attribute>
+            <!--Имя переменной для сохранения текста сообщения-->
+            <name>id</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>bundle</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <!-- Имя переменной для сохранения поля, в котором произошла ошибка-->
+            <name>field</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <!--ключ для поиска сообщений в реквесте (ключи заданы енумом ActionMessagesKeys)-->
+            <name>message</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+
+    <function>
+      <name>currentForm</name>
+      <function-class>com.rssl.phizic.web.actions.StrutsUtils</function-class>
+      <function-signature>java.lang.Object currentForm(javax.servlet.jsp.PageContext)</function-signature>
+   </function>
+
+    <!--Преобразует строку с BB кодами в html. При необходимости применяется html escaping-->
+    <function>
+        <name>processBBCodeAndEscapeHtml</name>
+        <function-class>com.rssl.phizic.web.news.ProcessBBCode</function-class>
+        <function-signature>java.lang.String preparePostText(java.lang.String,boolean)</function-signature>
+    </function>
+
+    <!-- проверяет, содержится ли указанный объект в коллекции -->
+    <function>
+        <name>contains</name>
+        <function-class>com.rssl.phizic.web.util.CollectionFunctions</function-class>
+        <function-signature>boolean contains(java.util.Collection, java.lang.Object)</function-signature>
+    </function>
+
+    <!--Экранированя URL. (Защита от XSS)-->
+    <function>
+        <name>encodeURL</name>
+        <function-class>com.rssl.phizic.utils.StringHelper</function-class>
+        <function-signature>java.lang.String encodeURL(java.lang.String)</function-signature>
+    </function>
+</taglib>

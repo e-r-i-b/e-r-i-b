@@ -1,0 +1,532 @@
+import rcw, rsd, deprintr, alg_vars, cur_rate;
+import "rt_ib_xml.mac";
+
+file depositr   ( depositr ) key 8 write;
+file tarif      ( sb_tarif ) key 0;
+file tarif_plus ( sb_tarpl ) key 0;
+file lostbook   ( lostbook ) key 0 write;
+
+record pay_doc  ( pay_doc  );
+record sbdepdoc ( sbdepdoc );
+
+// ────────────────────────────────────────────────────────────────
+// Вставка заявки на утрату сберегательной книжки
+// ────────────────────────────────────────────────────────────────
+class(cBaseDeposit)
+    cMakeLossPassbookDocument( inXml, outXml )   
+
+  
+  var depclnt = TClientList;
+
+  /* Состояние заявления об утрате сбер.книжки. */
+  const LBDS_ANY         = 0,  /* Любое      */
+        LBDS_INITIALIZED = 1,  /* Введено    */
+        LBDS_PROCESSED   = 2,  /* Обработано */
+        LBDS_CANCELLED   = 3;  /* Отменено   */
+
+  /* Вид обработки заявления об утрате сбер.книжки. */
+  const LBDP_UNDEF     = 0,  /* Не определен                */
+        LBDP_CASHCLOSE = 1,  /* Закрыть счет наличными      */
+        LBDP_TRANSFER  = 2,  /* Перечислить остаток на счет */
+        LBDP_REISSUE   = 3;  /* Выдать дубликат сб/кн       */      
+  
+  const TarifSbook  = 17;  /* Код тарифа за утерю сберкнижки */
+  const TarifSbookP = 19;  /* Код тарифа за утерю сберкнижки для пенсионеров */
+
+  const UPDATE_ALL  = 1;
+  const UPDATE_DEP  = 2;
+  const UPDATE_DOC  = 4;
+
+  var outXML_cur;  
+  
+  var accountNumber,
+      action,
+      rs_accountReceiver;
+
+  var LB_MaxID = 0;  /* Максим.идентификатор в таблице регистр.утрач. сб\кн. */
+  var ComisSum = $0L;
+
+
+  // ───────────────────────────────────────
+  // Получаем параметры из входной XML
+  // ───────────────────────────────────────
+  private macro getParametersFromXml( inXml )
+   
+    accountNumber = string( inXml.documentElement.selectSingleNode("//accountNumber").text );
+    
+    action = inXml.documentElement.selectSingleNode("//action");            
+    if( action.text == 2)
+      receiverAccount = string( inXml.documentElement.selectSingleNode("//receiverAccount").text );
+    end;
+
+  end;//getParametersFromXml( inXml )
+
+
+  // ───────────────────────────────────────
+  // Формируем выходной XML при успешной вставке
+  // ───────────────────────────────────────
+  private macro createDateTag
+
+    node = nodeAnswer.appendChild( outXML_cur.createNode(1, "errorCode", "") ); 
+    node.text = 0;
+
+    node = nodeAnswer.appendChild( outXML_cur.createNode(1, "applicationKind", "") ); 
+    node.text = sbdepdoc.iApplicationKind;
+                
+    node = nodeAnswer.appendChild( outXML_cur.createNode(1, "applicationKey", "") ); 
+    node.text = sbdepdoc.ApplicationKey;
+
+  end;
+
+
+  // ───────────────────────────────────────
+  //   Поиск тарифа
+  // ───────────────────────────────────────
+  macro FindTarif( isCur, Num, _Date, _Sum )
+
+    var state;
+
+    tarif.IsCur = isCur;
+    tarif.NumTarif = Num;
+
+    state = GetEQ( tarif );
+
+    if ( state and ( tarif.TarifPlus ) )
+      tarif_plus.IsCur    = isCur;
+      tarif_plus.NumTarif = Num;
+      tarif_plus.Date     = _Date;
+      tarif_plus.SumOper  = _Sum;
+      if ( ( GetGE( tarif_plus )          ) and
+           ( tarif_plus.IsCur    == 0     ) and
+           ( tarif_plus.NumTarif == Num   ) and
+           ( tarif_plus.Date     == _Date ))
+        tarif.PerSent = tarif_plus.Percent;
+        tarif.MinSum  = tarif_plus.MinSum;
+        tarif.MaxSum  = tarif_plus.MaxSum;
+        tarif.Summa   = tarif_plus.Summa;
+      end;
+    end;
+
+    return state;
+
+  end;
+
+  // ───────────────────────────────────────
+  // 
+  // ───────────────────────────────────────
+  macro NewDepDoc ( Doc )
+
+    ClearRecord( Doc );
+    Doc.Referenc         = ALG_DEPOSITOR.Referenc;
+    Doc.IsCur            = ALG_DEPOSITOR.IsCur;
+    Doc.FNCash           = ALG_DEPOSITOR.FNCash;
+    Doc.RealFNCash       = NumRealFNCash( );
+    Doc.Account          = ALG_DEPOSITOR.Account;
+    Doc.Oper             = {oper};
+    Doc.Type_Account     = ALG_DEPOSITOR.Type_Account;
+    Doc.Code_Currency    = ALG_DEPOSITOR.Code_Currency;
+    Doc.CodClient        = ALG_DEPOSITOR.CodClient;
+    Doc.YesSbook         = "X";
+    Doc.Date_Document    = {curdate};
+    Doc.DepDate_Document = {curdate};
+
+  end;
+
+
+  macro InitRecsForLostSBBook
+
+    /* Формирование документа по вкладу */
+    NewDepDoc( sbdepdoc );
+    sbdepdoc.TypeComplexOper  = ALG_RET_OP.Operation;
+    sbdepdoc.TypeOper         = 62;
+    sbdepdoc.ApplType         = 30;
+    sbdepdoc.DepDate_Document = {curdate};
+    sbdepdoc.KindOp           = 3;
+    sbdepdoc.IsControl        = StrFor( 1 ); /* Признак главного документа */
+    sbdepdoc.ArDate           = {curdate};
+    sbdepdoc.OutSum           = ComisSum;    
+    sbdepdoc.iApplicationKind = 1;
+    sbdepdoc.ApplicationKey   = FormApplicationKey( 1 );
+    sbdepdoc.Flags2           = 4;
+
+    if ( StrFor( GetProgramID( ) ) != "П" )
+      DepSetGround( sbdepdoc );
+      if ( sbdepdoc.Ground == "" )
+        sbdepdoc.Ground = "Установка признака потери сберкнижки";
+      end;
+    else
+      if ( ALG_SBDEPDOC.Ground != "" )
+        sbdepdoc.Ground = ALG_SBDEPDOC.Ground;
+      else
+        DepSetGround( sbdepdoc );
+        if ( sbdepdoc.Ground == "" )
+          sbdepdoc.Ground = "Установка признака потери сберкнижки";
+        end;
+      end;
+    end;
+
+  end;
+  
+
+  // ───────────────────────────────────────
+  // Поиск максимального идент-ра в таблице регистрации утраченных сбер.книжек.
+  // ───────────────────────────────────────
+  macro LB_find_MaxID()
+    var statLBM = TRUE;
+    KeyNum( lostbook, 0 );
+    ClearRecord( lostbook );
+    lostbook.ID = 2147483646;
+    if ( getLE( lostbook ) )
+      LB_MaxID = lostbook.ID;
+    else
+      LB_MaxID = 0;
+    end;
+    return statLBM;
+  end;
+
+
+  // ───────────────────────────────────────
+  // Запись в таблицу регистрации утраченных сбер.книжек.
+  // ───────────────────────────────────────
+  macro LB_Insert( rs_accountReceiver )
+    ClearRecord( lostbook );
+    lostbook.ID = LB_MaxID + 1;
+    lostbook.Number = String( lostbook.ID:20:r );
+    lostbook.DateRegistred = {curdate};
+    lostbook.Branch = NumRealFNCash();
+    lostbook.ClientCode = ALG_DEPOSITOR.CodClient;
+    lostbook.Reference = ALG_DEPOSITOR.Referenc;
+    lostbook.ClientCodeAcc = ALG_DEPOSITOR.CodClient;
+    lostbook.State = LBDS_INITIALIZED;
+    lostbook.RegistredByOper = {oper};
+    lostbook.Processing = action.text;
+    if( action.text == 2)
+      lostbook.DestReference = rs_accountReceiver.value("t_referenc");
+    end;    
+
+    return Insert( lostbook );
+  end;   
+  
+
+macro T_UpdateRecsForLostSBBook
+
+  record save_depositr ( depositr );
+
+  record WriteLog_rec  ( "WriteLog.rec" ) write;
+  record op_parm_rec   ( "op_parm.rec"  );
+  record op_link_rec   ( "op_link.rec"  );
+  record ret_op_dep    ( "ret_op.dep"   );
+
+  var state = true;
+  var appl_key;
+  var str_tmp;
+  
+
+  if ( CreateGDDList() == 0 )
+     state = true;
+  end;
+
+  /* Изменение записи по счету */
+  if ( state )
+    GetPos( depositr );
+    state = GetDirect( depositr );
+  end;
+
+  if ( state )
+    ALG_DEPOSITOR.UserTypeAccount = ALG_DEPOSITOR.UserTypeAccount + "Y";
+    ALG_DEPOSITOR.Givebook        = StrFor(0);
+    ALG_DEPOSITOR.NumSession      = 0;
+    ALG_DEPOSITOR.Action          = 1;
+
+    Copy( save_depositr, depositr );
+    Copy( depositr, ALG_DEPOSITOR );
+
+    state = Update( depositr );
+  end;     
+  
+
+  /* Журнализация изменений в файл нефинансовых операций */
+  if ( state )
+    ClearRecord( WriteLog_rec );
+    WriteLog_rec.NumOperation = 3;
+    WriteLog_rec.ObjectType   = 205;
+    WriteLog_rec.ObjectID     = String( 501 ) + "/" + String( depositr.Referenc );    
+
+    if ( WriteChangesToLog( WriteLog_rec, depositr, save_depositr ) != 0 )
+      state = false;
+    end;
+  end;
+
+  /* Формирование операции */
+  if ( state )
+    appl_key = "rtnfopr#";
+    str_tmp = String( WriteLog_rec.NumDprt );
+    while ( StrLen( str_tmp ) < 3 )
+      str_tmp = "0" + str_tmp;
+    end;
+    appl_key = appl_key + str_tmp;
+    str_tmp = String( WriteLog_rec.RecID );
+    while ( StrLen( str_tmp ) < 10 )
+      str_tmp = "0" + str_tmp;
+    end;
+    appl_key = appl_key + str_tmp;
+
+    if ( not InterDesk_IsDocBunchActive )
+      ClearRecord( op_parm_rec );
+      op_parm_rec.Date      = {curdate};
+      op_parm_rec.Operation = 205;
+      op_parm_rec.SubOp     = 0;
+      op_parm_rec.ObjectRef = depositr.Type_Account;
+      op_parm_rec.CodCur    = depositr.Code_Currency;
+      op_parm_rec.Flags     = 1 /*ROF_NONFINANCIAL*/;
+
+      ClearRecord( ret_op_dep );
+      ret_op_dep.accRef = depositr.Referenc;
+
+      state = InterDesk_InitDocBunch( 3001, appl_key, op_parm_rec, ret_op_dep );
+    end;
+  end;
+
+  if ( state )
+    state = CashLink_AddRec( 3001, appl_key );
+  end;
+
+  if ( state )
+    state = UpdateAlgRecords( UPDATE_DEP, true, false );
+  end;    
+
+  /* Формирование документа по вкладу */
+  if ( state )
+    state = InsertDocToGDDList( sbdepdoc );
+  end;  
+  
+  if ( state )
+    if (CarryGDDList( )  != 0 )
+      state = false;
+    end;
+  end;
+  /* Формирование связи операции и объекта */
+  if ( state )
+    ClearRecord( op_link_rec );
+    op_link_rec.Date         = {curdate};
+    op_link_rec.ObjectType   = 1;
+    op_link_rec.ObjectRef    = String( depositr.Referenc );
+    op_link_rec.FcCheckState = 50;
+
+    state = LinkOpToObject( op_link_rec );
+  end;
+
+  /* Поиск максимального идентификатора в таблице регистр.утрач. сб\кн. */
+  if ( state )
+    state = LB_find_MaxID();
+  end;
+
+  /* Запись в таблицу регистрации утраченных сбер.книжек. */
+  if ( state )
+    state = LB_Insert( rs_accountReceiver );
+    InterDesk_EndDocBunch();
+  end;
+
+  /* Журнализация записи в lostbook.dbt в файл нефинансовых операций */
+  if ( state )
+    ClearRecord( WriteLog_rec );
+    WriteLog_rec.NumOperation = 2;  /* Insert */
+    WriteLog_rec.ObjectType   = 205;
+    WriteLog_rec.ObjectID     = String( 517 ) + "/" + String( lostbook.ID );
+
+    if ( WriteChangesToLog( WriteLog_rec, lostbook, lostbook ) != 0 )
+      state = false;
+    end;
+  end;
+
+  /* Формирование операции */
+  if ( state )
+    appl_key = "rtnfopr#";
+    str_tmp = String( WriteLog_rec.NumDprt );
+    while ( StrLen( str_tmp ) < 3 )
+      str_tmp = "0" + str_tmp;
+    end;
+    appl_key = appl_key + str_tmp;
+    str_tmp = String( WriteLog_rec.RecID );
+    while ( StrLen( str_tmp ) < 10 )
+      str_tmp = "0" + str_tmp;
+    end;
+    appl_key = appl_key + str_tmp;
+
+    if ( not InterDesk_IsDocBunchActive )
+      ClearRecord( op_parm_rec );
+      op_parm_rec.Date      = {curdate};
+      op_parm_rec.Operation = 205;
+      op_parm_rec.SubOp     = 0;
+      op_parm_rec.ObjectRef = lostbook.Number;
+      op_parm_rec.CodCur    = depositr.Code_Currency;
+      op_parm_rec.Flags     = 1 /*ROF_NONFINANCIAL*/;
+
+      ClearRecord( ret_op_dep );
+      ret_op_dep.accRef = depositr.Referenc;
+
+      state = InterDesk_InitDocBunch( 3001, appl_key, op_parm_rec, ret_op_dep );
+    end;
+  end;
+
+  if ( state )
+    state = CashLink_AddRec( 3001, appl_key );
+  end;
+
+  if ( not state )
+    AbortTrn( );
+  end;
+
+end;
+
+
+  // ───────────────────────────────────────
+  // Проверка наличия записи по утере с\к для счета в состоянии "Введено".
+  // ───────────────────────────────────────
+  macro LB_check_Init()
+    KeyNum( lostbook, 5 );
+    ClearRecord( lostbook );
+    lostbook.Reference = ALG_DEPOSITOR.Referenc;
+    lostbook.State     = LBDS_INITIALIZED;
+    return getEQ( lostbook );
+  end;  
+
+  // ───────────────────────────────────────
+  // Формируем документ
+  // ───────────────────────────────────────
+  macro make()
+
+    record save_depositr ( depositr );
+
+    record WriteLog_rec  ( "WriteLog.rec" );  
+    record op_parm_rec   ( "op_parm.rec"  );
+    record op_link_rec   ( "op_link.rec"  );
+    record ret_op_dep    ( "ret_op.dep"   );
+
+    var state = true;
+    var rs_account, rs_typeAccount;    
+  
+    var savedFNcash = NumFNCash,  
+        savedRealFNcash = NumRealFNCash,  
+        savedFlagCur = NumFlagCur, 
+        savedCurDate = {curdate};
+
+    state = findAccount( outXML_cur, rs_account, accountNumber, chargeOffAmountCurrency ); 
+
+    if( action.text == 2)
+      state = findAccount( outXML_cur, rs_accountReceiver, receiverAccount, receiverCurrency );    
+    end;
+     
+    if( state )
+      depositr.Referenc = rs_account.value("t_referenc");
+      /* находим счёт*/
+      state = GetEQ( depositr );
+      ClearRecord(ALG_DEPOSITOR);
+      Copy( ALG_DEPOSITOR, depositr );            
+      depclnt.GetRecord( ALG_DEPOSITOR.CodClient )
+    end;
+
+    if( state )
+      if ( Index( ALG_DEPOSITOR.UserTypeAccount, "Y" ) )
+        outXml_cur = AddError2OutXml(outXml_cur, 2673, "У счета " + accountNumber + " сберкнижка уже утеряна" );
+        state = false;
+      end;
+    end;            
+    
+    if( state ) 
+      if( ALG_DEPOSITOR.Givebook == "" )
+        outXml_cur = AddError2OutXml(outXml_cur, 2672, "По счету " + accountNumber + " сберкнижка не выдавалась" );
+        state = false;
+      end;
+    end;
+
+    if( state )
+      if( LB_check_Init() )
+        outXml_cur = AddError2OutXml(outXml_cur, -1, "Для счета существует " + accountNumber + " необработанное заявление об утере сберкнижки" );
+        state = false;
+      end;
+    end;    
+
+    /* Поиск тарифа за утрату  */
+    if( state )
+      state = FindTarif( ALG_DEPOSITOR.IsCur, TarifSbook, Date( 0, 0, 0 ), $0L );
+    end;
+
+    if( state )
+      ComisSum = tarif.Summa;   
+      if(ALG_DEPOSITOR.Sum_Rest < ComisSum)
+    outXml_cur = AddError2OutXml(outXml_cur, 1750, "Сумма списания средств (с учетом лимита) превышает остаток по счету" );
+        state = false;
+      end;
+    end;    
+
+    if( state )
+      SetFNcash( depositr.FNCash );
+      SetRealFNcash( depositr.FNCash );
+      SetFlagCur( depositr.IsCur );
+      {curdate} = GetCurDate;
+      
+      InitRecsForLostSBBook();    
+      OpenDepFiles();
+
+      
+      if ( ProcessTrn( 0, R2M(this,"T_UpdateRecsForLostSBBook")) ) 
+      else
+        outXml_cur = AddError2OutXml(outXml_cur, -1, "Ошибка при проводке по утере сберкнижки" );
+        state = false;
+      end;
+
+      {curdate} = savedCurDate;
+      SetFNcash( savedFNCash );
+      SetRealFNcash( savedRealFNCash );
+      SetFlagCur( savedFlagCur );
+      
+      CloseDepFiles();
+
+    end;
+
+    
+
+    return state;
+    
+  end;
+
+  // ────────────────────────────────────────────────────────────────  
+  // Запуск процедуры
+  // ────────────────────────────────────────────────────────────────
+  macro start( inXml, outXml )
+    var state = true;
+    var node, nodeAnswer;
+    var nodeParentElement;  
+
+    outXml_cur = outXml;
+    if(not outXml_cur)
+      outXml_cur = CreateXMLObject();
+      if(not outXml_cur) return; end;
+    
+      nodeParentElement = inXml.documentElement.selectSingleNode( "//" + NameInputTag );
+      CreateBeginTag( outXml_cur );
+    
+    
+      if( nodeParentElement )
+        getParametersFromXml( inXml );
+        state = make();
+        if( state )
+          createDateTag
+        end;
+      end;//if( nodeParentElement )
+    return outXml_cur;
+    end;//if(not outXml )      
+
+  end;//start( inXmlm, outXml)
+
+end;//cMakeLossPassbookDocument
+
+// ───────────────────────────────────────
+// Вставка документа на утрату сберегательной книжки
+// ───────────────────────────────────────
+macro makeLossPassbook( inXml, outXml )        
+  var t = cMakeLossPassbookDocument;
+  outXml = t.start( inXml, outXml );
+  SetParm(1, outXml);
+end;

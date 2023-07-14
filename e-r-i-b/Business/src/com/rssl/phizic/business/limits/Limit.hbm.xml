@@ -1,0 +1,111 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="Status" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.limits.Status</param>
+        <param name="identifierMethod">toValue</param>
+        <param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="LimitType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.limits.LimitType</param>
+    </typedef>
+
+    <typedef name="ChannelType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.limits.ChannelType</param>
+    </typedef>
+
+    <typedef name="OperationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.limits.OperationType</param>
+    </typedef>
+
+    <typedef name="RestrictionType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.limits.RestrictionType</param>
+    </typedef>
+
+    <typedef name="LimitState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.limits.LimitState</param>
+    </typedef>
+
+    <typedef name="SecurityType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.security.SecurityType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.limits.Limit" table="LIMITS">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_LIMITS</param>
+            </generator>
+        </id>
+
+
+        <property name="tb"             type="string"       column="TB"             not-null="true"/>
+        <property name="uuid"           type="string"       column="UUID"           not-null="true"/>
+        <property name="creationDate"   type="calendar"     column="CREATION_DATE"  not-null="true"/>
+        <property name="startDate"      type="calendar"     column="START_DATE"     not-null="true"/>
+        <property name="endDate"        type="calendar"     column="END_DATE"       not-null="false"/>
+        <property name="state"          type="LimitState"   column="STATE"          not-null="true"/>
+
+        <property name="status" type="Status" insert="false" update="false">
+			<formula>
+                CASE
+                    WHEN STATE = 'DRAFT'
+                        THEN 4
+                    WHEN START_DATE > current_date
+                        THEN 2
+                    ELSE
+                        CASE
+                            WHEN END_DATE is NULL OR END_DATE > current_date
+                                THEN 1
+                            ELSE 3
+                        END
+                END
+            </formula>
+		</property>
+
+        <property name="type"             type="LimitType"         column="LIMIT_TYPE"        not-null="true"/>
+        <property name="channelType"      type="ChannelType"       column="CHANNEL_TYPE"      not-null="true"/>
+        <property name="operationType"    type="OperationType"     column="OPERATION_TYPE"    not-null="true"/>
+        <property name="restrictionType"  type="RestrictionType"   column="RESTRICTION_TYPE"  not-null="true"/>
+        <property name="operationCount"   type="long"              column="OPERATION_COUNT"   not-null="false"/>
+        <property name="securityType"     type="SecurityType"      column="SECURITY_TYPE"     not-null="false"/>
+
+        <property name="amount" type="money" not-null="false">
+			<column name="AMOUNT"/>
+			<column name="CURRENCY"/>
+		</property>
+
+        <many-to-one name="groupRisk"
+            class="com.rssl.phizic.business.limits.GroupRisk"
+		    column="GROUP_RISK_ID"
+		    not-null="false"
+		    lazy="false"/>
+    </class>
+
+    <!--Получить активный лимит
+        Опорный объект: INDEX_START_DATE_1
+        Предикаты доступа: access("LIMIT"."START_DATE"<=CURRENT_DATE)
+        Кардинальность: все записи таблицы
+    -->
+    <sql-query name="com.rssl.phizic.business.limits.Limit.getActiveLimit">
+        <return alias="limit" class="com.rssl.phizic.business.limits.Limit"/>
+        <![CDATA[
+            select {limit.*}
+            from LIMITS limit
+            where
+                limit.TB = :tb and
+                limit.LIMIT_TYPE = :limit_type and
+                limit.STATE = 'CONFIRMED' and
+                limit.RESTRICTION_TYPE = :restriction_type and
+                limit.CHANNEL_TYPE = :channel_type and
+                nvl(limit.GROUP_RISK_ID, -1) = :group_risk_id and
+                nvl(limit.SECURITY_TYPE, 'NULL') = :security_type and
+                current_date >= limit.START_DATE and
+                (limit.END_DATE is null or limit.END_DATE > current_date)
+        ]]>
+    </sql-query>
+    
+</hibernate-mapping>

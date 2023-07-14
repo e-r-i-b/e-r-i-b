@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4"
+         xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd" >
+
+    <filter>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>Monitoring</param-value>
+        </init-param>
+    </filter>
+
+    <servlet>
+        <servlet-name>MonitoringSchedulerServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.monitoring.MonitoringSchedulerInitializerServlet</servlet-class>
+        <init-param>
+            <param-name>config-file</param-name>
+            <param-value>monitoring-quartz.properties</param-value>
+        </init-param>
+        <init-param>
+			<param-name>start-scheduler-on-load</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<init-param>
+			<param-name>shutdown-on-unload</param-name>
+			<param-value>true</param-value>
+		</init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+</web-app>

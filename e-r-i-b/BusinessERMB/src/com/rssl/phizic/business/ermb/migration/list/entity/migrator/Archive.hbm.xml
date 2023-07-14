@@ -1,0 +1,318 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Archive.findPhonesByClient">
+        <return-scalar column="phone_number" type="string"/>
+        <return-scalar column="source" type="string"/>
+        <return-scalar column="sms_count" type="integer"/>
+        <return-scalar column="registration_date" type="string"/>
+        <return-scalar column="last_event_card_date" type="string"/>
+        <return-scalar column="udbo" type="string"/>
+        <return-scalar column="vip_or_mvs" type="string"/>
+        <return-scalar column="osb" type="string"/>
+        <return-scalar column="vsp" type="string"/>
+        <return-scalar column="card_number_base" type="string"/>
+        <return-scalar column="sur_name" type="string"/>
+        <return-scalar column="first_name" type="string"/>
+        <return-scalar column="patr_name" type="string"/>
+        <return-scalar column="document" type="string"/>
+        <return-scalar column="birth_date" type="string"/>
+        <return-scalar column="pay_card" type="string"/>
+        <return-scalar column="sur_name_base" type="string"/>
+        <return-scalar column="first_name_base" type="string"/>
+        <return-scalar column="patr_name_base" type="string"/>
+        <return-scalar column="document_base" type="string"/>
+        <return-scalar column="birth_date_base" type="string"/>
+        <return-scalar column="client_state_base" type="string"/>
+        <return-scalar column="last_incoming_sms_date" type="string"/>
+        <![CDATA[
+            select
+                phone_number,
+                'MBV' source,
+                sms_count,
+                registration_date,
+                null last_event_card_date,
+                cod.EDBO_STATE as UDBO,
+                cod.CLIENTSTATE as VIP_OR_MVS,
+                cod.BRANCHNO_ZONA as OSB,
+                cod.OFFICE_ZONE as VSP,
+                '' card_number_base,
+                '' sur_name,
+                '' first_name,
+                '' patr_name,
+                '' document,
+                '' birth_date,
+                '' pay_card,
+                '' sur_name_base,
+                '' first_name_base,
+                '' patr_name_base,
+                '' document_base,
+                '' birth_date_base,
+                '' client_state_base,
+                mbv.last_sms_date last_incoming_sms_date
+            from
+                mbv
+                inner join cod on
+                    upper(replace(mbv.sur_name, ' ', '')||replace(mbv.first_name, ' ', '')||replace(mbv.patr_name, ' ', ''))  =
+                    upper(replace(:lastName, ' ', '')||replace(:firstName, ' ', '')||replace(:middleName, ' ', ''))
+                    and replace(mbv.doc_series, ' ', '')||replace(mbv.doc_number, ' ', '') = :document
+                    and mbv.birth_date = :birthDay
+                    and upper(replace(mbv.sur_name, ' ', '')||replace(mbv.first_name, ' ', '')||replace(mbv.patr_name, ' ', ''))  =
+                    upper(replace(cod.sur_name, ' ', '')||replace(cod.first_name, ' ', '')||replace(cod.patr_name, ' ', ''))
+                    and replace(mbv.doc_series, ' ', '')||replace(mbv.doc_number, ' ', '') =
+                    replace(cod.doc_series, ' ', '')||replace(cod.doc_number, ' ', '')
+                    and mbv.birth_date = cod.birth_date
+            UNION ALL
+            select
+                phones.phone_number,
+                'MBK' source,
+                phones.sms_count,
+                phones.last_registration_date registration_date,
+                phones.last_event_card_date,
+                cod.EDBO_STATE as UDBO,
+                cod.CLIENTSTATE as VIP_OR_MVS,
+                cod.BRANCHNO_ZONA as OSB,
+                cod.OFFICE_ZONE as VSP,
+                cards.card_number_base,
+                cards.sur_name,
+                cards.first_name,
+                cards.patr_name,
+                cards.document,
+                cards.birth_date,
+                phones.pay_card,
+                cards.sur_name_base,
+                cards.first_name_base,
+                cards.patr_name_base,
+                cards.document_base,
+                cards.birth_date_base,
+                cards.client_state_base,
+                phones.last_incoming_sms_date
+            from
+                (select
+                    card_number, way4.sur_name, way4.first_name, way4.patr_name, way4.document, way4.birth_date,
+                    way4.card_number_base,
+                    way4.sur_name_base,
+                    way4.first_name_base,
+                    way4.patr_name_base,
+                    way4.document_base,
+                    way4.birth_date_base,
+                    cod.clientstate client_state_base
+                 from
+                    way4 left join cod on
+                    upper(replace(way4.sur_name_base, ' ', '')||replace(way4.first_name_base, ' ', '')||replace(way4.patr_name_base, ' ', ''))  =
+                    upper(replace(cod.sur_name, ' ', '')||replace(cod.first_name, ' ', '')||replace(cod.patr_name, ' ', ''))
+                    and replace(way4.document_base, ' ', '') = replace(cod.doc_series, ' ', '')||replace(cod.doc_number, ' ', '')
+                    and way4.birth_date_base = cod.birth_date
+                 where
+                    upper(replace(way4.sur_name, ' ', '')||replace(way4.first_name, ' ', '')||replace(way4.patr_name, ' ', ''))  =
+                    upper(replace(:lastName, ' ', '')||replace(:firstName, ' ', '')||replace(:middleName, ' ', ''))
+                    and replace(way4.document, ' ', '') = :document
+                    and way4.birth_date = :birthDay
+                 union all
+                 select
+                    card_number, way4.sur_name, way4.first_name, way4.patr_name, way4.document, way4.birth_date,
+                    way4.card_number_base,
+                    '' sur_name_base,
+                    '' first_name_base,
+                    '' patr_name_base,
+                    '' document_base,
+                    '' birth_date_base,
+                    '' client_state_base
+                 from
+                    way4
+                 where
+                    upper(replace(way4.sur_name_base, ' ', '')||replace(way4.first_name_base, ' ', '')||replace(way4.patr_name_base, ' ', ''))  =
+                    upper(replace(:lastName, ' ', '')||replace(:firstName, ' ', '')||replace(:middleName, ' ', ''))
+                    and replace(way4.document_base, ' ', '') = :document
+                    and way4.birth_date_base = :birthDay
+                    ) cards
+                inner join
+                (select
+                    '' pay_card, mbk.card_number card_number, phone_number, last_event_card_date, last_registration_date,
+                    sms_count, last_incoming_sms_date
+                 from mbk
+                 union all
+                 select
+                    mbk.card_number pay_card, mbk.info_card_number card_number, phone_number, last_event_card_date, last_registration_date,
+                    sms_count, last_incoming_sms_date
+                 from mbk) phones
+                on cards.card_number = phones.card_number
+                inner join cod on
+                upper(replace(cards.sur_name, ' ', '')||replace(cards.first_name, ' ', '')||replace(cards.patr_name, ' ', ''))  =
+                upper(replace(cod.sur_name, ' ', '')||replace(cod.first_name, ' ', '')||replace(cod.patr_name, ' ', ''))
+                and replace(cards.document, ' ', '') = replace(cod.doc_series, ' ', '')||replace(cod.doc_number, ' ', '')
+                and cards.birth_date = cod.birth_date
+        ]]>
+    </sql-query>
+
+	<sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Archive.findConflictedByPhone">
+        <return-scalar column="PHONE_NUMBER" type="string"/>
+        <return-scalar column="SUR_NAME" type="string"/>
+        <return-scalar column="FIRST_NAME" type="string"/>
+        <return-scalar column="PATR_NAME" type="string"/>
+        <return-scalar column="DOCUMENT" type="string"/>
+        <return-scalar column="BIRTH_DATE" type="string"/>
+        <return-scalar column="VIP_OR_MVS" type="string"/>
+        <return-scalar column="TER_BANK" type="string"/>
+        <return-scalar column="OSB" type="string"/>
+        <return-scalar column="VSP" type="string"/>
+        <return-scalar column="is_info" type="string"/>
+        <return-scalar column="card_number_base" type="string"/>
+        <return-scalar column="last_event_card_date" type="string"/>
+        <return-scalar column="last_incoming_sms_date" type="string"/>
+        <return-scalar column="sms_count" type="integer"/>
+        <![CDATA[
+            select
+                mbv.phone_number,
+                mbv.sur_name,
+                mbv.first_name,
+                mbv.patr_name,
+                mbv.doc_series||mbv.doc_number document,
+                mbv.birth_date,
+                cod.clientstate vip_or_mvs,
+                cod.ter_bank,
+                cod.branchno_zona osb,
+                cod.office_zone vsp,
+                '' is_info,
+                '' card_number_base,
+                null last_event_card_date,
+                mbv.last_sms_date last_incoming_sms_date,
+                mbv.sms_count
+            from
+                mbv
+                inner join cod on
+                upper(replace(mbv.sur_name, ' ', '')||replace(mbv.first_name, ' ', '')||replace(mbv.patr_name, ' ', ''))  =
+                upper(replace(mbv.sur_name, ' ', '')||replace(mbv.first_name, ' ', '')||replace(mbv.patr_name, ' ', ''))
+                and replace(mbv.doc_series, ' ', '')||replace(mbv.doc_number, ' ', '') = replace(cod.doc_series, ' ', '')||replace(cod.doc_number, ' ', '')
+                and mbv.birth_date = cod.birth_date
+            where
+                phone_number in (:phoneNumbers)
+
+            union all
+
+            select
+                phones.phone_number,
+                cards.sur_name,
+                cards.first_name,
+                cards.patr_name,
+                cards.document,
+                cards.birth_date,
+                cod.clientstate vip_or_mvs,
+                cod.ter_bank,
+                cod.branchno_zona osb,
+                cod.office_zone vsp,
+                is_info,
+                cards.card_number_base,
+                phones.last_event_card_date,
+                phones.last_incoming_sms_date,
+                sum(phones.sms_count) sms_count
+            from
+                (select
+                    '' is_info, mbk.card_number card_number, phone_number, last_event_card_date, last_registration_date, sms_count, last_incoming_sms_date
+                from
+                    mbk
+                union all
+                select
+                    '1' is_info, mbk.info_card_number card_number, phone_number, last_event_card_date, last_registration_date, sms_count, last_incoming_sms_date
+                from
+                    mbk) phones
+                inner join
+                (select
+                    card_number, card_number_base, way4.sur_name, way4.first_name, way4.patr_name, way4.document, way4.birth_date
+                from
+                    way4
+                ) cards
+                on phones.card_number = cards.card_number
+                inner join cod on
+                upper(replace(cards.sur_name, ' ', '')||replace(cards.first_name, ' ', '')||replace(cards.patr_name, ' ', ''))  =
+                upper(replace(cod.sur_name, ' ', '')||replace(cod.first_name, ' ', '')||replace(cod.patr_name, ' ', ''))
+                and replace(cards.document, ' ', '') = replace(cod.doc_series, ' ', '')||replace(cod.doc_number, ' ', '')
+                and cards.birth_date = cod.birth_date
+            where
+                phone_number in (:phoneNumbers)
+            group by
+                phones.phone_number,
+                cards.sur_name,
+                cards.first_name,
+                cards.patr_name,
+                cards.document,
+                cards.birth_date,
+                cod.edbo_state,
+                cod.clientstate,
+                cod.ter_bank,
+                cod.branchno_zona,
+                cod.office_zone,
+                is_info,
+                cards.card_number_base,
+                last_incoming_sms_date,
+                phones.last_event_card_date
+        ]]>
+    </sql-query>
+
+    <!--поиск количества регистраций на телефоны, нужно для определения единственная доп карта в регистрации, или нет-->
+    <sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Archive.countCardRegistration">
+        <return-scalar column="phone_number" type="string"/>
+        <return-scalar column="cnt" type="integer"/>
+        <![CDATA[
+            select
+                phone_number, count(*) cnt
+            from
+                mbk
+            where
+                concat(mbk.phone_number, mbk.card_number) in (:phoneCards)
+            group by phone_number
+        ]]>
+    </sql-query>
+
+    <!--поиск собственных регистрация доп держателя-->
+    <sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Archive.countRegistrationByOtherPhone">
+        <return-scalar column="cnt" type="int"/>
+        select
+            count(*) cnt
+        from
+            way4 inner join mbk on
+            way4.card_number = mbk.card_number
+        where
+            upper(replace(way4.sur_name, ' ', '')||replace(way4.first_name, ' ', '')||replace(way4.patr_name, ' ', '')) =
+            upper(replace(:lastName, ' ', '')||replace(:firstName, ' ', '')||replace(:middleName, ' ', ''))
+            and replace(way4.document, ' ', '') = :document
+            and way4.birth_date = :birthDay
+            and mbk.phone_number not in (:phones)
+    </sql-query>
+
+    <!--регистрация султана-->
+	<sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Archive.findSultanRegistration">
+        <return-scalar column="card_number_base" type="string"/>
+        <![CDATA[
+            select
+                way4.card_number_base
+            from
+                mbk left join way4 on
+                mbk.info_card_number = way4.card_number
+            where
+                concat(concat(mbk.phone_number, ' '), mbk.card_number) = :phoneCard
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Archive.findBelongClientRegistration">
+        <return-scalar column="phone_number" type="string"/>
+        <![CDATA[
+            select
+                mbk.phone_number
+            from
+                way4 inner join mbk on
+                way4.card_number = mbk.card_number
+            where
+                upper(replace(way4.sur_name, ' ', '')||replace(way4.first_name, ' ', '')||replace(way4.patr_name, ' ', '')) =
+                upper(replace(:lastName, ' ', '')||replace(:firstName, ' ', '')||replace(:middleName, ' ', ''))
+                and replace(way4.document, ' ', '') = :document
+                and way4.birth_date = :birthDay
+                and way4.card_number_base is null
+                and mbk.info_card_number in
+                (select way4.card_number from way4 where way4.card_number_base is null)
+        ]]>
+        </sql-query>
+
+</hibernate-mapping>

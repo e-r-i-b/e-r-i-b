@@ -1,0 +1,1595 @@
+// ───────────────────────────────────
+// Общая библиотека для работы и ИКФЛ
+// ───────────────────────────────────
+// LSD 21.01.2010 добавлена проверка типа получателя (юрик физик)
+// LSD 17.02.2010 добавлена операция перевода средств на биржевой счет, открытый в Сбербанке
+//                БИК 044525225 ИНН 7707083893 р/с 30301810700001000034 Управление учета и контроля банковских операций, Сбербанк России ОАО
+// LSD 27.02.2010 Гашение ссуды в сбербанке добавлены операции 62-82 (руб) и 62-81 (вал)
+// LSD 01.04.2010 в функции findAccount исправлен подсчет одинаковых счетов
+// LSD 02.04.2010 добавлен анализ перевода на свое имя в пределах ТБ операция 67/75
+// LSD 14.04.2010  Добавлена функция подменяющая подоперации
+// Суть: При вводе новой комиссии создается подоперация=обычная_подоперация+500 и на ней задается новая комиссия,
+//       Устанавливаем х в не показывать (операционист не сможет выбрать) для нового подвида
+// Алгоритм: Валидация платежа проходит по старой подоперации, а расчет комиссии и проводка по новой
+// LSD 20.04.2010 Добавлена вторая ветка - проверка счета плателбщика для внутри Ярославского платежа
+// LSD 22.04.2010 Добалено формирование протокола
+// LSD 13.05.2010 Убрана 67/75 добавлена 67/51
+// LSD 20.04.2010  Если счет - депозит. Контроль расхода в пределах %%
+// LSD 03.08.2010 добавлена 62/99 Погашение кредита выданного в рамках кредитной фабрики
+// LSD 10.08.2010 Добавлена Функция ТипБанка() определение типа банка (тупа поиск в константе)
+
+import rcw, rsd, deprintr,IsVetka;
+
+/*var {curdate};*/
+var ParentId = 0;
+var NameInputTag = "";
+
+const null_date = date( 0, 0, 0 );
+
+const ADSP_DAY    = 1;  // условные дни
+const ADSP_MON    = 2;  // месяцы
+const ADSP_QWART  = 3;  // кварталы
+const ADSP_YEAR   = 4;  // годы
+const ADSP_CALDAY = 5;  // календарные дни
+
+const PROLDEPCON  = 30; // Пролонгируемый договор                                             
+
+//Вид проводки
+const D_GET          = 3;   //
+
+const OP_GETIN       = 65;  // списание переводом вклада
+const OP_CONVERT     = 80;  // безналичное валютное списание
+const OP_OPENNCS     = 51;  // безналичное открытие счета
+const OP_GETPOR      = 63;  // списание по поручению
+const OP_GETLPR      = 64;  // списание по длительному поручению
+const OP_GETOWN      = 66;  // списание в свой филиал
+const OP_GETALIEN    = 67;  // списание в чужой филиал
+
+const OP_GTINGET     = 0;   // просто подоперация списания
+const OP_CONVERT_OUT = 11;  // безналичная конвертация
+
+const OP_PRLDEP      = 82;
+const OP_2_ALT       = 85;
+
+const COMMISSION_CHANGED_ERRORCODE = "-30000"; // код ошибки, используемый при изменении комиссии (для отказа в платеже)
+const CURRENCY_RATE_CHANGED_ERRORCODE = "-30001"; //код ошибки, выдаваемый при изменении курса валют (когда проводим платеж)
+const MAX_SUM_WRITE_BETTER_ERRORCODE = "-30002";
+const ACCOUNT_CHARGE_OFF_ERRORCODE = "-30003";
+const ACCOUNT_RECEIVER_ERRORCODE = "-30004";
+const COMMISSION_CHANGED_ERRORMESSAGE = "Комиссия по операции изменилась. Платеж необходимо отправить в банк повторно.";
+const CURRENCY_RATE_CHANGED_ERRORMESSAGE = "Курс валюты изменился. Платеж необходимо отправить в банк повторно.";
+const MAX_SUM_WRITE_BETTER_ERRORMESSAGE = "Сумма на счете после совершения операции меньше неснижаемого остатка!";
+const ACCOUNT_CHARGE_OFF_ERRORMESSAGE = "Для данной операции запрещено списывать средства со счета.";
+const ACCOUNT_RECEIVER_ERRORMESSAGE = "Для данной операции запрещено зачислять средства на счет.";
+const OP_CLNCAS      = 81;
+
+// LSD 10.08.2010  Функция определения типа банка
+ macro ТипБанка (t_code);
+    var BIKs;
+/* 67 Подразделений СБ РФ*/
+    Biks="049805609,040173604,040349602,040407627,040507601,040702660,040813608,"+
+         "041012603,041117601,041203602,041403633,041501601,041708602,041806647,"+
+         "041909644,042007681,042202603,042406608,042520607,042618672,042748634,"+
+         "042809679,042908612,043207612,043304609,043469623,043601607,043735650,"+
+         "043807606,044030653,044206604,044442607,044525225,044705615,044959698,"+
+         "045004641,045209673,045354601,045402601,045655635,045773603,045805602,"+
+         "046015602,046126614,046311649,046401642,046577674,046614632,046850649,"+
+         "046902606,047003608,047102651,047308602,047501602,047601637,047888670,"+
+         "048073601,048142604,048405602,048602673,048702640,048860630,048952615,"+
+         "049205603,049401601,049514608,049706609";
+    Return(index(Biks,t_code))
+ end;
+
+// LSD 02.04.2010  Функция поиска ФИО по счету
+ macro ПоискФИО (chargeOffAccount);
+    var cmd, rs;
+    cmd = RsdCommand("select t_name1,t_name2,t_name3 from dpersn_dbt "+
+         "where  T_PERSONID = "+
+         "(select T_CODCLIENT from ddepositr_dbt where T_ACCOUNT = '"+chargeOffAccount+"')" );
+    cmd.execute;
+    rs = RsdRecordSet( cmd );
+    rs.moveNext;
+    return(rs.value("t_name1")+" "+rs.value("t_name2")+" "+rs.value("t_name3"));
+ end;
+// LSD 02.04.2010 Нормализация ФИО
+ macro НормализоватьФИО( ФИО )
+ private var лФИО = trim(ФИО);
+ private var pos,
+             For_replace= "АВСЕКМОНРТХУИЕИЕ",
+             For_find   = "ABCEKMOHPTXYUЁЙё",
+             for_del="-_,.\/'";
+
+  // Удаляем повторы пробелов
+  while( pos = index( лФИО, "  " ) )
+    лФИО = substr( лФИО, 1, pos - 1 ) + substr( лФИО, pos + 1 );
+  end;
+
+  // Приводим к верхнему регистру
+  лФИО = StrUpr(лФИО);
+
+  // удаляем пробелы, тире, дефисы, точки
+  pos = 1;
+  While (pos <= StrLen(for_del))
+    лФИО=StrSubst(лФИО,SUBSTR(for_del,pos,1),"");
+    pos = pos + 1;
+  End;
+
+  лФИО = StrSubst(лФИО,strfor(255),"");
+
+  // удаляем подстроки "кызы", "кзы", "оглы", "отчество", "отсутствует" + "гызы", "гзы"
+  лФИО = StrSubst(лФИО,"ОТЧЕСТВО","");
+  лФИО = StrSubst(лФИО,"ОТСУТСТВУЕТ","");
+
+  // подстрока в середине строки
+  лФИО = StrSubst(лФИО," КЫЗЫ "," ");
+  лФИО = StrSubst(лФИО,"-КЫЗЫ "," ");
+  лФИО = StrSubst(лФИО," КЗЫ "," ");
+  лФИО = StrSubst(лФИО,"-КЗЫ "," ");
+  лФИО = StrSubst(лФИО," ГЫЗЫ "," ");
+  лФИО = StrSubst(лФИО,"-ГЫЗЫ "," ");
+  лФИО = StrSubst(лФИО," ГЗЫ "," ");
+  лФИО = StrSubst(лФИО,"-ГЗЫ "," ");
+  лФИО = StrSubst(лФИО," ОГЛЫ "," ");
+  лФИО = StrSubst(лФИО,"-ОГЛЫ "," ");
+  // подстрока в конце строки
+  if ( SubStr(лФИО, Max(0,StrLen(лФИО)-3) ) ==  "КЫЗЫ" )         лФИО = SubStr(лФИО, 1, Max(0,StrLen(лФИО)-4) );   end;
+  if ( SubStr(лФИО, Max(0,StrLen(лФИО)-3) ) ==  "ГЫЗЫ" )         лФИО = SubStr(лФИО, 1, Max(0,StrLen(лФИО)-4) );   end;
+  if ( SubStr(лФИО, Max(0,StrLen(лФИО)-3) ) ==  "ОГЛЫ" )         лФИО = SubStr(лФИО, 1, Max(0,StrLen(лФИО)-4) );   end;
+  if ( SubStr(лФИО, Max(0,StrLen(лФИО)-2) ) ==  "КЗЫ"  )         лФИО = SubStr(лФИО, 1, Max(0,StrLen(лФИО)-3) );   end;
+  if ( SubStr(лФИО, Max(0,StrLen(лФИО)-2) ) ==  "ГЗЫ"  )         лФИО = SubStr(лФИО, 1, Max(0,StrLen(лФИО)-3) );   end;
+  // подстрока в начале строки
+  if ( SubStr(лФИО, 1, 5 ) ==  "КЫЗЫ " )         лФИО = SubStr(лФИО, 6 );   end;
+  if ( SubStr(лФИО, 1, 5 ) ==  "ГЫЗЫ " )         лФИО = SubStr(лФИО, 6 );   end;
+  if ( SubStr(лФИО, 1, 5 ) ==  "ОГЛЫ " )         лФИО = SubStr(лФИО, 6 );   end;
+  if ( SubStr(лФИО, 1, 4 ) ==  "КЗЫ " )          лФИО = SubStr(лФИО, 5 );   end;
+  if ( SubStr(лФИО, 1, 4 ) ==  "ГЗЫ " )          лФИО = SubStr(лФИО, 5 );   end;
+
+  лФИО=Trim(лФИО);
+
+  // Заменяем латинские буквы на схожие по написанию русские, Ё на Е, Й на И
+  pos = 1;
+  While (pos <= StrLen(For_replace))
+    лФИО=StrSubst(лФИО,SUBSTR(For_find,pos,1),SUBSTR(For_replace,pos,1));
+    pos = pos + 1;
+  End;
+
+  Return лФИО;
+
+ end;
+
+
+// ═════════════════════════════════════════════
+// Ф-ции для создания xml-документов
+// 
+macro CreateXML2Object( xml:object )
+  var axServer = NULL;
+  
+  if( isStandalone() )
+    SetParm(0, ActiveX ("Msxml2.DOMDocument", null, true ) );
+  else
+    axServer = CreateObject( "rsax", "TRsAxServer", "RetailAxServer", false );
+    if( axServer )
+      SetParm(0, axServer.CreateComObject("Msxml2.DOMDocument"));
+    end;
+  end;
+  return true;
+  OnError( er )
+    return false;
+end;
+
+macro CreateXML1Object( xml:object )
+  var axServer = NULL;
+  if( isStandalone() )
+    SetParm(0, ActiveX ("MSXML.DOMDocument") );
+  else
+    axServer = CreateObject( "rsax", "TRsAxServer", "RetailAxServer", false );
+    if( axServer )
+      SetParm(0, axServer.CreateComObject("MSXML.DOMDocument"));
+    end;
+  end;
+  return true;
+  OnError( er )
+    return false;
+end;
+
+// ─── создание xml-объекта ───
+macro CreateXMLObject()
+  var obj:object = NULL;
+
+  if( CreateXML2Object(obj) )  return obj;  end;      
+  if( CreateXML1Object(obj) )  return obj;  end;
+
+  return null;
+end;
+// 
+// ═════════════════════════════════════════════
+
+// ───────────────────────────────────────
+// Получить описание ошибки из sbbank.msg
+// ───────────────────────────────────────
+macro getErrorString(code)
+  var cmd, rs;
+  var res = "";
+  cmd = RsdCommand( "select t_contents con "
+                      "from dsbbank_msg "
+                     "where t_number = ?" );
+  cmd.addParam("code", V_INTEGER );
+  cmd.value("code") = code;
+
+  cmd.execute;
+  rs = RsdRecordSet( cmd );
+  if( rs.moveNext )
+    res = rs.value("con");
+  end;
+  return res;
+end;
+
+// ───────────────────────────────────────
+// xml-документ для результата
+// ───────────────────────────────────────
+macro createOutXML()
+  var outXML = CreateXMLObject();
+
+  var nodeAnswer, node;
+  var nodeName, nodeVal, i;
+
+  if( outXml )
+    outXML.documentElement = outXML.createNode(1, "response", "");
+      node = outXml.documentElement.appendChild( outXml.createNode(1, "parentId", "") ); 
+      node.text = ParentId;
+      node = outXML.documentElement.appendChild( outXML.createNode(1, "id", "") ); node.text = FormApplicationKey(1);
+      // название узла
+      GetParm( 0, nodeName );
+      nodeAnswer = outXML.documentElement.appendChild( outXML.createNode(1, nodeName, "") );
+      // другие переменные
+      i = 1;
+      while( GetParm(i, nodeName) )
+        node = nodeAnswer.appendChild( outXML.createNode(1, nodeName, "") ); 
+        if( GetParm(i+1, nodeVal) )
+          node.text = String(nodeVal);
+        end;
+        i = i + 2;
+      end;
+  end;
+
+  return outXML;
+end;
+
+macro AddError2OutXml_( outXML, mes )
+  var nodeAnswer,node;
+  if(not outXML)
+    outXML = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", mes );
+  else
+   nodeAnswer = outXML.documentElement.appendChild( outXML.createNode(1, "error_a", "") );
+   node = nodeAnswer.appendChild( outXML.createNode(1, "code", "") ); 
+   node.text = "ERROR_VALIDATE";
+   node = nodeAnswer.appendChild( outXML.createNode(1, "message", "") ); 
+   node.text = String(mes);
+  end;
+ 
+  return outXML;
+end;//AddError2OutXml_( outXML, mes )
+
+// ────────────────────────────────────────────────────────────
+// Всякие пересчеты разных форматов друг в друга
+// ────────────────────────────────────────────────────────────
+macro formatDateToText( d, m, y )
+  var str = "";
+  var temp;
+
+  temp = string(d);
+  if (strlen(temp) == 1)
+    str = str + "0";
+  end;
+  str = str + temp;  
+  
+  temp = string(m);
+  if (strlen(temp) == 1)
+    str = str + "0";
+  end;
+  str = str + temp;  
+
+  str = str + y;  
+
+  return str;
+end;
+
+macro formatDateToDate( str )
+  var d, m, y;         
+  if ( strlen( str ) != 10 )
+    return null;
+  end; 
+
+  d = int(substr( str, 1, 2 ));
+  m = int(substr( str, 4, 2 ));
+  y = int(substr( str, 7, 4 ));
+
+  return date( d, m, y );
+
+  
+//  return date( str );  
+end;//formatDateToDate( str )
+
+macro period_rt2ib( KindTerm, term, outXml, Node )
+
+  var d = 0, m = 0, y = 0;
+  var str = "";
+  var nodeTemporary;
+
+  if   ( KindTerm == ADSP_DAY    )   // условные дни
+    y = term / 360;
+    m = ( term - 360 * y ) / 30;
+    d = term - 360 * y - 30 * m;
+  elif ( KindTerm == ADSP_MON    )   // месяцы              
+    m = term;    
+  elif ( KindTerm == ADSP_QWART  )   // кварталы            
+    m = 3 * term;
+  elif ( KindTerm == ADSP_YEAR   )   // годы                
+    y = term;
+  elif ( KindTerm == ADSP_CALDAY )   // календарные дни     
+    d = term;
+  end;
+
+  if ( y < 10  ) str = "0";       end;
+  str = str + y + "-";
+  if ( m < 10  ) str = str + "0"; end;
+  str = str + m + "-";
+  if ( d < 100 ) str = str + "0"; end;
+  if ( d < 10  ) str = str + "0"; end;
+  str = str + d;
+
+/*if (( Node ) and ( outXml ))
+    // Дней
+    nodeTemporary = node.appendChild( outXml.createNode(1, "days", "" ) );
+    nodeTemporary.text = d;
+    // Месяцев
+    nodeTemporary = node.appendChild( outXml.createNode(1, "months", "" ) );
+    nodeTemporary.text = m;
+    // Лет
+    nodeTemporary = node.appendChild( outXml.createNode(1, "years", "" ) );
+    nodeTemporary.text = y;
+  end;*/
+
+  return str; //formatDateToText(d, m, y); 
+
+end;//period_rt2ib( KindTerm, term, outXml, Node )
+
+macro period_ib2rt( str, term, kindTerm )
+  var d, m,y;
+
+  if ( strlen( str ) != 9 )  return null; end;
+
+  y = int(substr( str, 1, 2 ));
+  m = int(substr( str, 4, 2 ));
+  d = int(substr( str, 7, 3 ));
+
+  if   ( ( d == 0 ) and ( m == 0 ) and ( y == 0 ) )
+    term     = 0;
+    kindTerm = 0;
+  elif ( ( d != 0 ) and ( m == 0 ) and ( y == 0 ) )
+    term     = d;
+    kindTerm = ADSP_CALDAY; 
+  elif ( ( d == 0 ) and ( m != 0 ) and ( y == 0 ) )
+    term     = m;
+    kindTerm = ADSP_MON;
+  elif ( ( d == 0 ) and ( m == 0 ) and ( y != 0 ) )
+    term     = y;
+    kindTerm = ADSP_YEAR;
+  else
+    term     = 360 * y + 30 * m + d;
+    kindTerm = ADSP_DAY;
+  end;
+
+  SetParm( 1, term );
+  SetParm( 2, kindTerm );
+
+  return 0;
+end;//period_ib2rt( str, term, kindTerm )
+
+macro ISO2CodeCurrency( cur )
+  var CodeCurrency;
+
+  var cmd, rs;
+  cmd = RsdCommand( "select t_code_currency CodeCurrency "
+                    "from dcurrency_dbt "
+                    "where t_short_name = ? ");
+  cmd.AddParam( "cur", RSDBP_IN );   cmd.value( "cur" ) = cur;
+
+  cmd.execute;
+
+  rs = RsdRecordSet( cmd );
+  if ( rs.moveNext )
+    CodeCurrency = rs.value( "CodeCurrency" );
+  else
+    CodeCurrency = null; //-1
+  end;
+    
+  return CodeCurrency; 
+end;//ISO2CodeCurrency( cur )
+
+macro CodeCurrency2ISO( cur )
+  var iso;
+  var cmd, rs;
+
+  cmd = RsdCommand( "select t_short_name iso "
+                    "from dcurrency_dbt "
+                    "where t_code_currency = ? ");
+  cmd.AddParam( "cur", RSDBP_IN );   cmd.value( "cur" ) = cur;
+
+  cmd.execute;
+
+  rs = RsdRecordSet( cmd );
+  if ( rs.moveNext )
+    iso = rs.value( "iso" );
+  else
+    iso = ""
+  end;
+    
+  return iso; 
+end;//CodeCurrency2ISO( cur )
+
+
+macro dateStamp2Date( stamp )
+  var d;
+  var day, month, year;
+
+  DtTmSplit( stamp, d );
+  DateSplit( d, day, month, year );
+
+  if (( day   == 1 ) and 
+      ( month == 1 ) and 
+      ( year  == 1 ))
+    day   = 0;
+    month = 0;
+    year  = 0;
+  end;
+
+  return date( day, month, year );
+end;
+
+
+// ────────────────────────────────────────────────────────────
+// Базовый класс
+// ────────────────────────────────────────────────────────────      
+class cBaseDeposit
+
+  // Наш выходной xml
+//  var outXml;
+
+  var 
+    nodeAnswer, 
+    node, 
+    nodeName, 
+    nodeDeposit,
+    nodeElement,
+    nodeFields, 
+    nodeVal;
+
+  // Параметры для вида вклада
+  var
+    addFee,          // разрешены доп взносы
+    minFee,          // минимальная сумма доп взнса
+    antRem,          // разрешено ли досрочное снятие части средств по вкладу
+    capit,           // капитализация процентов
+    PaymPer,         // способ выплаты процентов
+    RateGroup,       // 
+    RateType,        //
+    term,
+    kindTerm;
+
+  // Параметры счета
+  var Rate;
+
+  var dateCreated,
+      chargeOffAccount,
+      receiverAccount,
+      receiverCurrency,
+      receiverAmount,
+      ground,
+      type,
+      subType,
+      complexType,
+      depositConditionsId,
+      receiverName,
+      receiverBIC,
+      receiverCorAccount,
+      receiverINN,
+      receiverKPP,
+      receiverBankName,
+      officeExternalId,
+      transferAccount,
+      clientCode,
+      chargeOffAmount,
+      chargeOffAmountCurrency,
+      commission,
+      period,
+      currentReferenc,
+      applKey,
+      applKind,
+      operationRate, // курс валюты операции (в sbdepdoc1. - PercTrnRest)
+      CBRate,        // курс валюты ЦБ на момент операции (в sbdepdoc1 - PercTrnAlt)
+      fromDate,
+      calendarFnCash,
+      typeReceiver,  //операция для счета зачисления (если он надйен)
+      subTypeReceiver; //подоперация для счета зачисления (если он надйен)
+
+//  var defaultOperation, defaultComplexOperation;
+
+  macro AddError2OutXml( outXML, code, mes )
+    if(not outXML)
+      outXML = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", mes );
+    else
+      node = nodeAnswer.appendChild( outXML.createNode(1, "errorCode", "") );
+      node.text = code;
+      if ( mes != "" )
+        node = nodeAnswer.appendChild( outXML.createNode(1, "errorText", "") );
+        node.text = mes;
+      end;
+
+    end;
+   
+    return outXML;
+  end;//AddError2OutXml( outXML, code, mes )
+
+
+// ────────────────────────────────────────────────────────────
+// LSD 14.04.2010  Подмена подоперации
+// ────────────────────────────────────────────────────────────
+ macro ПодменаПодоперации (type,subtype,rs_account);
+   var cmd, rs;
+   if ( (subType != null) and (subType < 500) )
+     subType = subType + 500;
+     // Поищим новую подоперацию
+     cmd = RsdCommand("select * FROM DSUBOPER_DBT "+
+          "WHERE T_OPERTYPE= ? "+
+          "and T_TYPE = ? "+
+          "and T_ISCUR = (select T_ISCUR From ddepositr_dbt d where t_account like '" + rs_account + "%' "+
+                                                            "and t_open_close = chr(0) "+
+                                                            "and t_action <> ralc.get_d_delete) "+
+          "and T_KIND = (select T_TYPE_ACCOUNT From ddepositr_dbt d where t_account like '" + rs_account + "%' "+
+                                                            "and t_open_close = chr(0) "+
+                                                            "and t_action <> ralc.get_d_delete)" );
+     cmd.addParam( "type", RSDBP_IN, V_STRING);
+     cmd.value("type") = type;
+     cmd.addParam( "subtype", RSDBP_IN, V_STRING);
+     cmd.value("subtype") = subType;
+     cmd.execute;
+     rs = RsdRecordSet( cmd );
+
+     if (rs.moveNext)
+          // есть все Ок
+     else // Ан нет - вернем обратно
+         subType = subType - 500;
+     end;
+   end;
+   return(subType);
+ end;
+
+  // ────────────────────────────────────────────────────────────
+  // Определить операции по умаолчанию по имени тэга
+  // ────────────────────────────────────────────────────────────
+  macro getDefaultOperation( cc, cc_receiver, name )
+
+    if ( name == null )
+      name = NameInputTag;
+    end;
+
+    if   (( name == "internalTransfer_q" ) or
+          ( name == "closeDeposit_q" ))
+      if (( cc         != null ) and
+          ( cc_receiver != null ) and 
+          ( cc         != cc_receiver ))
+        if ( type    == null )              type    = OP_CONVERT;        end;
+        if ( subType == null )              subType = OP_CONVERT_OUT;    end;
+      else
+        if ( type    == null )              type    = OP_GETIN;          end;
+        if ( subType == null )              subType = OP_GTINGET;        end;
+      end;
+    elif (  name == "externalTransfer_q" )
+        if ( type    == null )              type    = OP_GETPOR;         end;
+        if ( subType == null )              subType = 0;                 end;
+    elif (  name == "openDeposit_q"  )
+        if ( type    == null )              type    = OP_OPENNCS;        end;
+        if ( subType == null )              subType = 0;                 end;
+    end;
+    if ( name == "closeDeposit_q" )
+      complexType = OP_CLNCAS;
+    else
+      complexType = type;
+    end;
+
+  end;//getDefaultOperation( cc, cc_receiver )
+  
+  // ────────────────────────────────────────────────────────────
+  // определить операцию по счетам (для СБ)
+  // ────────────────────────────────────────────────────────────
+  macro getOperTypeByAccount(rs_accountReceiver, rs_account, isFindAccountReceiver, tagName)
+    var cmd, receiverAccountSub6, receiverAccountSub4, receiverBalanceAccount,receiverBalanceAccount3, receiverBankType, {MFO_Bank}, rs, rs1,
+        PayerAccountSub6, PayerAccountSub4,StrDSNIssppn,con,sql,rsm;
+    cmd=RsdCommand("Select t_fncash,t_DBAccess  from dlistfdep_dbt where t_fncash = ?");
+    cmd.addParam("code", V_INTEGER );
+    cmd.value("code") = rs_accountReceiver.value("t_fncash")            ;
+    cmd.execute;
+    rs1 = RsdRecordSet( cmd );
+    rs1.moveNext;
+    if((tagName == "internalTransfer_q") or (tagName == "closeDeposit_q"))
+      if(rs_account.value("t_code_currency")==rs_accountReceiver.value("t_code_currency"))
+         if (rs1.value("t_DBAccess")==0 )
+          type = 65;
+          subType = 0;
+          if(isFindAccountReceiver)
+             typeReceiver = 65;
+             subTypeReceiver = 11;
+          end;
+        else
+          type = 66;
+          subType = 0;
+        end;
+      else
+        type = 80;
+        subtype = 11;
+        if(isFindAccountReceiver)
+           typeReceiver = 80;
+           subTypeReceiver = 12;
+        end;
+      end;
+    elif(tagName == "externalTransfer_q")
+//LSD 10.08.2010 Теперь проверяем тупо по перечьню БИКов СБ РФ
+/*
+      cmd = RsdCommand("select t_uertype from dbankdprt_dbt  bank left join dpartcode_dbt  cod " +
+                       "on t_code=? and t_codekind=3 "+
+                       "where bank.t_partyid = cod.t_partyid"
+            );
+      cmd.addParam( "code", RSDBP_IN, V_STRING);
+      cmd.value("code")= receiverBIC;
+      cmd.execute;
+
+      rs = RsdRecordSet( cmd );
+      if ( rs.moveNext )
+         receiverBankType = rs.value("t_uertype");
+      end;
+*/
+      if ( ТипБанка(receiverBIC) > 0 )
+         receiverBankType = 3;
+      else
+         receiverBankType = 0;
+      end;
+
+      receiverBalanceAccount = substr(receiverAccount, 1, 5);
+      receiverBalanceAccount3 = substr(receiverAccount, 1, 3);
+/*LSD Дурацкая проверка (пока не понял как исправить) Городские платежи валятся если с 10 позиции  */
+      if (receiverBalanceAccount=="40911")
+        receiverAccountSub6 = substr(receiverAccount, 9,6);
+        receiverAccountSub4 = substr(receiverAccount, 9,4);
+      else
+        receiverAccountSub6 = substr(receiverAccount, 10,6);
+        receiverAccountSub4 = substr(receiverAccount, 10,4);
+      end;
+      PayerAccountSub6 = substr(chargeOffAccount, 10,6);
+      PayerAccountSub4 = substr(chargeOffAccount, 10,4);
+
+      if({MFO_Bank} == receiverBIC and isFindAccountReceiver)
+        if ( (rs_account.value("t_fncash") == rs_accountReceiver.value("t_fncash")) or (rs1.value("t_DBAccess")==0 ) )
+           type=65;
+           subtype=0;
+           typeReceiver = 65;
+           subTypeReceiver = 11;
+        else
+           type=66;
+           subtype=0;
+        end;
+      elif ( (receiverBankType==3) and (receiverBalanceAccount != "40911") and
+             (    ( receiverBalanceAccount3 == "423" )                //lsd 21.10.2009 проверка на физ лицо
+               OR ( receiverBalanceAccount3 == "426" )
+               OR ( receiverBalanceAccount == "40817" )
+               OR ( receiverBalanceAccount == "40820" ) )
+             )
+// LSD 20.04.2010 Добавлена вторая ветка - проверка счета плателбщика для внутри Ярославского платежа
+         if ( (receiverBIC == "047888670") // ({MFO_Bank} == receiverBIC) and
+             and
+             ((receiverAccountSub6 == "771200") or
+              (receiverAccountSub6 == "771224") or
+              (receiverAccountSub4 == "7702") or
+              (receiverAccountSUB4 == "7703")   and
+              (receiverAccountSUB6 != "770360") and
+              (receiverAccountSUB6 != "770361") and
+              (receiverAccountSUB6 != "770362") and
+              (receiverAccountSUB6 != "770363") and
+              (receiverAccountSUB6 != "770364") and
+              (receiverAccountSUB6 != "770365") and
+              (receiverAccountSUB6 != "770366"))
+             and
+             ((PayerAccountSub6 == "771200") or
+              (PayerAccountSub6 == "771224") or
+              (PayerAccountSub4 == "7702") or
+              (PayerAccountSub4 == "7703")   and
+              (PayerAccountSub6 != "770360") and
+              (PayerAccountSub6 != "770361") and
+              (PayerAccountSub6 != "770362") and
+              (PayerAccountSub6 != "770363") and
+              (PayerAccountSub6 != "770364") and
+              (PayerAccountSub6 != "770365") and
+              (PayerAccountSub6 != "770366"))
+           )
+            type = 67;
+            subtype = 74;
+// LSD 02.04.2010 добавлен анализ перевода на свое имя в пределах ТБ операция 67/75
+//                ФИО получателя receiverName и ФИО владельца счета chargeOffAccount*/
+         elif ( (НормализоватьФИО(receiverName) == НормализоватьФИО(ПоискФИО(chargeOffAccount))) )   //ФИО равны
+              type = 67;
+              subtype = 50;
+         else
+            type = 67;
+            subtype = 51;
+         end;
+
+      elif( (receiverBankType==3) and (receiverBalanceAccount != "45509") and
+             (( receiverBalanceAccount3 == "455" ) OR ( receiverBalanceAccount3 == "457" )))
+//lsd 27.02.2010 Гашение ссуды в сбербанке
+         type = 62;
+         if (substr(receiverAccount, 6,3) == "810")
+             subtype = 82;
+         else
+             subtype = 81;
+         end;
+// LSD 03.08.2010 Start проверка кредита выданного в рамках кредитной фабрики
+         if (receiverAccountSUB4 == "7701")  /*Кредит выдан в ОПЕРО Северного банка*/
+           if(IsVetka("RS-RETAIL\\СЕВЕРНЫЙ_БАНК\\ПРОЧИЕ_ПРИХОДНЫЕ\\СОЕДИНЕНИЕ_С_ИСППН"))
+              StrDSNIssppn = string(trim(GetRegVal("RS-RETAIL\\СЕВЕРНЫЙ_БАНК\\ПРОЧИЕ_ПРИХОДНЫЕ\\СОЕДИНЕНИЕ_С_ИСППН")));
+                /* Соединение с ИСППН  */
+              con = RSDConnection(StrDSNIssppn);
+              sql = " select va.building retval "+
+                    " FROM  kp.vr$abonents va "+
+                    " WHERE va.acc_pu  = '"+receiverAccount+"' "+
+                    "  AND  va.building = 'КФАБРИКА'";
+              cmd = RSDCommand(con, sql);
+              cmd.Execute;
+              rsm = RSDRecordSet(cmd);
+              if (rsm.MoveNext)
+                if (rsm.value("retval")=="КФАБРИКА");
+                  if(IsVetka("RS-RETAIL\\СЕРВИСНЫЕ\\ТК\\ПЛАНОВЫЕ_ПЕРЕЧИСЛЕНИЯ\\ПОДВИД"))
+                    subtype = GetRegVal("RS-RETAIL\\СЕРВИСНЫЕ\\ТК\\ПЛАНОВЫЕ_ПЕРЕЧИСЛЕНИЯ\\ПОДВИД");
+                  else
+                    subtype = 99;
+                  end;
+                end;
+              end;
+           end;
+         end;
+// LSD 03.08.2010 End проверка кредита выданного в рамках кредитной фабрики
+      else
+        if(receiverBalanceAccount == "40911")
+          type = 63;
+          subtype = 52;
+        elif (     ( receiverBalanceAccount3 != "423" )  //lsd 01.10.2010 проверка на юр лицо
+               AND ( receiverBalanceAccount3 != "426" )
+               AND ( receiverBalanceAccount != "40817" )
+               AND ( receiverBalanceAccount != "40820" )
+              )
+          type = 63;
+          subtype = 54;
+        else
+          type = 63;
+          subtype = 1;
+        end;
+      end;
+    elif(tagName == "openDeposit_q")
+      type = 65;
+      subtype = 0;
+      typeReceiver = 51;
+      subTypeReceiver = 0;
+    end;
+/* start LSD 17.02.2010 */
+    if ( ( receiverBIC == "044525225") and ( receiverAccount == "30301810700001000034") )
+      type = 63;
+      subtype = 59;
+    end;
+/* end LSD 17.02.2010 */
+
+    if (complexType != OP_CLNCAS)
+// LSD 20.04.2010  Если счет - депозит. Контроль расхода в пределах %%
+      if (index("Депозит 1г1м,Депозит 2г,Депозит,П.депоз.1г1м,Поп.деп.1г1м,П.депоз.2г,ПопДепозит,Доверит 2 г,Доверит 3 г,Доверитель,Пенс.деп._2г,Пенс.деп. 2г,ПенДепозит,ПенсПдеп1г1м,ПенсПдеп.2г,ПенПопДепоз,Накопитель,Подари Жизнь",rs_account.value("t_type_account")) > 0 )
+        complexType=6;
+      else
+        complexType=Type;
+      end;
+    end;
+
+// LSD 22.04.2010 Добалено формирование протокола
+SetOutput("..\\txtfile\\IKFL.log",true);
+println("_getOperTypeByAccount_");
+println(date(),Time());
+println(" PayerBIC    = ",{MFO_Bank}, " Payer    = ",chargeOffAccount);
+println(" receiverBIC = ",receiverBIC," receiver = ",receiverAccount);
+println("type = ",type," subtype = ",subtype," complexType =  ",complexType);
+setoutput(Null, True);
+
+
+  end; //getOperTypeByAccount()
+
+  // ────────────────────────────────────────────────────────────
+  // Вычитать параметры из входного документа
+  // ────────────────────────────────────────────────────────────
+  macro getParameters( nodeElement )
+
+    var nodeComPay, nodeTemp;
+    var d, m, y;
+
+    nodeComPay = nodeElement.firstChild();
+
+    while( nodeComPay )
+
+      if   ( nodeComPay.NodeName == "dateCreated" )
+        dateCreated               = formatDateToDate( string( nodeComPay.text ) );
+      elif ( nodeComPay.NodeName == "chargeOffAccount" )
+        chargeOffAccount          = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "receiverAccount" )
+        receiverAccount           = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "receiverCurrency" )
+        receiverCurrency          = ISO2CodeCurrency( string( nodeComPay.text ) );
+      elif ( nodeComPay.NodeName == "ground" )
+        ground                    = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "type" )
+        type                      = int( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "subType" )
+        subType                   = int( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "depositConditionsId" )
+        depositConditionsId       = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "receiverName" )
+        receiverName              = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "receiverBIC" )
+        receiverBIC               = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "receiverCorAccount" )
+        receiverCorAccount        = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "receiverINN" )
+        receiverINN               = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "receiverKPP" )
+        receiverKPP               = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "receiverBankName" )
+        receiverBankName          = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "officeExternalId" )
+        officeExternalId          = int( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "transferAccount" )
+        transferAccount           = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "clientCode" )
+        clientCode                = int( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "applKey" )
+        applKey                   = string( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "applKind" )
+        applKind                  = int( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "commission" )
+        commission                = money( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "operationRate" )
+        operationRate             = money( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "CBRate" )
+        CBRate                    = money( nodeComPay.text );
+      elif ( nodeComPay.NodeName == "chargeOffAmount" )
+        nodeTemp = nodeComPay.firstChild();
+        while( nodeTemp )
+          if   ( nodeTemp.nodeName == "value" ) 
+            chargeOffAmount         = money( nodeTemp.text );
+            
+          elif ( nodeTemp.nodeName == "currencyCode" ) 
+            chargeOffAmountCurrency = ISO2CodeCurrency( string( nodeTemp.text ) );
+          end;
+          nodeTemp = nodeTemp.nextSibling();
+        end;
+      elif ( nodeComPay.NodeName == "receiverAmount" )
+        nodeTemp = nodeComPay.firstChild();
+        while( nodeTemp )
+          if   ( nodeTemp.nodeName == "value" ) 
+            receiverAmount         = money( nodeTemp.text );
+            
+          elif ( nodeTemp.nodeName == "currencyCode" )
+            receiverCurrency = ISO2CodeCurrency( string( nodeTemp.text ) );
+          end;
+          nodeTemp = nodeTemp.nextSibling();
+        end;
+      elif ( nodeComPay.NodeName == "period" )
+        /*nodeTemp = nodeComPay.firstChild();
+        while( nodeTemp )
+          if   ( nodeTemp.nodeName == "days" )
+            d = int( nodeTemp.text );
+          elif ( nodeTemp.nodeName == "months" )
+            m = int( nodeTemp.text );
+          elif ( nodeTemp.nodeName == "years" )
+            y = int( nodeTemp.text );
+          end;
+          nodeTemp = nodeTemp.nextSibling();
+        end;*/
+        period_ib2rt( nodeComPay.text, term, kindTerm );
+      elif ( nodeComPay.NodeName == "fromDate" )
+          fromDate = nodeComPay.text;
+      elif ( nodeComPay.NodeName == "fnCash" )
+          calendarFnCash = nodeComPay.text;
+      end;
+
+      nodeComPay = nodeComPay.nextSibling();
+    end;// while( nodeComPay )
+
+  end;//getParameters( nodeElement )
+
+  // ────────────────────────────────────────────────────────────
+  // Проверка параметров
+  // ────────────────────────────────────────────────────────────
+  macro check_dateCreated( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( dateCreated == null ) 
+      stat = false;
+      if ( AddError )
+        outXML = AddError2OutXml(outXML, -1, "Не задана дата операции");
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_chargeOffAccount( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if (( chargeOffAccount == null ) or 
+        ( chargeOffAccount == "" ) ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан счета плательщика"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_receiverAccount( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if (( receiverAccount == null ) or
+        ( receiverAccount == "" ) )
+      stat = false;
+      if ( addError  )
+        outXML = AddError2OutXml(outXML, -1, "Не задан номер счета получателя"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_receiverCurrency( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( receiverCurrency == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задана валюта получателя"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+  
+  macro check_receiverAmount( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( receiverAmount == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задана сумма зачисления");
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  /*проверить, что задан курс операции - для конверсии валюты*/
+  macro check_OperationRate( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( operationRate == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан курс, по которому проводится операция."); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_ground( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( ground == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задано назначение платежа"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_type( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( type == null ) 
+      stat = false;
+      if ( addError ) 
+        outXML = AddError2OutXml(outXML, -1, "Не задан номер операции"); 
+      end; 
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_subType( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( subType == null ) 
+      stat = false;
+      if( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан номер подоперации");
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_depositConditionsId( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( depositConditionsId == null ) 
+      stat = false;
+      if ( addError )  
+        outXML = AddError2OutXml(outXML, -1, "Не задан вид вклада"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_receiverName( outXML, addError )
+    var stat = true;   
+    if ( addError == null ) addError = true; end;
+    if ( receiverName == null ) 
+      stat = false;
+      if ( addError)
+        outXML = AddError2OutXml(outXML, -1, "Не задано имя получателя"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_receiverBIC( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( receiverBIC == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан БИК банка получателя"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_receiverCorAccount( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( receiverCorAccount == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан корсчет получателя"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_receiverINN( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( receiverINN == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан ИНН получателя"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_receiverKPP( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( receiverKPP == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан КПП получателя"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_receiverBankName( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( receiverBankName == null )
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задано имя банка получателя");
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_officeExternalId( outXML, addError )
+    var stat = true;   
+    if ( addError == null ) addError = true; end;
+    if ( officeExternalId == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан внешний идентификатор подразделения банка, в котором открывается депозит"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_transferAccount( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( transferAccount == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан счет, на который переводится вклад по концу договора"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_clientCode( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( clientCode == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан код клиента");
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_chargeOffAmount( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( chargeOffAmount == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задана сумма платежа"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_chargeOffAmountCurrency( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( chargeOffAmountCurrency == null ) 
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задана валюта платежа"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro check_period( outXML, addError )
+    var stat = true;
+    if ( addError == null ) addError = true; end;
+    if ( (term == null )  or ( kindTerm == null ) )
+      stat = false;
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не задан период вклада"); 
+      end;
+    end;
+    SetParm( 1, outXML );
+    return stat;
+  end;
+
+  macro set_chargeOffAmountCurrency( currency )
+    if( chargeOffAmountCurrency == null )
+      chargeOffAmountCurrency = currency;
+    end;
+  end;
+
+  // ────────────────────────────────────────────────────────────
+  // Формируем начало
+  // ────────────────────────────────────────────────────────────
+  macro CreateBeginTag( outXml )
+
+    outXML.documentElement = outXML.createNode(1, "response", "");
+
+    node = outXml.documentElement.appendChild( outXml.createNode(1, "parentId", "") );  
+    node.text = ParentId;
+
+    node = outXML.documentElement.appendChild( outXML.createNode(1, "id", "") ); 
+    node.text = FormApplicationKey(1);
+     // название узла
+
+    nodeAnswer = outXML.documentElement.appendChild( outXML.createNode(1, StrSubst( NameInputTag, "_q", "_a" ), "") );
+
+    SetParm( 1, outXml );
+  end; // CreateBeginTag( outXml )
+
+  // ────────────────────────────────────────────────────────────
+  // Ищем счет
+  // ────────────────────────────────────────────────────────────
+  macro findAccount( outXML, rs, account, currency, addError )
+    var stat = false;
+    if ( addError == null ) addError = true; end;
+
+    var cmd;
+
+/* start LSD 01.04.2010 подсчет одинаковых счетов
+    cmd = RsdCommand(
+        "select t_referenc, t_type_account, t_fncash, t_codclient, t_iscur, t_code_currency, t_sum_rest, t_limit, t_account, " +
+               "(select count(*) " +
+                  "from ddepositr_dbt " +
+                 "where t_referenc = d.t_referenc ) c " + // это не правильно - сравнивать надо счета
+          "from ddepositr_dbt d " +
+          "where t_account like '" + account + "%' " +
+           "and t_open_close = chr(0) " + 
+           "and t_action <> ralc.get_d_delete "
+           "and t_code_currency = nvl( ?, t_code_currency ) " );
+*/
+    cmd = RsdCommand(
+        "select t_referenc, t_type_account, t_fncash, t_codclient, t_iscur, t_code_currency, t_sum_rest, t_limit, t_account " +
+          "from ddepositr_dbt d " +
+          "where t_account like '" + account + "%' " +
+           "and t_open_close = chr(0) " +
+           "and t_action <> ralc.get_d_delete "
+           "and t_code_currency = nvl( ?, t_code_currency ) " );
+    cmd.addParam( "code_currency", RSDBP_IN ); cmd.value( "code_currency" ) = currency;
+    cmd.execute;
+
+    rs = RsdRecordSet( cmd );
+// LSD 01.04.2010 исправлен контроль на количество одинаковых счетов
+    if ( rs.moveNext )
+      if ( rs.moveNext )
+/* найдено более одного счета - ОШИБКА в независимости от addError*/
+          outXML = AddError2OutXml(outXML, 33334, "Найдено несколько счетов с номером " + account );
+      else
+/* найден один счета все Ок*/
+        stat = true;
+      end;
+    else
+/* не найдено ни одного счета*/
+      if ( addError )
+        outXML = AddError2OutXml(outXML, -1, "Не найден счет " + account );
+      end;
+    end;
+
+    SetParm( 1, outXML );
+    SetParm( 2, rs );
+    return stat;
+  end;//findAccount( outXML, rs_account )
+
+  // ────────────────────────────────────────────────────────────
+  // Ищем остаток по счету
+  // ────────────────────────────────────────────────────────────
+  macro findAccountRest( outXML, rest, referenc )
+    var stat = false;
+    var cmd, rs;
+
+    cmd = RsdCommand( 
+        "select t_rest " +
+          "from (select   t_rest " +
+                    "from dsbdepdoc_dbt " +
+                   "where t_referenc = ? " +
+                     "and t_KindOp <> 8 " +
+                     "and t_KindOp <> 9 " +
+                     "and t_KindOp <> 14 " +
+                     "and t_KindOp <> 15 " +
+                     "and t_KindOp <> 16 " +
+                     "and t_Action <> 2 " +
+                     "and t_TypeOper <> 38 " +
+                     "and t_TypeOper <> 39 " +
+                     "and t_Mode <> 2 " +
+                     "and bitand(t_flags, 131072) = 0 " +
+                "order by t_date_document desc, t_numdaydoc desc) " +
+         "where rownum = 1 " );
+
+    cmd.addParam( "referenc", RSDBP_IN ); cmd.value( "referenc" ) = referenc;
+    cmd.execute;
+
+    rs = RsdRecordSet( cmd );
+    if ( rs.moveNext )
+      stat = true;
+      rest = rs.value("t_rest");
+    else
+      outXML = AddError2OutXml(outXML, -1, "Не удается определить остаток счета" );
+    end;
+
+    SetParm( 1, outXML ); 
+    SetParm( 2, rest );
+    return stat;
+  end; // findAccountRest( outXML, rest, referenc )
+
+
+  // ────────────────────────────────────────────────────────────
+  // Ищем вид вклада
+  // ────────────────────────────────────────────────────────────
+  macro findTypeAccount( outXML, rs, typeAccount, currency, addError )
+    var stat = false;
+    var t = "";
+  
+    if ( addError == null ) addError = true; end;
+
+    var isCur;
+    if ( currency == 0 )
+      isCur = 0;
+    elif ( currency > 0 )
+      isCur = 1;
+    end;
+      
+
+    var cmd;
+    cmd = RsdCommand(
+        "select t_name "
+          "from dsb_dtyp_dbt "
+         "where t_kind = ? "
+           "and t_flagcur = ? " );
+    cmd.addParam( "type_account", RSDBP_IN ); cmd.value( "type_account" )  = typeAccount;
+    cmd.addParam( "flagCur",      RSDBP_IN ); cmd.value( "flagCur" )       = isCur;
+    cmd.execute;
+
+    rs = RsdRecordSet( cmd );
+    if ( rs.moveNext )
+      stat = true;
+    else
+      if ( addError )
+        if ( currency == 0 )  t = "рублевый";
+        else                  t = "валютный";
+        end;
+        outXML = AddError2OutXml(outXML, -1, "Не найден вид вклада \"" +  typeAccount + "\" (" + t + ")" );
+      end;
+    end;
+
+    SetParm( 1, outXML );
+    SetParm( 2, rs );
+    return stat;
+  end;
+
+  // ────────────────────────────────────────────────────────────
+  // Определяем резидентность
+  // ────────────────────────────────────────────────────────────
+  macro findClientResident( outXML, resid, code )
+    var stat = false;
+    var cmd, rs;
+
+    cmd = RsdCommand(
+        "select t_notresident " +
+        "from dparty_dbt " +
+        "where t_partyid = ? ");
+    cmd.addParam( "code", RSDBP_IN ); cmd.value( "code" )  = code;
+
+    cmd.execute;
+
+    rs = RsdRecordSet( cmd );
+    if ( rs.moveNext )
+      stat = true;
+      resid = rs.value("t_notresident");
+    else
+      outXML = AddError2OutXml(outXML, -1, "При проверке резидентности не найден клиент с номером " + code );
+    end;
+
+    SetParm( 1, outXML ); 
+    SetParm( 2, resid );
+    return stat;
+  end; // findClientResident( outXML, resid, code )
+  // ────────────────────────────────────────────────────────────
+  // Определение параметров вклада
+  // ────────────────────────────────────────────────────────────
+  macro TypeAccountParameters( isCur, kind )
+
+    var stat = 0;
+
+    var cmd_fee;
+    cmd_fee = RsdCommand( "{? = call rdpi.FindAdditionalFee ( ?, ?, ?, ?, ? ) }" );
+
+    cmd_fee.addParam( "RetVal",   RSDBP_RETVAL, V_INTEGER );
+    cmd_fee.addParam( "isCur",    RSDBP_IN );                 cmd_fee.value("isCur") = isCur;
+    cmd_fee.addParam( "kind",     RSDBP_IN );                 cmd_fee.value("kind")  = kind;
+
+    cmd_fee.addParam( "addFee",   RSDBP_OUT,    V_STRING  );
+    cmd_fee.addParam( "minFee",   RSDBP_OUT,    V_MONEYL  );
+    cmd_fee.addParam( "antRem",   RSDBP_OUT,    V_STRING  );
+
+    cmd_fee.execute;
+
+    stat = cmd_fee.value( "RetVal" ); 
+    if ( stat == 0 )
+      addFee = cmd_fee.value("addFee");
+      minFee = cmd_fee.value("minFee");
+      antRem = cmd_fee.value("antRem");  
+    end;
+
+    return stat;
+  end;//TypeAccountParameters( isCur, kind )
+
+
+  macro PercentTypeAccountParameters( isCur, kind, curdate )
+
+    var stat = 0;
+
+    var cmd_perc;
+    cmd_perc = RsdCommand( "{ ? = call rpcc.definePercentParameters( ?, ?, ?, ?, ?, ?, ? ) }" );
+
+    cmd_perc.addParam( "RetVal",   RSDBP_RETVAL, V_INTEGER );
+    cmd_perc.addParam( "isCur",    RSDBP_IN );                 cmd_perc.value("isCur")   = isCur;
+    cmd_perc.addParam( "kind",     RSDBP_IN );                 cmd_perc.value("kind")    = kind;
+    cmd_perc.addParam( "curDate",  RSDBP_IN );                 cmd_perc.value("curDate") = curdate;
+
+    cmd_perc.addParam( "capit",    RSDBP_OUT,    V_STRING  );
+    cmd_perc.addParam( "PaymPer",  RSDBP_OUT,    V_STRING  );
+    cmd_perc.addParam( "RateGroup",RSDBP_OUT,    V_STRING  );
+    cmd_perc.addParam( "RateType", RSDBP_OUT,    V_INTEGER );
+
+    cmd_perc.execute;
+
+    stat = cmd_perc.value( "RetVal" ); 
+    if ( stat == 0 )
+      capit     = cmd_perc.value( "capit" );
+      PaymPer   = cmd_perc.value( "PaymPer" );
+      RateGroup = cmd_perc.value( "RateGroup" );
+      RateType  = cmd_perc.value( "RateType" );
+    end;
+
+    return stat;
+  end;//PercentTypeAccountParameters( isCur, kind, curdate )
+
+    // ────────────────────────────────────────────────────────────
+  // Определение процентной ставки счета
+  // ────────────────────────────────────────────────────────────
+  macro DefineRateForAccount(referenc, objecttype, realdate, rest, UserTypeAccount)
+
+  var stat = 0;
+
+  if (OpenDepFiles())
+    stat = PercRateAL (referenc, objecttype, realdate, rest);
+    if (stat != 0)
+      Rate = stat;
+      stat = 0;
+    else
+      if ( index( UserTypeAccount, "К" ) > 0)
+        stat = 0;
+        Rate = stat;
+      else
+        stat = 3649;
+      end;
+    end;
+  else
+    stat = 20101;
+  end;
+
+  CloseDepFiles ();
+
+  return stat;
+
+  onError
+    return 20101;
+  end;//DefineRateForAccount(referenc, objecttype, realdate, rest )
+
+  // ────────────────────────────────────────────────────────────
+  // Найти требуемую запись депдока
+  // ────────────────────────────────────────────────────────────
+  macro FindDepDoc( depDate, referenc, operationDate, typeComplexOper, relation, order )
+    var stat = false;
+    var cmd, rs;
+    
+    depDate = date( 0, 0, 0 );
+
+    cmd = RsdCommand(
+        "select  t_depdate_document " +
+            "from dsbdepdoc_dbt " +
+           "where t_referenc = ? " +
+             "and t_date_document " +  relation + " ? " +
+             "and t_typecomplexoper = ? " +
+             "and t_mode <> 2 " +
+             "and t_kindop <> 8 " +
+             "and t_kindop <> 9 " +
+             "and t_kindop <> 14 " +
+             "and t_kindop <> 15 " +
+             "and t_kindop <> 16 " +
+             "and t_action <> ralc.get_d_delete " +
+             "and bitand(t_flags, 131072) = 0 " +
+        "order by t_referenc " + order + ", t_date_document " + order + ", t_numdaydoc " + order );
+
+    cmd.addParam( "referenc",        RSDBP_IN ); cmd.value("referenc")        = referenc;
+    cmd.addParam( "operationDate",   RSDBP_IN ); cmd.value("operationDate")   = operationDate;
+    cmd.addParam( "typeComplexOper", RSDBP_IN ); cmd.value("typeComplexOper") = typeComplexOper;
+
+    cmd.execute;
+
+    rs = RsdRecordSet( cmd );
+    if ( rs.moveNext )
+      depDate = dateStamp2Date(rs.value( "t_depdate_document" ));
+      stat = true;
+    end;
+
+    setParm( 1, depDate );
+    return stat;
+  end; // FindDepDoc( depDate, referenc, operationDate, typeComplexOper, relation, order )
+
+  // ────────────────────────────────────────────────────────────
+  // Найдем дату истечения срока действиядоговора для депозита
+  // ────────────────────────────────────────────────────────────
+  macro findEndDate( formContr, openClose, useAlternate, endDateDep, prolDateDep )
+    var necessaryDate = null;
+
+    if   ( formContr == 0 )
+    elif ( FindDepDoc( necessaryDate, currentReferenc, dateCreated, OP_PRLDEP, ">=", "asc" ) )
+    elif ( openClose != "З" )
+      if   ( useAlternate == 0 )
+        if   ( endDateDep != null_date ) 
+          if   (( prolDateDep == null_date ) or ( dateCreated >= prolDateDep ))
+            necessaryDate = endDateDep;
+          end; 
+        else
+          necessaryDate = prolDateDep - 1;
+        end;
+      else 
+        if  ( endDateDep != null_date )
+          necessaryDate = endDateDep
+        else
+          necessaryDate = prolDateDep - 1;
+        end;
+      end;
+    else
+      if  (  endDateDep != null_date )
+        necessaryDate = endDateDep;
+      elif ( prolDateDep != null_date )
+        necessaryDate = prolDateDep - 1;
+      end;
+    end;
+
+    return necessaryDate;
+  end; // findEndDate( formContr, openClose, useAlternate, endDateDep, prolDateDep )
+
+
+  // ────────────────────────────────────────────────────────────
+  // Найдем дату завершения депозита
+  // ────────────────────────────────────────────────────────────
+  macro findCloseDate( formContr, openClose, useAlternate, endDateDep, prolDateDep, closeDate )
+    var necessaryDate = null;
+
+    if   ( formContr == 0 )
+    elif ( openClose != "З" )
+      if   ( useAlternate == 0 )
+        if   ( endDateDep == null_date )
+          necessaryDate = prolDateDep - 1;
+        end;
+      else
+        if ( endDateDep != null_date )
+          FindDepDoc( necessaryDate, currentReferenc, dateCreated, OP_2_ALT, "<=", "asc" )
+        else
+          necessaryDate = prolDateDep - 1;
+        end; 
+      end;
+    else
+      if ( prolDateDep != null_date )
+        necessaryDate = prolDateDep - 1;
+      else
+        necessaryDate = closeDate;
+      end;
+    end;
+
+    return necessaryDate;
+  end; // findCloseDate( formContr, openClose, useAlternate, endDateDep, prolDateDep, closeDate )
+
+end;//class cBaseDeposit

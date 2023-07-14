@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<sql-query name="com.rssl.phizic.operations.mail.ListClientMailOperation.list">
+
+		<return alias="mail"          class="com.rssl.phizic.business.mail.Mail"/>
+		<![CDATA[
+        SELECT
+            {mail.*}
+        FROM
+            MAIL mail, RECIPIENTS recipients
+        WHERE ( :extra_subject IS NULL OR :extra_subject = '' OR upper(mail.SUBJECT) like upper(:extra_like_subject))
+               AND recipients.MAIL_ID = mail.ID
+               AND recipients.RECIPIENT_ID = :extra_recipientId
+               AND recipients.TYPE = 'PERSON'
+               AND mail.DIRECTION = 'CLIENT'
+               AND (:extra_fromDate IS NULL OR mail.CREATION_DATE >= :extra_fromDate)
+               AND (:extra_toDate IS NULL OR mail.CREATION_DATE < :extra_toDate)
+               AND (:extra_important IS NULL OR :extra_important = '' OR mail.IMPORTANT = :extra_important)
+               AND (:extra_received IS NULL OR :extra_received = '' OR recipients.RECEIVED = :extra_received)
+        ORDER BY mail.CREATION_DATE DESC
+      ]]>
+	</sql-query>
+	<sql-query name="com.rssl.phizic.operations.mail.ListClientMailOperation.sentList">
+
+		<return alias="mail"          class="com.rssl.phizic.business.mail.Mail"/>
+		<![CDATA[
+        SELECT
+            {mail.*}
+        FROM
+            MAIL mail
+        WHERE    ( :extra_fromDate IS NULL OR mail.CREATION_DATE >= :extra_fromDate)
+             AND ( :extra_toDate IS NULL OR mail.CREATION_DATE < :extra_toDate)
+             AND ( :extra_type IS NULL OR :extra_type = '' OR mail.TYPE = :extra_type)
+             AND ( :extra_subject IS NULL OR :extra_subject = '' OR upper(mail.SUBJECT) LIKE upper(:extra_like_subject))
+             AND (mail.SENDER_ID = :extra_senderId)
+             AND mail.DIRECTION = 'ADMIN'
+       ORDER BY mail.CREATION_DATE DESC
+      ]]>
+	</sql-query>
+</hibernate-mapping>

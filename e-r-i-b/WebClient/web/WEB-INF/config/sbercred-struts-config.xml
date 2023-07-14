@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+
+<struts-config>
+	<form-beans>
+		<form-bean name="ShowAccountAbstractForm" type="com.rssl.phizic.web.client.ext.sbercred.abstr.ShowAbstractForm"/>
+	</form-beans>
+
+	<action-mappings>
+
+		<!-- список видов платежей -->
+		<action path="/private/payments"
+		        type="com.rssl.phizic.web.actions.DummyAction"
+		        name="DummyForm"
+		        scope="request" validate="false">
+				<forward name="Show" path="/WEB-INF/jsp-sbercred/index.jsp"/>
+		</action>
+
+		<!-- информация по счетам -->
+		<action path="/private/accounts" type="com.rssl.phizic.web.client.ShowAccountsAction"
+		        name="ShowAccountsForm" scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sbercred/accounts/accounts.jsp"/>
+			<forward name="Abstract" path="/private/accounts/abstract.do" redirect="true"/>
+		</action>
+
+		<!-- выписки по счетам и картам -->
+		<action path="/private/accounts/abstract"
+		        type="com.rssl.phizic.web.client.abstr.ShowAccountAbstractAction"
+		        name="ShowAccountAbstractForm" scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sbercred/abstract/abstract.jsp"/>
+			<forward name="Close" path="/private/accounts.do" redirect="true"/>
+		</action>
+
+		<!-- печать выписки по счетам и картам -->
+		<action path="/private/accounts/print"
+		        type="com.rssl.phizic.web.common.client.abstr.PrintAccountAbstractAction"
+		        name="PrintAccountAbstractForm" scope="request" validate="false">
+			<forward name="print" path="/WEB-INF/jsp-sbercred/abstract/abstractPrint.jsp"/>
+		</action>
+
+		<!--печать информации о счете-->
+	   <action path="/private/accounts/printAcc"
+			   type="com.rssl.phizic.web.client.accounts.PrintAccountInfoAction"
+			   name="PrintAccountInfoForm" scope="request" validate="false">
+		   <forward name="Start" path="/WEB-INF/jsp-sbercred/accounts/accountInfoPrint.jsp"/>
+	   </action>
+
+		<!--печать информации по вкладу-->
+	   <action path="/private/deposit/print"
+			   type="com.rssl.phizic.web.client.deposits.PrintDepositInfoAction"
+			   name="PrintDepositInfoForm" scope="request" validate="false">
+		   <forward name="Start" path="/WEB-INF/jsp-sbercred/deposits/depositInfoPrint.jsp"/>
+	   </action>
+
+		<!-- детальная информация по карте -->
+		<action path="/private/cards/info" type="com.rssl.phizic.web.common.client.cards.ShowCardInfoBaseAction"
+		        name="ShowCardInfoForm" scope="request" validate="false">
+			<forward name="Start" path="/WEB-INF/jsp-sbercred/cards/cardInfo.jsp"/>
+		</action>
+
+		<!--печать информации по карте -->
+		<action path="/private/cards/print"
+	        type="com.rssl.phizic.web.client.cards.PrintCardInfoAction"
+	        name="PrintCardInfoForm" scope="request" validate="false">
+			<forward name="print" path="/WEB-INF/jsp-sbercred/cards/cardInfoPrint.jsp"/>
+		</action>
+
+		<action path="/help"
+				type="com.rssl.phizic.web.client.help.HelpActionC"
+				name="HelpForm"
+				scope="request"
+				validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sbercred/common/helpPage.jsp"/>
+		</action>
+
+			       <!-- список видов заявок -->
+	   <action path="/private/claims"
+		        type="com.rssl.phizic.web.actions.DummyAction"
+		        name="DummyForm"
+		        scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sbercred/claimsList.jsp"/>
+		</action>
+
+		<!-- анонимная заявка на кредит-->
+        <action path="/loan/claims/create"
+                type="com.rssl.phizic.web.client.loans.LoanClaimAction"
+                name="LoanClaimForm" scope="request"
+                validate="false">
+	        <forward name="Start"
+	                 path="/WEB-INF/jsp-sbercred/loans/loan.jsp"/>
+	        <forward name="Next" path="/loan/claim.do?form=LoanClaim" redirect="true"/>
+        </action>
+
+		<action path="/loan/claim" type="com.rssl.phizic.web.client.claims.EditClaimGuidAction"
+		        name="CreatePaymentCaptchaForm" scope="request" validate="false">
+			<forward name="ShowForm"
+			         path="/WEB-INF/jsp-sbercred/loans/edit-claim.jsp"/>
+			<forward name="Confirm" path="/loan/claim/confirm.do" redirect="true"/>
+		</action>
+
+		<action path="/loan/claim/confirm"
+		        type="com.rssl.phizic.web.client.claims.ConfirmClaimByGuidAction"
+		        name="ConfirmPaymentByFormForm" scope="request"
+		        validate="false">
+			<forward name="ShowForm"
+			         path="/WEB-INF/jsp-sbercred/loans/confirm-claim.jsp"/>
+			<forward name="View" path="/loan/claim/show.do" redirect="true"/>
+		</action>
+
+		<action path="/loan/claim/view"
+		        type="com.rssl.phizic.web.client.claims.ViewClaimGuidAction"
+		        name="ViewDocumentForm" scope="request"
+		        validate="false">
+			<forward name="ShowForm" path="/WEB-INF/jsp-sbercred/loans/view-claim.jsp"/>
+		</action>
+
+	</action-mappings>
+
+	<plug-in className="org.apache.struts.tiles.TilesPlugin">
+		<set-property property="definitions-config"
+		              value="
+		                /WEB-INF/tiles/tiles-components.xml,
+		                /WEB-INF/tiles/tiles-global-templates.xml,
+		                /WEB-INF/sbercred-tiles-definitions.xml"
+				/>
+	</plug-in>
+</struts-config>

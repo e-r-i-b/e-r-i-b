@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="PhoneNumber" class="com.rssl.phizic.dataaccess.hibernate.PhoneNumberType"/>
+
+    <class name="com.rssl.phizic.business.ermb.registration.ErmbRegistrationEvent" table="ERMB_REGISTRATION">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ERMB_REGISTRATION</param>
+            </generator>
+        </id>
+
+        <property name="profileId"      type="long"         column="PROFILE_ID"         not-null="true"/>
+        <property name="phone"          type="PhoneNumber"  column="PHONE_NUMBER"       not-null="true"/>
+        <property name="connectionDate" type="calendar"     column="CONNECTION_DATE"    not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.ermb.registration.findAll">
+        select registration from com.rssl.phizic.business.ermb.registration.ErmbRegistrationEvent as registration
+        order by id desc
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.registration.delete">
+        delete from com.rssl.phizic.business.ermb.registration.ErmbRegistrationEvent as registration
+		where registration.phone in (:phones)
+    </query>
+
+</hibernate-mapping>

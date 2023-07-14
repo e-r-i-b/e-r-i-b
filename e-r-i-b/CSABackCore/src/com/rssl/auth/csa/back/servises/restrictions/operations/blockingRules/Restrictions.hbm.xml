@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.ERIBBlockingRule" table="BLOCKINGRULES" polymorphism="explicit">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_BLOCKINGRULES</param>
+            </generator>
+        </id>
+        <property name="codes"              type="string"       column="DEPARTMENTS"    not-null="true"/>
+        <property name="expired"            type="calendar"     column="RESUMING_TIME"  not-null="true"/>
+
+        <property name="applyToERIB"        type="boolean"      column="ERIB"           not-null="false"/>
+        <property name="eribMessage"        type="string"       column="ERIB_MESSAGE"   not-null="true"/>
+        <property name="applyToMAPI"        type="boolean"      column="MAPI"           not-null="false"/>
+        <property name="mapiMessage"        type="string"       column="MAPI_MESSAGE"   not-null="false"/>
+        <property name="applyToATM"         type="boolean"      column="ATM"           not-null="false"/>
+        <property name="atmMessage"         type="string"       column="ATM_MESSAGE"   not-null="false"/>
+        <property name="applyToERMB"        type="boolean"      column="ERMB"           not-null="false"/>
+        <property name="ermbMessage"        type="string"       column="ERMB_MESSAGE"   not-null="false"/>
+    </class>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.ERIBBlockingRule.findAllActive">
+        <return alias="LogonBlockingRule" class="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.ERIBBlockingRule"/>
+        <![CDATA[
+            SELECT {LogonBlockingRule.*}
+            FROM BLOCKINGRULES LogonBlockingRule
+            WHERE ERIB = 1
+                AND LogonBlockingRule.STATE = 'blocked'
+        ]]>
+	</sql-query>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.ERMBBlockingRule.findAllActive">
+        <return alias="blockingRule" class="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.ERIBBlockingRule"/>
+        <![CDATA[
+            SELECT {blockingRule.*}
+            FROM BLOCKINGRULES blockingRule
+            WHERE ERMB = 1
+            AND blockingRule.STATE = 'blocked'
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.ATMBlockingRule.findAllActive">
+        <return alias="blockingRule" class="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.ERIBBlockingRule"/>
+        <![CDATA[
+            SELECT {blockingRule.*}
+            FROM BLOCKINGRULES blockingRule
+            WHERE ATM = 1
+            AND blockingRule.STATE = 'blocked'
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.MAPIBlockingRule.findAllActive">
+        <return alias="blockingRule" class="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.ERIBBlockingRule"/>
+        <![CDATA[
+            SELECT {blockingRule.*}
+            FROM BLOCKINGRULES blockingRule
+            WHERE MAPI = 1
+            AND blockingRule.STATE = 'blocked'
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.ERIBBlockingRule.isGlobalBlocking">
+        <![CDATA[
+            select
+                case
+                    when exists (select * from BLOCKINGRULES where DEPARTMENTS = 'global' and STATE = 'blocked') then 'true'
+                    else 'false'
+                end
+            from dual
+        ]]>
+    </sql-query>
+</hibernate-mapping>

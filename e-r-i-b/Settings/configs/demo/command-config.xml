@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<command-config>
+	<default-command name="Подтверждение платежа" class="com.rssl.phizic.sms.banking.commands.ConfirmCommand"/>
+	<command name="Помощь по работе с системой" class="com.rssl.phizic.sms.banking.commands.HelpCommand">
+		<hint>
+			<![CDATA[
+			   «Возможные команды для SMS-банкинга: Помощь – краткая справка (это сообщение) Инфо – список подключенных счетов (карт, вкладов) Остаток – текущий остаток Выписка – мини-выписка Платеж – платеж Перевод – перевод между счетами Обмен – безналичная конвертация валюты Помощь <команда> - более подробная информация»
+            ]]>
+		</hint>
+		<sinonyms>
+			<sinonym name="?"/>
+			<sinonym name="HELP"/>
+			<sinonym name="POMOSCH"/>
+			<sinonym name="ПОМОЩЬ"/>
+			<sinonym name="H"/>
+		</sinonyms>
+	</command>
+	<command name="Получение информации и подключенных счетах получателя" class="com.rssl.phizic.sms.banking.commands.InfoCommand">
+		<hint>
+			<![CDATA[
+				Формат команды: «Инфо» – получение информации о подключенных счетах, картах и пластиковых картах.
+			]]>
+		</hint>
+		<sinonyms>
+			<sinonym name="ИНФО"/>
+			<sinonym name="INFO"/>
+			<sinonym name="I"/>
+		</sinonyms>
+	</command>
+	<command name="Получение текущих остатков" class="com.rssl.phizic.sms.banking.commands.RestCommand">
+	    <hint>
+			<![CDATA[
+				Формат команды: «Остаток <псевдоним>» - получение информации о текущем остатке на счете, вкладе или пластиковой карте"
+			]]>
+		</hint>
+		<sinonyms>
+			<sinonym name="БАЛАНС"/>
+			<sinonym name="BALANS"/>
+			<sinonym name="BALANCE"/>
+			<sinonym name="OSTATOK"/>
+			<sinonym name="ОСТАТОК"/>
+			<sinonym name="REST"/>
+			<sinonym name="B"/>
+		</sinonyms>
+	</command>
+	<command name="Получение минивыписки" class="com.rssl.phizic.sms.banking.commands.ExtractCommand">
+		<hint>
+			<![CDATA[
+				Формат команды: «Выписка <псевдоним>» - получение краткой выписки (5 последних операций) по счету, вкладу или пластиковой карте.
+			]]>
+		</hint>
+		<sinonyms>
+			<sinonym name="VYPISKA"/>
+			<sinonym name="ВЫПИСКА"/>
+			<sinonym name="V"/>
+		</sinonyms>
+	</command>
+	<command name="Платеж" class="com.rssl.phizic.sms.banking.commands.PaymentCommand">
+		<hint>
+			<![CDATA[
+				Формат команды: «Платеж <шаблон> <<реквизиты>>» - платеж по заранее настроенному шаблону.
+			]]>
+		</hint>
+		<sinonyms>
+			<sinonym name="ПЛАТЕЖ"/>
+			<sinonym name="PLATEZH"/>
+			<sinonym name="ОПЛАТА"/>
+			<sinonym name="OPLATA"/>
+			<sinonym name="PAYMENT"/>
+			<sinonym name="PAY"/>
+			<sinonym name="P"/>
+		</sinonyms>
+		<templates>
+			<template name="request">
+				<value>
+					<![CDATA[
+						Для подтверждения платежа на сумму <${document.getChargeOffAmount().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}> со счета <${document.getChargeOffAccount()}> по шаблону <${template}> отправьте CMC: “код_перевода<#if confirm == "true"> пароль_из_карты_ключей“. Код платежа для подтверждения - <${paymentCode}>. Номер карты <${cardNumber}>, номер следующего пароля из карты ключей <${passwordNumber}>.<#else>“. Код платежа для подтверждения - <${paymentCode}>.</#if><#if commision == "true"> Комиссия за перевод: <${document.getCommission().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}>.</#if>
+					]]>
+				</value>
+			</template>
+			<template name="response">
+				<value>
+					<![CDATA[
+						Ваш платеж на сумму <${document.getChargeOffAmount().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}> со счета <${document.getChargeOffAccount()}> по шаблону <${template}> успешно принят для обработки банком.<#if commision == "true"> Комиссия за платеж: <${document.getCommission().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}>.</#if>
+					]]>
+				</value>
+			</template>
+		</templates>
+	</command>
+	<command name="Перевод" class="com.rssl.phizic.sms.banking.commands.TransferCommand">
+		 <hint>
+			<![CDATA[
+				Формат команды: «Перевод <псевдоним списания> <псевдоним зачисления>» - перевод между счетами (со счета на вклад, пластиковую карту).
+			]]>
+		</hint>
+		<sinonyms>
+			<sinonym name="ПЕРЕВОД"/>
+			<sinonym name="PEREVOD"/>
+			<sinonym name="TRANSFER"/>
+			<sinonym name="T"/>
+		</sinonyms>
+		<parameters>
+			<parameter name="formName" value="InternalPayment"/>
+			<parameter name="arg1" value="fromAccountSelect"/>
+			<parameter name="arg2" value="toAccountSelect"/>
+			<parameter name="arg3" value="amount"/>
+		</parameters>
+		<templates>
+			<template name="request">
+				<value>
+					<![CDATA[
+						Для подтверждения перевода на сумму <${document.getChargeOffAmount().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}> со счета <${document.getChargeOffAccount()}> отправьте CMC: “код_перевода<#if confirm == "true"> пароль_из_карты_ключей“. Код перевода для подтверждения - <${paymentCode}>. Номер карты <${cardNumber}>, номер следующего пароля из карты ключей <${passwordNumber}>.<#else>“. Код перевода для подтверждения - <${paymentCode}>.</#if> Комиссия за перевод: <${document.getCommission().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}>.
+					]]>
+				</value>
+			</template>
+			<template name="response">
+				<value>
+					<![CDATA[
+						Ваш перевод на сумму <${document.getChargeOffAmount().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}> со счета <${document.getChargeOffAccount()}> на счет <${document.getReceiverAccount()}> успешно принят для обработки банком. Комиссия за перевод: <${document.getCommission().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}>.
+					]]>
+				</value>
+			</template>
+		</templates>
+	</command>
+	<command name="Конвертация валюты" class="com.rssl.phizic.sms.banking.commands.TransferCommand">
+		 <hint>
+			<![CDATA[
+				Формат команды: «Обмен <псевдоним списания> <псевдоним зачисления> <сумма списания>».
+			]]>
+		</hint>
+		<sinonyms>
+			<sinonym name="ОБМЕН"/>
+			<sinonym name="OBMEN"/>
+			<sinonym name="E"/>
+			<sinonym name="EXCHANGE"/>
+		</sinonyms>
+		<parameters>
+			<parameter name="formName" value="ConvertCurrencyPayment"/>
+			<parameter name="arg1"     value="payerAccountSelect"/>
+			<parameter name="arg2"     value="receiverAccountSelect"/>
+			<parameter name="arg3"     value="sellAmount"/>
+		</parameters>
+		<templates>
+			<template name="request">
+				<value>
+					<![CDATA[
+						Для подтверждения операции б/н конвертации суммы <${document.getChargeOffAmount().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}> со счета <${document.getChargeOffAccount()}> отправьте CMC: “код_перевода<#if confirm == "true"> пароль_из_карты_ключей“. Код перевода для подтверждения - <${paymentCode}>. Номер карты <${cardNumber}>, номер следующего пароля из карты ключей <${passwordNumber}>.	<#else>“. Код перевода для подтверждения - <${paymentCode}>.</#if> Сумма к зачислению - <${document.getDestinationAmount().getDecimal()} ${document.getDestinationAmount().getCurrency().getCode()}>, курс <${document.getCourse()}>.
+					]]>
+				</value>
+			</template>
+			<template name="response">
+				<value>
+					<![CDATA[
+						Ваша операция б/н конвертации суммы <${document.getChargeOffAmount().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}> со счета <${document.getChargeOffAccount()}> на счет <${document.getReceiverAccount()}> успешно принята для обработки банком. Сумма к зачислению - <${document.getDestinationAmount().getDecimal()} ${document.getDestinationAmount().getCurrency().getCode()}>, курс <${document.getCourse()}>.
+					]]>
+				</value>
+			</template>
+		</templates>
+	</command>
+	<exceptions>
+		<exception name="ex0">
+			<value>
+				<![CDATA[
+					Операция <{0}> не может быть исполнена. {1}.
+				]]>
+			</value>
+		</exception>
+		<exception name="ex1">
+			<value>
+				<![CDATA[
+					Ошибка подтверждения перевода с кодом <${paymentCode}> на сумму <${document.getChargeOffAmount().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}. Операция не будет принята банком.
+				]]>
+			</value>
+		</exception>
+		<exception name="ex2">
+			<value>
+				<![CDATA[
+					Произошла ошибка при обработке перевода на сумму <"${document.getChargeOffAmount().getDecimal()} ${document.getChargeOffAmount().getCurrency().getCode()}> со счета <${document.getChargeOffAccount()>. Попробуйте отправить платеж позднее.
+				]]>
+			</value>
+		</exception>
+	</exceptions>
+</command-config>

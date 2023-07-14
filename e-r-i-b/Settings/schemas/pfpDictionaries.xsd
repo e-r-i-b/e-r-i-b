@@ -1,0 +1,828 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+    <xsd:element name="dictionaries">
+        <xsd:complexType>
+            <xsd:annotation>
+                <xsd:documentation>
+                    Таг списка справочников
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:sequence>
+                <xsd:element minOccurs="0" maxOccurs="unbounded" name="dictionary" type="Dictionary"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="Dictionary">
+        <xsd:annotation>
+            <xsd:documentation>
+                Таг описания справочника
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element maxOccurs="unbounded" name="productType"                  type="ProductTypeParameter"/>
+            <xsd:element maxOccurs="unbounded" name="card"                         type="Card"/>
+            <xsd:element maxOccurs="unbounded" name="risk"                         type="Risk"/>
+            <xsd:element maxOccurs="unbounded" name="investmentPeriod"             type="InvestmentPeriod"/>
+            <xsd:element maxOccurs="unbounded" name="trustManagingProduct"         type="TrustManagingProduct"/>
+            <xsd:element maxOccurs="unbounded" name="pensionProduct"               type="PensionProduct"/>
+            <xsd:element maxOccurs="unbounded" name="pensionFund"                  type="PensionFund"/>
+            <xsd:element maxOccurs="unbounded" name="target"                       type="Target"/>
+            <xsd:element maxOccurs="unbounded" name="loanKind"                     type="LoanKind"/>
+            <xsd:element maxOccurs="unbounded" name="question"                     type="Question"/>
+            <xsd:element maxOccurs="unbounded" name="ageCategory"                  type="AgeCategories"/>
+            <xsd:element maxOccurs="unbounded" name="riskProfile"                  type="RiskProfiles"/>
+            <xsd:element maxOccurs="unbounded" name="insuranceType"                type="InsuranceTypes"/>
+            <xsd:element maxOccurs="unbounded" name="periodType"                   type="PeriodTypes"/>
+            <xsd:element maxOccurs="unbounded" name="insuranceCompany"             type="InsuranceCompanies"/>
+            <xsd:element maxOccurs="unbounded" name="insuranceProduct"             type="InsuranceProducts"/>
+            <xsd:element maxOccurs="unbounded" name="accountProduct"               type="AccountProducts"/>
+            <xsd:element maxOccurs="unbounded" name="fundProduct"                  type="FundProducts"/>
+            <xsd:element maxOccurs="unbounded" name="imaProduct"                   type="IMAProducts"/>
+            <xsd:element maxOccurs="unbounded" name="complexInsuranceProduct"      type="ComplexInsuranceProducts"/>
+            <xsd:element maxOccurs="unbounded" name="complexFundInvestmentProduct" type="ComplexFundInvestmentProducts"/>
+            <xsd:element maxOccurs="unbounded" name="complexIMAInvestmentProduct"  type="ComplexIMAInvestmentProducts"/>
+        </xsd:choice>
+        <xsd:attribute name="name" use="required" type="DictionaryType"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="YesOrNo">
+        <xsd:annotation>
+            <xsd:documentation>"Да", "Нет"</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="yes"/>
+            <xsd:enumeration value="no"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="DictionaryType">
+        <xsd:annotation>
+            <xsd:documentation>Тип справочника</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="productTypes"/>
+            <xsd:enumeration value="cards"/>
+            <xsd:enumeration value="trustManagingProducts"/>
+            <xsd:enumeration value="risks"/>
+            <xsd:enumeration value="pensionProducts"/>
+            <xsd:enumeration value="pensionFunds"/>
+            <xsd:enumeration value="investmentPeriods"/>
+            <xsd:enumeration value="targets"/>
+            <xsd:enumeration value="loanKinds"/>
+            <xsd:enumeration value="questions"/>
+            <xsd:enumeration value="ageCategories"/>
+            <xsd:enumeration value="riskProfiles"/>
+            <xsd:enumeration value="insuranceTypes"/>
+            <xsd:enumeration value="periodTypes"/>
+            <xsd:enumeration value="insuranceCompanies"/>
+            <xsd:enumeration value="insuranceProducts"/>
+            <xsd:enumeration value="accountProducts"/>
+            <xsd:enumeration value="fundProducts"/>
+            <xsd:enumeration value="imaProducts"/>
+            <xsd:enumeration value="complexInsuranceProducts"/>
+            <xsd:enumeration value="complexFundInvestmentProducts"/>
+            <xsd:enumeration value="complexIMAInvestmentProducts"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="PortfolioType">
+        <xsd:annotation>
+            <xsd:documentation>Тип справочника</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="START_CAPITAL"/>
+            <xsd:enumeration value="QUARTERLY_INVEST"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ForComplex">
+        <xsd:annotation>
+            <xsd:documentation>Принадлежность к комплексному продукту</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none"/>
+            <xsd:enumeration value="insurance"/>
+            <xsd:enumeration value="fund"/>
+            <xsd:enumeration value="ima"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="DictionaryProductType">
+        <xsd:annotation>
+            <xsd:documentation>Тип продукта для которого существует отдельная сущность в справочнике</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="INSURANCE"/>
+            <xsd:enumeration value="PENSION"/>
+            <xsd:enumeration value="COMPLEX_INSURANCE"/>
+            <xsd:enumeration value="COMPLEX_INVESTMENT"/>
+            <xsd:enumeration value="COMPLEX_INVESTMENT_FUND"/>
+            <xsd:enumeration value="COMPLEX_INVESTMENT_FUND_IMA"/>
+            <xsd:enumeration value="ACCOUNT"/>
+            <xsd:enumeration value="FUND"/>
+            <xsd:enumeration value="IMA"/>
+            <xsd:enumeration value="TRUST_MANAGING"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="SegmentCodeType">
+        <xsd:annotation>
+            <xsd:documentation>Код сегмента, к которому относят клиента</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="NOTEXISTS"/>
+            <xsd:enumeration value="MVCPOTENTIAL"/>
+            <xsd:enumeration value="VIP"/>
+            <xsd:enumeration value="MVC"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="Risk">
+        <xsd:annotation>
+            <xsd:documentation>Сущность риска</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"  minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="riskname"  minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InvestmentPeriod">
+        <xsd:annotation>
+            <xsd:documentation>"горизонт инвестирования"</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"  minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="period"  minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProductParameters">
+        <xsd:annotation>
+            <xsd:documentation>набор параметров продукта, уникальных в рамках портфеля</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="minSum" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DiagramStep">
+        <xsd:annotation>
+            <xsd:documentation>
+                Шаг на диаграме
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="from"    minOccurs="1" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="to"      minOccurs="1" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="name"    minOccurs="1" maxOccurs="1" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DiagramAxis">
+        <xsd:annotation>
+            <xsd:documentation>
+                Ось диаграмы
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name"        minOccurs="1" maxOccurs="1"         type="xsd:string"/>
+            <xsd:element name="useSteps"    minOccurs="1" maxOccurs="1"         type="YesOrNo"/>
+            <xsd:element name="step"        minOccurs="0" maxOccurs="unbounded" type="DiagramStep"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DiagramParameters">
+        <xsd:annotation>
+            <xsd:documentation>
+                Параметры диаграмы
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="useZero" type="YesOrNo"/>
+            <xsd:element name="axisX"   type="DiagramAxis"/>
+            <xsd:element name="axisY"   type="DiagramAxis"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TableColumn">
+        <xsd:annotation>
+            <xsd:documentation>
+                Название столбца
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element minOccurs="1" maxOccurs="1" name="value"       type="xsd:string"/>
+            <xsd:element minOccurs="1" maxOccurs="1" name="orderIndex"  type="xsd:long"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TableParameters">
+        <xsd:annotation>
+            <xsd:documentation>
+                Параметры таблицы
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element minOccurs="0" maxOccurs="unbounded" name="column" type="TableColumn"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProductTypeLink">
+        <xsd:annotation>
+            <xsd:documentation>
+                Ссылка, позволяющая выбрать продукт позже
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element minOccurs="1" maxOccurs="1" name="name" type="xsd:string"/>
+            <xsd:element minOccurs="1" maxOccurs="1" name="hint" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProductTypeParameter">
+        <xsd:annotation>
+            <xsd:documentation>
+                Параметры типов продуктов
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"                 minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"                minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="type"                minOccurs="1" maxOccurs="1" type="DictionaryProductType"/>
+            <xsd:element name="use"                 minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="targetGroups"        minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="imageUrl"            minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="description"         minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="useOnDiagram"        minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="useOnTable"          minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="diagramParameters"   minOccurs="0" maxOccurs="1" type="DiagramParameters"/>
+            <xsd:element name="tableParameters"     minOccurs="0" maxOccurs="1" type="TableParameters"/>
+            <xsd:element name="link"                minOccurs="1" maxOccurs="1" type="ProductTypeLink"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LoanKind">
+        <xsd:annotation>
+            <xsd:documentation>
+                Тип кредитного продукта
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"             minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"            minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="fromAmount"      minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="toAmount"        minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="fromPeriod"      minOccurs="1" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="toPeriod"        minOccurs="1" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="defaultPeriod"   minOccurs="1" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="fromRate"        minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="toRate"          minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="defaultRate"     minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="imageUrl"        minOccurs="1" maxOccurs="1" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="CardProgrammType">
+        <xsd:annotation>
+            <xsd:documentation>Тип бонусной программы для карты</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="beneficent"/>
+            <xsd:enumeration value="aeroflot"/>
+            <xsd:enumeration value="mts"/>
+            <xsd:enumeration value="empty"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="CardDiagramParameters">
+        <xsd:annotation>
+            <xsd:documentation>
+                Параметры диаграммы для карты
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="useImage"    minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="color"       minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="imageUrl"    minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="useNet"      minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Card">
+        <xsd:annotation>
+            <xsd:documentation>
+                Сущность кредитной карты
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"                 minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"                minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="programmType"        minOccurs="1" maxOccurs="1" type="CardProgrammType"/>
+            <xsd:element name="inputs"              minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="bonus"               minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="clause"              minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="cardIconUrl"         minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="programmIconUrl"     minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="description"         minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="recommendation"      minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="diagramParameters"   minOccurs="1" maxOccurs="1" type="CardDiagramParameters"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TableViewParameters">
+        <xsd:annotation>
+            <xsd:documentation>Параметры отображения продукта в табличном виде</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="useIcon" minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="column" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" maxOccurs="1" name="index" type="xsd:string"/>
+                        <xsd:element minOccurs="1" maxOccurs="1" name="value" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TrustManagingProduct">
+        <xsd:annotation>
+            <xsd:documentation>Продукт "доверительное управление"</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"                 minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"                minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="universal"           minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="portfolioParameters" minOccurs="1" maxOccurs="1" type="PortfoliosParameters"/>
+            <xsd:element name="minIncome"           minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="maxIncome"           minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="defaultIncome"       minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="risk"                minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="investmentPeriod"    minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="targetGroups"        minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="enabled"             minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="imageUrl"            minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="description"         minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="axisX"               minOccurs="1" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="axisY"               minOccurs="1" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="tableParameters"     minOccurs="0" maxOccurs="1" type="TableViewParameters"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Target">
+        <xsd:annotation>
+            <xsd:documentation>
+                Цель
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name"       minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="imageUrl"   minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="onlyOne"    minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="laterAll"   minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="laterLoans" minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PensionFund">
+        <xsd:annotation>
+            <xsd:documentation>
+                Пенсионный фонд
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"         minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"        minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="imageUrl"    minOccurs="0" maxOccurs="1" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PensionProduct">
+        <xsd:annotation>
+            <xsd:documentation>
+                сущность пенсионного продукта
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"             minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"            minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="description"     minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="imageUrl"        minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="minIncome"       minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="maxIncome"       minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="defaultIncome"   minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="targetGroups"    minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="universal"       minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="enabled"         minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="pensionFund"     minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="entryFee"        minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="quarterlyFee"    minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="minPeriod"       minOccurs="1" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="maxPeriod"       minOccurs="1" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="defaultPeriod"   minOccurs="1" maxOccurs="1" type="xsd:long"/>
+
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Question">
+        <xsd:annotation>
+            <xsd:documentation>
+               Вопрос
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="text"    minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="segment" minOccurs="1" maxOccurs="1" type="SegmentCodeType"/>
+            <xsd:element name="deleted" minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="answers" maxOccurs="1" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element maxOccurs="unbounded" name="answer">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="text"   minOccurs="1" maxOccurs="1" type="xsd:string"/>
+                                    <xsd:element name="weight" minOccurs="1" maxOccurs="1" type="xsd:long"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AgeCategories">
+        <xsd:annotation>
+            <xsd:documentation>
+               Возрастная категория
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="minAge" minOccurs="1" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="maxAge" minOccurs="0" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="weight" minOccurs="1" maxOccurs="1" type="xsd:long"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RiskProfiles">
+        <xsd:annotation>
+            <xsd:documentation>
+               Риск-профиль
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name"            minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="segment"         minOccurs="1" maxOccurs="1" type="SegmentCodeType"/>
+            <xsd:element name="deleted"         minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="minWeight"       minOccurs="1" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="maxWeight"       minOccurs="0" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="description"     minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="account"         minOccurs="1" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="IMA"             minOccurs="1" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="fund"            minOccurs="1" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="insurance"       minOccurs="1" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="trustManaging"   minOccurs="1" maxOccurs="1" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InsuranceTypes">
+        <xsd:annotation>
+            <xsd:documentation>
+               Типы страховых продуктов
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"         minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"        minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="imageUrl"    minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="description" minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="parentKey"   minOccurs="0" maxOccurs="1" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PeriodTypes">
+        <xsd:annotation>
+            <xsd:documentation>
+               Типы периодов
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"     minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"    minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="months"  minOccurs="0" maxOccurs="1" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InsuranceCompanies">
+        <xsd:annotation>
+            <xsd:documentation>
+               Страховая компания
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"         minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"        minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="imageUrl"    minOccurs="0" maxOccurs="1" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InsuranceProducts">
+        <xsd:annotation>
+            <xsd:documentation>
+               Страховые продукты
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"              minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"             minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="description"      minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="insuranceCompany" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="insuranceType"    minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="forComplex"       minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="minAge"           minOccurs="0" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="maxAge"           minOccurs="0" maxOccurs="1" type="xsd:int"/>
+            <xsd:element name="minIncome"        minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="maxIncome"        minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="defaultIncome"    minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="targetGroups"     minOccurs="0" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="periods"          minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" maxOccurs="unbounded" name="period">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="periodType"    minOccurs="1" maxOccurs="1" type="xsd:string"/>
+                                    <xsd:element name="defaultPeriod" minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+                                    <xsd:element name="minSum"        minOccurs="0" maxOccurs="1" type="xsd:double"/>
+                                    <xsd:element name="maxSum"        minOccurs="0" maxOccurs="1" type="xsd:double"/>
+                                    <xsd:element name="period"        minOccurs="1" maxOccurs="1" type="xsd:string"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PortfoliosParameters">
+        <xsd:annotation>
+            <xsd:documentation>Принадлежность к комплексному продукту</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="parameters" type="PortfolioParameters" minOccurs="2" maxOccurs="2"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PortfolioParameters">
+        <xsd:annotation>
+            <xsd:documentation>Принадлежность к комплексному продукту</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="minSum" minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+        </xsd:sequence>
+        <xsd:attribute name="portfolio" use="required" type="PortfolioType"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccountProducts">
+        <xsd:annotation>
+            <xsd:documentation>
+               Вклады
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"                 minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"                minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="description"         minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="forComplex"          minOccurs="1" maxOccurs="1" type="ForComplex"/>
+            <xsd:element name="portfolioParameters" minOccurs="0" maxOccurs="1" type="PortfoliosParameters"/>
+            <xsd:element name="sumFactor"           minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="targetGroups"        minOccurs="0" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="minIncome"           minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="maxIncome"           minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="defaultIncome"       minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="imageUrl"            minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="universal"           minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="enabled"             minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="axisX"               minOccurs="0" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="axisY"               minOccurs="0" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="tableParameters"     minOccurs="0" maxOccurs="1" type="TableViewParameters"/>
+            <xsd:element name="advisableSum"        minOccurs="0" maxOccurs="1">
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="monthlyExpends">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Ежемесячные расходы клиента
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:enumeration>
+                        <xsd:enumeration value="advisableSumToProduct">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Рекомендуемая сумма для размещения на вкладах
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:enumeration>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="FundProducts">
+        <xsd:annotation>
+            <xsd:documentation>
+               ПИФы
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"                 minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"                minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="description"         minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="risk"                minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="investmentPeriod"    minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="forComplex"          minOccurs="1" maxOccurs="1" type="ForComplex"/>
+            <xsd:element name="portfolioParameters" minOccurs="0" maxOccurs="1" type="PortfoliosParameters"/>
+            <xsd:element name="sumFactor"           minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="targetGroups"        minOccurs="0" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="minIncome"           minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="maxIncome"           minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="defaultIncome"       minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="imageUrl"            minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="universal"           minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="enabled"             minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="axisX"               minOccurs="0" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="axisY"               minOccurs="0" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="tableParameters"     minOccurs="1" maxOccurs="1" type="TableViewParameters"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="IMAProducts">
+        <xsd:annotation>
+            <xsd:documentation>
+               ОМСы
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"                 minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="name"                minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="description"         minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="risk"                minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="investmentPeriod"    minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="forComplex"          minOccurs="1" maxOccurs="1" type="ForComplex"/>
+            <xsd:element name="portfolioParameters" minOccurs="0" maxOccurs="1" type="PortfoliosParameters"/>
+            <xsd:element name="targetGroups"        minOccurs="0" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="minIncome"           minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="maxIncome"           minOccurs="0" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="defaultIncome"       minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="imageUrl"            minOccurs="0" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="universal"           minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="enabled"             minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="axisX"               minOccurs="0" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="axisY"               minOccurs="0" maxOccurs="1" type="xsd:long"/>
+            <xsd:element name="tableParameters"     minOccurs="1" maxOccurs="1" type="TableViewParameters"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ComplexInsuranceProducts">
+        <xsd:annotation>
+            <xsd:documentation>
+               Комплексные страховые продукты
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="description"       minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="minSum"            minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="minSumInsurance"   minOccurs="1" maxOccurs="1" type="xsd:decimal"/>
+            <xsd:element name="account"           minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="universal"         minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="targetGroups"      minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="insuranceProducts" minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="insuranceProduct" minOccurs="1" maxOccurs="unbounded" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tableParameters"     minOccurs="1" maxOccurs="1" type="TableViewParameters"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ComplexFundInvestmentProducts">
+        <xsd:annotation>
+            <xsd:documentation>
+               Комплексные инвестиционные продукты (Депозит + ПИФ)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="description"         minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="portfolioParameters" minOccurs="0" maxOccurs="1" type="PortfoliosParameters"/>
+            <xsd:element name="account"             minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="universal"         minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="targetGroups"        minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fundProducts"        minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fundProduct" minOccurs="1" maxOccurs="unbounded" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tableParameters"     minOccurs="1" maxOccurs="1" type="TableViewParameters"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ComplexIMAInvestmentProducts">
+        <xsd:annotation>
+            <xsd:documentation>
+               Комплексные инвестиционные продукты (Депозит + ПИФ + ОМС)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="description"         minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="portfolioParameters" minOccurs="0" maxOccurs="1" type="PortfoliosParameters"/>
+            <xsd:element name="account"             minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="universal"         minOccurs="1" maxOccurs="1" type="YesOrNo"/>
+            <xsd:element name="targetGroups"        minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="targetGroup" minOccurs="1" maxOccurs="4" type="SegmentCodeType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fundProducts"        minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fundProduct" minOccurs="1" maxOccurs="unbounded" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="imaProducts" minOccurs="1" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="imaProduct" minOccurs="1" maxOccurs="unbounded" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="tableParameters"     minOccurs="1" maxOccurs="1" type="TableViewParameters"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

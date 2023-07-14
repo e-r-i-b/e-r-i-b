@@ -1,0 +1,3092 @@
+//============================================================================
+//            Copyright (c) 1993 - 2005 R-Style Softlab
+//                      All Rights Reserved.
+//
+//  System      : RS-Bank 5.10
+//  File name   : rtxml.mac
+//  Date        : 29.10.2006
+//  Description : Функции для получения нужных параметров ИКФЛ (InterBank)
+//  Programmer  : Мы :)
+//  Remarks     : 
+//
+//============================================================================
+
+import DeprIntr, ExchangeInter, rcw, fileop, "issrvdoc.mac", "ps_func.mac", 
+       LoansFind, "depfunc.mac", "rtreport.mac", 
+       SbCrdInter, "autoCarryBase.mac", user_gba, getdocs;
+ 
+private const NULL_DATE = date(  0,  0,    0 );
+private const MAX_DATE  = date( 31, 12, 9999 );
+
+// Возможные условия расчёта процентов. 
+private const RTPC_ACCOUNT_TYPE = 1003; // Тип вклада (групповые условия)       
+private const RTPC_ACCOUNT_DEP  = 2001; // Расчет при соблюдении условий вклада 
+private const RTPC_ACCOUNT_ALT  = 2002; // Альтернативные условия               
+private const RTPC_ACCOUNT_OVER = 2003; // По овердрафту                        
+private const RTPC_ACCOUNT_DOP  = 2004; // Расчет на дополнительный взносы      
+private const RTPC_ACCOUNT_MCUR = 2005; // Мультивалютные                       
+private const KIND_AFTER_FINISH = 3001; // Вид вклада после завершения договора
+private const KIND_AFTER_AUTO   = 3002; // Вид вклада, на который будет переведен счет после завершения договора независимо от выбора вкладчика (если останется, что переводить после переводов по KIND_AFTER_FINISH0)
+private const OT_OP_FROM_OTHER  = 3010; // Вид вклада, операции которого выполняются для заданного
+private const DTYP_TYPE_ACCOUNT = "";  //Тип вклада для репликации. Фильтр для нестандартных пожеланий банка.
+
+// Файлы юзаются в FindPcRate. вынесены в глобальные переменные для ускорения работы.
+private var Global_f_pc_apltp = TBFile( "pc_apltp.dbt",  "r", 0, null, "sbbank.def" );
+private var Global_f_fnc_dtyp = TBFile( "fnc_dtyp.dbt",  "r", 0, null, "sbbank.def" );
+private var Global_f_pc_rate  = TBFile( "pc_rate.dbt" ,  "r", 0, null, "sbbank.def" );
+private var Global_f_pc_alg   = TBfile( "pc_alg.dbt"  ,  "r", 0, null, "sbbank.def" );
+
+// ═════════════════════════════════════════════
+// Ф-ции для создания xml-документов
+// 
+private macro CreateXML2Object( xml:object )
+  var axServer = NULL;
+  
+  if( isStandalone() )
+    SetParm(0, ActiveX ("Msxml2.DOMDocument", null, true ) );
+  else
+    axServer = CreateObject( "rsax", "TRsAxServer", "RetailAxServer", false );
+    if( axServer )
+      SetParm(0, axServer.CreateComObject("Msxml2.DOMDocument"));
+    end;
+  end;
+  return true;
+  OnError( er )
+    return false;
+end;
+
+private macro CreateXML1Object( xml:object )
+  var axServer = NULL;
+  if( isStandalone() )
+    SetParm(0, ActiveX ("MSXML.DOMDocument") );
+  else
+    axServer = CreateObject( "rsax", "TRsAxServer", "RetailAxServer", false );
+    if( axServer )
+      SetParm(0, axServer.CreateComObject("MSXML.DOMDocument"));
+    end;
+  end;
+  return true;
+  OnError( er )
+    return false;
+end;
+// ─── создание xml-объекта ───
+private macro CreateXMLObject()
+  var obj:object = NULL;
+
+  if( CreateXML2Object(obj) )  return obj;  end;      
+  if( CreateXML1Object(obj) )  return obj;  end;
+
+  return null;
+end;
+// 
+// ═════════════════════════════════════════════
+
+// ───────────────────────────────────────
+// Получить описание ошибки из sbbank.msg
+// ───────────────────────────────────────
+private macro getError( msg )
+  var f_sbbank = Tbfile( "sbbank.msg", "r", 0, null, "sbbank.def" );
+
+  f_sbbank.rewind();  f_sbbank.clear();
+  f_sbbank.rec.Number = msg;
+  if( f_sbbank.getEQ() )
+    return f_sbbank.rec.Contents;
+  else
+    return "Error code:" + string(msg);
+  end;
+end;
+// ───────────────────────────────────────
+// xml-документ для результата
+// ───────────────────────────────────────
+private macro createOutXML()
+  var outXML = CreateXMLObject();
+
+  var nodeAnswer, node;
+  var nodeName, nodeVal, i;
+
+  if( outXml )
+    outXML.documentElement = outXML.createNode(1, "response", "");
+      node = outXML.documentElement.appendChild( outXML.createNode(1, "id", "") ); node.text = String(CreateGUID());
+      // название узла
+      GetParm( 0, nodeName );
+      nodeAnswer = outXML.documentElement.appendChild( outXML.createNode(1, nodeName, "") );
+      // другие переменные
+      i = 1;
+      while( GetParm(i, nodeName) )
+        node = nodeAnswer.appendChild( outXML.createNode(1, nodeName, "") ); 
+        if( GetParm(i+1, nodeVal) )
+          node.text = String(nodeVal);
+        end;
+        i = i + 2;
+      end;
+  end;
+
+  return outXML;
+end;
+
+private macro AddError2OutXml(outXML, message)
+ var nodeAnswer,node;
+ if(not outXML)
+   outXML = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", message );
+ else
+   nodeAnswer = outXML.documentElement.appendChild( outXML.createNode(1, "error_a", "") );
+   node = nodeAnswer.appendChild( outXML.createNode(1, "code", "") ); 
+   node.text = "ERROR_VALIDATE";
+   node = nodeAnswer.appendChild( outXML.createNode(1, "message", "") ); 
+   node.text = toAnsi(String(message));
+ end;
+ 
+ return outXML;
+end;
+
+
+/*
+macro persentDispatcher( leaf : CTreeLeaf )
+  var
+    response = CTreeLeaf( "response","" ),
+    tmp_leaf,
+    /* -- получаем параметры из дерева ------------------ */
+    reference    = Int(  leaf.getSubBodyForName( "reference"    ) ),
+    objectType   = Int(  leaf.getSubBodyForName( "objectType"   ) ),
+    rateDate     = Date( leaf.getSubBodyForName( "rateDate"     ) ),
+    endDate      = Date( leaf.getSubBodyForName( "endDate"      ) ),
+    needYearRate = Int(  leaf.getSubBodyForName( "needYearRate" ) ),
+//    periodRate   = Int(  leaf.getSubBodyForName( "periodRate"   ) ),
+    rest         = $0.0,
+    /* -- возвращаемые параметры ------------------------ */
+    periodRate   = 0,
+    percentRate  = 0.0;
+  var sbdepdoc = Tbfile( "sbdepdoc.dbt", "r", 6, null, "sbbank.def" );
+  var stat;
+  // найдем входящий остаток на дату
+  sbdepdoc.rewind(); sbdepdoc.clear();
+  sbdepdoc.rec.Referenc      = reference;
+  sbdepdoc.rec.Date_Document = rateDate;
+  sbdepdoc.rec.NumDayDoc     = 0;
+  stat = sbdepdoc.GetLE();
+  while( stat )
+    if( (sbdepdoc.rec.Referenc == reference) and
+        (IsServDocWithEst(sbdepdoc)) and (sbdepdoc.rec.FlagStorn == ""))
+      rest = sbdepdoc.rec.Rest;
+      break;
+    end;
+    stat = sbdepdoc.prev();
+  end;
+
+  /* ------------------------------------------------ */
+  percentRate = PercRateAL( reference, objectType, rateDate, rest, endDate, needYearRate, periodRate );
+  /* формируем ответ: */
+  tmp_leaf  = CTreeLeaf( "percentRate", String( percentRate ) );
+  response.addSubLeaf( tmp_leaf );
+
+  tmp_leaf = CTreeLeaf( "periodRate", String( periodRate ) );
+  response.addSubLeaf( tmp_leaf );
+  return response;
+end;*/
+
+// ───────────────────────────────────────
+// Получение applicationKey
+// ───────────────────────────────────────
+private macro GetApplicationKey( inXml, outXml )
+   var appKindXml = inXml.documentElement.selectSingleNode( "//appKind" ),
+       appKind;
+
+   if (appKindXml)
+      appKind = Int(appKindXml.text);
+      outXml = createOutXML("getApplicationKey_a", "applicationKey", FormApplicationKey( appKind ));
+   else
+      outXml = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", "не задан ключ вида приложения" );
+   end;
+
+   SetParm(1, outXml);
+end;
+
+// ───────────────────────────────────────
+// Комиссия по операции 
+// ───────────────────────────────────────
+private macro CalcComPay( inXml, outXml )
+  var f_depositr = Tbfile( "depositr.dbt", "r", 7, null, "sbbank.def" );
+  record r_sbdepdoc( "sbdepdoc.dbt", "sbbank.def" );
+  var stat = 0,
+      accountXml             = inXml.documentElement.selectSingleNode( "//account"             ),
+      filialXml              = inXml.documentElement.selectSingleNode( "//filial"              ),
+      dateDocXml             = inXml.documentElement.selectSingleNode( "//date"                ),
+      sumXml                 = inXml.documentElement.selectSingleNode( "//sum"                 ),
+      clientIDXml            = inXml.documentElement.selectSingleNode( "//clientId"            ),
+      operationTypeXml       = inXml.documentElement.selectSingleNode( "//operationType"       ),
+      operationSubspeciesXml = inXml.documentElement.selectSingleNode( "//operationSubspecies" ),
+      currencyXml            = inXml.documentElement.selectSingleNode( "//currency"            );
+  var commission = $0.0, account, filial, dateDoc, sum, clientID, operationType, operationSubspecies, currency;
+  var typeCom = "", numOper = 0;
+  var saveCurDate = Date(0,0,0);
+
+  if( accountXml )
+    account = accountXml.text;
+  else
+    outXml = AddError2OutXml(outXml, "не задан номер счета");
+  end;
+  
+  if( filialXml )
+    filial = Int( filialXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задан номер подразделения");
+  end;
+  
+  if( dateDocXml )
+    dateDoc = Date( dateDocXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задана дата документа");
+  end;
+  
+  if( sumXml )
+    sum = Money( sumXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задана сумма документа");
+  end;
+
+  if( currencyXml )
+    currency = GetCodeCur( currencyXml.text );
+    if( currency == -1 )
+      outXml = AddError2OutXml(outXml, "не определена валюта документа (валюта == все валюты)");
+    end;
+  else
+    outXml = AddError2OutXml(outXml, "не задан код валюты");
+  end;
+
+  if( clientIDXml )
+    clientID = Int( clientIDXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задан код клиента");
+  end;
+  
+  if( operationTypeXml )
+    operationType = Int( operationTypeXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задан код операции");
+  end;
+  
+  if( operationSubspeciesXml )
+    operationSubspecies = Int( operationSubspeciesXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задан подвид операции");
+  end;
+
+  if( not outXml )//если есть outXml значит там висят ошибки
+    // ищем референс счета
+    f_depositr.rewind();  f_depositr.clear();
+    f_depositr.rec.FNCash  = filial;
+    f_depositr.rec.Account = account;
+    if( f_depositr.getEQ() )
+      ClearRecord(r_sbdepdoc);
+      r_sbdepdoc.Referenc         = f_depositr.rec.Referenc;
+      r_sbdepdoc.Type_Account     = f_depositr.rec.Type_Account;
+      r_sbdepdoc.IsCur            = f_depositr.rec.IsCur;
+      r_sbdepdoc.CodClient        = f_depositr.rec.CodClient;
+      r_sbdepdoc.DepDate_Document = dateDoc;
+      r_sbdepdoc.Date_Document    = dateDoc;
+      r_sbdepdoc.TypeOper         = operationType;
+      r_sbdepdoc.TypeComplexOper  = operationType;
+      r_sbdepdoc.ApplType         = operationSubspecies;
+      r_sbdepdoc.OutSum           = sum;
+      r_sbdepdoc.Code_Currency    = currency;
+      // установим как безналичное зачисление, чтобы не показывать панель комиссии.
+      SetBitFlag(r_sbdepdoc.Flags, 31, 1);
+
+      if( dateDoc != GetCurDate() )
+        saveCurDate = GetCurDate();
+        SetCurDate( dateDoc );
+      end;
+
+      stat = GetCommissionOnOper(r_sbdepdoc, $0L, 1, commission, typeCom, numOper);
+      if( saveCurDate != Date(0,0,0) )
+        SetCurDate( saveCurDate );
+      end;
+      if( stat )
+        // Ошибка при вычислении
+        outXml = AddError2OutXml(outXml, getError(stat));
+      else
+        outXml = createOutXML("commissionPay_a", "commission", commission);
+      end;
+    else
+      // не найден счет
+      outXml = AddError2OutXml(outXml, "не найден счет");
+    end;
+  end;
+  SetParm(1, outXml);
+end;
+// ───────────────────────────────────────
+// Комиссия коммунального платежа 
+// ───────────────────────────────────────
+private macro CalcComPayCP( inXml, outXml )
+  var stat = 0,
+      sumXml          = inXml.documentElement.selectSingleNode( "//sum"      ),
+      kindCPXml       = inXml.documentElement.selectSingleNode( "//kindCP"   ),
+      recipCPXml      = inXml.documentElement.selectSingleNode( "//recipCP"  );
+  var commission = $0.0, sum, kindCP, recipCP;
+
+  if( sumXml )
+    sum = Money( sumXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задана сумма платежа");
+  end;
+  
+  if( kindCPXml )
+    kindCP = Int( kindCPXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задан вид платежа");
+  end;
+  
+  if( recipCPXml )
+    recipCP = Int( recipCPXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задан получатель платежа");
+  end;
+
+  if( not outXml )
+      // тут на основе параметров из Retail'а получаем коммиссию
+      stat = CalcComPayComission(kindCP, recipCP, sum, commission);
+      if( stat )
+        // Ошибка при вычислении
+        outXml = AddError2OutXml(outXml, getError(stat));
+      else
+        outXml = createOutXML("commissionPayCP_a", "commission", commission);
+      end;
+  end;
+  SetParm(1, outXml);
+end;
+
+// ───────────────────────────────────────
+// Получение соответствующей филиалу точки плтаежной системы.
+// ───────────────────────────────────────
+private macro GetBranchContactIdentificator( fnCash, psNum, res)
+  var psbranch = Tbfile( "psbranch.dbt", "r", 0, null, "sbbank.def" );
+
+  if(not fnCash)
+	res = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", "не задан номер подразделения " );
+	SetParm(2,res);
+	return false;
+  end;
+
+  if(not psNum)
+	res = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", "не задан номер платежной системы " );
+        SetParm(2,res);
+	return false;
+  end;
+	
+  psbranch.clear();
+  psbranch.rec.FNCash = fnCash; 
+  psbranch.rec.psNum = psNum;
+
+  if( psbranch.getGE() and (psbranch.rec.FNCash == fnCash) and (psbranch.rec.psNum == psNum) )
+	res = psbranch.rec.PointCode;
+        SetParm(2,res);
+	return true;
+  else
+	res = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", "не найдена точка отпр10620nавки перевода" );
+        SetParm(2,res);
+	return false;
+  end;
+
+end;
+
+// ───────────────────────────────────────
+// Комиссия попереводу ПС Контакт
+// ───────────────────────────────────────
+private macro CalcComContact( inXml, outXml )
+  var pstrans = TRecHandler("pstrans.dbt", "sbbank.def");
+  var com = Tbfile("pscommis.dbt","r",0, null, "sbbank.def");
+  var sat=0;
+  var bankCom;
+  var res;
+  var fnCash    = inXml.documentElement.selectSingleNode( "//senderFnCash"),
+      psNum    = inXml.documentElement.selectSingleNode( "//senderPsNum"),
+      PointReceivXml = inXml.documentElement.selectSingleNode( "//receiverPointCode" ),
+      SumCodCurXml   = inXml.documentElement.selectSingleNode( "//currency"          ),
+      SumXml         = inXml.documentElement.selectSingleNode( "//sum"               );
+
+  pstrans.clear();
+  if( not outXml and fnCash and psNum )
+    if( GetBranchContactIdentificator( fnCash.text, psNum.text, res) )
+	pstrans.rec.PointPay = res;
+  else
+        outXml = res;
+  end;
+  elif( not outXml )
+    if(not fnCash)
+        outXml = AddError2OutXml(outXml, "не задан номер подразделения ");
+  else
+        outXml = AddError2OutXml(outXml, "не задан номер платежной системы ");
+    end;
+  end;
+  if( PointReceivXml )
+    pstrans.rec.PointReceiv = PointReceivXml.text;
+  else
+    outXml = AddError2OutXml(outXml, "не задан код точки получателя перевода");
+  end;
+  if( SumCodCurXml )
+    pstrans.rec.SumCodCur = GetCodeCur( SumCodCurXml.text );
+    if( pstrans.rec.SumCodCur == -1 )
+      outXml = AddError2OutXml(outXml, "не определена валюта документа (валюта == все валюты)");
+    end;
+  else
+    outXml = AddError2OutXml(outXml, "не задана валюта перевода");
+  end;
+  if( SumXml )
+    pstrans.rec.Sum = Money( SumXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задана сумма перевода");
+  end;
+
+  com.rewind();
+  while(com.next)
+    if(com.rec.PointCode==PointReceivXml.text)
+      sat=sat+1;
+    end;
+  end;
+  if(sat==0)
+     outXml = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", "Банк получателя не поддерживает первод по сети Contact");
+  else
+    if( not outXml )
+      if( cntCalcCommis(null, bankCom, pstrans) )
+        outXml = createOutXML("commissionContact_a", "commission", pstrans.rec.Com);
+      else
+        outXml = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", "Банк получателя не принимает переводы в данной валюте");
+      end;
+    end;
+  end;
+
+  SetParm(1, outXml);
+end;
+// ───────────────────────────────────────
+// Курс покупки/продажи
+// ───────────────────────────────────────
+private macro ConvertSum( inXml, outXml )
+  var r_ConvSum = TRecHandler( "ConvSum.rec", "sbbank.def" );
+  var stat = 0,
+      dateXml         = inXml.documentElement.selectSingleNode( "//date"         ),
+      timeXml         = inXml.documentElement.selectSingleNode( "//time"         ),
+      buySumXml       = inXml.documentElement.selectSingleNode( "//buySum"       ),
+      buyCurrencyXml  = inXml.documentElement.selectSingleNode( "//buyCurrency"  ),
+      saleCurrencyXml = inXml.documentElement.selectSingleNode( "//saleCurrency" ),
+      saleSumXml      = inXml.documentElement.selectSingleNode( "//saleSum"      );
+  var commission = $0.0, buySum = $0.0, buyCurrency, saleCurrency, saleSum = $0.0;
+  
+  r_ConvSum.clear();
+  if( dateXml )
+    r_ConvSum.rec.OpDate = Date( dateXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задана дата, на которую запрашивается курс валюты");
+  end;
+  
+  if( timeXml )
+    r_ConvSum.rec.OpTime = Time( timeXml.text );
+  else
+    outXml = AddError2OutXml(outXml, "не задано время, на которое запрашивается курс валюты");
+  end;
+
+  if( buySumXml )
+    buySum = Money( buySumXml.text );
+  end;
+  
+  if( saleSumXml )
+    saleSum = Money( saleSumXml.text );
+  end;
+  
+  if( buyCurrencyXml )
+
+    buyCurrency = int( buyCurrencyXml.text );
+    if( buyCurrency == -1 )
+      outXml = AddError2OutXml(outXml, "не определена валюта покупки");
+    end;
+  else
+    outXml = AddError2OutXml(outXml, "не задана валюта покупки");
+  end;
+  if( saleCurrencyXml )
+    saleCurrency = int( saleCurrencyXml.text );
+    if( saleCurrency == -1 )
+      outXml = AddError2OutXml(outXml, "не определена валюта продажи");
+    end;
+  else
+    outXml = AddError2OutXml(outXml, "не задана валюта продажи");
+  end;
+
+  // Сам расчет
+  if( not outXml )
+
+    if( (buySum != $0.0) and (saleSum == $0.0) ) // перевод из валюты покупки в валюту продажи
+      r_ConvSum.rec.FromCodCur    = buyCurrency;
+      r_ConvSum.rec.ToCodCur      = saleCurrency;
+      r_ConvSum.rec.FromSumma     = buySum;
+      r_ConvSum.rec.TypeCalcRate  = 3; // CDF_CalcRateSale
+      r_ConvSum.rec.CrossCalcType = 1; // CDF_CrossCalcBuySell
+    elif( (buySum == $0.0) and (saleSum != $0.0) ) // перевод из валюты продажи в валюту покупки
+      r_ConvSum.rec.FromCodCur    = saleCurrency;
+      r_ConvSum.rec.ToCodCur      = buyCurrency;
+      r_ConvSum.rec.FromSumma     = saleSum;
+      r_ConvSum.rec.TypeCalcRate  = 2; // CDF_CalcRateBuy
+      r_ConvSum.rec.CrossCalcType = 1; // CDF_CrossCalcBuySell
+    else
+      outXml = AddError2OutXml(outXml, "не верно заданы суммы");
+    end;
+    r_ConvSum.rec.CrossPrecision = 8;
+    if( (stat = ConvertSumEx( r_ConvSum )) == 0 )
+      outXml = createOutXML("getRateCurrency_a", "rate", r_ConvSum.rec.Rate, "sum", r_ConvSum.rec.ToSumma, "CBrate", r_ConvSum.rec.CBRate);
+    else
+/*      outXml = AddError2OutXml(outXml, "курс не найдена");  */
+      outXml = createOutXML("getRateCurrency_a", "rate", 0.0, "sum", $0.0, "CBrate", $0.0);
+    end;
+  end;
+
+  SetParm(1, outXml);
+end;
+
+// ───────────────────────────────────────
+// Вспом.ф-ия: Поиск % ставки
+// ───────────────────────────────────────                   выход
+private macro FindPcRate(FNcash ,FlagCur, TypeAcc, CodeCur, outPcRate, RTPC_ACCOUNT)
+// RTPC_ACCOUNT - условия расчёта процентов. Типа основные условия, альтернативные и т.д.
+  
+  var stat;
+
+  if(valtype(RTPC_ACCOUNT) == V_UNDEF) // если не задано, ищем ставку для расчёта при соблюдении условий договора 
+     RTPC_ACCOUNT = RTPC_ACCOUNT_DEP;
+  end;
+  
+  // поиск ссылки на вид вклада. по которому заданы %%   
+  Global_f_pc_apltp.rewind(); Global_f_pc_apltp.clear(); 
+  Global_f_pc_apltp.rec.IsCur    = FlagCur;
+  Global_f_pc_apltp.rec.TypeRec  = RTPC_ACCOUNT_TYPE; 
+  Global_f_pc_apltp.rec.Type     = TypeAcc;
+  Global_f_pc_apltp.rec.ApplType = RTPC_ACCOUNT;
+  // в каком подразделении искать ставку 
+  Global_f_fnc_dtyp.rewind(); Global_f_fnc_dtyp.clear();
+  Global_f_fnc_dtyp.rec.FNCash   = FNcash;
+  Global_f_fnc_dtyp.rec.FlagCur  = FlagCur;
+  Global_f_fnc_dtyp.rec.TypeKind = TypeAcc;
+  if( (Global_f_pc_apltp.getEQ()) and (Global_f_fnc_dtyp.getEQ()) )
+    // ищем группу ставок. 
+    Global_f_pc_alg.rewind(); Global_f_pc_alg.clear();
+    Global_f_pc_alg.rec.FNcash     = Global_f_fnc_dtyp.rec.PcAlgBrRefer;
+    Global_f_pc_alg.rec.FlagCur    = FlagCur;
+    Global_f_pc_alg.rec.Referenc   = Global_f_pc_apltp.rec.ApType;
+    Global_f_pc_alg.rec.ObjectType = RTPC_ACCOUNT_TYPE;
+    Global_f_pc_alg.rec.BegDate    = MAX_DATE;
+    if( (Global_f_pc_alg.getLE()        == true                         ) and
+        (Global_f_pc_alg.rec.FNcash     == Global_f_fnc_dtyp.rec.PcAlgBrRefer) and
+        (Global_f_pc_alg.rec.FlagCur    == FlagCur                      ) and
+        (Global_f_pc_alg.rec.Referenc   == Global_f_pc_apltp.rec.ApType      ) and
+        (Global_f_pc_alg.rec.ObjectType == RTPC_ACCOUNT_TYPE            )  
+      )
+      // с группой ставок определились. ищем ставку 
+      Global_f_pc_rate.rewind(); Global_f_pc_rate.clear();
+      Global_f_pc_rate.rec.FNCash        = Global_f_fnc_dtyp.rec.PcAlgBrRefer;
+      Global_f_pc_rate.rec.FlagCur       = FlagCur;
+      Global_f_pc_rate.rec.ObjectType    = RTPC_ACCOUNT_TYPE;
+      Global_f_pc_rate.rec.Referenc      = Global_f_pc_alg.rec.RateGroup;
+      Global_f_pc_rate.rec.Code_Currency = CodeCur;
+      Global_f_pc_rate.rec.BeginDate     = MAX_DATE;
+      stat = Global_f_pc_rate.getLE();
+      while( (stat                                                      ) and
+             (Global_f_pc_rate.rec.FNCash        == Global_f_fnc_dtyp.rec.PcAlgBrRefer) and
+             (Global_f_pc_rate.rec.FlagCur       == FlagCur                      ) and
+             (Global_f_pc_rate.rec.ObjectType    == RTPC_ACCOUNT_TYPE            ) and
+             (Global_f_pc_rate.rec.Referenc      == Global_f_pc_alg.rec.RateGroup     ) and
+             (Global_f_pc_rate.rec.Code_Currency == CodeCur                      )  
+           )
+        if( Global_f_pc_rate.rec.Action != 2 ) // не удален 
+          // все ништяк, всё нашли, возвращаем true,Global_f_pc_rate, и радуемся жизни =) 
+          SetParm(4, Global_f_pc_rate);
+          return true;
+    end;
+        stat = Global_f_pc_rate.prev();
+  end;
+end;
+  end;
+  return false;
+end;
+
+// ───────────────────────────────────────
+// Для получения списка вкладов
+// ───────────────────────────────────────
+private macro GetDepositList( inXml, outXml )
+  var f_sb_dtyp  = Tbfile( "sb_dtyp.dbt",  "r", 0, null, "sbbank.def" );
+  var f_currency = TbFile( "currency.dbt", "r", 0, null, "sbbank.def" );
+  var stat = 0;
+  var FNCashXml = inXml.documentElement.selectSingleNode( "//filial"); 
+  var FNCash = 0;
+  var nodeAnswer, nodeDeposit, node;
+  var count = 0;
+
+  if( FNCashXml  )
+    FNCash = int( FNCashXml .text );
+//  else
+//    outXML = AddError2OutXml(outXML, "не задан номер подразделения");
+  end;
+  
+  if(not outXml )
+     outXml = CreateXMLObject();
+     if(not outXml)
+      return;
+     end;
+    outXml.documentElement = outXml.createNode(1, "response", "");
+     node = outXml.documentElement.appendChild( outXml.createNode(1, "id", "") ); node.text = String(CreateGUID());
+     nodeAnswer = outXml.documentElement.appendChild( outXml.createNode(1, "getDepositList_a", "") );
+    
+     f_sb_dtyp.rewind();
+     while( f_sb_dtyp.next() )
+       // исключаем служебные и карточные виды вкладов
+       if( not ( StrBrk(f_sb_dtyp.rec.UserTypeAccount, "S") or StrBrk(f_sb_dtyp.rec.UserTypeAccount, "C") or // C-латиница, К-кирилица
+                 StrBrk(f_sb_dtyp.rec.UserTypeAccount, "К") or StrBrk(f_sb_dtyp.rec.UserTypeAccount, "Б") ) and 
+           not f_sb_dtyp.rec.Subservient and not f_sb_dtyp.rec.SpecialAccess and (f_sb_dtyp.rec.Action != 2)
+           and ((DTYP_TYPE_ACCOUNT == "") or StrBrk(f_sb_dtyp.rec.UserTypeAccount, DTYP_TYPE_ACCOUNT)) )
+         // Валюта, в которой можно открывать счета по вкладу находятся в файле %-ых ставок
+         f_currency.rewind(); f_currency.clear();
+         f_currency.rec.Code_Currency = 0;
+         stat = f_currency.getGE();
+         while( stat )
+           if( FindPcRate(FNCash, f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, f_currency.rec.Code_Currency) )
+             nodeDeposit = nodeAnswer.appendChild( outXML.createNode(1, "deposit", "") );
+              // Идентификатор вида вклада
+              node = nodeDeposit.appendChild( outXml.createNode(1, "accountTypeId", "") );
+              node.text = f_sb_dtyp.rec.Kind;
+              // Название вида вклада
+              node = nodeDeposit.appendChild( outXml.createNode(1, "accountTypeName", "") );
+              node.text = f_sb_dtyp.rec.Name;
+              // Валюта вклада
+              node = nodeDeposit.appendChild( outXml.createNode(1, "currency", "") );
+              node.text = f_currency.rec.Code_Currency;
+              // Период
+              node = nodeDeposit.appendChild( outXml.createNode(1, "term", "") );
+              node.text = f_sb_dtyp.rec.Term;
+              // Вид периода
+              node = nodeDeposit.appendChild( outXml.createNode(1, "kindTerm", "") );
+              node.text = f_sb_dtyp.rec.KindTerm;
+           end;
+           stat = f_currency.next() and (f_sb_dtyp.rec.FlagCur == 1);
+         end;
+       end;
+     end;
+  end;
+
+  SetParm(1, outXml);
+end;
+
+// ───────────────────────────────────────
+// Для получения транзакций по счету
+// ───────────────────────────────────────
+private macro GetAccountTransactions( inXml, outXml )
+
+private class CData
+  var DateDoc   = Date(0,0,0),
+      OrderNum  = "",    
+      ShifrOper = "",  
+      MFO       = "",
+      CorAcc    = "",
+      Account   = "",
+      CodeCur   = "", 
+      OutSum    = $0,
+      InSum     = $0,
+      Rest      = $0,
+      Purpose   = "",
+      CounterAgent = "";
+end;
+
+macro extractByNumber( referenc,      /* референс счета */
+                           number         /* количество транзакций */
+             )
+  file of_sbdepdoc    ( "sbdepdoc.dbt", "sbbank.def" ) key 6;
+  record or_getbkacc  ( "GetBkAcc.rec", "sbbank.def" );
+  record or_sbdepdoc1 ( "sbdepdoc.1"  , "sbbank.def" );
+  record or_sbdepdoc11( "sbdepdoc.11" , "sbbank.def" );
+
+  var cont;
+  var hdr, rep, val, lastDate;
+  var emptyRep = true;
+  var outRest = $0, debetTurns = $0, creditTurns = $0;
+  var typeOper;
+  var cll = TClientList;
+  var f_depositr = TBFile( "depositr.dbt", "r", 8, NULL, "sbbank.def" );
+  var f_sb_dtyp  = TBFile( "sb_dtyp.dbt" , "r", 2, NULL, "sbbank.def" );
+  var f_currency = TBFile( "currency.dbt", "r", 0, NULL, "sbbank.def" );
+  var rt_paym    = TBFile( "rt_paym.dbt",  "r", 0, NULL, "sbbank.def" );
+  var ind = 4, width = 0, i;
+  var data = Tarray;
+  var returnData = Tarray;
+  var iter = 0;
+  
+  setRecordAddr( or_sbdepdoc1, of_sbdepdoc, 0, 0, true );
+  setRecordAddr( or_sbdepdoc11, of_sbdepdoc, 0, 0, true );
+  /*** готовим данные ***/
+  f_depositr.rewind(); f_depositr.clear();
+  f_depositr.rec.Referenc = referenc;
+  if( not f_depositr.getEQ() )
+    msgbox( "Не найден счет с референсом " + referenc );
+    return;
+  end;
+  if( not cll.getRecord( f_depositr.rec.CodClient ) )
+    msgbox( "Не найден клиент-владелец счета по коду " + f_depositr.rec.CodClient );
+    return;
+  end;
+  f_sb_dtyp.rewind(); f_sb_dtyp.clear();
+  f_sb_dtyp.rec.FlagCur = f_depositr.rec.IsCur;
+  f_sb_dtyp.rec.Kind    = f_depositr.rec.Type_Account;
+  if( not f_sb_dtyp.getEQ() )
+    msgbox( "Не найден вид вклада " + f_depositr.rec.Type_Account );
+    return;
+  end;
+  f_currency.rewind(); f_currency.clear();
+  f_currency.rec.Code_Currency = f_depositr.rec.Code_Currency;
+  if( not f_currency.getEQ() )
+    msgbox( "Не найдена валюта с кодом " + f_depositr.rec.Code_Currency );
+    return;
+  end;
+  /*** подключение архивов ***/
+  if( ( true/*!!!!!!!!!!*/ ) and ( f_depositr.rec.Limit_Date != date( 0, 0, 0 ) ) and ( f_depositr.rec.ArhFlag ) )
+    GetDocsAndReopenTemp( f_depositr.rec.Referenc, f_depositr.rec.Open_Date, of_sbdepdoc );
+  end;
+  /*** заполняем массив данными ***/
+  rewind( of_sbdepdoc ); clearRecord( of_sbdepdoc );
+  of_sbdepdoc.Referenc      = f_depositr.rec.Referenc;
+ 
+  cont = ( ( getGE( of_sbdepdoc )      == true                    ) and
+           ( of_sbdepdoc.Referenc      == f_depositr.rec.Referenc )  );
+
+    while( cont )
+    while( ( cont ) and ( not isServDocWithEst( of_sbdepdoc ) ) )
+      cont = ( ( next( of_sbdepdoc )       == true                    ) and
+               ( of_sbdepdoc.Referenc      == f_depositr.rec.Referenc )  );
+    end;
+    if( cont )
+      outRest = of_sbdepdoc.Rest;
+      if( of_sbdepdoc.InSum != $0 )
+        creditTurns = creditTurns + of_sbdepdoc.InSum;
+      end;
+      if( of_sbdepdoc.OutSum != $0 )
+        debetTurns = debetTurns + of_sbdepdoc.OutSum;
+      end;
+      if( ( ( of_sbdepdoc.InSum  != $0 ) and
+            ( of_sbdepdoc.OutSum == $0 )    ) or
+            ( of_sbdepdoc.InSum  == $0 ) and
+            ( of_sbdepdoc.OutSum != $0 )    )
+        emptyRep = false;
+
+        if( of_sbdepdoc.ApplType != 0 )
+          typeOper = of_sbdepdoc.TypeOper * 1000 + of_sbdepdoc.ApplType;
+        else
+          typeOper = of_sbdepdoc.TypeOper;
+        end;
+
+        clearRecord( or_getbkacc );
+        or_getbkacc.ApplDoc  = of_sbdepdoc.iApplicationKind;
+        or_getbkacc.Kind     = of_sbdepdoc.Type_Account;
+        or_getbkacc.TypeOper = typeOper;
+        or_getbkacc.FNCash   = of_sbdepdoc.FNCash;
+        or_getbkacc.IsCur    = of_sbdepdoc.IsCur;
+        or_getbkacc.CodCur   = of_sbdepdoc.Code_Currency;
+        userGetBookAccounts( or_getbkacc, NULL, of_sbdepdoc );
+
+        data[data.size()] = CData();
+        i = data.size() - 1;
+
+        rt_paym.rewind(); 
+	rt_paym.clear();
+
+        rt_paym.rec.iApplicationKind = of_sbdepdoc.iApplicationKind;
+        rt_paym.rec.ApplicationKey = of_sbdepdoc.ApplicationKey;
+        rt_paym.rec.branch = of_sbdepdoc.fncash;
+        rt_paym.rec.AttrID = "РЕКВ_ПОЛ";
+        if(rt_paym.getEQ())
+           data[i].CounterAgent = rt_paym.rec.RecivFIO;
+        end;
+
+        data[i].DateDoc   = of_sbdepdoc.Date_Document;
+        data[i].OrderNum  = of_sbdepdoc.OrderNum;
+        data[i].ShifrOper = or_getbkacc.Shifr_Oper;
+
+        if( ( of_sbdepdoc.TypeOper == 63 ) or
+            ( of_sbdepdoc.TypeOper == 64 ) or
+            ( of_sbdepdoc.TypeOper == 71 ) or
+            ( of_sbdepdoc.TypeOper == 73 )  )
+          data[i].MFO    = or_sbdepdoc1.MFO_Receiver;
+          data[i].CorAcc = or_sbdepdoc1.CorAcc_Receiver;
+        else
+          data[i].MFO    = "";
+          data[i].CorAcc = "";
+        end;
+        if( ( of_sbdepdoc.TypeComplexOper        == 6  ) and
+            ( getBitFlag( of_sbdepdoc.Flags, 10 ) > 0  ) and
+            ( ( of_sbdepdoc.TypeOper               == 63 ) or
+              ( of_sbdepdoc.TypeOper               == 65 ) or
+              ( of_sbdepdoc.TypeOper               == 66 ) or
+              ( of_sbdepdoc.TypeOper               == 67 )   ) )
+          data[i].Account = or_sbdepdoc11.Account_Receiver;
+        elif( ( of_sbdepdoc.TypeOper == 63 ) or
+              ( of_sbdepdoc.TypeOper == 64 ) or
+              ( of_sbdepdoc.TypeOper == 71 ) or
+              ( of_sbdepdoc.TypeOper == 73 ) or
+              ( of_sbdepdoc.TypeOper == 65 ) or
+              ( of_sbdepdoc.TypeOper == 51 ) or
+              ( of_sbdepdoc.TypeOper == 66 ) or
+              ( of_sbdepdoc.TypeOper == 67 ) or
+              ( of_sbdepdoc.TypeOper == 80 ) or
+              ( of_sbdepdoc.TypeOper == 81 )   )
+          data[i].Account = or_sbdepdoc11.Account_Receiver;
+        else
+          if( of_sbdepdoc.InSum != $0 )
+            data[i].Account = or_getbkacc.DebetAcc;
+          else
+            data[i].Account = or_getbkacc.CreditAcc;
+          end;
+        end;
+        data[i].CodeCur = of_sbdepdoc.Code_Currency;
+        data[i].OutSum = of_sbdepdoc.OutSum;
+        data[i].InSum  = of_sbdepdoc.InSum;
+        data[i].Rest   = of_sbdepdoc.Rest;
+        data[i].Purpose = getPurpose( of_sbdepdoc.iApplicationKind, of_sbdepdoc.ApplicationKey );
+     end;
+      
+      
+      cont = ( ( next( of_sbdepdoc )       == true                    ) and
+               ( of_sbdepdoc.Referenc      == f_depositr.rec.Referenc ) );
+     end;
+  end;
+
+  iter = 1;
+
+  while ((iter <= number) and (iter <= data.size))
+	returnData[returnData.size()] = CData();
+	returnData[iter -1] = data[data.size - iter];
+	iter = iter + 1;
+  end;	
+
+
+  return returnData;
+end;
+
+macro extractByDate( referenc,      /* референс счета */
+                         beginDate,     /* начало периода выписки */
+                         endDate        /* окончание периода выписки */
+                       )
+  file of_sbdepdoc    ( "sbdepdoc.dbt", "sbbank.def" ) key 6;
+  record or_getbkacc  ( "GetBkAcc.rec", "sbbank.def" );
+  record or_sbdepdoc1 ( "sbdepdoc.1"  , "sbbank.def" );
+  record or_sbdepdoc11( "sbdepdoc.11" , "sbbank.def" );
+
+  var cont;
+  var hdr, rep, val, lastDate;
+  var emptyRep = true;
+  var outRest = $0, debetTurns = $0, creditTurns = $0;
+  var typeOper;
+  var cll = TClientList;
+  var f_depositr = TBFile( "depositr.dbt", "r", 8, NULL, "sbbank.def" );
+  var f_sb_dtyp  = TBFile( "sb_dtyp.dbt" , "r", 2, NULL, "sbbank.def" );
+  var f_currency = TBFile( "currency.dbt", "r", 0, NULL, "sbbank.def" );
+  var rt_paym    = TBFile( "rt_paym.dbt",  "r", 0, NULL, "sbbank.def" );
+  var ind = 4, width = 0, i;
+  var data = Tarray;
+
+  setRecordAddr( or_sbdepdoc1, of_sbdepdoc, 0, 0, true );
+  setRecordAddr( or_sbdepdoc11, of_sbdepdoc, 0, 0, true );
+  /*** готовим данные ***/
+  f_depositr.rewind(); f_depositr.clear();
+  f_depositr.rec.Referenc = referenc;
+  if( not f_depositr.getEQ() )
+    msgbox( "Не найден счет с референсом " + referenc );
+    return;
+  end;
+  if( not cll.getRecord( f_depositr.rec.CodClient ) )
+    msgbox( "Не найден клиент-владелец счета по коду " + f_depositr.rec.CodClient );
+    return;
+  end;
+  f_sb_dtyp.rewind(); f_sb_dtyp.clear();
+  f_sb_dtyp.rec.FlagCur = f_depositr.rec.IsCur;
+  f_sb_dtyp.rec.Kind    = f_depositr.rec.Type_Account;
+  if( not f_sb_dtyp.getEQ() )
+    msgbox( "Не найден вид вклада " + f_depositr.rec.Type_Account );
+    return;
+  end;
+  f_currency.rewind(); f_currency.clear();
+  f_currency.rec.Code_Currency = f_depositr.rec.Code_Currency;
+  if( not f_currency.getEQ() )
+    msgbox( "Не найдена валюта с кодом " + f_depositr.rec.Code_Currency );
+    return;
+  end;
+  /*** подключение архивов ***/
+  if( ( true/*!!!!!!!!!!*/ ) and ( f_depositr.rec.Limit_Date != date( 0, 0, 0 ) ) and ( f_depositr.rec.ArhFlag ) )
+    GetDocsAndReopenTemp( f_depositr.rec.Referenc, f_depositr.rec.Open_Date, of_sbdepdoc );
+  end;
+  /*** находим входящий остаток ***/
+  val = $0;
+  lastDate = "00.00.0000";
+  rewind( of_sbdepdoc ); clearRecord( of_sbdepdoc );
+  of_sbdepdoc.Referenc      = f_depositr.rec.Referenc;
+  of_sbdepdoc.Date_Document = beginDate;
+  cont = ( ( getLT( of_sbdepdoc )      == true                    ) and
+           ( of_sbdepdoc.Referenc      == f_depositr.rec.Referenc )    );
+  while( ( cont ) and ( not isServDocWithEst( of_sbdepdoc ) ) )
+    cont = ( ( prev( of_sbdepdoc )  == true                    ) and
+             ( of_sbdepdoc.Referenc == f_depositr.rec.Referenc )    );
+  end;
+  if( cont )
+    val      = of_sbdepdoc.Rest;
+    lastDate = of_sbdepdoc.Date_Document;
+  end;
+  outRest = val;
+  /*** заполняем массив данными ***/
+  rewind( of_sbdepdoc ); clearRecord( of_sbdepdoc );
+  of_sbdepdoc.Referenc      = f_depositr.rec.Referenc;
+  of_sbdepdoc.Date_Document = beginDate;
+
+  cont = ( ( getGE( of_sbdepdoc )      == true                    ) and
+           ( of_sbdepdoc.Referenc      == f_depositr.rec.Referenc ) and
+           ( of_sbdepdoc.Date_Document <= endDate                 )   );
+  while( cont )
+    while( ( cont ) and ( not isServDocWithEst( of_sbdepdoc ) ) )
+      cont = ( ( next( of_sbdepdoc )       == true                    ) and
+               ( of_sbdepdoc.Referenc      == f_depositr.rec.Referenc ) and
+               ( of_sbdepdoc.Date_Document <= endDate                 )   );
+    end;
+    if( cont )
+      outRest = of_sbdepdoc.Rest;
+      if( of_sbdepdoc.InSum != $0 )
+        creditTurns = creditTurns + of_sbdepdoc.InSum;
+      end;
+      if( of_sbdepdoc.OutSum != $0 )
+        debetTurns = debetTurns + of_sbdepdoc.OutSum;
+      end;
+      if( ( ( of_sbdepdoc.InSum  != $0 ) and
+            ( of_sbdepdoc.OutSum == $0 )    ) or
+            ( of_sbdepdoc.InSum  == $0 ) and
+            ( of_sbdepdoc.OutSum != $0 )    )
+        emptyRep = false;
+
+        if( of_sbdepdoc.ApplType != 0 )
+          typeOper = of_sbdepdoc.TypeOper * 1000 + of_sbdepdoc.ApplType;
+        else
+          typeOper = of_sbdepdoc.TypeOper;
+        end;
+
+        clearRecord( or_getbkacc );
+        or_getbkacc.ApplDoc  = of_sbdepdoc.iApplicationKind;
+        or_getbkacc.Kind     = of_sbdepdoc.Type_Account;
+        or_getbkacc.TypeOper = typeOper;
+        or_getbkacc.FNCash   = of_sbdepdoc.FNCash;
+        or_getbkacc.IsCur    = of_sbdepdoc.IsCur;
+        or_getbkacc.CodCur   = of_sbdepdoc.Code_Currency;
+        userGetBookAccounts( or_getbkacc, NULL, of_sbdepdoc );
+
+        data[data.size()] = CData();
+        i = data.size() - 1;
+
+        rt_paym.rewind(); 
+	rt_paym.clear();
+
+        rt_paym.rec.iApplicationKind = of_sbdepdoc.iApplicationKind;
+        rt_paym.rec.ApplicationKey = of_sbdepdoc.ApplicationKey;
+        rt_paym.rec.branch = of_sbdepdoc.fncash;
+        rt_paym.rec.AttrID = "РЕКВ_ПОЛ";
+        if(rt_paym.getEQ())
+           data[i].CounterAgent = rt_paym.rec.RecivFIO;
+        end;
+
+        data[i].DateDoc   = of_sbdepdoc.Date_Document;
+        data[i].OrderNum  = of_sbdepdoc.OrderNum;
+        data[i].ShifrOper = or_getbkacc.Shifr_Oper;
+
+        if( ( of_sbdepdoc.TypeOper == 63 ) or
+            ( of_sbdepdoc.TypeOper == 64 ) or
+            ( of_sbdepdoc.TypeOper == 71 ) or
+            ( of_sbdepdoc.TypeOper == 73 )  )
+          data[i].MFO    = or_sbdepdoc1.MFO_Receiver;
+          data[i].CorAcc = or_sbdepdoc1.CorAcc_Receiver;
+        else
+          data[i].MFO    = "";
+          data[i].CorAcc = "";
+        end;
+        if( ( of_sbdepdoc.TypeComplexOper        == 6  ) and
+            ( getBitFlag( of_sbdepdoc.Flags, 10 ) > 0  ) and
+            ( ( of_sbdepdoc.TypeOper               == 63 ) or
+              ( of_sbdepdoc.TypeOper               == 65 ) or
+              ( of_sbdepdoc.TypeOper               == 66 ) or
+              ( of_sbdepdoc.TypeOper               == 67 )   ) )
+          data[i].Account = or_sbdepdoc11.Account_Receiver;
+        elif( ( of_sbdepdoc.TypeOper == 63 ) or
+              ( of_sbdepdoc.TypeOper == 64 ) or
+              ( of_sbdepdoc.TypeOper == 71 ) or
+              ( of_sbdepdoc.TypeOper == 73 ) or
+              ( of_sbdepdoc.TypeOper == 65 ) or
+              ( of_sbdepdoc.TypeOper == 51 ) or
+              ( of_sbdepdoc.TypeOper == 66 ) or
+              ( of_sbdepdoc.TypeOper == 67 ) or
+              ( of_sbdepdoc.TypeOper == 80 ) or
+              ( of_sbdepdoc.TypeOper == 81 )   )
+          data[i].Account = or_sbdepdoc11.Account_Receiver;
+        else
+          if( of_sbdepdoc.InSum != $0 )
+            data[i].Account = or_getbkacc.DebetAcc;
+          else
+            data[i].Account = or_getbkacc.CreditAcc;
+          end;
+        end;
+        data[i].CodeCur = of_sbdepdoc.Code_Currency;
+        data[i].OutSum = of_sbdepdoc.OutSum;
+        data[i].InSum  = of_sbdepdoc.InSum;
+        data[i].Rest   = of_sbdepdoc.Rest;
+        data[i].Purpose = getPurpose( of_sbdepdoc.iApplicationKind, of_sbdepdoc.ApplicationKey );
+      end;
+      cont = ( ( next( of_sbdepdoc )       == true                    ) and
+               ( of_sbdepdoc.Referenc      == f_depositr.rec.Referenc ) and
+               ( of_sbdepdoc.Date_Document <= endDate                 )    );
+    end;
+  end;
+
+  return data;
+end;
+
+  var accountReferencXml = inXml.documentElement.selectSingleNode( "//accountReferenc"); 
+
+  var fromDateXml        = inXml.documentElement.selectSingleNode( "//fromDate" ).text;
+  var toDateXml          = inXml.documentElement.selectSingleNode( "//toDate" ).text;
+  var number             = inXml.documentElement.selectSingleNode( "//number" ).text;	
+
+  var fromDate        = Date(fromDateXml);
+  var toDate          = Date(toDateXml);
+
+  var node, nodeAnswer, nodeDeposit, i = 0;
+  var repData, accountReferenc;
+
+  if( accountReferencXml  )
+    accountReferenc = int( accountReferencXml.text );
+  else
+    outXML = AddError2OutXml(outXML, "не задан референс счета");
+  end;
+  
+  if(not outXml )
+     outXml = CreateXMLObject();
+     
+     if ( (number == "") and (toDate != "") and (fromDate != "") )
+        repData = extractByDate( accountReferenc, fromDate, toDate );
+     else 
+        repData = extractByNumber(accountReferenc, number );
+     end;
+     
+     if(not outXml)
+      return;
+     end;
+     outXml.documentElement = outXml.createNode(1, "response", "");
+     node = outXml.documentElement.appendChild( outXml.createNode(1, "id", "") ); node.text = String(CreateGUID());
+     nodeAnswer = outXml.documentElement.appendChild( outXml.createNode(1, "getAccountTransactions_a", "") );
+    
+     while( i<repData.size() )
+        nodeDeposit = nodeAnswer.appendChild( outXML.createNode(1, "transaction", "") );
+
+        node = nodeDeposit.appendChild( outXml.createNode(1, "date", "") );
+        node.text = repData[i].DateDoc;
+
+        node = nodeDeposit.appendChild( outXml.createNode(1, "transactionCurrencyId", "") );
+        node.text = strsubst(string(repData[i].CodeCur), ",",".");
+
+        node = nodeDeposit.appendChild( outXml.createNode(1, "creditSum", "") );
+        node.text = strsubst(string(repData[i].InSum), ",",".");
+
+        node = nodeDeposit.appendChild( outXml.createNode(1, "debitSum", "") );
+        node.text = strsubst(string(repData[i].OutSum), ",",".");
+
+        node = nodeDeposit.appendChild( outXml.createNode(1, "balance", "") );
+        node.text = strsubst(string(repData[i].Rest), ",",".");
+        
+        node = nodeDeposit.appendChild( outXml.createNode(1, "counteragent", "") );
+        node.text = repData[i].CounterAgent;
+        
+        node = nodeDeposit.appendChild( outXml.createNode(1, "counteragentAccount", "") );
+        node.text = repData[i].account;
+
+        node = nodeDeposit.appendChild( outXml.createNode(1, "counteragentBank", "") );
+        node.text = repData[i].MFO;
+
+        node = nodeDeposit.appendChild( outXml.createNode(1, "counteragentCorAccount", "") );
+        node.text = repData[i].CorAcc;
+
+        node = nodeDeposit.appendChild( outXml.createNode(1, "documentNumber", "") );
+        node.text = repData[i].OrderNum;
+
+        node = nodeDeposit.appendChild( outXml.createNode(1, "operationCode", "") );
+        node.text = repData[i].ShifrOper;
+        node = nodeDeposit.appendChild( outXml.createNode(1, "description", "") );
+        node.text = repData[i].Purpose;
+
+        i = i + 1;
+     end;
+  end;
+
+  SetParm(1, outXml);
+end;
+
+// ─────────────────────────────────────────────────
+// Для получения даты последней операции по карточке
+// ─────────────────────────────────────────────────
+/*
+  cardId          id карточки
+  accountReferenc String(8)   референс счета карточки
+*/
+private macro GetCardLastOperationDate( inXml, outXml )
+
+  private const MaxDate = Date(31,12,9999);
+  private const FNCash = 1;
+  private var opers = TBFile( "sbdepdoc.dbt", "r", 6, NULL, "sbbank.def" );
+  private var links = TBFile( "scLink.dbt",   "r", 2, NULL, "spcard.def" );
+  private var trans = TBFile( "scTran.dbt",   "r", 0, NULL, "spcard.def" );
+  
+  private macro checkDepDoc(doc)
+  
+    var retVal = true;
+  
+    if((MOD(doc.rec.Flags, 4096) - MOD(doc.rec.Flags, 2048)) == 0)
+      retVal = false;
+    end;
+  
+    if(doc.rec.FlagStorn != "")
+      retVal = false;
+    end;
+  
+    if(not IsServDocWithEst( doc ))
+      retVal = false;
+    end;
+  
+    return retVal;
+  end;
+  
+  private macro checkDepDoc1(doc)
+  
+    var retVal = true;
+  
+    if((MOD(doc.rec.Flags, 4096) - MOD(doc.rec.Flags, 2048)) != 0)
+      retVal = false;
+    end;
+  
+    if(doc.rec.FlagStorn != "")
+      retVal = false;
+    end;
+  
+    if(not IsServDocWithEst( doc ))
+      retVal = false;
+    end;
+  
+    return retVal;
+  end;
+  
+  private macro findTran(fncash, authRef)
+    trans.rewind();
+    trans.rec.fncash = fncash;
+    trans.rec.authRef = authRef;
+    return trans.GetGE();
+  end;
+  
+  private macro getDate2(accountReferenc, cardId)
+    links.rewind();
+    links.rec.fncash = fncash;
+    links.rec.cardRef = CardId;
+    var stat_links = links.GetGE;
+    var stat_opers;
+    while(stat_links and (links.rec.fncash == fncash) and (links.rec.cardRef == cardId))
+      opers.rewind();
+      opers.rec.referenc = accountReferenc;
+      opers.rec.Date_Document = MaxDate;
+      stat_opers = opers.GetLE;
+  
+      while(stat_opers and (opers.rec.referenc == accountReferenc) )
+        if( checkDepDoc(opers) and findTran(FNCash, opers.rec.ListTransfer) )
+          return opers.rec.Date_Document;
+        end;
+        stat_opers = opers.next();
+      end;
+      stat_links = links.next();
+    end;
+  end;
+  
+  macro getDate1(accountReferenc, cardId)
+  
+    opers.rewind();
+    opers.rec.referenc = accountReferenc;
+    opers.rec.Date_Document = MaxDate;
+    var stat = opers.GetLE;
+    while(stat and (opers.rec.referenc == accountReferenc) )
+      if(checkDepDoc1(opers))
+        return opers.rec.Date_Document;
+      end;
+      stat = opers.next();
+    end;
+    return getDate2(accountReferenc, cardId)
+  end;
+
+  var accountReferencXml = inXml.documentElement.selectSingleNode( "//accountReferenc" ).text;
+  var cardIdXml          = inXml.documentElement.selectSingleNode( "//cardId" ).text;
+
+  var accountReferenc = int(accountReferencXml);
+  var cardId          = int(cardIdXml);
+
+  var node, nodeAnswer, answerElement;
+  private var f_depositr = TBFile( "depositr.dbt",   "r", 8, NULL, "sbbank.def" );
+
+  f_depositr.rewind();
+  f_depositr.clear();
+  f_depositr.rec.Referenc = accountReferenc;
+  if(not f_depositr.getEQ)
+    outXml = AddError2OutXml(outXml, "не найден счет");
+  end;
+
+  var lastOperDate;
+
+  if(not outXml )
+    outXml = CreateXMLObject();
+    if(not outXml)
+      return;
+    end;
+    outXml.documentElement = outXml.createNode(1, "response", "");
+    node = outXml.documentElement.appendChild( outXml.createNode(1, "id", "") ); node.text = String(CreateGUID());
+    nodeAnswer = outXml.documentElement.appendChild( outXml.createNode(1, "getCardLastOperationDate_a", "") );
+
+    lastOperDate = getDate1(accountReferenc, cardId);
+
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "date",           "") ); answerElement.text = lastOperDate;         
+  end;
+  SetParm(1, outXml);
+
+end;
+
+// ─────────────────────────────────────────────────
+// Для получения информации по овердрафту и штрафам
+// ─────────────────────────────────────────────────
+/*
+  referenc      String(8)   референс счета карточки
+  endDate       DateType    по какую дату формировать выписку
+*/
+private macro GetOverdraftInfo( inXml, outXml )
+  SETAPPLIC(1);
+  var f_depositr = TbFile( "depositr.dbt", "r", 8, null, "sbbank.def" );
+
+  //LOANS
+  record fTypeCrd ("type_crd.dbt", "loans.def");
+  record fOvKarta ("ov_karta.dbt", "loans.def");
+  record fHistLim ("hist_lim.dbt", "loans.def");
+  record fOvDuty  ("ovduty.dat", "loans.def");
+
+  var sc_link  = TbFile("scLink.dbt", "r", 3, Null, "spcard.def");
+  var sc_tran  = TbFile("scTran.dbt", "r", 3, Null, "spcard.def");
+
+  var referencXml      = inXml.documentElement.selectSingleNode( "//referenc" ).text;
+  var endDateXml       = inXml.documentElement.selectSingleNode( "//endDate" ).text;
+
+  var referenc = int(referencXml);
+  var endDate          = Date(endDateXml);
+
+  var accountTypeId;
+  var account;
+  var currency;
+  var stat;
+  var sum_spis = 0;
+
+  f_depositr.rewind();
+  f_depositr.clear();
+  f_depositr.rec.Referenc = referenc;
+  if(f_depositr.getEQ)
+    accountTypeId = f_depositr.rec.Type_Account;
+    account       = f_depositr.rec.Account;
+    currency      = f_depositr.rec.Code_Currency;
+  else
+    outXml = AddError2OutXml(outXml, "не найден счет");
+  end;
+
+
+
+  var CreditTypeID;
+  var Karta_ID;
+  var node, nodeAnswer, answerElement;
+
+  //что ищем:
+  var датаОткрытияКарты;
+  var лимитКарты;
+  var просроченныйДолг;
+  var штрафЗаПросрочку;
+  var суммаОвердрафта;                                                  
+  var срочныеПроценты;
+  var техническийОвердрафт;
+  var штрафЗаТехническийОвердрафт;
+  var общаяСуммаДолга;
+  var датаВыносаНаПросрочку;
+  var доступныйЛимит;
+
+  var expDate;
+
+  private macro getDateOverPay()   // КОНКРЕТНАЯ РЕАЛИЗАЦИЯ МОЖЕТ ОТЛИЧАТЬСЯ ОТ ПРИВЕДЕННОЙ ЗДЕСЬ. 
+    
+    var crd_op = TbFile("crd_op.dbt","r",2,null,"loans.def");
+    var PayOv  = TRecHandler("PAYOV.", "loans.def");      // Переменная часть
+      crd_op.rec.Applic           = 1;
+      crd_op.rec.IsDeleted        = 0;
+      crd_op.rec.ObjectID_Ref     = fOvKarta.Karta_ID;
+      crd_op.rec.ObjectTypeID_Ref = LO_KARTA;
+      crd_op.rec.CredOperDate     = endDate;
+      stat = crd_op.GetLE();
+      while (stat
+      and (crd_op.rec.Applic           == 1           )
+      and (crd_op.rec.IsDeleted        == 0           )
+      and (crd_op.rec.ObjectID_Ref     == fOvKarta.Karta_ID)
+      and (crd_op.rec.ObjectTypeID_Ref == LO_KARTA    )
+      and (crd_op.rec.CredOperDate     <= endDate    )  )
+    
+            if (crd_op.rec.OperTypeNumber_Ref == 1)
+                PayOv.SetRecordAddr(crd_op);
+                return PayOv.rec.RepDate + fOvKarta.DutyDay;
+            end;
+            stat = crd_op.prev();
+      end;
+      return null;
+  end;
+
+  if(not outXml )
+    outXml = CreateXMLObject();
+    if(not outXml)
+      return;
+    end;
+    outXml.documentElement = outXml.createNode(1, "response", "");
+    node = outXml.documentElement.appendChild( outXml.createNode(1, "id", "") ); node.text = String(CreateGUID());
+    nodeAnswer = outXml.documentElement.appendChild( outXml.createNode(1, "getOvInfo_a", "") );
+
+    Loans_FindTypeCrd(2, accountTypeId, currency, 0, fTypeCrd);
+    CreditTypeID = fTypeCrd.CreditTypeID;
+
+    if(Loans_FindKarta(1, 0, account, CreditTypeID, fOvKarta))
+      датаОткрытияКарты = fOvKarta.RegDate;
+
+      датаВыносаНаПросрочку = getDateOverPay();
+
+      Karta_ID = fOvKarta.Karta_ID;
+      Loans_FindHistLim(0, CF_IND, Karta_ID, 0, endDate, fHistLim);
+      лимитКарты = fHistLim.MaxValue;
+    
+      техническийОвердрафт = ОстатокНаСчете(LO_KARTA, Karta_ID, currency, OV_OVCRD_NO, endDate);
+    
+      ПрогнозПлатежаОВК(Karta_ID, endDate, fOvDuty);
+      просроченныйДолг =  fOvDuty.Sum3;
+      штрафЗаПросрочку = fOvDuty.SumPercExpOV;
+      суммаОвердрафта = fOvDuty.Sum4 - техническийОвердрафт;
+      срочныеПроценты = fOvDuty.Sum2;
+      штрафЗаТехническийОвердрафт = fOvDuty.SumPercOverLim;
+      общаяСуммаДолга = fOvDuty.Sum;
+    
+      sc_link.rewind();
+      sc_link.rec.cardAccRef=referenc;
+      if(sc_link.getEQ())
+        sc_tran.rewind();
+        sc_tran.rec.accCardLinkRef = sc_link.rec.accCardLinkRef;
+        sc_tran.rec.FnCash = f_depositr.rec.FnCash;
+	sc_tran.rec.authDate = endDate;
+	sc_tran.rec.authStateCode == "AUTH_";
+	stat = sc_tran.GetLE(); 
+	while (stat)
+           if (( sc_tran.rec.accCardLinkRef == sc_link.rec.accCardLinkRef)  
+		and (sc_tran.rec.FnCash == f_depositr.rec.FnCash)  
+		and (sc_tran.rec.authDate <= endDate)
+		and (sc_tran.rec.authStateCode == "AUTH_"))
+	      sum_spis   = sum_spis + sc_tran.rec.authSum;   
+	   end;
+           stat = sc_tran.prev() and (sc_tran.rec.accCardLinkRef == sc_link.rec.accCardLinkRef);
+        end;
+      end;  	
+
+      доступныйЛимит = лимитКарты - (суммаОвердрафта + техническийОвердрафт + sum_spis);
+	
+      if(доступныйЛимит < 0 ) //если меньше нуля, обнуляем, на всякий случай
+        доступныйЛимит = 0;
+      end;
+    end;
+
+
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "датаОткрытияКарты",           "") ); answerElement.text = датаОткрытияКарты;         
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "лимитКарты",                  "") ); answerElement.text = лимитКарты;                
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "просроченныйДолг",            "") ); answerElement.text = просроченныйДолг;          
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "штрафЗаПросрочку",            "") ); answerElement.text = штрафЗаПросрочку;          
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "суммаОвердрафта",             "") ); answerElement.text = суммаОвердрафта;           
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "срочныеПроценты",             "") ); answerElement.text = срочныеПроценты;           
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "техническийОвердрафт",        "") ); answerElement.text = техническийОвердрафт;      
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "штрафЗаТехническийОвердрафт", "") ); answerElement.text = штрафЗаТехническийОвердрафт;
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "общаяСуммаДолга",             "") ); answerElement.text = общаяСуммаДолга;           
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "датаВыносаНаПросрочку",       "") ); answerElement.text = датаВыносаНаПросрочку;     
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "доступныйЛимит",              "") ); answerElement.text = доступныйЛимит;            
+  end;
+  SetParm(1, outXml);
+  SETAPPLIC(0);
+end;
+
+private macro GetCarryDoc( inXml, outXml )
+  var appKindXml        = inXml.documentElement.selectSingleNode( "//appKind" ).text;
+  var applicationKeyXml = inXml.documentElement.selectSingleNode( "//applicationKey" ).text;
+  var f_psdepdoc = TBFile( "psdepdoc.dbt", "rw", 4, NULL, "sbbank.def" );
+  var appKind        = int(appKindXml);
+  var applicationKey = string(applicationKeyXml);
+  var node, nodeAnswer, answerElement;
+  var code = 118;/*Системная ошибка: общий признак ошибки. TODO: можно как вариант использовать коды 200, 1646, 3209*/
+  var saveFlagCurr, saveFNcash;
+
+  if(not outXml )
+    outXml = CreateXMLObject();
+    if(not outXml)
+      return;
+    end;
+    outXml.documentElement = outXml.createNode(1, "response", "");
+    node = outXml.documentElement.appendChild( outXml.createNode(1, "id", "") ); node.text = String(CreateGUID());
+    nodeAnswer = outXml.documentElement.appendChild( outXml.createNode(1, "onLinePaymentTransact_a", "") );
+
+    f_psdepdoc.clear();
+    f_psdepdoc.rec.iApplicationKind = appKind;
+    f_psdepdoc.rec.ApplicationKey = applicationKey;
+    if(f_psdepdoc.getEQ())
+      if(OpenDepFiles())
+        if (not CheckClosedDayInBank(f_psdepdoc.rec.FNCash, f_psdepdoc.rec.IsCur))
+          saveFlagCurr = SetFlagCur (f_psdepdoc.rec.IsCur, 1);
+          saveFNcash   = SetFNcash  (f_psdepdoc.rec.FNcash);
+          code = CarryPsDoc(f_psdepdoc.rec.iApplicationKind, f_psdepdoc.rec.ApplicationKey); 
+          SetFlagCur (saveFlagCurr, 1); 
+          SetFNcash  (saveFNcash);
+          if (code > 0)
+//             f_psdepdoc.delete();
+          end;
+        else
+//           f_psdepdoc.delete(); 
+        end;
+      end;
+      CloseDepFiles();
+    else
+      outXml = AddError2OutXml(outXml, "не найден платеж");
+    end;
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "code",           "") ); answerElement.text = code;         
+  end;
+  SetParm(1, outXml);
+end;
+
+private macro DeleteDoc( inXml, outXml )
+  var applicationKeyXml = inXml.documentElement.selectSingleNode( "//applicationKey" ).text;
+  var appKind           = 1; /* для проведённых вкладных платежей */
+  var applicationKey    = string(applicationKeyXml);
+  var node, nodeAnswer, answerElement;
+  var code = 1;
+  var f_sbdepdoc = TBFile( "sbdepdoc.dbt", "r", 3, NULL, "sbbank.def" );
+  var saveFlagCurr, saveFNcash;
+
+  if(not outXml )
+    outXml = CreateXMLObject();
+    if(not outXml)
+      return;
+    end;
+    outXml.documentElement = outXml.createNode(1, "response", "");
+    node = outXml.documentElement.appendChild( outXml.createNode(1, "id", "") ); node.text = String(CreateGUID());
+    nodeAnswer = outXml.documentElement.appendChild( outXml.createNode(1, "deleteDocument_a", "") );
+
+    f_sbdepdoc.clear();
+    f_sbdepdoc.rec.iApplicationKind = appKind;
+    f_sbdepdoc.rec.ApplicationKey = applicationKey;
+    if(f_sbdepdoc.getEQ())
+      saveFlagCurr = SetFlagCur (f_sbdepdoc.rec.IsCur, 1);
+      saveFNcash   = SetFNcash  (f_sbdepdoc.rec.FNcash);
+      if ( DeleteDocument( appKind, applicationKey, false) )
+        code = 0;
+        /* TODO: Retail создаёт в отложенных платёж с новым appKey! 
+        Необходим механизм удаления записей сторнированных платежей из отложенных 
+        с psdepdoc.Oper = 8888 (для on-line платежей)!  */
+      end;
+      SetFlagCur (saveFlagCurr, 1); 
+      SetFNcash  (saveFNcash);
+    end;
+    answerElement = nodeAnswer.appendChild( outXML.createNode(1, "code",           "") ); answerElement.text = code;         
+  end;
+  SetParm(1, outXml);
+end;
+
+// ───────────────────────────────────────
+// Класс со вспомагательными ф-ями для
+// создания депозитного продукта
+// ───────────────────────────────────────
+private class CDepositProduct
+  var nodeAnswer, node;
+  var nodeName, nodeDeposit, nodeFields, nodeVal;
+  var arrCur = Tarray; // массив используемых валют (массив SCurrencies)
+
+  var f_sb_typop = Tbfile( "sb_typop.dbt", "r", 0, null, "sbbank.def" );
+  var f_pc_apltp = Tbfile( "pc_apltp.dbt", "r", 0, null, "sbbank.def" );
+  var f_sb_algop = Tbfile( "sb_algop.dbt", "r", 0, null, "sbbank.def" );
+  var f_sbtypacc = Tbfile( "sbtypacc.dbt", "r", 1, null, "sbbank.def" );  
+  var f_pc_alg   = Tbfile( "pc_alg.dbt"  , "r", 0, null, "sbbank.def" );
+  var f_currency = Tbfile( "currency.dbt", "r", 0, null, "sbbank.def" );
+  var f_sb_dtyp  = Tbfile( "sb_dtyp.dbt" , "r", 2, null, "sbbank.def" );
+    
+  
+  // есть ли такая валюта в массиве валют?
+  macro isArrCur( Cur )
+    var i = 0;
+
+    while( i < arrCur.size )
+      if( arrCur[i].Code_Currency == Cur )
+        return true;
+      end;
+      i = i + 1;
+    end;
+    return false;
+  end;
+  // Получить лимит
+  macro GetLimit(f_sb_dtyp, codCur)
+    // !!!!! Внимание, для 105 и 106 ф-ция различается !!!!!
+
+    // 1. ищем для конкретной валюты
+    f_sbtypacc.rewind();  f_sbtypacc.clear();
+    f_sbtypacc.rec.ApplKind      = 1;
+    f_sbtypacc.rec.IsCur         = f_sb_dtyp.rec.FlagCur;
+    f_sbtypacc.rec.Object        = f_sb_dtyp.rec.Kind;
+    f_sbtypacc.rec.Type          = 0;
+    f_sbtypacc.rec.Code_Currency = codCur;
+    f_sbtypacc.rec.Category      = 7; // основной счет
+
+    if( f_sbtypacc.getGE()                                       and  
+        (f_sbtypacc.rec.ApplKind      == 1                     ) and
+        (f_sbtypacc.rec.IsCur         == f_sb_dtyp.rec.FlagCur ) and
+        (f_sbtypacc.rec.Object        == f_sb_dtyp.rec.Kind    ) and
+        (f_sbtypacc.rec.Type          == 0                     ) and
+        (f_sbtypacc.rec.Code_Currency == codCur                ) and
+        (f_sbtypacc.rec.Category      == 7                     )  )
+      return f_sbtypacc.rec.Limit;
+    end;
+
+    // 2. ищем теперь для валюты -1
+    f_sbtypacc.rewind();  f_sbtypacc.clear();
+    f_sbtypacc.rec.ApplKind      = 1;
+    f_sbtypacc.rec.IsCur         = f_sb_dtyp.rec.FlagCur;
+    f_sbtypacc.rec.Object        = f_sb_dtyp.rec.Kind;
+    f_sbtypacc.rec.Type          = 0;
+    f_sbtypacc.rec.Code_Currency = -1;
+    f_sbtypacc.rec.Category      = 7; // основной счет
+
+    if( f_sbtypacc.getGE()                                       and  
+        (f_sbtypacc.rec.ApplKind      == 1                     ) and
+        (f_sbtypacc.rec.IsCur         == f_sb_dtyp.rec.FlagCur ) and
+        (f_sbtypacc.rec.Object        == f_sb_dtyp.rec.Kind    ) and
+        (f_sbtypacc.rec.Type          == 0                     ) and
+        (f_sbtypacc.rec.Code_Currency == -1                    ) and
+        (f_sbtypacc.rec.Category      == 7                     )  )
+      return f_sbtypacc.rec.Limit;
+    end;
+    // 3. не нашли
+    return $0.0;
+  end;
+  // Разрешены или запрещены операции
+  macro IsOper(isCur, kind, indOper)
+    // indOper == 0 - операции по доп.взносу,
+    // indOper == 1 - операции по расходу
+    var i = 0, retVal = false;
+    // список операций
+    var numOper = Tarray;
+    // операции по доп.взносу
+    numOper[0] = Tarray;
+    numOper[0][0] = 3; numOper[0][1] = 71; numOper[0][2] = 72; numOper[0][3] = 73; numOper[0][4] = 74; numOper[0][5] = 88; numOper[0][6] = 93;
+    // операции по расходу
+    /*numOper[1] = Tarray;
+    numOper[1][0] = 4; numOper[1][1] = 62; numOper[1][2] = 63; numOper[1][3] = 64; numOper[1][4] = 65; numOper[1][5] = 80; numOper[1][6] = 87; 
+    numOper[1][7] = 92;*/
+
+    // поиск по своему виду вклада
+    while( i < numOper[indOper].size )
+      f_sb_typop.rewind(); f_sb_typop.clear();
+      f_sb_typop.rec.IsCur    = isCur;
+      f_sb_typop.rec.Kind     = kind;
+      f_sb_typop.rec.NumOpert = numOper[indOper][i];
+      if( f_sb_typop.getEQ() and (f_sb_typop.rec.SysNumb == 0))
+        retVal = true;
+        break;
+      end;      
+      i = i + 1;
+    end;
+    // поиск по виду вклада, по которому определены операции
+    if( not retVal )
+      f_pc_apltp.rewind();  f_pc_apltp.clear();
+      f_pc_apltp.rec.IsCur    = isCur; 
+      f_pc_apltp.rec.TypeRec  = RTPC_ACCOUNT_TYPE;//1003
+      f_pc_apltp.rec.Type     = kind;
+      f_pc_apltp.rec.ApplType = OT_OP_FROM_OTHER;//3010
+      if( f_pc_apltp.getEQ() )
+        i = 0;
+        while( i < numOper[indOper].size )
+          f_sb_typop.rewind(); f_sb_typop.clear();
+          f_sb_typop.rec.IsCur    = isCur;
+          f_sb_typop.rec.Kind     = f_pc_apltp.rec.ApType;
+          f_sb_typop.rec.NumOpert = numOper[indOper][i];
+          if( f_sb_typop.getEQ() and (f_sb_typop.rec.SysNumb == 0))
+            retVal = true;
+            break;
+          end;      
+          i = i + 1;
+        end;
+      end;
+    end;
+
+    return retVal;
+  end;
+  // получить мин. сумму доп. взноса 
+  macro GetMinSumINDOP( isCur, kind)
+    var numOper = Tarray();
+    var kind2 = "";
+    var i = 0, minSum = $999999999.99;
+
+    // ищем 240 шаг для 3 и 71 операции
+    numOper[0] = 3; numOper[1] = 71;
+
+    while( i < numOper.size )
+      kind2 = "";
+      // поиск операции для данног овида вклада
+      f_sb_typop.rewind(); f_sb_typop.clear();
+      f_sb_typop.rec.IsCur    = isCur;
+      f_sb_typop.rec.Kind     = kind;
+      f_sb_typop.rec.NumOpert = numOper[i];
+      if( f_sb_typop.getEQ() )
+        if( f_sb_typop.rec.SysNumb == 0 )
+          kind2 = f_sb_typop.rec.Kind;
+        end;
+      else
+        // поиск операции из заимствованного вида вклада
+        f_pc_apltp.rewind();  f_pc_apltp.clear();
+        f_pc_apltp.rec.IsCur    = isCur; 
+        f_pc_apltp.rec.TypeRec  = RTPC_ACCOUNT_TYPE;//1003
+        f_pc_apltp.rec.Type     = kind;
+        f_pc_apltp.rec.ApplType = OT_OP_FROM_OTHER;//3010
+        if( f_pc_apltp.getEQ() )
+          f_sb_typop.rewind(); f_sb_typop.clear();
+          f_sb_typop.rec.IsCur    = isCur;
+          f_sb_typop.rec.Kind     = f_pc_apltp.rec.ApType;
+          f_sb_typop.rec.NumOpert = numOper[i];
+          if( f_sb_typop.getEQ() and (f_sb_typop.rec.SysNumb == 0))
+            kind2 = f_sb_typop.rec.Kind;
+          end;
+        end;
+      end;      
+      // поиск шага
+      f_sb_algop.rewind();  f_sb_algop.clear();
+      f_sb_algop.rec.IsCur      = isCur;
+      f_sb_algop.rec.Kind       = kind2;
+      f_sb_algop.rec.NumOpert   = numOper[i];
+      f_sb_algop.rec.NumStepAlg = 240;
+      f_sb_algop.rec.BegDate    = NULL_DATE;
+      if( f_sb_algop.getEQ() and (f_sb_algop.rec.FlagEXE == "X") and (minSum > f_sb_algop.rec.prmD) )
+        minSum = f_sb_algop.rec.prmD;
+      end;
+      i = i + 1;
+    end;
+    if( minSum == $999999999.99 )
+      minSum = $0.0;
+    end;
+
+    return minSum;
+  end;
+  
+  // получить  параметры расчета процентов
+  macro GetPcAlg(FNCash,  isCur, kind, outPcAlg )
+    var stat;
+       // поиск ссылки на вид вклада. по которому заданы %%   
+    Global_f_pc_apltp.rewind(); Global_f_pc_apltp.clear(); 
+    Global_f_pc_apltp.rec.IsCur    = isCur;
+    Global_f_pc_apltp.rec.TypeRec  = RTPC_ACCOUNT_TYPE; 
+    Global_f_pc_apltp.rec.Type     = kind;
+    Global_f_pc_apltp.rec.ApplType = RTPC_ACCOUNT_DEP; //по основным условиям
+    // в каком подразделении искать ставку 
+    Global_f_fnc_dtyp.rewind(); Global_f_fnc_dtyp.clear();
+    Global_f_fnc_dtyp.rec.FNCash   = FNcash;
+    Global_f_fnc_dtyp.rec.FlagCur  = isCur;
+    Global_f_fnc_dtyp.rec.TypeKind = kind;
+    if( (Global_f_pc_apltp.getEQ()) and (Global_f_fnc_dtyp.getEQ()) )
+      // ищем группу ставок. 
+      Global_f_pc_alg.rewind(); Global_f_pc_alg.clear();
+      Global_f_pc_alg.rec.FNcash     = Global_f_fnc_dtyp.rec.PcAlgBrRefer;
+      Global_f_pc_alg.rec.FlagCur    = isCur;
+      Global_f_pc_alg.rec.Referenc   = Global_f_pc_apltp.rec.ApType;
+      Global_f_pc_alg.rec.ObjectType = RTPC_ACCOUNT_TYPE;
+      Global_f_pc_alg.rec.BegDate    = MAX_DATE;
+      if(not( (Global_f_pc_alg.getLE()        == true                              ) and
+              (Global_f_pc_alg.rec.FNcash     == Global_f_fnc_dtyp.rec.PcAlgBrRefer) and
+              (Global_f_pc_alg.rec.FlagCur    == isCur                             ) and
+              (Global_f_pc_alg.rec.Referenc   == Global_f_pc_apltp.rec.ApType      ) and
+              (Global_f_pc_alg.rec.ObjectType == RTPC_ACCOUNT_TYPE                 )  
+            )
+         )
+        Global_f_pc_alg.clear();
+      end;
+    else
+      Global_f_pc_alg.clear();
+    end;
+    copy( outPcAlg, Global_f_pc_alg );
+    SetParm(4, outPcAlg);
+  end;
+  
+  // Указан ли вклад по альтернат.условиям
+  macro GetAnticipatoryRemoval( isCur, kind )
+
+    f_pc_apltp.rewind();  f_pc_apltp.clear();
+    f_pc_apltp.rec.IsCur    = isCur;
+    f_pc_apltp.rec.TypeRec  = RTPC_ACCOUNT_TYPE;//1003
+    f_pc_apltp.rec.Type     = kind;
+    f_pc_apltp.rec.ApplType = RTPC_ACCOUNT_ALT;//2002
+
+    if( f_pc_apltp.getEQ() )
+      SetParm(3, f_pc_apltp.rec.ApType);
+      return true;
+    else
+      return false;
+    end;
+  end;
+  // структура используемы валют
+  private class SCurrencies(_CodeCurrency, _name)
+    var Code_Currency = _CodeCurrency,
+        Name = _name;
+  end;
+  // ─── Начало xml-документа ───
+  macro createBeginTag( outXml )
+    outXML.documentElement = outXML.createNode(1, "response", "");
+     node = outXML.documentElement.appendChild( outXML.createNode(1, "id", "") ); node.text = String(CreateGUID());
+     // название узла
+     nodeAnswer = outXML.documentElement.appendChild( outXML.createNode(1, "depositProduct_a", "") );
+    SetParm( 1, outXml );
+  end;
+  // ─── Тэг structure ───
+  macro createTagStructure( outXml )
+    /*
+      accountTypeId             string(12)    Идентификатор вида вклада в RS-Retail
+      minimumAmount             SumType       Минимальная сумма вклада
+      currency                  CurrencyType  Валюта
+      interestRate              PercentType   процентная ставка
+      additionalFee             BoolType      Разрешены или запрещены дополнительные взносы к сумме депозита
+      minAdditionalFee          SumType       Мин. сумма доп. взноса
+      renewal                   BoolType      Пролонгация
+      capitalization            BoolType      Капитализация процентов
+      paymentPeriod             string (50)   Способ выплаты процентов
+      anticipatoryRemoval       BoolType      разрешено ли досрочное снятие части средств по вкладу
+      minSumRemoval             SumType       Минимальная сумма досрочного снятия средств**
+      maxSumRemoval             SumType       Максимальная сумма досрочного снятия средств**
+      conditionsPaymentPercent  string(256)   Определяет условия выплаты процентов при досрочном расторжении вклада (если это разрешено для данного вклада) 
+    */
+    nodeDeposit = nodeAnswer.appendChild( outXML.createNode(1, "structure", "") ); 
+     nodeFields = nodeDeposit.appendChild( outXML.createNode(1, "fields", "") );
+      // перечисляем используемые поля
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "accountTypeId"       ); nodeVal.setAttribute( "description", "Идентификатор вида вклада в RS-Retail" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "minimumAmount"       ); nodeVal.setAttribute( "description", "Минимальная сумма вклада" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "currency"            ); nodeVal.setAttribute( "description", "Валюта" ); nodeVal.setAttribute( "domen", "currencies" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "interestRate"        ); nodeVal.setAttribute( "description", "Процентная ставка" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "period"       ); nodeVal.setAttribute( "description", "Период" );/*nodeVal.setAttribute( "domen", "flag" ); ?? */
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "additionalFee"       ); nodeVal.setAttribute( "description", "Разрешены или запрещены доп.взносы" ); nodeVal.setAttribute( "domen", "flag" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "minAdditionalFee"    ); nodeVal.setAttribute( "description", "Мин. сумма доп. взноса" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "renewal"             ); nodeVal.setAttribute( "description", "Пролонгация" ); nodeVal.setAttribute( "domen", "flag" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "capitalization"      ); nodeVal.setAttribute( "description", "Капитализация процентов" ); nodeVal.setAttribute( "domen", "flag" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "paymentPeriod"       ); nodeVal.setAttribute( "description", "Способ выплаты процентов" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "anticipatoryRemoval" ); nodeVal.setAttribute( "description", "Разрешено ли досрочное снятие части средств по вкладу" ); nodeVal.setAttribute( "domen", "flag" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "minSumRemoval"       ); nodeVal.setAttribute( "description", "Минимальная сумма досрочного снятия средств" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "maxSumRemoval"       ); nodeVal.setAttribute( "description", "Максимальная сумма досрочного снятия средств" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "field", "") );
+      nodeVal.setAttribute( "name", "conditionsPaymentPercent" ); nodeVal.setAttribute( "description", "Условия выплаты процентов при досрочном расторжении вклада" );
+
+    SetParm( 1, outXml );
+  end;
+ 
+  private macro convertDate(term, kindTerm):string /* в формат YY-MM-DDDD*/
+     var newDate = "00-00-000", tmp;
+
+     if ((kindTerm == "1") or (kindTerm == "5"))
+        tmp = string(term);
+        while (strlen(tmp) < 3) 
+           tmp = "0" + tmp; 
+        end;
+        newDate = "00-00-"+tmp;
+     elif (kindTerm == "2")
+        if (term < 10)
+          newDate = "00-0"+term+"-000";
+        else
+          newDate = "00-"+term+"-000";
+        end;
+     elif (kindTerm == "3")
+        term = term*3;
+        if (term < 10)
+          newDate = "00-0"+term+"-000";
+        else
+          newDate = "00-"+term+"-000";
+        end;
+     elif (kindTerm == "4")
+        if (term < 10)
+          newDate = "0"+term+"-00-000";
+        else
+          newDate = term+"-00-000";
+        end;
+     end;
+     return newDate;
+  end;
+ // ─── Тэг element ───
+  macro createTagElement(FNCash, outXml, rateCount)
+
+	var kindAlt = "", minSumINDOP = $0.0, fldIndx;
+    	nodeFields = nodeDeposit.appendChild( outXML.createNode(1, "element", "") );
+            // Идентификатор вида вклада в RS-Retail
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "accountTypeId" ); 
+             nodeVal.text = f_sb_dtyp.rec.Kind;
+
+	     // Минимальная сумма вклада
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "minimumAmount" );
+	     if ((Global_f_pc_rate.rec.PercAlg!=1) or (Global_f_pc_alg.rec.RateType!=1))
+		fldIndx = fldindex(Global_f_pc_rate, "Rest1");
+ 	     	fldIndx = fldIndx + 4*(rateCount-1);
+		nodeVal.text = Global_f_pc_rate.(fldIndx);
+	     else
+		nodeVal.text = String(GetLimit(f_sb_dtyp, f_currency.rec.Code_Currency));
+	     end;
+
+            // Валюта
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "currency" );
+             nodeVal.text = f_currency.rec.Code_Currency;
+
+	     // Процентная ставка
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "interestRate" );
+	     fldIndx = fldindex(Global_f_pc_rate, "Percent1");
+ 	     fldIndx = fldIndx + 4*(rateCount-1);
+             nodeVal.text = trim(String(Global_f_pc_rate.(fldIndx):6:2));
+
+            // Период
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "period" ); 
+
+	     if ((Global_f_pc_rate.rec.PercAlg!=1) or (Global_f_pc_alg.rec.RateType!=1))
+		nodeVal.text = convertDate(Global_f_pc_rate.rec.DatePeriod, Global_f_pc_rate.rec.DatePeriodType);
+	     else
+		nodeVal.text = convertDate(f_sb_dtyp.rec.Term, f_sb_dtyp.rec.KindTerm);
+	     end;
+                       
+     	     // Разрешены или запрещены доп.взносы
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "additionalFee" );
+             if( IsOper(f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, 0) )
+              nodeVal.text = "true";
+              minSumINDOP = GetMinSumINDOP(f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind);
+             else
+              nodeVal.text = "false";
+             end;
+
+            // Мин. сумма доп. взноса
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "minAdditionalFee" );
+             nodeVal.text = String(minSumINDOP);
+
+             // Пролонгация
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "renewal" );
+             if( (f_sb_dtyp.rec.FormContr == 20) or ((f_sb_dtyp.rec.FormContr == 30)) ); // если Депозитный или Пролонгируемый договор 
+               nodeVal.text = "true";
+             else
+               nodeVal.text = "false";
+             end;
+
+             // Капитализация процентов
+             GetPcAlg(FNCash, f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, Global_f_pc_alg);
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "capitalization" );
+             if( (Global_f_pc_alg.rec.Capital == 1) or (Global_f_pc_alg.rec.Capital == 2) or (Global_f_pc_alg.rec.Capital == 10) );
+               nodeVal.text = "true";
+             else
+               nodeVal.text = "false";
+             end;
+
+             // Способ выплаты процентов
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "paymentPeriod" );
+             if( Global_f_pc_alg.rec.GrafPay == 1 )
+               nodeVal.text = "Ежедневно";
+             elif( Global_f_pc_alg.rec.GrafPay == 2 )
+               nodeVal.text = "Ежемесячно";
+             elif( Global_f_pc_alg.rec.GrafPay == 3 )
+               nodeVal.text = "Ежеквартально";
+             elif( Global_f_pc_alg.rec.GrafPay == 4 )
+               nodeVal.text = "Ежегодно";
+             elif( Global_f_pc_alg.rec.GrafPay == 5 )
+               nodeVal.text = "числа каждого месяца";
+             end;
+
+             // Способ начисления процентов
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "calculationPeriod" );
+             if( Global_f_pc_alg.rec.GrafCalc == 1 )
+               nodeVal.text = "В конце дня";
+             elif( Global_f_pc_alg.rec.GrafPay == 2 )
+               nodeVal.text = "В конце месяца";
+             elif( Global_f_pc_alg.rec.GrafPay == 3 )
+               nodeVal.text = "В конце квартала";
+             elif( Global_f_pc_alg.rec.GrafPay == 4 )
+               nodeVal.text = "В конце года";
+             elif( Global_f_pc_alg.rec.GrafPay == 5 )
+               nodeVal.text = "числа каждого месяца";
+             end;
+
+	    // Разрешено ли досрочное снятие части средств по вкладу (если указан для альтернативных условий)
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "anticipatoryRemoval" );
+             if( GetAnticipatoryRemoval(f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, kindAlt) );
+               nodeVal.text = "true";
+             else
+               nodeVal.text = "false";
+             end;
+
+             // Минимальная сумма досрочного снятия средств
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "minSumRemoval" );
+             nodeVal.text = String($0.0);
+
+             // Максимальная сумма досрочного снятия средств
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "maxSumRemoval" );
+             nodeVal.text = String($0.0); 
+
+             // Условия выплаты процентов при досрочном расторжении вклада
+             nodeVal = nodeFields.appendChild( outXML.createNode(1, "value", "") );
+             nodeVal.setAttribute( "field", "conditionsPaymentPercent" );
+             nodeVal.text = kindAlt;
+
+             // есть ли такая валюта в массиве
+             if( not isArrCur( f_currency.rec.Code_Currency ) )
+               arrCur[arrCur.size] = SCurrencies(f_currency.rec.Code_Currency, f_currency.rec.Name_Currency);
+             end;
+   SetParm( 2, outXml );
+  end;
+  // ─── Тэг data ───
+  macro createTagData( kind, outXml, isFirstCall, FNCash)
+    var pc_rate = TRecHandler("pc_rate.dbt", "sbbank.def"), 
+        pc_alg  = TRecHandler("pc_alg.dbt",  "sbbank.def"), kindAlt = "";
+    var isCur = 0, stat, pc_rate_stat, beginDate,restCount;
+
+    if( isFirstCall )
+      nodeDeposit = nodeAnswer.appendChild( outXML.createNode(1, "data", "") );
+    end;
+
+    beginDate = null;
+
+    while( isCur < 2 )
+      f_sb_dtyp.rewind(); f_sb_dtyp.clear();
+      f_sb_dtyp.rec.FlagCur = isCur;
+      f_sb_dtyp.rec.Kind    = kind;
+      if( f_sb_dtyp.getEQ() )
+
+        f_currency.rewind(); f_currency.clear();
+        f_currency.rec.Code_Currency = 0;
+        stat = f_currency.getGE();
+
+        while( stat )
+	  // if (StrBrk(f_sb_dtyp.rec.UserTypeAccount, DTYP_TYPE_ACCOUNT) or StrBrk(DTYP_TYPE_ACCOUNT, "")) 
+ 		 // поиск ссылки на вид вклада. по которому заданы %%   
+		  Global_f_pc_apltp.rewind(); Global_f_pc_apltp.clear(); 
+		  Global_f_pc_apltp.rec.IsCur    = f_sb_dtyp.rec.FlagCur;
+		  Global_f_pc_apltp.rec.TypeRec  = RTPC_ACCOUNT_TYPE; 
+		  Global_f_pc_apltp.rec.Type     = f_sb_dtyp.rec.Kind;
+		  Global_f_pc_apltp.rec.ApplType = RTPC_ACCOUNT_DEP;
+		  // в каком подразделении искать ставку 
+		  Global_f_fnc_dtyp.rewind(); Global_f_fnc_dtyp.clear();
+		  Global_f_fnc_dtyp.rec.FNCash   = FNcash;
+		  Global_f_fnc_dtyp.rec.FlagCur  = f_sb_dtyp.rec.FlagCur;
+		  Global_f_fnc_dtyp.rec.TypeKind = f_sb_dtyp.rec.Kind;
+		  if( (Global_f_pc_apltp.getEQ()) and (Global_f_fnc_dtyp.getEQ()) )
+		    // ищем группу ставок. 
+		    Global_f_pc_alg.rewind(); Global_f_pc_alg.clear();
+		    Global_f_pc_alg.rec.FNcash     = Global_f_fnc_dtyp.rec.PcAlgBrRefer;
+		    Global_f_pc_alg.rec.FlagCur    = f_sb_dtyp.rec.FlagCur;
+		    Global_f_pc_alg.rec.Referenc   = Global_f_pc_apltp.rec.ApType;
+		    Global_f_pc_alg.rec.ObjectType = RTPC_ACCOUNT_TYPE;
+		    Global_f_pc_alg.rec.BegDate    = MAX_DATE; 
+		    if( (Global_f_pc_alg.getLE()        == true                         ) and
+		        (Global_f_pc_alg.rec.FNcash     == Global_f_fnc_dtyp.rec.PcAlgBrRefer) and
+		        (Global_f_pc_alg.rec.FlagCur    == f_sb_dtyp.rec.FlagCur        ) and
+		        (Global_f_pc_alg.rec.Referenc   == Global_f_pc_apltp.rec.ApType      ) and
+		        (Global_f_pc_alg.rec.ObjectType == RTPC_ACCOUNT_TYPE            )  
+		      )
+		      // с группой ставок определились. ищем ставку 
+		      Global_f_pc_rate.rewind(); Global_f_pc_rate.clear();
+		      Global_f_pc_rate.rec.FNCash        = Global_f_fnc_dtyp.rec.PcAlgBrRefer;
+		      Global_f_pc_rate.rec.FlagCur       = f_sb_dtyp.rec.FlagCur;
+		      Global_f_pc_rate.rec.ObjectType    = RTPC_ACCOUNT_TYPE;
+		      Global_f_pc_rate.rec.Referenc      = Global_f_pc_alg.rec.RateGroup;
+		      Global_f_pc_rate.rec.Code_Currency = f_currency.rec.Code_Currency;
+		      Global_f_pc_rate.rec.BeginDate     = MAX_DATE;
+		      pc_rate_stat = Global_f_pc_rate.getLE();
+		      while(pc_rate_stat)
+                     	if(  (Global_f_pc_rate.rec.FNCash        == Global_f_fnc_dtyp.rec.PcAlgBrRefer) and
+		             (Global_f_pc_rate.rec.FlagCur       == f_sb_dtyp.rec.FlagCur        ) and
+		             (Global_f_pc_rate.rec.ObjectType    == RTPC_ACCOUNT_TYPE            ) and
+		             (Global_f_pc_rate.rec.Referenc      == Global_f_pc_alg.rec.RateGroup     ) and
+		             (Global_f_pc_rate.rec.Code_Currency == f_currency.rec.Code_Currency      ) and
+			     (Global_f_pc_rate.rec.Action != 2) and
+			     ((beginDate == null) or (beginDate == Global_f_pc_rate.rec.beginDate))
+		      	  )
+				if(Global_f_pc_rate.rec.RestCount>1)
+				  restCount=1;
+				  while(restCount<=Global_f_pc_rate.rec.RestCount)
+				    createTagElement(FNCash, outXml, restCount);
+                                    restCount=restCount+1;
+				  end;
+				else
+                                	createTagElement(FNCash, outXml, 1);
+				end;
+			beginDate = Global_f_pc_rate.rec.BeginDate;
+				
+			end;
+			pc_rate_stat = Global_f_pc_rate.prev();
+		      end;
+		      beginDate = null;
+	           end;
+		  end;
+         // end;
+          stat = f_currency.next() and (f_sb_dtyp.rec.FlagCur == 1);
+        end;
+      end;
+      isCur = isCur + 1;
+    end;
+
+    SetParm( 2, outXml );
+  end;
+// ─── Тэг dictionaries ───
+  macro createTagDictionaries( outXml )
+    var i = 0;
+
+    nodeDeposit = nodeAnswer.appendChild( outXML.createNode(1, "dictionaries", "") ); 
+     // currencies
+     nodeFields = nodeDeposit.appendChild( outXML.createNode(1, "entity-list", "") );
+     nodeFields.setAttribute( "name", "currencies" );
+      i = 0;
+      while( i < arrCur.size )
+        nodeVal = nodeFields.appendChild( outXML.createNode(1, "entity", "") );
+        nodeVal.setAttribute( "key", arrCur[i].Code_Currency );
+        nodeVal.text = arrCur[i].Name;
+        i = i + 1;
+      end;
+     // flag
+     nodeFields = nodeDeposit.appendChild( outXML.createNode(1, "entity-list", "") );
+     nodeFields.setAttribute( "name", "flag" );
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "entity", "") );
+      nodeVal.setAttribute( "key", "false" );
+      nodeVal.text = "Нет";
+      nodeVal = nodeFields.appendChild( outXML.createNode(1, "entity", "") );
+      nodeVal.setAttribute( "key", "true" );
+      nodeVal.text = "Да";
+
+    SetParm( 1, outXml );
+  end;
+end;
+// ───────────────────────────────────────
+// Для создания депозитного продукта
+// ───────────────────────────────────────
+private macro DepositProduct( inXml, outXml )
+  var stat = 0, nodeDepositProduct, nodeDeposit,
+      accountTypeIDXml;// = inXml.documentElement.selectSingleNode( "//accountTypeId" );
+  var isFirst = true;
+  var objDepProd;
+  var FNCashXml = inXml.documentElement.selectSingleNode( "//filial"); 
+  var FNCash = 0; //TODO: заглушка, пока филиал не передаётся
+
+  if( FNCashXml  )
+    FNCash = int( FNCashXml .text );
+//  else
+//    outXML = AddError2OutXml(outXML, "не задан номер подразделения");
+  end;
+
+  if(not outXml )
+    outXml = CreateXMLObject();
+    if(not outXml)
+      return;
+    end;
+    objDepProd = CDepositProduct();
+    
+    objDepProd.createBeginTag( outXml );
+    objDepProd.createTagStructure( outXml );
+
+    nodeDepositProduct = inXml.documentElement.selectSingleNode( "//depositProduct_q" );
+    nodeDeposit = nodeDepositProduct.firstChild();
+    
+    while( nodeDeposit )
+      accountTypeIDXml = nodeDeposit.firstChild();
+      if( accountTypeIDXml.text )
+        objDepProd.createTagData( accountTypeIDXml.text, outXml, isFirst ,FNCash);
+        isFirst = false;
+      end;
+      nodeDeposit = nodeDeposit.nextSibling();
+    end;
+    
+    objDepProd.createTagDictionaries( outXml );
+  end;
+
+  SetParm(1, outXml);
+end;
+
+// ─────────────────────────────────────────────────
+// Для получения операций по карточке
+// ─────────────────────────────────────────────────
+private macro GetCardOperations( inXml, outXml )
+
+  private class CardOperation(_operationId,
+                              _operationDate,
+                              _operationCurrencyId,
+                              _doubleCreditSum,
+                              _doubleDebitSum,
+                              _doubleAccountCreditSum,
+//                              _doubleAccountDebitSum,
+                              _transactionFlag,
+                              _transactionKind,
+                              _chargeDate,
+                              _transactionCurrencyId,
+                              _description)
+    var
+      operationId            = _operationId,          
+      operationDate          = _operationDate,        
+      operationCurrencyId    = _operationCurrencyId,  
+      doubleCreditSum        = _doubleCreditSum,      
+      doubleDebitSum         = _doubleDebitSum,       
+      doubleAccountSum = _doubleAccountCreditSum,
+//      doubleAccountDebitSum  = _doubleAccountDebitSum,
+      transactionFlag        = _transactionFlag,      
+      transactionKind        = _transactionKind,      
+      chargeDate             = _chargeDate,           
+      transactionCurrencyId  = _transactionCurrencyId,
+      description            = _description;
+  end;
+  private const MaxDate = Date(31,12,9999);
+  private const FNCash = 1;
+  private var opers = TBFile( "sbdepdoc.dbt", "r", 6, NULL, "sbbank.def" );
+  private var links = TBFile( "scLink.dbt",   "r", 0, NULL, "spcard.def" );
+  private var link = TBFile( "scLink.dbt",   "r", 2, NULL, "spcard.def" );
+  private var trans = TBFile( "scTran.dbt",   "r", 0, NULL, "spcard.def" );
+  private var tran = TBFile( "scTran.dbt",   "r", 3, NULL, "spcard.def" );
+  private var codif = TBFile( "scCodif.dbt",  "r", 1, NULL, "spcard.def" );
+  private var scCard = TBFile ("scCard.dbt", "r", 0, NULL, "spcard.def");
+  private var ground;
+  private var NCard;
+  private macro checkDepDoc(doc)
+  
+    var retVal = true;
+  
+    if((MOD(doc.rec.Flags, 262144) - MOD(doc.rec.Flags, 131072)) != 0)
+      retVal = false;
+    end;
+  
+    if(doc.rec.FlagStorn != "")
+      retVal = false;
+    end;
+  
+    if(not IsServDocWithEst( doc ))
+      retVal = false;
+    end;
+  
+    return retVal;
+  end;
+  
+  private macro checkDepDoc1(doc)
+  
+    var retVal = true;
+  
+    if((MOD(doc.rec.Flags, 4096) - MOD(doc.rec.Flags, 2048)) != 0)
+      retVal = false;
+    end;
+  
+    if(doc.rec.FlagStorn != "")
+      retVal = false;
+    end;
+  
+    if(not IsServDocWithEst( doc ))
+      retVal = false;
+    end;
+  
+    return retVal;
+  end;
+  
+  private macro findTran(fn, appkind, appkey)
+    Var	DTran	= TBFile ( "scDTran.dbt", "r", 2, NULL, "spcard.def" );
+    DTran.Rewind ();
+    Dtran.Clear ();
+    Dtran.rec.iApplicationKind = appkind;
+    Dtran.rec.docApplicationKey = appkey;   
+    Dtran.getEQ();
+    trans.rewind ( );
+    trans.Clear ( );
+    trans.Rec.FNCash = Fn;
+    trans.Rec.AuthRef = DTran.Rec.AuthRef;
+    return trans.GetEQ();
+  end;
+  
+  private macro findLink(fncash, accCardLinkRef )
+    links.rewind();
+    links.rec.fncash = fncash;
+    links.rec.accCardLinkRef = accCardLinkRef;
+    return links.GetEQ();
+  end;
+  
+  private macro findCodif(codType, codCode, psRef)
+    codif.rewind();
+    codif.rec.codType = codType;
+    codif.rec.codCode = codCode;
+    codif.rec.psRef = psRef;
+    return codif.GetEQ();
+  end;
+  
+  
+  private macro findLinkByCard(cardId, accRef, fncash)
+    link.rewind();
+    link.rec.fncash = fncash;
+    link.rec.cardref = cardId;
+    link.rec.cardAccref = accRef;
+    return link.getEQ();
+  end;
+
+  private macro findOperByTranByDate(accRef, fromDate, toDate)
+    opers.rewind();
+    opers.rec.referenc = accRef;
+    opers.rec.Date_Document = fromDate;
+    var stat = opers.getGe();
+    while(stat and (opers.rec.referenc == accRef) and (opers.rec.Date_Document <= toDate))
+      if(opers.rec.ListTransfer == tran.rec.authRef)
+       return true;
+      end;
+      stat = opers.next();
+    end;
+    return false;
+  end;
+
+  private macro findOperByTranByNumber(accRef)
+    opers.rewind();
+    opers.rec.referenc = accRef;
+    
+    var stat = opers.getGe();
+    while(stat and (opers.rec.referenc == accRef) )
+      if(opers.rec.ListTransfer == tran.rec.authRef)
+       return true;
+      end;
+      stat = opers.next();
+    end;
+    return false;
+  end;
+
+
+  private macro getAccOperationsByDate(accountRef, fromDate, toDate, cardId)
+    var transactions = TArray();
+    opers.rewind();
+    opers.rec.referenc = accountRef;
+    opers.rec.Date_Document = fromDate;
+    var stat = opers.GetGE;
+
+    while( stat and (opers.rec.referenc == accountRef) and (opers.rec.Date_Document <= toDate))
+       if(checkDepDoc(opers) and (( opers.rec.InSum > 0) or (opers.rec.OutSum > 0 )) )
+         if(findTran(1, opers.rec.iApplicationKind, opers.rec.ApplicationKey) and findLink(1, trans.rec.accCardLinkRef) and findCodif(20, trans.rec.authTypeCode, 0) and (links.rec.cardRef = cardId) )
+	        if((opers.rec.typeoper == 84) or (opers.rec.typeoper==94))
+     		   Ground  = String ( SubStr ( NCard, 1, 1 ) + "..." + SubStr ( NCard, StrLen ( NCard ) - 3, 4 ) ) + "/" + sccard.rec.EmbossingName1 + "/" + trans.Rec.AuthNotes;
+     		else
+ 		   ground = opers.rec.Ground;
+		end;
+		transactions[transactions.size] = CardOperation( opers.rec.Date_Document + opers.rec.NumDayDoc,
+                                                         opers.rec.Date_Document,
+                                                         opers.rec.Code_Currency,
+                                                         opers.rec.InSum,
+                                                         opers.rec.OutSum,
+                                                         trans.rec.authTransSum,
+//                                                         trans.rec.authTransSum,
+                                                         1,
+                                                         trans.rec.authKindOp,
+                                                         trans.rec.authDate+" "+trans.rec.authTime,
+                                                         trans.rec.authTransCodCur,
+                                                         ground
+                                                        );	
+         else
+           transactions[transactions.size] = CardOperation( opers.rec.Date_Document + opers.rec.NumDayDoc,
+                                                         opers.rec.Date_Document,
+                                                         opers.rec.Code_Currency,
+                                                         opers.rec.InSum,
+                                                         opers.rec.OutSum,
+                                                         opers.rec.InSum,
+//                                                         opers.rec.OutSum,
+                                                         0,
+                                                         0,
+                                                         opers.rec.Date_Document,
+                                                         opers.rec.Code_Currency,
+                                                         opers.rec.Ground
+                                                       );
+         end;
+       end;
+
+
+       stat = opers.next();
+    end;
+
+setoutput(null, false);
+
+    return transactions;	
+  end;   
+
+
+
+private macro getAccOperationsByNumber(accountRef, cardId, number)
+    var transactions = TArray();
+    var returnTransactions = TArray();
+    var i;
+
+    opers.rewind();
+    opers.rec.referenc = accountRef;
+    var stat = opers.GetGE;
+
+    setoutput("out.txt", false);
+
+    while( stat and (opers.rec.referenc == accountRef) )
+       if(checkDepDoc(opers) and (( opers.rec.InSum > 0) or (opers.rec.OutSum > 0 )) )
+         if(findTran(1, opers.rec.iApplicationKind, opers.rec.ApplicationKey) and findLink(1, trans.rec.accCardLinkRef) and findCodif(20, trans.rec.authTypeCode, 0) and (links.rec.cardRef = cardId) )
+	        if((opers.rec.typeoper == 84) or (opers.rec.typeoper==94))
+     		   Ground  = String ( SubStr ( NCard, 1, 1 ) + "..." + SubStr ( NCard, StrLen ( NCard ) - 3, 4 ) ) + "/" + sccard.rec.EmbossingName1 + "/" + trans.Rec.AuthNotes;
+     		else
+ 		   ground = opers.rec.Ground;
+		end;
+
+		transactions[transactions.size] = CardOperation( opers.rec.Date_Document + opers.rec.NumDayDoc,
+                                                         opers.rec.Date_Document,
+                                                         opers.rec.Code_Currency,
+                                                         opers.rec.InSum,
+                                                         opers.rec.OutSum,
+                                                         trans.rec.authTransSum,
+//                                                         trans.rec.authTransSum,
+                                                         1,
+                                                         trans.rec.authKindOp,
+                                                         trans.rec.authDate+" "+trans.rec.authTime,
+                                                         trans.rec.authTransCodCur,
+                                                         ground
+                                                        );	
+         else
+           transactions[transactions.size] = CardOperation( opers.rec.Date_Document + opers.rec.NumDayDoc,
+                                                         opers.rec.Date_Document,
+                                                         opers.rec.Code_Currency,
+                                                         opers.rec.InSum,
+                                                         opers.rec.OutSum,
+                                                         opers.rec.InSum,
+//                                                         opers.rec.OutSum,
+                                                         0,
+                                                         0,
+                                                         opers.rec.Date_Document,
+                                                         opers.rec.Code_Currency,
+                                                         opers.rec.Ground
+                                                       );
+         end;
+       end;
+
+
+       stat = opers.next();
+    end;
+
+
+     
+
+    i = 1;
+    while ((i <= number) and (i <= transactions.size))
+	returnTransactions[returnTransactions.size()] = CardOperation();
+	returnTransactions[i - 1] = transactions[transactions.size - i];
+	i = i + 1;
+    end;
+
+    return returnTransactions;
+
+	
+  end;   
+
+ 
+  private macro getTransIsCorrect()
+    return ((tran.rec.authStateCode != "AUCLS") and (tran.rec.authStateCode !="SPR__") and (tran.rec.authStateCode!="AUTH_") and (tran.rec.authStateCode!="INI__") );
+  end;
+
+  private macro getCardTransactionsByDate(cardId, accountRef, fromDate, toDate)
+    var transactions = TArray();
+    tran.rewind();
+    if(not findLinkbyCard(cardId,accountRef,1))
+      return transactions;
+    end;
+    tran.rec.accCardLinkRef= link.rec.accCardLinkRef;
+    tran.rec.fnCash = 1;
+    tran.rec.authDate = fromDate;
+    tran.rec.authTime = time(00:00);
+    var stat = tran.getGE();
+    while(stat and (tran.rec.accCardLinkRef == link.rec.accCardLinkRef) and (tran.rec.authDate <= toDate) and (tran.rec.fnCash == 1))
+      if(findCodif(20, tran.rec.authTypeCode, tran.rec.psRef) or findCodif(20, tran.rec.authTypeCode, 0) and getTransIsCorrect())
+        Ground  = String ( SubStr ( NCard, 1, 1 ) + "..." + SubStr ( NCard, StrLen ( NCard ) - 3, 4 ) ) + "/" + sccard.rec.EmbossingName1 + "/" + trans.Rec.AuthNotes;  
+	if(findOperByTranByDate(accountRef, fromDate, toDate))
+	transactions[transactions.size] = CardOperation( opers.rec.Date_Document + opers.rec.NumDayDoc,
+                                                         opers.rec.Date_Document,
+                                                         opers.rec.Code_Currency,
+                                                         opers.rec.InSum,
+                                                         opers.rec.OutSum,
+                                                         tran.rec.authTransSum,
+//                                                         tran.rec.authTransSum,
+                                                         1,
+                                                         tran.rec.authKindOp,
+                                                         tran.rec.authDate+" "+tran.rec.authTime,
+                                                         tran.rec.authTransCodCur,
+                                                         Ground
+                                                        );	
+        else
+	  transactions[transactions.size] = CardOperation( tran.rec.authDate,
+                                                         null,
+                                                         null,
+                                                         "",
+                                                         "",
+                                                         tran.rec.authTransSum,
+//                                                         tran.rec.authTransSum,
+                                                         1,
+                                                         tran.rec.authKindOp,
+                                                         tran.rec.authDate+" "+tran.rec.authTime,
+                                                         tran.rec.authTransCodCur,
+                                                         codif.rec.CodName
+                                                        );	
+	end;
+      end;
+      stat = tran.next();
+    end;
+    return transactions;	
+  end;
+  private macro getCardTransactionsByNumber(cardId, accountRef, number)
+    var transactions = TArray();
+    var returnTransactions = TArray();
+    var i;
+
+    tran.rewind();
+    if(not findLinkbyCard(cardId,accountRef,1))
+      return transactions;
+    end;
+    tran.rec.accCardLinkRef= link.rec.accCardLinkRef;
+    tran.rec.fnCash = 1;
+    //tran.rec.authDate = fromDate;
+    //tran.rec.authTime = time(00:00);
+    var stat = tran.getGE();
+    while(stat and (tran.rec.accCardLinkRef == link.rec.accCardLinkRef) and (tran.rec.fnCash == 1))
+      if(findCodif(20, tran.rec.authTypeCode, tran.rec.psRef) or findCodif(20, tran.rec.authTypeCode, 0) and getTransIsCorrect())
+        Ground  = String ( SubStr ( NCard, 1, 1 ) + "..." + SubStr ( NCard, StrLen ( NCard ) - 3, 4 ) ) + "/" + sccard.rec.EmbossingName1 + "/" + trans.Rec.AuthNotes;  
+	if(findOperByTranByNumber(accountRef))
+	transactions[transactions.size] = CardOperation( opers.rec.Date_Document + opers.rec.NumDayDoc,
+                                                         opers.rec.Date_Document,
+                                                         opers.rec.Code_Currency,
+                                                         opers.rec.InSum,
+                                                         opers.rec.OutSum,
+                                                         tran.rec.authTransSum,
+//                                                         tran.rec.authTransSum,
+                                                         1,
+                                                         tran.rec.authKindOp,
+                                                         tran.rec.authDate+" "+tran.rec.authTime,
+                                                         tran.rec.authTransCodCur,
+                                                         Ground
+                                                        );	
+        else
+	  transactions[transactions.size] = CardOperation( tran.rec.authDate,
+                                                         null,
+                                                         null,
+                                                         "",
+                                                         "",
+                                                         tran.rec.authTransSum,
+//                                                         tran.rec.authTransSum,
+                                                         1,
+                                                         tran.rec.authKindOp,
+                                                         tran.rec.authDate+" "+tran.rec.authTime,
+                                                         tran.rec.authTransCodCur,
+                                                         codif.rec.CodName
+                                                        );	
+	end;
+      end;
+      stat = tran.next();
+    end;
+
+    i = 1;
+    while ((i <= number) and (i <= transactions.size))
+	returnTransactions[returnTransactions.size()] = CardOperation();
+	returnTransactions[i - 1] = transactions[transactions.size - i];
+	i = i + 1;
+    end;
+
+    return returnTransactions;
+  end;
+
+
+
+
+
+  var accountReferencXml = inXml.documentElement.selectSingleNode( "//accountReferenc" ).text;
+  var cardIdXml          = inXml.documentElement.selectSingleNode( "//cardId" ).text;
+  var fromDateXml        = inXml.documentElement.selectSingleNode( "//fromDate" ).text;
+  var toDateXml          = inXml.documentElement.selectSingleNode( "//toDate" ).text;
+  var numberXml          = inXml.documentElement.selectSingleNode( "//number" ).text;
+
+  var accountReferenc = int(accountReferencXml);
+  var cardId          = int(cardIdXml);
+  var fromDate        = Date(fromDateXml);
+  var toDate          = Date(toDateXml);
+  var number          = int(numberXml);
+  var isMain;
+  var node, nodeAnswer, nodeTransaction, answerElement;
+  private var f_depositr = TBFile( "depositr.dbt",   "r", 8, NULL, "sbbank.def" );
+
+  f_depositr.rewind();
+  f_depositr.clear();
+  f_depositr.rec.Referenc = accountReferenc;
+  if(not f_depositr.getEQ)
+    outXml = AddError2OutXml(outXml, "не найден счет");
+  end;
+      
+  link.rewind();
+  link.rec.cardRef = cardId;
+  link.rec.fncash = 1;
+  link.rec.cardAccRef = "";
+  var stat = link.getGE();
+  if(stat and (link.rec.cardRef == cardId)  and (link.rec.fncash == 1))
+    if(link.rec.MainCard == "X")
+      isMain = true;
+    else isMain = false;
+    end;
+  else
+    outXml = AddError2OutXml(outXml, "не найдена карта");
+  end;
+  var transactions, i=0;
+  sccard.rewind();
+  sccard.rec.cardref=cardId;
+  sccard.rec.fncash = 1;
+  stat = sccard.getEQ();
+  if(stat and (sccard.rec.cardref == cardId) and (sccard.rec.fncash == 1))
+     NCard = Trim(sccard.rec.cardNumber);
+  else
+    outXml = AddError2OutXml(outXml, "не найдена карта");
+  end;
+
+  if(not outXml )
+    outXml = CreateXMLObject();
+    if(not outXml)
+      return;
+    end;
+    outXml.documentElement = outXml.createNode(1, "response", "");
+    node = outXml.documentElement.appendChild( outXml.createNode(1, "id", "") ); node.text = String(CreateGUID());
+    nodeAnswer = outXml.documentElement.appendChild( outXml.createNode(1, "getCardOperations_a", "") );
+
+    if(isMain)
+        if ((fromDate != "") and (toDate != ""))
+	    transactions = getAccOperationsByDate(accountReferenc, fromDate, toDate, cardId);
+	else
+	    transactions = getAccOperationsByNumber(accountReferenc, cardId, number);
+ 	end;
+    else 
+        if ((fromDate != "") and (toDate != ""))
+	    transactions = getCardTransactionsByDate(cardId, accountReferenc,  fromDate, toDate);
+	else 
+            transactions = getCardTransactionsByNumber(cardId, accountReferenc,  number);
+        end;
+    end;
+
+    while(i<transactions.size)
+      nodeTransaction = nodeAnswer.appendChild( outXML.createNode(1, "transaction", "") );
+
+      node = nodeTransaction.appendChild( outXml.createNode(1, "operationId",            "") ); node.text = transactions[i].operationId;
+      node = nodeTransaction.appendChild( outXml.createNode(1, "operationDate",          "") ); node.text = transactions[i].operationDate;
+      node = nodeTransaction.appendChild( outXml.createNode(1, "operationCurrencyId",    "") ); node.text = transactions[i].operationCurrencyId;
+      node = nodeTransaction.appendChild( outXml.createNode(1, "doubleCreditSum",        "") ); node.text = string(transactions[i].doubleCreditSum);
+      node = nodeTransaction.appendChild( outXml.createNode(1, "doubleDebitSum",         "") ); node.text = string(transactions[i].doubleDebitSum);
+      node = nodeTransaction.appendChild( outXml.createNode(1, "doubleAccountSum", "") ); node.text = string(transactions[i].doubleAccountSum);
+/*      node = nodeTransaction.appendChild( outXml.createNode(1, "doubleAccountDebitSum",  "") ); node.text = string(transactions[i].doubleAccountDebitSum);*/
+      node = nodeTransaction.appendChild( outXml.createNode(1, "transactionFlag",        "") ); node.text = transactions[i].transactionFlag;
+      node = nodeTransaction.appendChild( outXml.createNode(1, "transactionKind",        "") ); node.text = transactions[i].transactionKind;
+      node = nodeTransaction.appendChild( outXml.createNode(1, "chargeDate",             "") ); node.text = transactions[i].chargeDate;
+      node = nodeTransaction.appendChild( outXml.createNode(1, "transactionCurrencyId",  "") ); node.text = transactions[i].transactionCurrencyId;
+      node = nodeTransaction.appendChild( outXml.createNode(1, "description",            "") ); node.text = transactions[i].description;
+      i = i + 1;
+    end;
+
+
+  end;
+  SetParm(1, outXml);
+
+end;
+
+// ───────────────────────────────────────
+// Получить информацию по депозитам клиента
+// ───────────────────────────────────────
+private macro GetClientDepositInfo( inXml, outXml )
+  var stat = true,
+      //clientIdXml      = inXml.documentElement.selectSingleNode( "//clientId"      ),
+      dateXml          = inXml.documentElement.selectSingleNode( "//date"          ),
+      depositXml       = inXml.documentElement.selectSingleNode( "//deposit"       ),
+      accountReferencXml;
+      
+  var FNCash = 0;  //TODO: заглушка, пока филиал не передаётся
+  var ClientID,
+      ReportDate,
+      AccountReferenc, 
+      AccountTypeID;
+  var node,
+      nodeAnswer,
+      nodeDeposit,
+      Attribute;
+  var saveFlagCurr, 
+      saveFNcash;
+  var f_depositr = Tbfile( "depositr.dbt", "r", 8, null, "sbbank.def" ),
+       _depositr = Tbfile( "depositr.dbt", "r", 0, null, "sbbank.def" ),
+      f_sbdepdoc = Tbfile( "sbdepdoc.dbt", "r", 6, null, "sbbank.def" ),
+      f_depcontr = Tbfile( "depcontr.dbt", "r", 0, null, "sbbank.def" ),
+      f_sb_dtyp  = Tbfile( "sb_dtyp.dbt" , "r", 2, null, "sbbank.def" ),
+      pc_alg     = TRecHandler("pc_alg.dbt"  ,  "sbbank.def");
+
+
+  macro getAccRest()
+    var stat = 0;
+    var rest = $0;
+
+    // найдем исходящий остаток на дату
+    f_sbdepdoc.clear();
+    f_sbdepdoc.rec.Referenc      = f_depositr.rec.Referenc;
+    f_sbdepdoc.rec.Date_Document = ReportDate + 1;
+    f_sbdepdoc.rec.NumDayDoc     = 0;
+    stat = f_sbdepdoc.getLT();
+    while( stat and (f_sbdepdoc.rec.Referenc == f_depositr.rec.Referenc))
+      if(    (IsServDocWithEst(f_sbdepdoc)) and (f_sbdepdoc.rec.FlagStorn == ""))
+        rest = f_sbdepdoc.rec.Rest;
+        break;
+      end;
+      stat = f_sbdepdoc.prev();
+    end;
+
+    return string(rest);
+  end;
+
+  macro getPeriod()
+    if( f_depcontr.rec.End_DateDep != NULL_DATE )
+      return string( f_depcontr.rec.End_DateDep - f_depcontr.rec.Start_DateDep );
+    else
+      return "";
+    end;
+  end;
+
+  macro getStatus()
+    if( (f_depositr.rec.Close_Date == NULL_DATE ) or 
+        (f_depositr.rec.Close_Date  > ReportDate )  )
+      return "O";
+    else
+      return "C";
+    end;
+  end;
+
+  macro findDepType()
+    f_sb_dtyp.clear();
+    f_sb_dtyp.rec.FlagCur = f_depositr.rec.IsCur;
+    f_sb_dtyp.rec.Kind    = f_depositr.rec.Type_Account;
+    return f_sb_dtyp.getEQ();
+  end;
+
+  macro findDepcontr()
+    return RtDep_FindOrMakeContract( f_depositr, f_depcontr );
+  end;
+
+  macro getPcRate()
+    var pc_rate;
+    if(FindPcRate(f_depositr.rec.FNCash, f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, f_depositr.rec.Code_Currency, pc_rate));
+      return trim(String(pc_rate.rec.Percent1:6:2));
+    else
+      return "noPercentRate";
+    end;
+  end;
+
+  macro getAddFee()
+    var objDepProd = CDepositProduct();
+    if( objDepProd.IsOper(f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, 0) )
+      return "1";
+    else
+      return "0";
+    end;
+  end;
+
+  macro getMinAddFee()
+    var objDepProd = CDepositProduct();
+    if( objDepProd.IsOper(f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, 0) )
+      return string( objDepProd.GetMinSumINDOP(f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind) );
+    else
+      return "";
+    end;
+  end;
+
+  macro getRenewal()
+    if( (f_sb_dtyp.rec.FormContr == 20) or ((f_sb_dtyp.rec.FormContr == 30)) ); // если Депозитный или Пролонгируемый договор 
+      return "1";
+    else
+      return "0";
+    end;
+  end;
+
+  macro getCapitalization()
+    var objDepProd = CDepositProduct();
+    objDepProd.GetPcAlg(f_depositr.rec.FNCash, f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind,pc_alg);
+    if( (pc_alg.rec.Capital == 1) or (pc_alg.rec.Capital == 2) or (pc_alg.rec.Capital == 5) );
+      return "1";
+    else
+      return "0";
+    end;
+  end;
+
+  macro getPaymentPeriod()
+    var objDepProd = CDepositProduct();
+    objDepProd.GetPcAlg(f_depositr.rec.FNCash,f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, pc_alg);
+    if( pc_alg.rec.GrafPay == 1 )
+      return "Ежедневно";
+    elif( pc_alg.rec.GrafPay == 2 )
+      return "Ежемесячно";
+    elif( pc_alg.rec.GrafPay == 3 )
+      return "Ежеквартально";
+    elif( pc_alg.rec.GrafPay == 4 )
+      return "Ежегодно";
+    elif( pc_alg.rec.GrafPay == 5 )
+      return "числа каждого месяца";
+    end;
+  end;
+
+  macro getAnticipatoryRemoval()
+    var objDepProd = CDepositProduct();
+    if( objDepProd.GetAnticipatoryRemoval(f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, NULL) );
+      return "1";
+    else
+      return "0";
+    end;
+  end;
+
+  macro getRecvAccount()
+    if( RtDep_FindLinkedAccount( f_depcontr, f_depositr, _depositr, 4 /* LinkDepAcc_SumRecv */ ) )
+      return _depositr.rec.referenc;
+    else
+      return ""
+    end;
+  end;
+
+  macro getRecvAccountRef()
+    if( RtDep_FindLinkedAccount( f_depcontr, f_depositr, _depositr, 8 /* LinkDepAcc_SumRecv */ ) )
+      return _depositr.rec.referenc;
+    else
+      return ""
+    end;
+  end;
+
+  macro getConditionsPaymentPercent()
+    var kindAlt = "";
+    var objDepProd = CDepositProduct();
+    if( objDepProd.GetAnticipatoryRemoval(f_sb_dtyp.rec.FlagCur, f_sb_dtyp.rec.Kind, kindAlt) );
+      return "Согласно условиям вклада \""+kindAlt+"\"";
+    else
+      return "";
+    end;
+  end;
+
+/*  привести дату к виду string(ДД.ММ.ГГГГ)   #81619 */
+  macro ConvertDateToDDMMYYYY(date_in)
+    var day,mon,yar; 
+    datesplit(date(date_in),day,mon,yar);
+    if(day < 10)
+      return "0"+trim(string(date(date_in)));
+    end;
+    return trim(string(date(date_in)));
+  end;
+
+/*
+  ИСХОДНЫЕ ДАННЫЕ
+
+Элемент сообщения               Тип           Комментарий                                           Кратность
+request     
+  id                            GUIDType      идентификатор запроса в ИКФЛ  
+  getClientDepositInfo_q     
+    clientId                    string(8)     идентификатор клиента в RS-Retail 
+    date                        DateType      текущая дата  
+    deposit                                                                                         [0:n]
+      accountTypeId             string(12)    Идентификатор вида вклада в RS-Retail 
+
+
+
+   ОТВЕТ
+
+Элемент сообщения             │ Тип         │ Комментарий                                           Кратность
+──────────────────────────────┼─────────────┼─────────────────────────────────────────────────────────────────
+response                      │             │                                                      
+  id                          │ GUIDType    │ идентификатор ответа в RS-Retail                     
+  getClientDepositInfo_a      │             │                                                      
+    deposit                   │             │                                                       [0:n]
+      referenc                  string(9)     референс вида вклада в RS-Retail 
+      accountTypeId           │ string(12)  │ Идентификатор вида вклада в RS-Retail                
+      acountNumber              AccountType   Номер счета вклада   
+      number                  │ String(25)  │ Номер договора вклада в RS-Retail (depcontr.Number)  
+      currency                │ CurrencyType│ Валюта вклада                                        
+      period                  │ String(3)   │ Срок, на который размещены денежные средства в днях
+      sum                     │ SumType     │ Остаток на счете
+      status                  │ String(2)   │ статус вклада
+                              │             │   "O"-Открыт
+                              │             │   "C"-Закрыт
+      minimumAmount           │ SumType     │ Минимальная сумма вклада
+      interestRate            │ PercentType │ Текущая процентная ставка по вкладу
+      additionalFee           │ BoolType    │ Разрешены или запрещены дополнительные взносы к сумме депозита
+      minAdditionalFee        │ SumType     │ Мин. сумма доп. взноса
+      renewal                 │ BoolType    │ Пролонгация
+      capitalization          │ BoolType    │ Капитализация процентов
+      paymentPeriod           │ string(50)  │ Способ выплаты процентов
+                              │             │   Например:
+                              │             │   - "Ежемесячно"
+                              │             │   - "В конце срока"
+      anticipatoryRemoval     │ BoolType    │ разрешено ли досрочное снятие части средств по вкладу
+      account                 │ AccountType │ Номер счета для перечисления средств по истечении срока вклада
+      minSumRemoval           │ SumType     │ Минимальная сумма досрочного снятия средств**
+      maxSumRemoval           │ SumType     │ Максимальная сумма досрочного снятия средств**
+      conditionsPaymentPercent│ string(256) │ Определяет условия выплаты процентов при досрочном расторжении вклада (если это разрешено для данного вклада) в виде текстового описания.
+#81619                        │             │
+      startDateDep            │ string(10)в │ Корректировка данных по счету->AltE, поле "Дата начала договора"     (depcontr.Start_DateDep)
+      endDateDep              │ формате     │                                           "Дата окончания договора"  (depcontr.End_DateDep  )  
+      closeDate               │ ДД.ММ.ГГГГ  │                                           "Дата закрытия договора"   (depcontr.Close_Date   )   
+                              
+*/
+/*  if( FNCashXml  )
+    FNCash = int( FNCashXml .text );
+  else
+    outXML = AddError2OutXml(outXML, "не задан номер подразделения");
+  end;*/
+
+  if( dateXml )
+    ReportDate = date( dateXml.text );
+  else
+    outXML = AddError2OutXml(outXML, "не задана дата, на которую запрашивается информация");
+  end;
+  
+  if(not outXml)
+    outXml = CreateXMLObject();  
+    if(not outXml)
+      return;
+    end;
+    outXml.documentElement = outXml.createNode(1, "response", "");
+    node = outXml.documentElement.appendChild( outXml.createNode(1, "id", "") ); node.text = String(CreateGUID());
+    nodeAnswer  = outXml.documentElement.appendChild( outXml.createNode(1, "getClientDepositInfo_a", "") );
+
+    
+    while( depositXml )
+      accountReferencXml = depositXml.firstChild();
+
+      if ( accountReferencXml.text )
+        AccountReferenc = accountReferencXml.text;
+        f_depositr.clear();
+        f_depositr.rec.Referenc = AccountReferenc;
+
+        if ( f_depositr.getEQ() and findDepcontr() and findDepType())
+            nodeDeposit = nodeAnswer.appendChild( outXML.createNode(1, "deposit", "") );
+           Attribute = nodeDeposit.appendChild( outXML.createNode(1, "referenc"                , "") ); Attribute.text = f_depositr.rec.Referenc;
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "accountTypeId"           , "") ); Attribute.text = f_depositr.rec.Type_Account;
+           Attribute = nodeDeposit.appendChild( outXML.createNode(1, "accountNumber"           , "") ); Attribute.text = f_depositr.rec.Account;
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "number"                  , "") ); Attribute.text = f_depcontr.rec.Number;
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "currency"                , "") ); Attribute.text = f_depositr.rec.Code_Currency;
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "period"                  , "") ); Attribute.text = getPeriod();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "sum"                     , "") ); Attribute.text = getAccRest();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "status"                  , "") ); Attribute.text = getStatus();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "minimumAmount"           , "") ); Attribute.text = string(f_depcontr.rec.Limit);
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "interestRate"            , "") ); Attribute.text = getPcRate();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "additionalFee"           , "") ); Attribute.text = getAddFee();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "minAdditionalFee"        , "") ); Attribute.text = getMinAddFee();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "renewal"                 , "") ); Attribute.text = getRenewal();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "capitalization"          , "") ); Attribute.text = getCapitalization();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "paymentPeriod"           , "") ); Attribute.text = getPaymentPeriod();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "anticipatoryRemoval"     , "") ); Attribute.text = getAnticipatoryRemoval();
+            saveFlagCurr = SetFlagCur (f_depositr.rec.IsCur, 1);
+            saveFNcash   = SetFNcash  (f_depositr.rec.FNcash);
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "account"                 , "") ); Attribute.text = getRecvAccount();
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "accountRef"              , "") ); Attribute.text = getRecvAccountRef();
+            SetFlagCur (saveFlagCurr, 1);
+            SetFNcash  (saveFNcash);
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "minSumRemoval"           , "") ); Attribute.text = "0.00";
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "maxSumRemoval"           , "") ); Attribute.text = "0.00";
+            Attribute = nodeDeposit.appendChild( outXML.createNode(1, "conditionsPaymentPercent", "") ); Attribute.text = getConditionsPaymentPercent();
+/* #81619 */if(f_depcontr.rec.Start_DateDep != NULL_DATE)
+              Attribute = nodeDeposit.appendChild( outXML.createNode(1, "startDateDep"            , "") ); Attribute.text = ConvertDateToDDMMYYYY(f_depcontr.rec.Start_DateDep);
+            end;
+            if(f_depcontr.rec.End_DateDep   != NULL_DATE)
+              Attribute = nodeDeposit.appendChild( outXML.createNode(1, "endDateDep"              , "") ); Attribute.text = ConvertDateToDDMMYYYY(f_depcontr.rec.End_DateDep  );
+            end;
+            if(f_depcontr.rec.Close_Date   != NULL_DATE)
+              Attribute = nodeDeposit.appendChild( outXML.createNode(1, "closeDate"               , "") ); Attribute.text = ConvertDateToDDMMYYYY(f_depcontr.rec.Close_Date   );
+/* end */   end;
+          end;
+      end;
+      depositXml = depositXml.nextSibling();
+    end;
+  end;
+
+  SetParm(1, outXml);
+end;
+
+// ───────────────────────────────────────
+// Получение транзитного счета перевода 
+// по Контакту (счет кредита при контир.)
+// ───────────────────────────────────────
+private macro GetBalAccCredit_Cnt( inXml, outXml )
+  var f_pstrans  = Tbfile( "pstrans.dbt",  "r", 1, null, "sbbank.def" );
+  var f_psdepdoc = Tbfile( "psdepdoc.dbt", "r", 4, null, "sbbank.def" );
+  var f_sbdepdoc = Tbfile( "sbdepdoc.dbt", "r", 4, null, "sbbank.def" );
+  var r_sbdepdoc = TRecHandler( "psdepdoc.dbt", "sbbank.def" );
+  record params("GetBkAcc.rec", "sbbank.def");
+  var stat = 0,
+      refTransXml = inXml.documentElement.selectSingleNode( "//reference" );
+  var accCredit = "", reference = 0;
+
+  if( refTransXml )
+    reference = Int(refTransXml.text);
+  else
+    outXml = AddError2OutXml(outXml, "не задан идентификатор перевода");
+  end;
+
+  if( not outXml )//если есть outXml значит там висят ошибки
+    // ищем перевод
+    f_pstrans.clear();
+    f_pstrans.rec.psNum    = 2; // PS_CONTACT
+    f_pstrans.rec.Referenc = reference;
+    if( f_pstrans.getEQ() )
+      clearRecord( params );
+      params.ApplDoc = 1; // Документ должен быть вкладным
+      params.LineNo  = -1;
+      // найдем документ
+      if( f_pstrans.rec.iApplicationKind == 5 ) // отложенный
+        f_psdepdoc.clear();
+        f_psdepdoc.rec.iApplicationKind = f_pstrans.rec.iApplicationKind;
+        f_psdepdoc.rec.ApplicationKey   = f_pstrans.rec.ApplicationKey;
+        if( f_psdepdoc.getEQ() )
+          params.Kind   = f_psdepdoc.rec.Type_Account;
+          params.FNCash = f_psdepdoc.rec.FNCash;
+          params.IsCur  = f_psdepdoc.rec.IsCur;
+          params.CodCur = f_psdepdoc.rec.Code_Currency;
+          copy( r_sbdepdoc, f_psdepdoc );
+        else
+          outXml = AddError2OutXml(outXml, "не найден документ");
+        end;
+      elif( f_pstrans.rec.iApplicationKind == 1 ) // вкладной (на всяк. случай)
+        f_sbdepdoc.clear();
+        f_sbdepdoc.rec.iApplicationKind = f_pstrans.rec.iApplicationKind;
+        f_sbdepdoc.rec.ApplicationKey   = f_pstrans.rec.ApplicationKey;
+        if( f_sbdepdoc.getEQ() )
+          params.Kind   = f_sbdepdoc.rec.Type_Account;
+          params.FNCash = f_sbdepdoc.rec.FNCash;
+          params.IsCur  = f_sbdepdoc.rec.IsCur;
+          params.CodCur = f_sbdepdoc.rec.Code_Currency;
+          copy( r_sbdepdoc, f_sbdepdoc );
+        else
+          outXml = AddError2OutXml(outXml, "не найден документ");
+        end;
+      else
+        outXml = AddError2OutXml(outXml, "неверный тип документа (iApplicationKind=" + String(f_pstrans.rec.iApplicationKind) + ")");
+      end;
+
+      if( not outXML )
+        if( GetBookAccountsEx( params, NULL, NULL, r_sbdepdoc) )
+          outXml = createOutXML("getContactTransitAccount_а", "transitAccount", params.CreditAcc);
+        else
+          outXml = AddError2OutXml(outXml, "не найдены счета контировки");
+        end;
+      end;
+    else
+      outXml = AddError2OutXml(outXml, "не найден перевод с Referenc=" + String(reference));
+    end;
+  end;
+  SetParm(1, outXml);
+end;
+
+// ───────────────────────────────────────
+// Обработчик 
+// ───────────────────────────────────────
+macro requestDispatcher( xmlDoc, outXml )
+  var firstNode, nextNode;
+  var proc_ref = "";
+
+  outXml = null;
+
+  firstNode = xmlDoc.documentElement.childNodes.item(0);
+  nextNode = firstNode.nextSibling;
+
+  if( nextNode.nodeName == "commissionPay_q" )
+    proc_ref = "CalcComPay";       // комиссия вкладного документа
+  elif( nextNode.nodeName == "commissionPayCP_q" )
+    proc_ref = "CalcComPayCP";    // комиссия ком.платежа
+  elif( nextNode.nodeName == "commissionContact_q" )
+    proc_ref = "CalcComContact";  // комиссия за перевод Контакт
+  elif( nextNode.nodeName == "getRateCurrency_q" )
+    proc_ref = "ConvertSum";      // Курс покупки/продажи валюты
+  elif( nextNode.nodeName == "getDepositList_q" ) 
+    proc_ref = "GetDepositList";  // Получить вклады
+  elif( nextNode.nodeName == "depositProduct_q" ) 
+    proc_ref = "DepositProduct";  // Для создания депозитного продукта
+  elif( nextNode.nodeName == "getClientDepositInfo_q" ) 
+    proc_ref = "GetClientDepositInfo";  // Получить информацию по депозитам клиента
+  elif( nextNode.nodeName == "getApplicationKey_q" ) 
+    proc_ref = "GetApplicationKey";  // Получить applicationKey
+  elif( nextNode.nodeName == "getContactTransitAccount_q" ) 
+    proc_ref = "GetBalAccCredit_Cnt";  // Получение транзитного счета перевода по Контакту (счет кредита, тот, кот. печатается в мемордере)
+  elif( nextNode.nodeName == "getOvInfo_q" ) 
+    proc_ref = "GetOverdraftInfo";  // Получить информацию по овердрафту
+  elif( nextNode.nodeName == "getCardLastOperationDate_q" )
+    proc_ref = "GetCardLastOperationDate";  // Получить дату последней операции по карточке
+  elif( nextNode.nodeName == "getCardOperations_q" )
+    proc_ref = "GetCardOperations";  // Получить операции по карточке
+  elif( nextNode.nodeName == "onLinePaymentTransact_q" ) 
+    proc_ref = "GetCarryDoc";  // Провести отложенный документ и получить код ошибки
+  elif( nextNode.nodeName == "deleteDocument_q" ) 
+    proc_ref = "DeleteDoc";  // Сторнировать проведённый документ и получить код ошибки
+  elif( nextNode.nodeName == "getAccountTransactions_q" ) 
+    proc_ref = "GetAccountTransactions";  // Достать транзакции по счету
+  else
+    outXml = AddError2OutXml(outXML, "неизвестный запрос");
+  end;
+
+  if( proc_ref )
+    if(not ExecMacro(proc_ref, xmlDoc, outXml))
+      outXml = AddError2OutXml(outXML, "Ошибка запуска процедуры "+proc_ref+" rtxml.mac" );
+    end;
+  end;
+  SetParm( 1, outXml );
+end;
+
+// ═════════════════════════════════════════════
+// Головная функция
+// ═════════════════════════════════════════════
+macro XML_Dispatch( xml_request )
+  var xmlDoc, outXml, strErr = "ERROR";
+  var account, filial, dateDoc, sum, currency, clientID, operationType, operationSubspecies;
+
+  xmlDoc = CreateXMLObject();
+
+  if( xmlDoc )
+    if( xmlDoc.loadXML(xml_request) )
+      if( xmlDoc.documentElement.nodeName == "request" )
+        requestDispatcher( xmlDoc, outXml );
+      else
+        // другие действия :)
+        outXml = AddError2OutXml(outXML, "Запрос '"+xmlDoc.documentElement.nodeName+"' не поддерживается" );
+      end;
+    else
+      outXml = AddError2OutXml(outXML, "Ошибка загрузки xml-документа" );
+    end;
+  else
+    strErr = "Ошибка инициализации Active-X компонента";
+  end;
+
+  if( outXml )
+    return "<?xml version=\"1.0\" encoding=\"CP866\"?>"+string(outXml.xml);
+  else
+    return (strErr);
+  end;
+end;

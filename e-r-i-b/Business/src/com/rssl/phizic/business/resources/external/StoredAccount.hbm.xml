@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="accountState">
+        <param name="enumClass">com.rssl.phizic.gate.bankroll.AccountState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.resources.external.StoredAccount" table="STORED_ACCOUNT">
+        <id name="storedId" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_STORED_ACCOUNT</param>
+            </generator>
+        </id>
+
+        <many-to-one name="resourceLink"  class="com.rssl.phizic.business.resources.external.AccountLink" column="RESOURCE_ID"   lazy="false" unique="true"/>
+
+        <property name="openDate"                 type="calendar"     column="OPEN_DATE"/>
+        <property name="prolongationAllowed"      type="boolean"      column="PROLONGATION_ALLOWED"/>
+        <property name="interestRate"             type="big_decimal"  column="INTEREST_RATE"/>
+        <property name="kind"                     type="long"         column="KIND"/>
+        <property name="subKind"                  type="long"         column="SUB_KIND"/>
+        <property name="interestTransferAccount"  type="string"       column="INTEREST_TRANSFER_ACCOUNT"/>
+        <property name="interestTransferCard"     type="string"       column="INTEREST_TRANSFER_CARD"/>
+        <property name="demand"                   type="boolean"      column="DEMAND"/>
+        <property name="stringPeriod"             type="string"       column="PERIOD"/>
+        <property name="closeDate"                type="calendar"     column="CLOSE_DATE"/>
+        <property name="creditCrossAgencyAllowed" type="boolean"      column="CREDIT_CROSS_AGENCY"/>
+        <property name="debitCrossAgencyAllowed"  type="boolean"      column="DEBIT_CROSS_AGENCY"/>
+        <property name="entityUpdateTime"         type="calendar"     column="ENTITY_UPDATE_TIME"/>
+        <property name="entityInfoUpdateTime"     type="calendar"     column="ENTITY_UPDATE_INFO_TIME"/>
+
+        <property name="accountState"             type="accountState" column="ACCOUNT_STATE"/>  
+        <property name="passbook"                 type="boolean"      column="PASSBOOK"/>
+        <property name="creditAllowed"            type="boolean"      column="CREDIT_ALLOWED"/>
+        <property name="debitAllowed"             type="boolean"      column="DEBIT_ALLOWED"/>
+
+        <property name="departmentId"             type="long"         column="DEPARTMENT_ID"/>
+
+        <property name="officeOSB"                type="string"       column="OFFICE_OSB"/>
+        <property name="officeTB"                 type="string"       column="OFFICE_TB"/>
+        <property name="officeVSP"                type="string"       column="OFFICE_VSP"/>
+        <property name="clearBalance"             type="big_decimal"  column="CLEAR_BALANCE"/>
+        <property name="maxBalance"               type="big_decimal"  column="MAX_BALANCE"/>
+        <property name="prolongationDate"         type="calendar"     column="PROLONGATION_DATE"/>
+        <property name="clientKind"               type="long"         column="CLIENT_KIND"/>
+
+        <property name="balance"           type="money">
+            <column  name="BALANCE_AMOUNT"/>
+            <column  name="BALANCE_AMOUNT_CURRENCY"/>
+        </property>
+
+        <property name="maxSumWrite"       type="money">
+            <column  name="MAX_SUM_AMOUNT"/>
+            <column  name="MAX_SUM_AMOUNT_CURRENCY"/>
+        </property>
+
+        <property name="minimumBalance"    type="money">
+            <column  name="MIN_BALANCE_AMOUNT"/>
+            <column  name="MIN_BALANCE_AMOUNT_CURRENCY"/>
+        </property>
+    </class>
+</hibernate-mapping>

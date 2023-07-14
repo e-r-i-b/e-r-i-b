@@ -1,0 +1,2154 @@
+<?xml version="1.0" encoding="Windows-1251" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<!-- <xs:schema targetNamespace="urn:esb.messages" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="urn:esb.messages" elementFormDefault="qualified" attributeFormDefault="unqualified"> -->
+
+<xs:element name="message" type="MessageType" />
+
+<xs:complexType name="MessageType">
+  <xs:annotation>
+    <xs:documentation>Сообщения</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="messageId" type="GUIDType" />
+    <xs:element name="messageDate" type="xs:date" />
+    <xs:element name="fromAbonent" type="AbonentEnum" />
+    <xs:choice>
+      <xs:element name="agreementRegistration_q" type="AgreementRegistrationType" />
+      <xs:element name="agreementModification_q" type="AgreementModificationType" />
+      <xs:element name="agreementCancellation_q" type="AgreementCancellationType" />
+      <xs:element name="agreementCancellationWithoutCharge" type="AgreementCancellationWithoutChargeType" />
+      <xs:element name="agreementCancellationMandatory" type="AgreementCancellationMandatoryType" />
+      <xs:element name="agreementInfoDemand" type="AgreementInfoDemandType" />
+      <xs:element name="agreementInfo" type="AgreementInfoType" />
+      <xs:element name="restoreAccess" type="RestoreAccessType" />
+      <xs:element name="restoreKey" type="RestoreKeyType" />
+      <xs:element name="accountInfoDemand_q" type="AccountInfoDemandType" />
+      <xs:element name="accountInfo_a" type="AccountInfoType" />
+      <xs:element name="accountBalanceDemand_q" type="AccountBalanceDemandType" />
+      <xs:element name="accountBalance_a" type="AccountBalanceType" minOccurs="1" maxOccurs="unbounded" />
+      <xs:element name="billingDemand_q" type="BillingDemandType" />
+      <xs:element name="billing_a" type="BillingType" />
+      <xs:element name="form190ResultDemand_q" type="Form190ResultDemandType" />
+      <xs:element name="form190Result_a" type="Form190ResultType" />
+      <xs:element name="lossingPassbook_q" type="LossingPassbookType" />
+      <xs:element name="transferAccountToAccountDemand_q" type="TransferAccountToAccountDemandType" />
+      <xs:element name="transferForm143Demand_q" type="TransferForm143DemandType" />
+      <xs:element name="saleCurrencyDemand_q" type="SaleCurrencyDemandType" />
+      <xs:element name="purchaseCurrencyDemand_q" type="PurchaseCurrencyDemandType" />
+      <xs:element name="convertCurrencyDemand_q" type="ConvertCurrencyDemandType" />
+      <xs:element name="executePayment_q" type="ExecutePaymentType" />
+      <xs:element name="transferOtherBank_q" type="TransferOtherBankType" />
+      <xs:element name="acknowledge_t" type="ConfirmationType" />
+      <xs:element name="refusal_t" type="ErrorType" />
+      <xs:element name="confirmation_a" type="ConfirmationType" />
+      <xs:element name="error_a" type="ErrorType" />
+      <xs:sequence>
+        <xs:choice>
+          <xs:element name="error_offline_a" type="OperationRefusalType" />
+          <xs:element name="confirmation_offline_a" type="OperationResultType" />
+          <xs:element name="cancellationConfirmation" type="CancellationConfirmationType" />
+        </xs:choice>
+        <xs:element name="parentId" minOccurs="0" maxOccurs="1" >
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="messageId" type="GUIDType" />
+              <xs:element name="messageDate" type="xs:date" />
+              <xs:element name="fromAbonent" type="AbonentEnum" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:element name="lockClient_esk_q" type="LockAgreementType" />
+      <xs:element name="unlockClient_esk_q" type="UnlockAgreementType" />
+      <xs:element name="flowback" type="FlowbackType" />
+      <xs:element name="revokeOperation" type="RevokeOperationType" />
+      <xs:element name="requisitesChange" type="RequisitesChangeType" />
+      <xs:element name="operationTraceDemand_q" type="OperationTraceDemandType" />
+      <xs:element name="operationTrace_a" type="OperationTraceType" />
+      <xs:element name="agreementLock" type="AgreementLockType" />
+      <xs:element name="agreementUnlock" type="AgreementUnlockType" />
+    </xs:choice>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="ConfirmationType" >
+  <xs:annotation>
+    <xs:documentation>Подтверждение приема сообщения</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="ErrorType" >
+  <xs:annotation>
+    <xs:documentation>Ошибка приема сообщения</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="code" type="ErrorCodeEnum" />
+    <xs:element name="message">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="256" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AgreementRegistrationType">
+  <xs:annotation>
+    <xs:documentation>Регистрация договора на обслуживание</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="agreementNumber">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="agreementDate" type="xs:date" />
+    <xs:element name="insertionOfService" type="xs:date" />
+    <xs:element name="agreementOwner" type="BranchType" />
+    <xs:element name="deposit" minOccurs="1" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="account" type="AccountType" />
+        </xs:sequence>
+
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="owner" type="ClientType" />
+    <xs:choice>
+      <xs:sequence>
+        <xs:element name="innerRecipient" type="InnerRecipientType" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element name="outerRecipient" type="OuterRecipientType" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element name="feeAccount" type="AccountType" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element name="feeValue" type="MoneyType" minOccurs="0" maxOccurs="1" />
+        <xs:element name="addendum" type="AddendumType" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:element name="trustingClient" type="GUIDType" minOccurs="0" maxOccurs="1" />
+    </xs:choice>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AgreementCancellationType">
+  <xs:annotation>
+    <xs:documentation>Отмена договора об обслуживании</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="stopDate" type="xs:date" />
+    <xs:element name="id" type="GUIDType" />
+    <xs:element name="trustingClient" type="GUIDType" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AgreementCancellationWithoutChargeType">
+  <xs:annotation>
+    <xs:documentation>Отмена договора об обслуживании без списания платы</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="stopDate" type="xs:date" minOccurs="0" maxOccurs="1"/>
+    <xs:element name="id" type="GUIDType" />
+    <xs:element name="trustingClient" type="GUIDType" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AgreementCancellationMandatoryType">
+  <xs:annotation>
+    <xs:documentation>Отмена договора об обслуживании по иницитиве банка</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="stopDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="id" type="GUIDType" />
+    <xs:element name="trustingClient" type="GUIDType" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="CancellationConfirmationType">
+  <xs:annotation>
+    <xs:documentation>Подтверждение отмены договора</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="ownerId" type="GUIDType" />
+    <xs:element name="outstandingDebt" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="parentId" minOccurs="0" maxOccurs="1" >
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="messageId" type="GUIDType" />
+          <xs:element name="messageDate" type="xs:date" />
+          <xs:element name="fromAbonent" type="AbonentEnum" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AgreementModificationType">
+  <xs:annotation>
+    <xs:documentation>Изменение договора об обслуживании</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="owner" minOccurs="0" maxOccurs="1">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="tokenId" type="TokenIdType" minOccurs="0" maxOccurs="1" />
+          <xs:element name="fullName" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="128" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="gender" type="GenderEnum" minOccurs="0" maxOccurs="1" />
+          <xs:element name="birthdate" type="xs:date" minOccurs="0" maxOccurs="1" />
+          <xs:element name="citizen" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="70" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="identityCard" type="IdentityCardType" minOccurs="0" maxOccurs="1" />
+          <xs:element name="login" type="LoginType" minOccurs="0" maxOccurs="1" />
+          <xs:element name="allowedOperations" type="AllowedOperationType" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="removed" minOccurs="0" maxOccurs="1" >
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="deposit" type="AccountType" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="feeAccount" type="AccountType" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="innerRecipient" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="account" type="AccountType" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="outerRecipient" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="account" type="AccountType" />
+                <xs:element name="bankBIC" type="BICType" />
+                <xs:element name="bankAccount" type="AccountType" minOccurs="0" maxOccurs="1" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="addendum" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="fullName">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="128" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="added" minOccurs="0" maxOccurs="1" >
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="deposit" type="AccountType" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="feeAccount" type="AccountType" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="innerRecipient" type="InnerRecipientType" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="outerRecipient" type="OuterRecipientType" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="addendum" type="AddendumType" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="trustingClient" type="GUIDType" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AgreementInfoDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос информации о договоре ЭСК</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="ownerId" type="GUIDType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AgreementInfoType">
+  <xs:annotation>
+    <xs:documentation>Запрос информации о договоре ЭСК</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="ownerId" type="GUIDType" />
+    <xs:element name="state">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="ACTIVE" />
+          <xs:enumeration value="CANCELLED" />
+          <xs:enumeration value="LOCKED" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="mode">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="RESTRICTED" />
+          <xs:enumeration value="FULL" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="agreementNumber">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="agreementDate" type="xs:date" />
+    <xs:element name="agreementOwner" type="BranchType" />
+    <xs:element name="insertionOfService" type="xs:date" />
+    <xs:element name="serviceRate" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="restoreAccessRate" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="restoreKeyRate" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="lastInvoiceDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="nextInvoiceDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="outstandingDebt" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="invoice" minOccurs="0" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="invoiceDate" type="xs:date" />
+          <xs:element name="reason">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="256" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="totalSum" type="MoneyType" />
+          <xs:element name="insufficientSum" type="MoneyType" minOccurs="0" maxOccurs="1" />
+          <xs:element name="lastAttemptDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="RestoreAccessType">
+  <xs:annotation>
+    <xs:documentation>Запрос на списание платы за восстановление доступа к ЭСК</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="login" type="LoginType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="RestoreKeyType">
+  <xs:annotation>
+    <xs:documentation>Запрос на списание платы за секретного ключа ЭСК</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="tokenId" type="TokenIdType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="ProxyAgreementModificationType">
+  <xs:annotation>
+    <xs:documentation>Изменение договора об обслуживании доверенного лица</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="owner">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="tokenId" type="TokenIdType" minOccurs="0" maxOccurs="1" />
+          <xs:element name="fullName" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="128" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="gender" type="GenderEnum" minOccurs="0" maxOccurs="1" />
+          <xs:element name="birthdate" type="xs:date" minOccurs="0" maxOccurs="1" />
+          <xs:element name="citizen" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="70" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="identityCard" type="IdentityCardType" minOccurs="0" maxOccurs="1" />
+          <xs:element name="allowedOperations" type="AllowedOperationType" minOccurs="0" maxOccurs="1" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="removed">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="deposit" type="AccountType" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="added">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="deposit" type="AccountType" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="ProxyAgreementRegistrationType">
+  <xs:annotation>
+    <xs:documentation>Регистрация договора на обслуживание доверенного лица</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="agreementNumber">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="agreementDate" type="xs:date" />
+    <xs:element name="insertionOfService" type="xs:date" />
+    <xs:element name="deposit" type="AccountType" minOccurs="1" maxOccurs="unbounded" />
+    <xs:element name="proxy" type="ClientType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AccountBalanceDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос остатка по счету</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="account" type="AccountType" minOccurs="1" maxOccurs="unbounded" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AccountBalanceType">
+  <xs:annotation>
+    <xs:documentation>Остаток по счету</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="branch" type="BranchType" />
+    <xs:element name="office" type="OfficeType" />
+    <xs:element name="account" type="AccountType" />
+    <xs:element name="status" type="AccountStatusEnum" />
+    <xs:element name="balance" type="MoneyType" />
+    <xs:element name="availableBalance" type="MoneyType" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="LossingPassbookType">
+  <xs:annotation>
+    <xs:documentation>Сообщение об утере сберкнижки</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="account" type="AccountType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AccountInfoDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос информации по счету</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="account" type="AccountType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AccountInfoType">
+  <xs:annotation>
+    <xs:documentation>Информация по счету</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="account" type="AccountType" />
+    <xs:element name="branch" type="BranchType" />
+    <xs:element name="office" type="OfficeType" />
+    <xs:element name="status" type="AccountStatusEnum" />
+    <xs:element name="depositor" type="DepositorType" />
+    <xs:element name="balance" type="MoneyType" />
+    <xs:element name="isDeposit" type="xs:boolean" />
+    <xs:element name="isSpecial" type="xs:boolean" />
+    <xs:element name="accName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="openDate" type="xs:date" />
+    <xs:element name="isCreditAllowed" type="xs:boolean" />
+    <xs:element name="isDebitAllowed" type="xs:boolean" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="BillingDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос выписки по счету</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="copying" type="xs:boolean" />
+    <xs:element name="account" type="AccountType" />
+    <xs:element name="startDate" type="xs:date" />
+    <xs:element name="endDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="BillingType">
+  <xs:annotation>
+    <xs:documentation>Выписка по счету</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="formType">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:length value="3" fixed="true" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="bankName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="branch" type="BranchType" />
+    <xs:element name="office" type="OfficeType" />
+    <xs:element name="account" type="AccountType" />
+    <xs:element name="startDate" type="xs:date" />
+    <xs:element name="endDate" type="xs:date" />
+    <xs:element name="depositorName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="depositType">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="currencyCode" type="CurrencyCodeType" />
+    <xs:element name="openingDate" type="xs:date" />
+    <xs:element name="openingSum" type="MoneyType" />
+    <xs:element name="interestRate">
+      <xs:simpleType>
+        <xs:restriction base="xs:decimal">
+          <xs:totalDigits value="17" />
+          <xs:fractionDigits value="4" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="endingDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="closedDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="closedSum" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="beginningBalance" type="MoneyType" />
+    <xs:element name="outBalance" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="rubInBalance" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="rubOutBalance" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="prevOperDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="date" type="xs:date" />
+          <xs:element name="name">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="128" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="aspect">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:length value="3" fixed="true" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="debit" type="xs:boolean" />
+          <xs:element name="sum" type="MoneyType" />
+          <xs:element name="document" minOccurs="0" maxOccurs="1" >
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="32" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="correspondent" type="AccountType" minOccurs="0" maxOccurs="1" />
+          <xs:element name="balance" type="MoneyType" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="proxy" minOccurs="0" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="name">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="128" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="date" type="xs:date" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="Form190ResultDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос результатов исполнения форм 190</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="account" type="AccountType" />
+    <xs:element name="startDate" type="xs:date" />
+    <xs:element name="endDate" type="xs:date" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="Form190ResultType">
+  <xs:annotation>
+    <xs:documentation>Результат исполнения форм 190</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+<!--    <xs:element name="bankName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="branch" type="BranchType" />
+    <xs:element name="office" type="OfficeType" /> -->
+    <xs:element name="account" type="AccountType" />
+    <xs:element name="startDate" type="xs:date" />
+    <xs:element name="endDate" type="xs:date" />
+    <xs:element name="form190" minOccurs="0" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="id">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="16" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="formDate" type="xs:date" />
+          <xs:element name="startingDate" type="xs:date" />
+          <xs:element name="endingDate" type="xs:date" />
+          <xs:element name="recipientName">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="128" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="recipientAccount" type="AccountType" />
+          <xs:element name="bankBIC" type="BICType" />
+          <xs:element name="bankAccount" type="AccountType" minOccurs="0" maxOccurs="1" />
+          <xs:element name="type" type="Form190TypeEnum" />
+          <xs:element name="sum" type="MoneyType" minOccurs="0" maxOccurs="1" />
+
+          <xs:element name="row" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="operationDate" type="xs:date" />
+                <xs:element name="purpose">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="32" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="targetMonth">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="32" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="recipientAccount" type="AccountType" />
+                <xs:element name="bankBIC" type="BICType" />
+                <xs:element name="bankAccount" type="AccountType" minOccurs="0" maxOccurs="1" />
+                <xs:element name="sum" type="MoneyType" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SaleCurrencyDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос на продажу валюты</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="debitAccount" type="AccountType" />
+    <xs:choice>
+      <xs:element name="creditAlias">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:maxLength value="16" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="creditAccount" type="AccountType" />
+    </xs:choice>
+    <xs:element name="sum" type="MoneyType" />
+    <xs:element name="currencyCode" type="CurrencyCodeType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="PurchaseCurrencyDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос на покупку валюты</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="debitAccount" type="AccountType" />
+    <xs:choice>
+      <xs:element name="creditAlias">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:maxLength value="16" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="creditAccount" type="AccountType" />
+    </xs:choice>
+    <xs:element name="sum" type="MoneyType" />
+    <xs:element name="currencyCode" type="CurrencyCodeType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="ConvertCurrencyDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос на конверсию валюты</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="debitAccount" type="AccountType" />
+    <xs:choice>
+      <xs:element name="creditAlias">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:maxLength value="16" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="creditAccount" type="AccountType" />
+    </xs:choice>
+    <xs:element name="sum" type="MoneyType" />
+    <xs:element name="currencyCode" type="CurrencyCodeType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="TransferAccountToAccountDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос на перевод со счета на счет</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="debitAccount" type="AccountType" />
+    <xs:element name="sum" type="MoneyType" />
+    <xs:choice>
+      <xs:element name="creditAlias">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:maxLength value="16" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:sequence>
+        <xs:element name="creditAccount" type="AccountType" />
+        <xs:element name="destBranch" type="BranchType" minOccurs="0" maxOccurs="1" />
+        <xs:element name="destOffice" type="OfficeType" minOccurs="0" maxOccurs="1" />
+        <xs:element name="recipient" >
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:minLength value="1" />
+              <xs:maxLength value="128" />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+      </xs:sequence>
+    </xs:choice>
+    <xs:element name="purpose" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="210" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="operationCode" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="210" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="TransferForm143DemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос на перевод со счета на счет</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="debitAccount" type="AccountType" />
+    <xs:element name="sum" type="MoneyType" />
+    <xs:choice>
+      <xs:element name="creditAlias">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:maxLength value="16" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:sequence>
+        <xs:element name="creditAccount" type="AccountType" />
+        <xs:element name="destBranch" type="BranchType" />
+        <xs:element name="destOffice" type="OfficeType" />
+      </xs:sequence>
+    </xs:choice>
+    <xs:element name="recipient">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="purpose" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="210" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="operationCode" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="210" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="ExecutePaymentType">
+  <xs:annotation>
+    <xs:documentation>Запрос на перевод в другие банки</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="uniqueNumber" type="UniqueNumberType" minOccurs="0" maxOccurs="1" />
+    <xs:choice>
+      <xs:element name="alias">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:maxLength value="16" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:sequence>
+        <xs:element name="account" type="AccountType" />
+        <xs:element name="bankBIC" type="BICType" />
+        <xs:element name="bankAccount" type="AccountType" minOccurs="0" maxOccurs="1" />
+        <xs:element name="inn" type="INNType" minOccurs="0" maxOccurs="1" />
+      </xs:sequence>
+    </xs:choice>
+    <xs:element name="sum" type="MoneyType" />
+    <xs:element name="commision" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="debitAccount" type="AccountType" />
+    <xs:element name="purpose" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="210" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="beneficiary">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="160" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="specialClient" minOccurs="0" maxOccurs="unbounded" >
+      <xs:complexType>
+        <xs:sequence>
+
+          <xs:element name="specialClientNplat" minOccurs="0" maxOccurs="1" >
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="specialClientCode">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="9" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="operation" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="operationNumber" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="conditionNumber" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+
+          <xs:element name="vvodNumber">
+            <xs:simpleType>
+              <xs:restriction base="xs:int">
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+
+          <xs:element name="requisites" minOccurs="1" maxOccurs="unbounded" >
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="name" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="64" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="field" minOccurs="1" maxOccurs="unbounded" >
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="template">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:minLength value="1" />
+                            <xs:maxLength value="64" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                      <xs:element name="length" minOccurs="0" maxOccurs="1" >
+                        <xs:simpleType>
+                          <xs:restriction base="xs:int">
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                      <xs:element name="prefix" minOccurs="0" maxOccurs="1" >
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:minLength value="1" />
+                            <xs:maxLength value="30" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                      <xs:element name="postfix" minOccurs="0" maxOccurs="1" >
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:minLength value="1" />
+                            <xs:maxLength value="30" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                      <xs:element name="menu" minOccurs="0" maxOccurs="unbounded" >
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:minLength value="1" />
+                            <xs:maxLength value="35" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+
+                      <xs:element name="enteredData">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:minLength value="1" />
+                            <xs:maxLength value="128" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="nplatRequisites" >
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="requisites" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="1048" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="commissionVklad" type="xs:boolean" />
+          <xs:element name="paymentType" type="xs:int" />
+          <xs:element name="specialClientCodeOrg" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="9" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="spravNastr" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="operationCode">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="operationNumber">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="conditionNumber">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="conditionResult" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="conditionResultPoint" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="15" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="usePaymentOrder" type="xs:boolean" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="CommunalCalculation" >
+  <xs:annotation>
+    <xs:documentation>Расчет коммунального платежа</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="uniqueNumber" type="UniqueNumberType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="commision" type="MoneyType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="specialClient" minOccurs="0" maxOccurs="unbounded" >
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="specialClientNplat" minOccurs="0" maxOccurs="1" >
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="specialClientCode">
+                </xs:element>
+                <xs:element name="operation" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="9" />
+                      <xs:pattern value="[0-9]{5}" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="operationNumber" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="9" />
+                      <xs:pattern value="[0-9]{5}" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="conditionNumber" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="9" />
+                      <xs:pattern value="[0-9]{5}" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="vvodNumber">
+            <xs:simpleType>
+              <xs:restriction base="xs:int">
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="requisites" minOccurs="1" maxOccurs="unbounded" >
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="name" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:minLength value="1" />
+                      <xs:maxLength value="64" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="field" minOccurs="1" maxOccurs="unbounded" >
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element name="template">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:minLength value="1" />
+                            <xs:maxLength value="64" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                      <xs:element name="vvodNumber" minOccurs="0" maxOccurs="1" >
+                        <xs:simpleType>
+                          <xs:restriction base="xs:int">
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                      <xs:element name="prefix" minOccurs="0" maxOccurs="1" >
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:minLength value="1" />
+                            <xs:maxLength value="30" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                      <xs:element name="postfix" minOccurs="0" maxOccurs="1" >
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:minLength value="1" />
+                            <xs:maxLength value="30" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                      <xs:element name="enteredData">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:minLength value="1" />
+                            <xs:maxLength value="128" />
+                          </xs:restriction>
+                        </xs:simpleType>
+                      </xs:element>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="nplatRequisites" >
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="requisites" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="1048" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="specialClientCodeOrg" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:length value="9" fixed="true" />
+<!--                <xs:minLength value="1" />
+                <xs:maxLength value="9" />
+                <xs:pattern value="[0-9]{9}" /> -->
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="spravNastr" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="operationCode">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:length value="5" fixed="true" />
+<!--                      <xs:minLength value="1" />
+                      <xs:maxLength value="9" />
+                      <xs:pattern value="[0-9]{5}" /> -->
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="operationNumber">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:length value="5" fixed="true" />
+<!--                      <xs:minLength value="1" />
+                      <xs:maxLength value="9" />
+                      <xs:pattern value="[0-9]{5}" /> -->
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="conditionNumber">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:length value="5" fixed="true" />
+<!--                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                      <xs:pattern value="[0-9]{5}" /> -->
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="conditionResult" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:length value="5" fixed="true" />
+<!--                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                      <xs:pattern value="[0-9]{5}" /> -->
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="conditionResultPoint" minOccurs="0" maxOccurs="1" >
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:length value="5" fixed="true" />
+<!--                      <xs:minLength value="1" />
+                      <xs:maxLength value="5" />
+                      <xs:pattern value="[0-9]{5}" /> -->
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="TransferOtherBankType">
+  <xs:annotation>
+    <xs:documentation>Перевод в другой банк</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="signature" type="SignatureType" />
+    <xs:element name="payerAccount" type="AccountType" />
+    <xs:element name="recipientName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="160" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="recipientAccount" type="AccountType" />
+    <xs:element name="recipientInn" type="INNType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="recipientBankName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="160" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="recipientBankBIC" type="BICType" />
+    <xs:element name="recipientBankAccount" type="AccountType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="sum" type="MoneyType" />
+    <xs:element name="purpose" minOccurs="0" maxOccurs="1" >
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="210" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="operationCode" minOccurs="0" maxOccurs="1" >
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:length value="5" fixed="true" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="OperationRefusalType">
+  <xs:annotation>
+    <xs:documentation>Отказ в выполнении операции</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="code" type="ErrorCodeEnum" />
+    <xs:element name="message">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="256" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="parentId" minOccurs="0" maxOccurs="1" >
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="messageId" type="GUIDType" />
+          <xs:element name="messageDate" type="xs:date" />
+          <xs:element name="fromAbonent" type="AbonentEnum" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="OperationResultType">
+  <xs:annotation>
+    <xs:documentation>Отказ в выполнении операции</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="debitRow" minOccurs="0" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="date" type="xs:date" />
+          <xs:element name="name">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="32" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="debit" type="xs:boolean" />
+          <xs:element name="sum" type="MoneyType" />
+          <xs:element name="balance" type="MoneyType" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="creditRow" minOccurs="0" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="date" type="xs:date" />
+          <xs:element name="name">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="32" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="debit" type="xs:boolean" />
+          <xs:element name="sum" type="MoneyType" />
+          <xs:element name="balance" type="MoneyType" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="parentId" minOccurs="0" maxOccurs="1" >
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="messageId" type="GUIDType" />
+          <xs:element name="messageDate" type="xs:date" />
+          <xs:element name="fromAbonent" type="AbonentEnum" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="OperationTraceDemandType">
+  <xs:annotation>
+    <xs:documentation>Запрос на трассировку операции</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="parentId" type="GUIDType" />
+    <xs:element name="parentDate" type="xs:date" />
+    <xs:element name="parentAbonent" type="AbonentEnum" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="OperationTraceType">
+  <xs:annotation>
+    <xs:documentation>Результат трассировки операции</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="operation" minOccurs="0" maxOccurs="1">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="arrived" type="xs:dateTime" />
+          <xs:element name="branch" type="BranchType" />
+          <xs:element name="day" type="xs:date" />
+          <xs:element name="order">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:length value="20" fixed="true" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="line" type="xs:int" />
+          <xs:element name="debitAccount" type="AccountType" minOccurs="0" maxOccurs="1" />
+          <xs:element name="state" type="OperationStateEnum" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="result" minOccurs="0" maxOccurs="1">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="datetime" type="xs:dateTime" />
+          <xs:element name="state" type="ResultStateEnum" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="payment" minOccurs="0" maxOccurs="1">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="branch" type="BranchType" />
+          <xs:element name="originator">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:length value="10" fixed="true" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="originDate" type="xs:date" />
+          <xs:element name="originNumber">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:length value="6" fixed="true" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="state" type="PaymentStateEnum" />
+          <xs:element name="datetime" type="xs:dateTime" />
+          <xs:element name="comment" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:minLength value="1" />
+                <xs:maxLength value="128" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="LockAgreementType">
+  <xs:annotation>
+    <xs:documentation>Сообщение о блокировке договора</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="agreement" minOccurs="1" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="clientId" type="GUIDType" />
+          <xs:element name="liability" type="MoneyType" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="lockDate" type="xs:date" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="UnlockAgreementType">
+  <xs:annotation>
+    <xs:documentation>Сообщение о разблокировке договора</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="agreement" minOccurs="1" maxOccurs="unbounded">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="clientId" type="GUIDType" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="unlockDate" type="xs:date" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="FlowbackType">
+  <xs:annotation>
+    <xs:documentation>Результаты исполнения заданий в ЦОДе</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="operation" minOccurs="0" maxOccurs="unbounded" >
+      <xs:complexType>
+        <xs:choice>
+          <xs:element name="expense">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="orderId" type="xs:string" />
+                <xs:element name="orderLine" type="xs:int" />
+                <xs:element name="transId" type="xs:int" />
+                <xs:element name="targetDay" type="xs:date" />
+                <xs:element name="targetBranch" type="xs:int" />
+                <xs:element name="targetOffice" type="xs:int" />
+                <xs:element name="account" type="AccountType" />
+                <xs:element name="sum" type="MoneyType" />
+                <xs:element name="balance" type="MoneyType" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="receipt">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="orderId" type="xs:string" />
+                <xs:element name="orderLine" type="xs:int" />
+                <xs:element name="transId" type="xs:int" />
+                <xs:element name="targetDay" type="xs:date" />
+                <xs:element name="targetBranch" type="xs:int" />
+                <xs:element name="targetOffice" type="xs:int" />
+                <xs:element name="account" type="AccountType" />
+                <xs:element name="sum" type="MoneyType" />
+                <xs:element name="balance" type="MoneyType" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="refusal">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="orderId" type="xs:string" />
+                <xs:element name="orderLine" type="xs:int" />
+                <xs:element name="transId" type="xs:int" />
+                <xs:element name="targetDay" type="xs:date" />
+                <xs:element name="targetBranch" type="xs:int" />
+                <xs:element name="targetOffice" type="xs:int" />
+                <xs:element name="account" type="AccountType" />
+                <xs:element name="reason" type="xs:string" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="changeState">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="orderId" type="xs:string" />
+                <xs:element name="orderLine" type="xs:int" />
+                <xs:element name="transId" type="xs:int" />
+                <xs:element name="targetDay" type="xs:date" />
+                <xs:element name="targetBranch" type="xs:int" />
+                <xs:element name="targetOffice" type="xs:int" />
+                <xs:element name="account" type="AccountType" />
+                <xs:element name="state" type="xs:int" />
+                <xs:element name="arrestedSum" type="MoneyType" minOccurs="0" maxOccurs="1" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="loadError">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="orderId" type="xs:string" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="RevokeOperationType">
+  <xs:annotation>
+    <xs:documentation>Отзыв операции</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="clientId" type="GUIDType" />
+    <xs:element name="messageId" type="GUIDType" />
+    <xs:element name="messageDate" type="xs:date" />
+    <xs:element name="fromAbonent" type="AbonentEnum" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="RequisitesChangeType">
+  <xs:annotation>
+    <xs:documentation>Изменение реквизитов платежа</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="alias" minOccurs="0" maxOccurs="1" >
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="name">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="160" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="account" type="AccountType" />
+    <xs:element name="inn" type="INNType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="bankName" minOccurs="0" maxOccurs="1" >
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="140" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="bankBIC" type="BICType" />
+    <xs:element name="bankAccount" type="AccountType" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AgreementLockType">
+  <xs:annotation>
+    <xs:documentation>Запрос на блокировку договора</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="ownerId" type="GUIDType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AgreementUnlockType">
+  <xs:annotation>
+    <xs:documentation>Запрос на разблокировку договора</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="ownerId" type="GUIDType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="CommissionType">
+  <xs:annotation>
+    <xs:documentation>Комиссия за операцию</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="commissionAccount" type="AccountType" />
+    <xs:element name="commissionSum" type="MoneyType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AllowedOperationType">
+  <xs:annotation>
+    <xs:documentation>Список разрещенных операций</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="operation" type="OperationEnum" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:element name="allAllowed" type="xs:boolean" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="IdentityCardType">
+  <xs:annotation>
+    <xs:documentation>Удостоверение личности</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="type" type="IdentityCardEnum"/>
+    <xs:element name="typeName" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="series" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="number" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="dateOfIssue" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="authority" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="ClientType">
+  <xs:annotation>
+    <xs:documentation>Клиент договора об услугах ЭСК</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="id" type="GUIDType" />
+    <xs:element name="tokenId" type="TokenIdType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="fullName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="gender" type="GenderEnum" minOccurs="0" maxOccurs="1" />
+    <xs:element name="birthdate" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="citizenRF" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="70" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="identityCard" type="IdentityCardType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="login" type="LoginType" />
+    <xs:element name="allowedOperations" type="AllowedOperationType" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="DepositorType">
+  <xs:annotation>
+    <xs:documentation>Информация о вкладчике</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="fullName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="gender" type="GenderEnum" minOccurs="0" maxOccurs="1" />
+    <xs:element name="birthdate" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="address" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="phone" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="workPhone" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="identityCard" type="IdentityCardType" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="InnerRecipientType">
+  <xs:annotation>
+    <xs:documentation>Получатели переводов в СБ РФ</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="alias">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="fullName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="branch" type="BranchType" />
+    <xs:element name="office" type="OfficeType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="account" type="AccountType" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="OuterRecipientType">
+  <xs:annotation>
+    <xs:documentation>Получатели в других банках РФ</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="alias" minOccurs="0" maxOccurs="1" >
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="16" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="name">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="160" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="account" type="AccountType" />
+    <xs:element name="inn" type="INNType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="bankName" minOccurs="0" maxOccurs="1" >
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="140" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="bankBIC" type="BICType" />
+    <xs:element name="bankAccount" type="AccountType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="uniqueNumber" type="UniqueNumberType" minOccurs="0" maxOccurs="1" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AddendumType">
+  <xs:annotation>
+    <xs:documentation>Дополнение к договору с информацией о доверенном представителе</xs:documentation>
+  </xs:annotation>
+  <xs:sequence>
+    <xs:element name="fullName">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="128" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="gender" type="GenderEnum" minOccurs="0" maxOccurs="1" />
+    <xs:element name="birthdate" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="citizen" minOccurs="0" maxOccurs="1">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+          <xs:maxLength value="70" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:element>
+    <xs:element name="identityCard" type="IdentityCardType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="term" type="xs:date" minOccurs="0" maxOccurs="1" />
+    <xs:element name="allowedOperations" type="AllowedOperationType" minOccurs="0" maxOccurs="1" />
+    <xs:element name="deposit" type="AccountType" minOccurs="0" maxOccurs="unbounded" />
+  </xs:sequence>
+</xs:complexType>
+
+<xs:simpleType name="AbonentEnum">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="ESK" />
+    <xs:enumeration value="COD" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="OperationEnum">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="DEPOSIT_BALANCE" />
+    <xs:enumeration value="DEPOSIT_BILLING" />
+    <xs:enumeration value="FORM190_BILLING" />
+    <xs:enumeration value="LOSS_PASSBOOK" />
+    <xs:enumeration value="INTERNAL_TRANSFER" />
+    <xs:enumeration value="CURRENCY_PURCHASE" />
+    <xs:enumeration value="CURRENCY_SALE" />
+    <xs:enumeration value="CURRENCY_CONVERTION" />
+    <xs:enumeration value="TRANSFER_OTHER_OSB" />
+    <xs:enumeration value="EXTERNAL_PAYMENT" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="GenderEnum">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="MALE" />
+    <xs:enumeration value="FEMALE" />
+    <xs:enumeration value="UNKNOWN" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="IdentityCardEnum">
+  <xs:restriction base="xs:string">
+     <xs:enumeration value="REGULAR_PASSPORT_RF" />
+     <xs:enumeration value="MILITARY_IDCARD" />
+     <xs:enumeration value="SEAMEN_PASSPORT" />
+     <xs:enumeration value="RESIDENСЕ_PERMIT_RF" />
+     <xs:enumeration value="FOREIGN_PASSPORT_RF" />
+     <xs:enumeration value="OTHER" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="AccountStatusEnum">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="OPENED" />
+    <xs:enumeration value="CLOSED" />
+    <xs:enumeration value="ARRESTED" />
+    <xs:enumeration value="LOSED_PASSBOOK" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="ErrorCodeEnum">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="ERROR_UNIQUE" />
+    <xs:enumeration value="ERROR_VALIDATE" />
+    <xs:enumeration value="ERROR_CLIENT" />
+    <xs:minLength value="1" />
+     <xs:maxLength value="32" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="Form190TypeEnum">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="FIXED_SUM" />
+    <xs:enumeration value="RATE_SUM" />
+    <xs:enumeration value="BILLING_SUM" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="OperationStateEnum">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="PROCESSING" />
+    <xs:enumeration value="COMPLETED" />
+    <xs:enumeration value="FAILED" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="ResultStateEnum">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="SENDING" />
+    <xs:enumeration value="WAITING" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="PaymentStateEnum">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="SENDING" />
+    <xs:enumeration value="PROCESSING" />
+    <xs:enumeration value="MANUAL_HANDLING" />
+    <xs:enumeration value="COMPLETED" />
+    <xs:enumeration value="FAILED" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="AccountType">
+  <xs:restriction base="xs:string">
+    <xs:minLength value="20" />
+    <xs:maxLength value="24" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="BICType">
+  <xs:restriction base="xs:string">
+    <xs:length value="9" fixed="true" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="INNType">
+  <xs:union>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:length value="10" fixed="true" />
+      </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:length value="12" fixed="true" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="CurrencyCodeType">
+  <xs:restriction base="xs:string">
+    <xs:enumeration value="USD" />
+    <xs:enumeration value="EUR" />
+    <xs:enumeration value="RUR" />
+<!--    <xs:length value="3" fixed="true" /> -->
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="BranchType">
+  <xs:restriction base="xs:string">
+    <xs:length value="4" fixed="true" />
+    <xs:pattern value="[0-9]{4}" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="OfficeType">
+  <xs:restriction base="xs:string">
+    <xs:minLength value="5" />
+    <xs:maxLength value="7" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="GUIDType">
+  <xs:restriction base="xs:string">
+    <xs:minLength value="1" />
+    <xs:maxLength value="32" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SignatureType">
+  <xs:restriction base="xs:string">
+    <xs:length value="64" fixed="true" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="TokenIdType">
+  <xs:restriction base="xs:string">
+    <xs:length value="16" fixed="true" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="MoneyType">
+  <xs:restriction base="xs:decimal">
+    <xs:totalDigits value="17" />
+    <xs:fractionDigits value="2" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="SWIFTCodeType">
+  <xs:union>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:length value="8" fixed="true" />
+      </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:length value="11" fixed="true" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:union>
+</xs:simpleType>
+
+<xs:simpleType name="UniqueNumberType">
+  <xs:restriction base="xs:string">
+    <xs:length value="9" fixed="true" />
+    <xs:pattern value="[0-9]{9}" />
+  </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="LoginType">
+  <xs:restriction base="xs:string">
+    <xs:minLength value="1" />
+    <xs:maxLength value="16" />
+  </xs:restriction>
+</xs:simpleType>
+
+</xs:schema>

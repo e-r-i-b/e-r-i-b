@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<query name="com.rssl.phizic.operations.person.PrintPersonOperation.empoweredPersons">
+		select empowered
+		from com.rssl.phizic.business.persons.ActivePerson empowered
+		where empowered.trustingPersonId = :personId
+	</query>
+
+    <query name="com.rssl.phizic.operations.person.PrintPersonOperation.dopAgreementAccountLinks">
+		select link
+		from   com.rssl.phizic.business.resources.external.AccountLink link
+		where  link.loginId = :extra_loginId
+		  and  (  (substr(link.number, 0, 4) = '4230'
+		            and not(substr(link.number, 5, 1) in ('8','9','0')))
+		      or  (substr(link.number, 0, 4) = '4260'
+		            and not(substr(link.number, 5, 1) in ('9','0')))
+		       )
+	</query>
+
+</hibernate-mapping>

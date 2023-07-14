@@ -1,0 +1,40 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.einvoicing.ShopProviderImpl" table="SERVICE_PROVIDERS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_SERVICE_PROVIDERS</param>
+            </generator>
+        </id>
+
+        <property name="url"          type="string"     column="URL"             not-null="false"/>
+        <property name="backUrl"      type="string"     column="BACK_URL"        not-null="false"/>
+        <property name="afterAction"  type="boolean"    column="AFTER_ACTION"    not-null="true"/>
+        <property name="formName"     type="string"     column="FORM_NAME"       not-null="false"/>
+        <property name="checkOrder"   type="boolean"    column="CHECK_ORDER"     not-null="true"/>
+        <property name="sendChargeOffInfo"   type="boolean"     column="SEND_CHARGE_OFF_INFO"  not-null="true"/>
+        <property name="availableMobileCheckout" type="boolean" column="MOBILE_CHECKOUT_AVAILABLE" not-null="true"/>
+
+        <property name="codeRecipientSBOL"   type="string"      column="CODE_RECIPIENT_SBOL"   not-null="false"/>
+        <property name="federal"             type="boolean"     column="IS_FEDERAL"            not-null="true"/>
+        <property name="facilitator"         type="boolean"     column="IS_FASILITATOR"        not-null="true"/>
+    </class>
+
+    <!-- Поиск поставщика услуг интернет-магазина
+         Опорный объект: UN_CODE_S_CODE_R_SBOL
+         Предикаты доступа: "CODE_RECIPIENT_SBOL"=:SYSTEMNAME
+         Кардинальность: равна количеству записей с CODE_RECIPIENT_SBOL = :systemName, по факту не более 20
+    -->
+    <sql-query name="com.rssl.phizic.einvoicing.ShopProviders.findProviderBySystemName">
+        <return alias="provider" class="com.rssl.phizic.einvoicing.ShopProviderImpl"/>
+        SELECT pr.ID, pr.URL, pr.BACK_URL, pr.AFTER_ACTION, pr.FORM_NAME, pr.CHECK_ORDER, pr.SEND_CHARGE_OFF_INFO,
+               pr.MOBILE_CHECKOUT_AVAILABLE, pr.CODE_RECIPIENT_SBOL, pr.IS_FEDERAL, pr.IS_FASILITATOR
+          FROM SERVICE_PROVIDERS pr
+         WHERE CODE_RECIPIENT_SBOL = :systemName
+           AND KIND = 'I'
+           AND STATE = 'ACTIVE'
+    </sql-query>
+</hibernate-mapping>

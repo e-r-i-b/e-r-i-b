@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <subclass name="com.rssl.phizic.business.ext.sbrf.deposits.DepositProductSBRF"
+              extends="com.rssl.phizic.business.deposits.DepositProduct"
+              discriminator-value="S"/>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsDCFTAR" table="DEPOSITS_DCF_TAR" abstract="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_DCF_TAR</param>
+            </generator>
+        </id>
+        <property name="type" type="long" column="KOD_VKL_QDTN1" not-null="true"/>
+        <property name="subType" type="long" column="KOD_VKL_QDTSUB" not-null="true"/>
+        <property name="foreignCurrency" type="boolean" column="KOD_VKL_QVAL" not-null="true"/>
+        <property name="clientCategory" type="long" column="KOD_VKL_CLNT" not-null="true"/>
+        <property name="codeSROK" type="long" column="DCF_SROK" not-null="true"/>
+        <property name="dateBegin" type="calendar" column="DATE_BEG" not-null="true"/>
+        <property name="sumBegin" type="big_decimal" column="SUM_BEG" not-null="true"/>
+        <property name="sumEnd" type="big_decimal" column="SUM_END" not-null="true"/>
+        <property name="baseRate" type="big_decimal" column="TAR_VKL" not-null="true"/>
+        <property name="violationRate" type="big_decimal" column="TAR_NRUS" not-null="false"/>
+        <property name="currencyCode" type="string" column="DCF_VAL" not-null="true"/>
+        <property name="segment" type="long" column="DCF_SEG" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.DepositProductShortCut" mutable="false">
+        <id name="id"                            type="long"        column="ID"/>
+        <property name="productId"               type="long"        column="PRODUCT_ID"/>
+        <property name="name"                    type="string"      column="NAME"/>
+        <property name="availableOnline"         type="boolean"     column="ONLINE_AVAIL"/>
+        <property name="lastUpdateDate"          type="calendar"    column="LAST_UPDATE"/>
+        <property name="withMinimumBalance"      type="boolean"     column="MIN_BALANCE" />
+        <property name="capitalization"          type="boolean"     column="CAPITALIZATION"/>
+    </class>
+
+    <!--
+        Очистка таблицы DEPOSITS_DCF_TAR
+        Опорный объект: DEPOSITS_DCF_TAR
+        Предикаты доступа: fullscan
+        Кардинальность: 15000, ожидается постепенный рост, без скачков
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsDCFTAR.deleteAll">
+        delete from com.rssl.phizic.business.ext.sbrf.deposits.DepositsDCFTAR
+    </query>
+
+    <!--
+        Выбор упрощенного описания вклада по PRODUCT_ID
+        Опорный объект: UK_P_ID
+        Предикаты доступа: "DEPOSITS"."PRODUCT_ID"=TO_NUMBER(:PRODUCTID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositProductShortCut.getByProductId">
+        <return class="com.rssl.phizic.business.ext.sbrf.deposits.DepositProductShortCut">
+            <return-property name="id"                 column="ID"/>
+            <return-property name="productId"          column="PRODUCT_ID"/>
+            <return-property name="name"               column="NAME"/>
+            <return-property name="availableOnline"    column="ONLINE_AVAIL"/>
+            <return-property name="lastUpdateDate"     column="LAST_UPDATE"/>
+            <return-property name="withMinimumBalance" column="MIN_BALANCE"/>
+            <return-property name="capitalization"     column="CAPITALIZATION"/>
+        </return>
+        <![CDATA[
+        SELECT
+            deposits.ID                as   ID,
+            deposits.PRODUCT_ID        as   PRODUCT_ID,
+            deposits.NAME              as   NAME,
+            deposits.AVAILABLE_ONLINE  as   ONLINE_AVAIL,
+            deposits.LAST_UPDATE_DATE  as   LAST_UPDATE,
+            deposits.MINIMUM_BALANCE   as   MIN_BALANCE,
+            deposits.CAPITALIZATION    as   CAPITALIZATION
+        FROM
+            DEPOSITDESCRIPTIONS deposits
+        WHERE
+            deposits.PRODUCT_ID = :productId
+        ]]>
+    </sql-query>
+
+    <!--
+        Выбор записей справочника процентных ставок по виду и подвиду вклада
+        Опорный объект: DEPOSITS_DCF_TAR_IDX
+        Предикаты доступа: "DCFTAR"."KOD_VKL_QDTN1"=TO_NUMBER(:TYPE) AND "DCFTAR"."KOD_VKL_QDTSUB"=TO_NUMBER(:SUBTYPE)
+        Кардинальность: порядка 100
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsDCFTAR.findByTypeAndSubType">
+        <return class="com.rssl.phizic.business.ext.sbrf.deposits.DepositsDCFTAR"/>
+        <![CDATA[
+        SELECT
+            dcftar.*
+        FROM
+            DEPOSITS_DCF_TAR dcftar
+        WHERE
+            dcftar.KOD_VKL_QDTN1 = :type AND
+            dcftar.KOD_VKL_QDTSUB = :subType AND
+            dcftar.DATE_BEG <= SYSDATE
+        ]]>
+    </sql-query>
+
+    <!--
+        Проверяет, есть ли для открываемого вклада льготные ставки для ТП клиента
+        Опорный объект: DEPOSITS_DCF_TAR_IDX
+        Предикаты доступа: "DCFTAR"."KOD_VKL_QDTN1"=TO_NUMBER(:TYPE) AND "DCFTAR"."KOD_VKL_QDTSUB"=TO_NUMBER(:SUBTYPE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsDCFTAR.hasDepositTariffPlan">
+        <return-scalar column="RES" type="long"/>
+        <![CDATA[
+        SELECT
+            1 AS RES
+        FROM
+            DEPOSITS_DCF_TAR TAR
+        WHERE
+            TAR.KOD_VKL_QDTN1 = :type AND
+            TAR.KOD_VKL_QDTSUB = :subType AND
+            TAR.KOD_VKL_CLNT = :tariffCode AND
+            TAR.DATE_BEG <= SYSDATE AND
+            ROWNUM = 1
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

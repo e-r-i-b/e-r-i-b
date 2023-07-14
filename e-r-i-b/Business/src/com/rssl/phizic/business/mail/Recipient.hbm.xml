@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="RecipientMailState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.mail.RecipientMailState</param>
+    </typedef>
+
+    <typedef name="RecipientType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.mail.RecipientType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.mail.Recipient" table="RECIPIENTS">
+        <id name="id" type="long">
+         <generator class="com.rssl.phizic.dataaccess.common.counters.AssignedOrSequenceGenerator">
+          <param name="sequence">S_RECIPIENTS</param>
+         </generator>
+        </id>
+	    <property name="recipientId"        type="long"         column="RECIPIENT_ID"   not-null="true"/>
+		<property name="recipientName"      type="string"       column="RECIPIENT_NAME" not-null="true"/>
+	    <property name="recipientType"      type="RecipientType"       column="TYPE"           not-null="false"/>
+        <property name="deleted"            type="boolean"      column="DELETED"        not-null="true"/>
+        <property name="state"              type="RecipientMailState"    column="STATE"          not-null="true"/>
+ 	    <property name="mailId"             type="long"                  column="MAIL_ID" not-null="true"/>
+    </class>
+    <sql-query name="com.rssl.phizic.business.mail.Recipient.getRecipient">
+        <return class="com.rssl.phizic.business.mail.Recipient" alias="recipient"/>
+        SELECT {recipient.*}
+        FROM
+            RECIPIENTS recipient
+        WHERE
+            recipient.RECIPIENT_ID = :recipientId
+        AND
+            recipient.MAIL_ID = :mailId
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.mail.Recipient.getRecipients">
+    <return class="com.rssl.phizic.business.mail.Recipient" alias="recipient"/>
+        SELECT {recipient.*}
+        FROM
+            RECIPIENTS recipient
+        WHERE
+            recipient.MAIL_ID = :extra_mailId
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.mail.Recipient.delete">
+       delete from com.rssl.phizic.business.mail.Recipient recipient
+       where recipient.mailId = :mailId
+
+    </query>
+
+    <query name="com.rssl.phizic.business.mail.Recipient.countNewClientLetters">
+       select count(recipient.id)
+       from com.rssl.phizic.business.mail.Recipient recipient
+       where recipient.recipientType = 'PERSON'
+       AND   recipient.state         = 'NEW'
+       AND   recipient.recipientId   = :loginId
+    </query>
+
+</hibernate-mapping>

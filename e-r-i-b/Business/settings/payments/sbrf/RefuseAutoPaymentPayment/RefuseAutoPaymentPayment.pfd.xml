@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RefuseAutoPaymentPayment" description="Отмена выполнения автоплатежа"
+              detailedDescription="На данной странице Вы можете &lt;b&gt;отменить выполнение&lt;/b&gt; автоплатежа (регулярной операции)."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.RefuseAutoPaymentImpl"/>
+	<statemachine name="EditOrRefuseAutoPaymentStateMachine"/>
+	<fields>
+
+        <field name="documentNumber"
+                description="Номер документа"
+                type="string"
+                source="document-number"
+                signable="true"/>
+
+        <field  name="cardNumber"
+                source="payer-account"
+                description="номер карты"
+                type="string"
+                signable="true">
+        </field>
+
+        <field  name="cardId"
+                source="extra-parameters/parameter[@name='cardId']/@value"
+                description="идентификатор карты"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="cardName"
+                source="extra-parameters/parameter[@name='card-name']/@value"
+                description="имя карты"
+                type="string"
+                signable="true">
+        </field>
+
+        <field name="linkId"
+               source="extra-parameters/parameter[@name='auto-payment-link-id']/@value"
+               description="linkId"
+               type="string"
+               signable="true">
+        </field>
+
+        <field  name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="'com.rssl.phizic.business.resources.external.CardLink'">
+        </field>
+
+        <field
+                name="fromResourceCurrency"
+                description="Валюта карты"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                type="string"
+                signable="true"/>
+
+        <field
+                name="sellAmount"
+                description="Сумма"
+                source="amount"
+                type="money"
+                signable="true">
+        </field>
+
+        <field name="requisite"
+               description="Номер лицевого счета"
+               type="string"
+               source="extra-parameters/parameter[@name='requisite']/@value"
+               signable="true">
+        </field>
+
+        <field name="requisiteName"
+               source="extra-parameters/parameter[@name='requisite-name']/@value"
+               type="string"
+               description="Имя реквизита"/>
+
+        <field name="receiverName"
+               description="Наименование"
+               type="string"
+               source="receiver-name"
+               signable="true"/>
+
+        <field  name="autoPaymentTotalAmountLimit"
+                source="extra-parameters/parameter[@name='autopay-client-total-amount-limit']/@value"
+                description="Максимальной сумма платежей"
+                type="money"
+                signable="true"/>
+
+        <field  name="autoPaymentTotalAmountCurrency"
+                source="extra-parameters/parameter[@name='autopay-client-total-amount-currency']/@value"
+                description="Валюта максимальной сумма платежей"
+                type="string"
+                signable="true"
+                value="'RUB'"/>
+
+        <field  name="autoPaymentTotalAmountPeriod"
+                source="extra-parameters/parameter[@name='autopay-total-amount-period']/@value"
+                description="Период в течении которого подсчитывается максимальная сумма платежей"
+                type="string"
+                signable="true"/>
+
+        <field  name="autoPaymentName"
+                source="extra-parameters/parameter[@name='auto-payment-friendly-name']/@value"
+                description="Название регулярного платежа"
+                type="string"
+                signable="true">
+        </field>
+
+        <field  name="autoPaymentFloorLimit"
+                source="extra-parameters/parameter[@name='auto-payment-decimal-floor-limit']/@value"
+                description="Пороговый лимит (для порогового регулярного платежа)"
+                type="string"
+                signable="true">
+        </field>
+
+        <field  name="autoPaymentFloorCurrency"
+                source="extra-parameters/parameter[@name='auto-payment-currency-floor-limit']/@value"
+                description="Валюта порогового лимита (для порогового регулярного платежа)"
+                type="string"
+                signable="true"
+                value="'RUB'">
+        </field>
+
+        <field  name="executionEventType"
+                source="extra-parameters/parameter[@name='long-offer-event-type']/@value"
+                description="Тип события исполнения автоплатежа"
+                type="string"
+                signable="true">
+        </field>
+
+        <field  name="isPeriodic"
+                description="Периодический автоплатеж (раз в месяц, ежеквартально, раз в год)"
+                source="contains('ONCE_IN_MONTH|ONCE_IN_QUARTER|ONCE_IN_YEAR',extra-parameters/parameter[@name='long-offer-event-type']/@value)"
+                type="boolean"
+                signable="true">
+        </field>
+
+        <field  name="autoPaymentStartDate"
+                source="concat(substring(extra-parameters/parameter[@name='long-offer-start-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='long-offer-start-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='long-offer-start-date']/@value,1,4))"
+                description="Дата начала действия автоплатежа"
+                type="date"
+                enabled="form.isPeriodic"
+                signable="true">
+        </field>
+
+        <field name="eventTypeDescription"
+                source="extra-parameters/parameter[@name='event-type-description']/@value"
+                description="Описание типа события исполнения"
+                type="string"
+                signable="true">
+        </field>
+
+		<field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+        <field  name="checkStatusCountResult"
+                source="extra-parameters/parameter[@name='check-status-count-result']/@value"
+                description="Признак превышения допустимого значения проверок статуса платежа во ВС"
+                type="boolean"/>
+    </fields>
+
+</payment-form>

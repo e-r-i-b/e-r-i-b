@@ -1,0 +1,50 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Типы данных -->
+
+    <typedef name="MobileBankTariff" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.mobilebank.MobileBankTariff</param>
+        <param name="identifierMethod">getCode</param>
+        <param name="valueOfMethod">forCode</param>
+	</typedef>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Сущности -->
+
+    <class table="MB_REGISTRATION_CLAIMS" name="com.rssl.phizic.business.ext.sbrf.mobilebank.MobileBankRegistrationClaim">
+	    <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_MB_REGISTRATION_CLAIMS</param>
+            </generator>
+	    </id>
+		<property name="loginId" type="long" column="LOGIN_ID" not-null="true"/>
+	    <property name="date" type="calendar" column='"DATE"' not-null="true"/>
+        <property name="tariff" type="MobileBankTariff" column="TARIFF" not-null="true"/>
+        <property name="tb" type="string" column="DEPARTMENT_TB" not-null="true"/>
+        <property name="phoneNumber" type="string" column="PHONE_NUMBER" not-null="true"/>
+        <property name="cardNumber" type="string" column="CARD_NUMBER" not-null="true"/>
+        <property name="completed" type="boolean" column="COMPLETED" not-null="true"/>
+    </class>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Запросы -->
+
+    <!-- Удаляет все неоформленные (неподтверждённые) заявки на подключение для заданного пользователя -->
+    <query name="com.rssl.phizic.business.ext.sbrf.mobilebank.MobileBankBusinessService.removeUncompletedRegistrationClaims">
+        delete from com.rssl.phizic.business.ext.sbrf.mobilebank.MobileBankRegistrationClaim
+        where loginId = :loginId and completed = false
+    </query>
+
+    <!-- Возвращает последнюю исполненную заявку -->
+    <query name="com.rssl.phizic.business.ext.sbrf.mobilebank.MobileBankBusinessService.getLastCompletedRegistrationClaim">
+        from com.rssl.phizic.business.ext.sbrf.mobilebank.MobileBankRegistrationClaim
+        where loginId = :loginId and completed = true
+        order by date desc
+    </query>
+
+</hibernate-mapping>

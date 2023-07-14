@@ -1,0 +1,48 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hobernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="AdapterType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizicgate.manager.routing.AdapterType</param>
+    </typedef>
+
+    <class name="com.rssl.phizicgate.manager.routing.Adapter" table="ADAPTERS">
+        <id name="id" column="ID">
+            <generator class="native">
+                <param name="sequence">S_ADAPTERS</param>
+            </generator>
+        </id>
+        <property name="UUID" column="UUID"         type="string"      not-null="true" unique="true"/>
+        <property name="name" column="NAME"         type="string"      not-null="true"/>
+        <property name="type" column="ADAPTER_TYPE" type="AdapterType" not-null="true"/>
+        <property name="listenerUrl" column="LISTENER_URL" type="string"/>
+
+    </class>
+
+    <query name="com.rssl.phizicgate.manager.routing.Adapter.getById">
+        select adapter
+        from com.rssl.phizicgate.manager.routing.Adapter as adapter
+        where adapter.id = :id
+    </query>
+    <query name="com.rssl.phizicgate.manager.routing.Adapter.getByUUID">
+        select adapter
+        from com.rssl.phizicgate.manager.routing.Adapter as adapter
+        where adapter.UUID = :UUID
+    </query>
+    <query name="com.rssl.phizicgate.manager.routing.Adapter.getAll">
+        select adapter
+        from com.rssl.phizicgate.manager.routing.Adapter as adapter
+    </query>
+
+    <sql-query name="com.rssl.phizicgate.manager.routing.Adapter.getByOfficeCode">
+        SELECT d.ADAPTER_UUID
+        FROM DEPARTMENTS d
+        where
+            d.TB = :region
+            and nvl(d.OSB, 'NULL') = :branch
+            and nvl(d.OFFICE, 'NULL') = :office
+        order by d.OFFICE  asc
+    </sql-query>
+
+</hibernate-mapping>

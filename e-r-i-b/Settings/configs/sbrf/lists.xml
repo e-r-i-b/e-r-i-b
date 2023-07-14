@@ -1,0 +1,1404 @@
+<?xml version='1.0' encoding='windows-1251'?>
+
+<list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="lists.xsd">
+    <cache-key-composers>
+        <composer class="com.rssl.phizic.business.deposits.DepositProduct"
+                  composer="com.rssl.phizic.business.xslt.lists.cache.composers.DepositProductCacheKeyComposer"/>
+
+        <composer class="com.rssl.phizic.business.dictionaries.providers.ServiceProviderBase"
+                  composer="com.rssl.phizic.business.xslt.lists.cache.composers.ServiceProviderCacheKeyComposer"/>
+
+        <composer class="com.rssl.phizic.person.Person"
+                  composer="com.rssl.phizic.business.xslt.lists.cache.composers.PersonCacheKeyComposer"/>
+
+        <session-composer class="com.rssl.phizic.gate.bankroll.Account"
+                  composer="com.rssl.phizic.business.xslt.lists.cache.composers.AccountCacheKeyComposer"/>
+
+        <session-composer class="com.rssl.phizic.gate.bankroll.Card"
+                  composer="com.rssl.phizic.business.xslt.lists.cache.composers.CardCacheKeyComposer"/>
+
+        <session-composer class="com.rssl.phizic.gate.depo.DepoAccount"
+                  composer="com.rssl.phizic.business.xslt.lists.cache.composers.DepoAccountCacheKeyComposer"/>
+
+        <session-composer class="com.rssl.phizic.gate.loans.Loan"
+                  composer="com.rssl.phizic.business.xslt.lists.cache.composers.LoanCacheKeyComposer"/>
+
+        <session-composer class="com.rssl.phizic.gate.ima.IMAccount"
+                  composer="com.rssl.phizic.business.xslt.lists.cache.composers.IMAccountCacheKeyComposer"/>
+    </cache-key-composers>
+
+    <default-cache-parameters>
+        <parameter name="maxElementsInMemory">200</parameter>
+        <parameter name="timeToIdleSeconds">900</parameter>
+        <parameter name="timeToLiveSeconds">900</parameter>
+    </default-cache-parameters>
+
+    <entity-lists-def>
+    <!-- Список счетов клиента -->
+    <entity-list-def
+		    name="accounts.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+    </entity-list-def>
+
+    <!--
+     Список счетов списания платежа.
+     Значения берутся из EditDocumentOperationBase.getChargeOffResources().
+     См. com.rssl.phizic.operations.payment.EditDocumentOperationBase.buildChargeOffAccountsXMLDictionary
+    -->
+    <entity-list-def
+            name="chargeOffAccounts.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+    </entity-list-def>
+
+    <entity-list-def
+		    name="all-accounts.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.NullAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+			name="active-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+            name="active-not-deposit-accounts.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotDepositAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="active-or-arrested-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="stored-active-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="stored-active-or-arrested-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedAccountFilter</parameter>
+	</entity-list-def>
+
+    <!-- Информация из Account и AccountInfo -->
+    <entity-list-def
+			name="active-accounts-info.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSourceWithInfo">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveAccountFilter</parameter>
+	</entity-list-def>
+
+<!-- Информация из Account и AccountInfo -->
+    <entity-list-def
+			name="active-or-arrested-accounts-info.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSourceWithInfo">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="active-debit-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveDebitAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+            name="stored-active-debit-accounts.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        <cache-dependences>
+          <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveDebitAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-or-arrested-credit-accounts.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        <cache-dependences>
+          <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedCreditAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-money-box-available-accounts.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListForMoneyBoxSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveMoneyBoxAvailableAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+			name="active-debit-allowed-external-phiz-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveDebitAllowedExternalPhizAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="stored-active-debit-allowed-external-phiz-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveDebitAllowedExternalPhizAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="active-credit-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveCreditAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+            name="stored-active-credit-accounts.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveCreditAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+		    name="rur-accounts.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.RURAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="possible-closing-accounts.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.AccountClosingFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def name="possible-closing-with-open-accounts.xml"
+                     scope="session"
+                     className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.AccountClosingWithOpenFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="possible-transfer-cards-at-closing.xml" 
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.ActiveNotVirtualNotCreditNotAdditionalCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-or-arrested-possible-transfer-cards-at-closing.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedNotVirtualNotCreditNotAdditionalCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="atm-possible-transfer-cards-at-closing.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.ReloadCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.ActiveNotVirtualNotCreditNotAdditionalCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+			name="active-rur-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+		    name="foreign-currency-accounts.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ForeignCurrencyAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+               name="passbook-accounts.xml"
+               scope="session"
+               className="com.rssl.phizic.business.xslt.lists.AccountCurrencyListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <cache-parameters>
+            <parameter name="accountId"/>
+        </cache-parameters>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.LossPassbookFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+		    name="foreign-currency-credit-accounts.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ForeignCurrencyCreditAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+		    name="foreign-currency-debit-accounts.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ForeignCurrencyDebitAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+			name="active-debit-rur-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveDebitRurAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="active-debit-rur-allowed-external-jur-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveDebitRurAllowedExternalJurFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="stored-active-debit-rur-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveDebitRurAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+            name="stored-active-or-arrested-rur-credit-accounts.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedRurCreditAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+			name="stored-active-debit-rur-allowed-external-jur-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveDebitRurAllowedExternalJurFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="active-debit-rur-accounts-all-visible.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.FullAccessAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	</entity-list-def>
+
+    <entity-list-def
+			name="stored-active-debit-rur-accounts-all-visible.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.StoredFullAccessAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	</entity-list-def>
+
+    <entity-list-def
+			name="stored-active-debit-rur-allowed-external-jur-accounts-all-visible.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.StoredFullAccessAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.AllowedExternalJurAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="active-rur-debit-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurDebitAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="active-rur-credit-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurCreditAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="stored-active-rur-credit-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.StoredAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+	    <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurCreditAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+            name="active-foreign-currency-accounts.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveForeignCurrencyAccountFilter</parameter>
+    </entity-list-def>
+
+    <!--Список открытых счетов депо клиента, по которым разрешены операции-->
+    <entity-list-def
+			name="open-allowed-depo-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.DepoAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.depo.DepoAccount"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.OpenAllowedDepoAccountFilter</parameter>
+	</entity-list-def>
+
+    <!--Список открытых счетов депо клиента, по которым запрещены операции-->
+    <entity-list-def
+			name="open-not-allowed-depo-accounts.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.DepoAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.depo.DepoAccount"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.OpenNotAllowedDepoAccountFilter</parameter>
+	</entity-list-def>
+
+    <!--Список открытых счетов депо клиента с информацией по позиции для каждого счета-->
+    <entity-list-def
+			name="open-allowed-depo-accounts-position.xml"
+			scope="session"
+	        className="com.rssl.phizic.business.xslt.lists.DepoAccountPositionListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.depo.DepoAccount"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.OpenAllowedDepoAccountFilter</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+			name="status-list.xml"
+			scope="request"
+	        className="com.rssl.phizic.business.xslt.lists.XmlResourceSource"
+			>
+		<parameter name="path">com/rssl/phizic/business/payments/forms/status-list.xml</parameter>
+	</entity-list-def>
+
+	<entity-list-def
+			name="accountInfo.xml"
+			scope="request"
+	        className="com.rssl.phizic.business.xslt.lists.AccountInfoSource"
+			>
+	</entity-list-def>
+
+    <!--Список тербанков-->
+    <entity-list-def
+            name="tbList.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.TbListSource"
+            >
+	</entity-list-def>
+
+	<entity-list-def
+            name="old-deposit-codes.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.OldDepositCodesSource"
+            >
+	</entity-list-def>
+
+	<entity-list-def
+			name="paymentReceiverJurINN.xml"
+			scope="request"
+	        className="com.rssl.phizic.business.xslt.lists.PaymentReceiverJurSource"
+			>
+	</entity-list-def>
+
+	<entity-list-def
+            name="currentPerson.xml"
+            scope="session"
+            className="com.rssl.phizic.business.ext.sbrf.xslt.lists.PersonOfficeSource">
+        <calbackcache-dependences>
+            <dependence class="com.rssl.phizic.person.Person"/>
+        </calbackcache-dependences>
+    </entity-list-def>
+
+    <entity-list-def
+            name="currentPersonData.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.PersonInfoSource">
+        <calbackcache-dependences>
+            <dependence class="com.rssl.phizic.person.Person"/>
+        </calbackcache-dependences>
+    </entity-list-def>
+
+    <!-- не используется
+            <entity-list-def-->
+            <!--name="currentDate.xml"-->
+            <!--scope="request"-->
+            <!--className="com.rssl.phizic.business.xslt.lists.CurrentDateSource"-->
+            <!--/>-->
+
+    <!-- Список карт клиента -->
+	<entity-list-def
+			name="cards.xml"
+			scope="session"
+			className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+    </entity-list-def>
+
+    <!--
+     Список карт списания платежа.
+     Значения берутся из EditDocumentOperationBase.getChargeOffResources().
+     См. com.rssl.phizic.operations.payment.EditDocumentOperationBase.buildChargeOffCardsXMLDictionary
+    -->
+	<entity-list-def
+            name="chargeOffCards.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+    </entity-list-def>
+
+	<entity-list-def
+			name="stored-cards.xml"
+			scope="session"
+			className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+    </entity-list-def>
+
+    <entity-list-def
+   			name="atm-stored-cards.xml"
+   			scope="session"
+   			className="com.rssl.phizic.business.xslt.lists.StoredReloadCardListSource">
+           <cache-dependences>
+               <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+           </cache-dependences>
+       </entity-list-def>
+
+    <entity-list-def
+            name="active-not-virtual-main-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotVirtualMainCardsFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-debit-overdraft-main-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveDebitOrOverdraftMainCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-or-arrested-debit-overdraft-main-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedDebitOrOverdraftMainCardFilter</parameter>
+    </entity-list-def>
+
+    <!-- Список карт клиента с владельцем карты-->
+    <entity-list-def
+            name="cards-with-owner.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSourceWithOwnerInfo">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-with-tblogined-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveWithTBLoginedCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-with-tblogined-without-interest-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSourceWithoutInterest">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <cache-parameters>
+            <parameter name="accountId"/>
+        </cache-parameters>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveWithTBLoginedCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-or-arrested-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveCardWithArrestedAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="atm-stored-active-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredReloadCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-not-virtual-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotVirtualCardsFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-not-virtual-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotVirtualCardsFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-or-arrested-not-virtual-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedNotVirtualCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-not-virtual-cards-all-visible.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.FullAccessCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-not-virtual-cards-all-visible.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredFullAccessCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+    </entity-list-def>
+
+    <!-- Список карт клиента, по которым произведен вход через сотрудника -->
+    <entity-list-def
+            name="entered-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.LoginedCardFilter</parameter>
+    </entity-list-def>
+
+    <!-- Список карт клиента с владельцем карты-->
+    <entity-list-def
+            name="active-not-virtual-cards-with-owner.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSourceWithOwnerInfo">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotVirtualCardsFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-not-virtual-cards-with-owner.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSourceWithOwnerInfo">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.BlokingVirtualCardsFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-or-arrested-not-virtual-cards-with-owner.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSourceWithOwnerInfo">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.BlokingActiveOrArrestedVirtualCardsFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-not-virtual-cards-with-owner.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSourceWithOwnerInfo">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.NotVirtualCardsFilter</parameter>
+    </entity-list-def>        
+
+    <entity-list-def
+            name="active-rur-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-rur-not-virtual-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurNotVirtualCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-rur-not-credit-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurNotCreditCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-rur-not-credit-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurNotCreditCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-or-arrested-rur-not-credit-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedRurNotCreditCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-rur-not-credit-cards-with-corrected-offices.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSourceWithCorrectedOffices">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurNotCreditCardFilter</parameter>
+        <parameter name="needOwnerInfo">false</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="reissued-card-filter.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSourceWithRecordingsGFLOffices">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.ReissuedListCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-rur-not-credit-not-virtual-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurNotCreditNotVirtualCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-rur-not-credit-not-virtual-own-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveRurNotVirtualNotCreditOwnCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-not-credit-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotCreditCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-not-credit-main-cards-with-scs.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListForMoneyBoxSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotCreditMainCardFilter</parameter>
+        <parameter name="comparator">com.rssl.phizic.business.resources.external.comparator.CardAmountComparator</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="entered-active-not-credit-main-cards-with-scs.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListForMoneyBoxSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.LoginedActiveNotCreditMainCardFilter</parameter>
+        <parameter name="comparator">com.rssl.phizic.business.resources.external.comparator.CardAmountComparator</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-not-credit-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotCreditCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-p2p-autotransfer-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotCreditCardFilter</parameter>
+        <parameter name="comparator">com.rssl.phizic.business.resources.external.comparator.CardAmountComparator</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="entered-p2p-autotransfer-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.LoginedActiveNotCreditCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-or-arrested-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveCardWithArrestedAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="atm-stored-active-not-credit-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredReloadCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotCreditCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-not-virtual-not-credit-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotVirtualNotCreditCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-not-virtual-not-credit-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotVirtualNotCreditCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-or-arrested-not-virtual-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedNotVirtualCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="active-not-virtual-not-credit-own-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.CardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotVirtualNotCreditOwnCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="stored-active-not-virtual-not-credit-own-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotVirtualNotCreditOwnStoredCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="atm-active-not-virtual-not-credit-own-cards.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.ReloadCardListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveNotVirtualNotCreditOwnCardFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+            name="different-loans.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.LoanListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.loans.Loan"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.CloseLoanFilter</parameter>
+    </entity-list-def>
+    <entity-list-def
+            name="all-loans.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.LoanListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.loans.Loan"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveLoanFilter</parameter>
+    </entity-list-def>
+
+    <!--СПИСКИ ВАЛЮТ-->
+    <!-- Список валют СЧЕТОВ, КАРТ-->
+    <entity-list-def
+		    name="account-card-currency.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountCardCurrencyListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.common.types.CurrencyRate"/>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="nationCurrency">RUB</parameter>
+	</entity-list-def>
+
+    <entity-list-def
+		    name="stored-account-card-currency.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.StoredAccountCardCurrencyListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.common.types.CurrencyRate"/>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <parameter name="nationCurrency">RUB</parameter>
+	</entity-list-def>
+
+    <!--Список валют СЧЕТОВ, КАРТ, ДЕПОЗИТНЫХ ПРОДУКТОВ-->
+    <entity-list-def
+		    name="account-card-deposit-currency.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountCardDepositCurrencyListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.common.types.CurrencyRate"/>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+        </cache-dependences>
+        <cache-parameters>
+            <parameter name="depositId"/>
+        </cache-parameters>
+        <calbackcache-dependences>
+            <dependence class="com.rssl.phizic.business.deposits.DepositProduct"/>
+        </calbackcache-dependences>
+        <parameter name="nationCurrency">RUB</parameter>
+	</entity-list-def>
+
+    <!--Список валют СЧЕТОВ, КАРТ, ОМС-->
+    <entity-list-def
+		    name="account-ima-currency.xml"
+		    scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountCardIMAccountCurrencyListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.common.types.CurrencyRate"/>
+            <dependence class="com.rssl.phizic.gate.bankroll.Account"/>
+            <dependence class="com.rssl.phizic.gate.bankroll.Card"/>
+            <dependence class="com.rssl.phizic.gate.ima.IMAccount"/>
+        </cache-dependences>
+        <parameter name="nationCurrency">RUB</parameter>
+	</entity-list-def>
+
+    <!--Список ошибок валидации полей.  В текущей реализации не используется-->
+    <!--<entity-list-def-->
+		    <!--name="validatorsError.xml"-->
+		    <!--scope="session"-->
+            <!--className="com.rssl.phizic.web.client.ext.sbrf.ValidationErrorSource">-->
+	<!--</entity-list-def>-->
+
+    <!--Справочник месяцев-->
+    <entity-list-def
+			name="months.xml"
+			scope="request"
+	        className="com.rssl.phizic.business.xslt.lists.XmlResourceSource"
+        >
+		<parameter name="path">com/rssl/phizic/business/payments/forms/xml/months.xml</parameter>
+	</entity-list-def>
+
+    <!--Справочник типов событий для длительного поручения-->
+    <entity-list-def
+            name="long-offer-events-types.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.XmlResourceSource"
+        >
+        <parameter name="path">com/rssl/phizic/business/payments/forms/xml/long-offer-events-types.xml</parameter>
+    </entity-list-def>
+
+    <!--Справочник типов событий для копилки вида Фиксированная сумма-->
+    <entity-list-def
+            name="money-box-events-types.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.XmlResourceSource"
+        >
+        <parameter name="path">com/rssl/phizic/business/payments/forms/xml/money-box-events-types.xml</parameter>
+    </entity-list-def>
+
+    <!-- справочник типов автоплатежей -->
+    <entity-list-def
+            name="auto-payment-types.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.XmlResourceSource"
+        >
+        <parameter name="path">com/rssl/phizic/business/payments/forms/xml/auto-payment-types.xml</parameter>
+    </entity-list-def>
+
+    <!--Справочник типов сумм длительного поручения-->
+    <entity-list-def
+            name="long-offer-sum-types.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.XmlResourceSource"
+        >
+        <parameter name="path">com/rssl/phizic/business/payments/forms/xml/long-offer-sum-types.xml</parameter>
+    </entity-list-def>
+
+    <!--Справочник приоритет выполнения-->
+    <entity-list-def
+            name="priority.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.XmlResourceSource"
+        >
+        <parameter name="path">com/rssl/phizic/business/payments/forms/xml/priority.xml</parameter>
+    </entity-list-def>
+
+    <!--Справочник вкладов-->
+    <entity-list-def
+            name="deposit-products.xml"
+            scope="application"
+            maxElementsInMemory="50"
+            timeToIdleSeconds="6000"
+            timeToLiveSeconds="6000"
+             className="com.rssl.phizic.business.xslt.lists.DepositProductsSource">
+        <cache-parameters>
+            <parameter name="depositId"/>
+        </cache-parameters>
+        <calbackcache-dependences>
+            <dependence class="com.rssl.phizic.business.deposits.DepositProduct"/>
+        </calbackcache-dependences>
+    </entity-list-def>
+
+    <entity-list-def
+            name="deposit-entity-description.xml"
+            scope="application"
+            className="com.rssl.phizic.business.xslt.lists.DepositEntitySource">
+    </entity-list-def>
+
+    <!-- Справочник поставщика услуг(необходимо указать id постащика) -->
+     <entity-list-def
+            name="serviceProvider.xml"
+            scope="application"
+            className="com.rssl.phizic.business.xslt.lists.ServiceProviderSource">
+         <cache-parameters>
+             <parameter name="id"/>
+         </cache-parameters>
+         <calbackcache-dependences>
+             <dependence class="com.rssl.phizic.business.dictionaries.providers.ServiceProviderBase"/>
+         </calbackcache-dependences>
+    </entity-list-def>
+
+    <!-- справочник разрешенных типов ДП(передаются параметры provider-id, requisite, card-number) -->
+     <entity-list-def
+            name="auto-payment-allowed-types.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.AutoPaymentTypesListsSource">
+    </entity-list-def>
+
+        <!-- справочник разрешенных типов ДП для mApi(передаются параметры provider-id, requisite, card-number) -->
+     <entity-list-def
+            name="auto-payment-allowed-types-api.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.AutoPaymentTypesListsApiSource">
+    </entity-list-def>
+
+            <!-- справочник разрешенных типов ДП для ATM(передаются параметры provider-id, requisite, card-number) -->
+     <entity-list-def
+            name="auto-payment-allowed-types-atm.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.AutoPaymentTypesListsATMSource">
+    </entity-list-def>
+
+    <entity-list-def
+            name="auto-sub-payment-types.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.XmlResourceSource"
+        >
+        <parameter name="path">com/rssl/phizic/business/payments/forms/xml/auto-sub-payment-types.xml</parameter>
+    </entity-list-def>
+
+    <!-- Предодобренный кредитный продукт-->
+    <entity-list-def
+        name="loanOffer.xml"
+        scope="request"
+        className="com.rssl.phizic.business.xslt.lists.LoanOfferSource">
+    </entity-list-def>
+
+    <!-- Предодобренная кредитная карта-->
+    <entity-list-def
+        name="loanCardOffer.xml"
+        scope="request"
+        className="com.rssl.phizic.business.xslt.lists.LoanCardOfferSource">
+    </entity-list-def>
+
+    <!-- Кредитный продукт-->
+    <entity-list-def
+        name="loanProduct.xml"
+        scope="request"
+        className="com.rssl.phizic.business.xslt.lists.LoanProductSource">
+    </entity-list-def>
+
+    <!-- Заявка на кредитную карту -->
+    <entity-list-def
+        name="loanCardProduct.xml"
+        scope="request"
+        className="com.rssl.phizic.business.xslt.lists.LoanCardSource">
+    </entity-list-def>
+
+    <!-- Кредитные лимиты -->
+    <entity-list-def
+        name="cardAmountStep.xml"
+        scope="request"
+        className="com.rssl.phizic.business.xslt.lists.CardAmountStepSource">
+    </entity-list-def>
+
+    <!-- активные ОМС -->
+    <entity-list-def
+        name="active-imaccounts.xml"
+        scope="session"
+        className="com.rssl.phizic.business.xslt.lists.IMAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.ima.IMAccount"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveIMAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+        name="stored-active-imaccounts.xml"
+        scope="session"
+        className="com.rssl.phizic.business.xslt.lists.StoredIMAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.ima.IMAccount"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveIMAccountFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def
+        name="stored-active-or-arrested-imaccounts.xml"
+        scope="session"
+        className="com.rssl.phizic.business.xslt.lists.StoredIMAccountListSource">
+        <cache-dependences>
+            <dependence class="com.rssl.phizic.gate.ima.IMAccount"/>
+        </cache-dependences>
+        <parameter name="filter">com.rssl.phizic.business.resources.external.ActiveOrArrestedIMAccountFilter</parameter>
+    </entity-list-def>
+
+    <!-- Виртуальные карточные продукты -->
+    <entity-list-def
+        name="virtualCards.xml"
+        scope="request"
+        className="com.rssl.phizic.business.xslt.lists.VirtualCardsSource">
+    </entity-list-def>
+    <!-- Список номеров телефонов из МБ -->
+    <entity-list-def
+        name="phones.xml"
+        scope="request"
+        className="com.rssl.phizic.business.xslt.lists.MobileBankPhoneSource">
+        <parameter name="formatPhone">true</parameter>
+    </entity-list-def>
+
+    <!-- Список номеров телефонов из МБ (для формы программы лояльности)-->
+    <entity-list-def
+            name="loyalty_phones.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.MobileBankPhoneSource">
+    </entity-list-def>
+    <!--Справочник причин блокировки карты-->
+    <entity-list-def
+            name="blocking-card-claim-reasons.xml"
+            scope="request"
+            className="com.rssl.phizic.business.xslt.lists.XmlResourceSource">
+        <parameter name="path">com/rssl/phizic/business/payments/forms/xml/blocking-card-claim-reasons.xml</parameter>
+    </entity-list-def>
+
+    <!--Справочник целей клиента-->
+    <entity-list-def
+            name="client-account-targets.xml"
+            scope="request"
+	        className="com.rssl.phizic.business.xslt.lists.AccountTargetListSource">
+    </entity-list-def>
+
+    <!-- Справочник предоставляет даные о вкладе -->
+    <entity-list-def name="deposit-change-min-balance-account-info.xml"
+                     scope="request"
+                     className="com.rssl.phizic.business.xslt.lists.DepositMinBalanceChangeAccountInfoListSource">
+        <cache-parameters>
+            <parameter name="accountId"/>
+        </cache-parameters>
+    </entity-list-def>
+
+    <!-- Справочник с перечнем неснижаемых остатков для выбранного вида вклада -->
+    <entity-list-def name="deposit-change-min-balance-rates.xml"
+                     scope="request"
+                     className="com.rssl.phizic.business.xslt.lists.DepositMinBalanceChangeRatesListSource">
+        <cache-parameters>
+            <parameter name="accountId"/>
+        </cache-parameters>
+    </entity-list-def>
+
+    <entity-list-def name="loan-offers-terms.xml"
+                     scope="request"
+                     className="com.rssl.phizic.business.xslt.lists.LoansOfferTermsSource">
+    </entity-list-def>
+
+    <entity-list-def name="loan-offers-description.xml"
+                     scope="request"
+                     className="com.rssl.phizic.business.xslt.lists.LoanOffersDescriptions">
+    </entity-list-def>
+
+    <!-- Справочники для заявки по кредиту -->
+    <entity-list-def name="loan-claim-dictionaries.xml"
+                     scope="request"
+                     className="com.rssl.phizic.business.xslt.lists.ExtendedLoanClaimListSourceBase">
+    </entity-list-def>
+
+    <!-- Справочник предодобренных предложений -->
+    <entity-list-def name      = "loan-claim-loan-offers.xml"
+                     scope     = "request"
+                     className = "com.rssl.phizic.business.xslt.lists.ExtendedLoanClaimLoanOffersListSource">
+    </entity-list-def>
+
+    <!-- Справочник кредитных условий -->
+    <entity-list-def name      = "loan-claim-loan-conditions.xml"
+                     scope     = "request"
+                     className = "com.rssl.phizic.business.xslt.lists.ExtendedLoanClaimCreditProductsListSource">
+    </entity-list-def>
+
+    <!-- Справочник условий для предодобренных предложений -->
+    <entity-list-def name      = "loan-offer-descriptions.xml"
+                     scope     = "request"
+                     className = "com.rssl.phizic.business.xslt.lists.ExtendedLoanOfferClaimDescriptionsListSource">
+    </entity-list-def>
+
+    <entity-list-def
+            name="loan-card-claim-source.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.LoanCardClaimSource">
+        <parameter name="filter">com.rssl.phizic.business.resources.external.LoanCardClaimSourceFilter</parameter>
+    </entity-list-def>
+
+    <entity-list-def name="client-promo-segment-list.xml"
+                     scope="request"
+                     className="com.rssl.phizic.business.xslt.lists.ClientPromoSegmentListSource">
+    </entity-list-def>
+
+    <!--Справочник объектов учета клиента-->
+    <entity-list-def
+            name="accounting-entities-list.xml"
+            scope="session"
+            className="com.rssl.phizic.business.xslt.lists.AccountingEntityListSource">
+    </entity-list-def>
+
+    </entity-lists-def>
+</list>

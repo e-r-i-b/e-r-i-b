@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--
+      Запрос на получение информации по району указанного региона
+      Опорный объект: LOANCLAIM_AREA_REGION_IDX
+      Предикаты доступа: "A"."REGION"=:REGION AND "A"."SEARCH_POSTFIX" LIKE LOWER(:Q)||'%'
+      Кардинальность: не более 60 (по максимальному числу районов в регионе)
+      -->
+    <sql-query name="com.rssl.phizic.operations.loanclaim.AsyncSearchClientAddressOperation.AREA">
+        <return-scalar column="SEARCH_RESULT" type="string"/>
+        SELECT ('code:' || a.CODE || '|value:' || a.NAME || '|type:' || a.TYPEOFAREA) SEARCH_RESULT
+        FROM LOANCLAIM_AREA a
+        WHERE a.SEARCH_POSTFIX LIKE (LOWER(:q) || '%')
+          AND (a.REGION = :region)
+          AND (:typeofarea IS NULL OR :typeofarea = '' OR a.TYPEOFAREA = :typeofarea)
+    </sql-query>
+
+    <!--
+      Запрос на получение информации по городу указанного региона
+      Опорный объект: LOANCLAIM_CITY_REGION_IDX
+      Предикаты доступа: "A"."REGION"=:REGION AND "A"."SEARCH_POSTFIX" LIKE LOWER(:Q)||'%'
+      Кардинальность: 500 (стоп-условие)
+      -->
+    <sql-query name="com.rssl.phizic.operations.loanclaim.AsyncSearchClientAddressOperation.CITY">
+        <return-scalar column="SEARCH_RESULT" type="string"/>
+        SELECT ('code:' || a.CODE || '|value:' || a.NAME || '|type:' || a.TYPEOFCITY) SEARCH_RESULT
+        FROM LOANCLAIM_CITY a
+        WHERE a.SEARCH_POSTFIX LIKE (LOWER(:q) || '%')
+          AND (a.REGION = :region)
+          AND (:areaIsNull IS NULL OR a.AREA in (:area))
+          AND (:typeofcity IS NULL OR a.TYPEOFCITY = :typeofcity)
+    </sql-query>
+
+    <!--
+      Запрос на получение информации по населенным пунктам указанного региона
+      Опорный объект: LOANCLAIM_SETTL_REGION_IDX
+      Предикаты доступа: "A"."REGION"=:REGION AND "A"."SEARCH_POSTFIX" LIKE LOWER(:Q)||'%'
+      Кардинальность: 500 (стоп-условие)
+      -->
+    <sql-query name="com.rssl.phizic.operations.loanclaim.AsyncSearchClientAddressOperation.LOCALITY">
+        <return-scalar column="SEARCH_RESULT" type="string"/>
+
+        SELECT ('code:' || a.CODE || '|value:' || a.NAME || '|type:' || a.TYPEOFLOCALITY) SEARCH_RESULT
+        FROM LOANCLAIM_SETTLEMENT a
+        WHERE a.SEARCH_POSTFIX LIKE (LOWER(:q) || '%')
+           AND (a.REGION = :region)
+           AND (:areaIsNull     IS NULL OR a.AREA in (:area))
+           AND (:cityIsNull     IS NULL OR a.CITY in (:city))
+           AND (:typeoflocality IS NULL OR a.TYPEOFLOCALITY = :typeoflocality)
+    </sql-query>
+
+    <!--
+      Запрос на получение информации по улицам указанного региона
+      Опорный объект: LOANCLAIM_STREET_REGION_IDX
+      Предикаты доступа: "A"."REGION"=:REGION AND "A"."SEARCH_POSTFIX" LIKE LOWER(:Q)||'%'
+      Кардинальность: 500 (стоп-условие)
+      -->
+    <sql-query name="com.rssl.phizic.operations.loanclaim.AsyncSearchClientAddressOperation.STREET">
+        <return-scalar column="SEARCH_RESULT" type="string"/>
+
+        SELECT ('code:' || a.CODE || '|value:' || a.NAME || '|type:' || a.TYPEOFSTREET) SEARCH_RESULT
+        FROM LOANCLAIM_STREET a
+        WHERE a.SEARCH_POSTFIX LIKE (LOWER(:q) || '%')
+           AND (a.REGION = :region)
+           AND (:areaIsNull       IS NULL OR a.AREA       in (:area))
+           AND (:cityIsNull       IS NULL OR a.CITY       in (:city))
+           AND (:settlementIsNull IS NULL OR a.SETTLEMENT in (:settlement))
+           AND (:typeofstreet     IS NULL OR a.TYPEOFSTREET = :typeofstreet)
+    </sql-query>
+</hibernate-mapping>

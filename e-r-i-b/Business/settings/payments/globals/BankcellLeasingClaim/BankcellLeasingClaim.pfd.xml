@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="BankcellLeasingClaim"
+              description="Заявка на бронирование сейфовой ячейки"
+			  detailedDescription="Подача в банк заявки на бронирование сейфовой ячейки в одном из офисов банка."	
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.DefaultClaim"/>
+	<statemachine name="ClaimStateMachine"/>
+	
+	<fields>
+		<field name="fullName"
+		       description="Ф.И.О."
+		       type="string"
+		       source="extra-parameters/parameter[@name='full-name']/@value"
+		       signable="true"/>
+        <field name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"/>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+		<field name="phone"
+		       description="Телефон"
+		       type="string"
+		       source="extra-parameters/parameter[@name='phone']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Телефон] не должна превышать 200 символов"/>
+					<parameter name="regexp">^.{1,200}$</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+		<field name="email"
+		       description="E-mail"
+		       type="string"
+		       source="extra-parameters/parameter[@name='email']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [E-mail] не должна превышать 200 символов"/>
+					<parameter name="regexp">^.{1,200}$</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+		<field name="office"
+		       description="Офис банка"
+		       type="integer"
+		       source="extra-parameters/parameter[@name='office']/@value"
+		       signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="cellType"
+		       description="Размер ячейки"
+		       type="string"
+		       source="extra-parameters/parameter[@name='cell-type']/@value"
+		       signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="termOfLease"
+		       description="Срок аренды"
+		       type="string"
+		       source="extra-parameters/parameter[@name='term-of-lease']/@value"
+		       signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="ground"
+		       description="Комментарий"
+		       source="extra-parameters/parameter[@name='ground']/@value"
+		       type="string"
+		       signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Комментарий] не должна превышать 200 символов"/>
+					<parameter name="regexp">^.{1,200}$</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+
+		</field>
+	</fields>
+
+	<form-validators>
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.BankcellPresenceValidator">
+			<message text="В выбранном офисе нет свободных ячеек такого размера"/>
+			<field-ref name="office">office</field-ref>
+			<field-ref name="cellType">cellType</field-ref>
+		</form-validator>
+	</form-validators>
+
+</payment-form>

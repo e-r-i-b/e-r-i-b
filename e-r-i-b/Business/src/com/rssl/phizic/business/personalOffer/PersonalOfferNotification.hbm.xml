@@ -1,0 +1,114 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef  name="PersonalOfferState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.personalOffer.PersonalOfferState</param>
+    </typedef>
+    <typedef  name="PersonalOfferProduct" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.personalOffer.PersonalOfferProduct</param>
+    </typedef>
+    <typedef  name="PersonalOfferDisplayFrequency" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.personalOffer.PersonalOfferDisplayFrequency</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.personalOffer.PersonalOfferNotification" table="PERSONAL_OFFER_NOTIFICATION">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PERSONAL_OFFER_NOTIFICATION</param>
+            </generator>
+        </id>
+
+        <property name="state"          type="PersonalOfferState"           column="STATE"           not-null="true"/>
+        <property name="name"           type="string"                     column="NAME"            not-null="true"/>
+        <property name="periodFrom"     type="calendar"                   column="START_DATE"       not-null="false"/>
+        <property name="periodTo"       type="calendar"                   column="END_DATE"         not-null="false"/>
+
+        <set name="departments" table="PERSONAL_OFFER_DEPARTMENTS" lazy="false" fetch="subselect">
+            <key column="PERSONAL_OFFER_ID"/>
+            <element column="TB" type="string" not-null="true"/>
+        </set>
+
+        <property name="title"          type="string"                     column="TITLE"           not-null="false"/>
+        <property name="text"           type="string"                     column="TEXT"            not-null="false"/>
+
+        <bag name="buttons" table="PERSONAL_OFFER_BUTTONS" cascade="all-delete-orphan" lazy="false" fetch="subselect">
+            <key column="PERSONAL_OFFER_ID"/>
+			<one-to-many class="com.rssl.phizic.business.personalOffer.PersonalOfferNotificationButton"/>
+        </bag>
+
+        <list name="areas" table="PERSONAL_OFFER_AREAS" cascade="all-delete-orphan" lazy="false">
+
+            <key column="PERSONAL_OFFER_ID" not-null="false"/>
+			<list-index column="LIST_INDEX"/>
+			<one-to-many class="com.rssl.phizic.business.personalOffer.PersonalOfferNotificationArea"/>
+        </list>
+
+        <property name="imageId"        type="long"                       column="IMAGE_ID"        not-null="false"/>
+        <property name="showTime"       type="long"                       column="SHOW_TIME"       not-null="true"/>
+        <property name="orderIndex"     type="long"                       column="ORDER_INDEX"     not-null="true"/>
+        <property name="productType"     type="PersonalOfferProduct"      column="PRODUCT_TYPE"     not-null="true"/>
+        <property name="displayFrequencyDay"  type="long"                       column="DISPLAY_FREQUENCY_DAY"     not-null="false"/>
+        <property name="displayFrequency"     type="PersonalOfferDisplayFrequency"      column="DISPLAY_FREQUENCY"     not-null="true"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.personalOffer.PersonalOfferNotificationButton" table="PERSONAL_OFFER_BUTTONS">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PERSONAL_OFFER_BUTTONS</param>
+            </generator>
+        </id>
+
+
+        <property name="title"          type="string"                     column="TITLE"           not-null="false"/>
+        <property name="url"            type="string"                     column="URL"             not-null="false"/>
+        <property name="imageId"        type="long"                       column="IMAGE_ID"        not-null="false"/>
+        <property name="show"           type="boolean"                    column="SHOW"            not-null="true"/>
+        <property name="orderIndex"     type="long"                       column="ORDER_INDEX"     not-null="true"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.personalOffer.PersonalOfferNotificationArea" table="PERSONAL_OFFER_AREAS">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PERSONAL_OFFER_AREAS</param>
+            </generator>
+        </id>
+
+        <property name="areaName"       type="string"                     column="AREA"            not-null="true"/>
+        <property name="orderIndex"     type="long"                       column="ORDER_INDEX"     not-null="true"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.personalOffer.NotificationDateDisplay" table="PERSONAL_OFFER_DISPLAY_DATE">
+		 <composite-id>
+             <key-many-to-one name="notification" column="PERSONAL_OFFER_ID" class="com.rssl.phizic.business.personalOffer.PersonalOfferNotification" lazy="false"/>
+             <key-many-to-one name="login"        column="LOGIN_ID"          class="com.rssl.phizic.auth.LoginImpl"                                   lazy="false"/>
+		 </composite-id>
+         <property name="displayDate"         type="calendar"         column="DISPLAY_DATE" />
+    </class>
+    <!-- Получение списка id баннеров в порядке их отображения -->
+    <sql-query name="com.rssl.phizic.business.personalOffer.PersonalOfferNotificationService.getNotificationList">
+        <return alias="notification" class="com.rssl.phizic.business.personalOffer.PersonalOfferNotification"/>
+         <![CDATA[
+            SELECT {notification.*}  FROM PERSONAL_OFFER_NOTIFICATION   notification
+            WHERE  (notification.START_DATE is null or notification.START_DATE <= :currentDate) and (notification.END_DATE is null or notification.END_DATE >= :currentDate)
+            AND notification.STATE='ACTIVE'
+            AND notification.ID in
+            (
+                SELECT
+                    offerDepartment.PERSONAL_OFFER_ID
+                FROM
+                    PERSONAL_OFFER_DEPARTMENTS offerDepartment
+                WHERE offerDepartment.TB = :TB
+            )
+            ORDER BY notification.ORDER_INDEX, notification.NAME
+        ]]>
+	</sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,47 @@
+<html>
+<body>
+<span style="text-align:center; width:100%">
+Уважаемый, ${fullName}!<br/><br/>
+Информируем Вас о том, что изменилось состояние следующих платежей:<br/>
+<table border=1 cellspacing="0" cellpadding="0">
+	<tr>
+		<th style='width:200px'>Номер платежа</th>
+		<th style='width:200px'>Название</th>
+		<th style='width:200px'>Дата создания</th>
+		<th style='width:200px'>Сумма</th>
+		<th style='width:200px'>Текущее состояние</th>
+		<th style='width:200px'>Время изменения</th>
+	</tr>
+	<#list entries as entry>
+		<tr>
+			<td>${entry.payment.documentNumber}</td>
+			<td>${entry.formName!'&nbsp'}</td>
+			<td>${entry.payment.dateCreated?string("yyyy-MM-dd")}</td>
+			<td>${entry.payment.chargeOffAmount.decimal?string(",##0.00")} ${entry.payment.chargeOffAmount.currency.code}</td>
+			<td>
+				<#switch entry.payment.state.code>
+				  <#case 'INITIAL'>Введен<#break>
+				  <#case 'DISPATCHED'>На исполнении<#break>
+				  <#case 'REFUSED'>Отказан<#break>
+				  <#case 'EXECUTED'>Исполнен<#break>
+				  <#case 'RECALLED'>Отозван<#break>
+				  <#default>&nbsp;
+				</#switch>
+			</td>
+			<td>${entry.payment.changed?string("dd.MM.yyyy  HH:mm:ss")}</td>
+		</tr>
+	</#list>
+</table>
+<br/><br/><br/>
+Для получения более подробной информации, а также настройки параметров оповещений Вы можете воспользоваться системой <a href='http://${bankContext.systemUrl}'>${bankContext.systemName}</a>.
+<br/><br/><br/>
+</span>
+<span style="font-size:10pt">Дата и время составления отчета: ${reportTime.time?string("dd.MM.yyyy HH:mm:ss")}</span>
+<br/><br/><br/>
+С уважением,
+${bankContext.bankName}<br/>
+Адрес: ${bankContext.bankAddress}<br/>
+Телефон: ${bankContext.bankPhone}<br/>
+<a href='http://${bankContext.webUrl}'>${bankContext.webUrl}</a>
+</body>
+</html>

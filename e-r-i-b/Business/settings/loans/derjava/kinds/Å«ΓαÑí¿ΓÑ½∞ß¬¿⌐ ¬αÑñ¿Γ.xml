@@ -1,0 +1,1506 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<loan-claim-definition xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/loan-definition.xsd"
+                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<fields>
+		<group name="client-data" description="Личные данные заявителя">
+			<field name="surname"
+			       type="string"
+			       description="Фамилия"
+			       mandatory="true"
+			       key="NAME1||10035"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='surName']">
+			</field>
+
+			<field name="name"
+			       type="string"
+			       description="Имя"
+			       mandatory="true"
+			       key="NAME2||10036"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='firstName']">
+			</field>
+
+			<field name="patronymic"
+			       type="string"
+			       description="Отчество"
+			       mandatory="true"
+			       key="NAME3||10037"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='patrName']">
+			</field>
+
+			<field name="birthday"
+			       type="date"
+			       description="Дата рождения"
+			       input-template="__.__.____"
+			       mandatory="true"
+			       key="BORN||10038"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='birthDay']">
+			</field>
+
+			<field name="birth-place"
+			       type="string"
+			       description="Место рождения"
+			       mandatory="true"
+			       key="BIRSPLASE||10042"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='birthPlace']">
+			</field>
+
+			<field name="sex"
+			       type="string"
+			       description="Пол"
+			       mandatory="true"
+			       dictionary="client-sex"
+			       key="ISMALE||10041"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='gender']">
+			</field>
+		</group>
+
+		<group name="client-documents" description="Документ, удостоверяющий личность (паспорт гражданина РФ)">
+			<field name="passport-series"
+			       type="string"
+			       description="Серия"
+			       mandatory="true"
+			       size="4"
+			       key="PAPERSERIES||10044"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='REGULAR_PASSPORT_RF-series']">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Серия паспорта должна содержать 4 цифры</message>
+				   <parameter name="regexp" value="\d{2}\s\d{2}|\d{4}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<field name="passport-number"
+			       type="string"
+			       description="Номер"
+			       mandatory="true"
+			       size="6"
+			       key="PAPERNUMBER||10045"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='REGULAR_PASSPORT_RF-number']">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Номер паспорта должна содержать 6 цифр</message>
+				   <parameter name="regexp" value="\d{6}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<field name="passport-date"
+			       type="date"
+			       description="Дата выдачи"
+			       input-template="__.__.____"
+			       mandatory="true"
+			       key="PAPERISSUEDDATE||10047"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='REGULAR_PASSPORT_RF-issue-date']">
+			</field>
+
+			<field name="passport-issuer"
+			       type="string"
+			       description="Кем выдан паспорт (включая код подразделения, выдавшего документ)"
+			       mandatory="true"
+			       key="PAPERISSUER||10046"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='REGULAR_PASSPORT_RF-issue-by']">
+			</field>
+		</group>
+
+		<group name="client-other-documents" description="Дополнительные документы">
+			<field name="second-document"
+			       type="string"
+			       description="Вид дополнительного документа"
+			       mandatory="true"
+			       dictionary="second-document-types"/>
+
+			<!-- загран паспорт-->
+			<field name="foreign-passport-series"
+			       type="string"
+			       description="Серия заграничного паспорта"
+			       mandatory="true"
+			       size="2"
+			       enabled="getFieldValue('second-document')=='foreign-passport'"
+			       key="||10048"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='FOREIGN_PASSPORT_RF-series']">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Серия заграничного паспорта должна содержать 2 цифры</message>
+				   <parameter name="regexp" value="\d{2}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<field name="foreign-passport-number"
+			       type="string"
+			       description="Номер заграничного паспорта"
+			       mandatory="true"
+			       size="7"
+			       enabled="getFieldValue('second-document')=='foreign-passport'"
+			       key="||10049"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='FOREIGN_PASSPORT_RF-number']">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Номер заграничного паспорта должна содержать 7 цифр</message>
+				   <parameter name="regexp" value="\d{7}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<field name="foreign-passport-date"
+			       type="date"
+			       description="Дата выдачи заграничного паспорта"
+			       input-template="__.__.____"
+			       mandatory="true"
+			       enabled="getFieldValue('second-document')=='foreign-passport'"
+			       key="||10051"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='FOREIGN_PASSPORT_RF-issue-date']">
+			</field>
+
+			<field name="foreign-passport-issuer"
+			       type="string"
+			       description="Кем выдан заграничный паспорт "
+			       mandatory="true"
+			       enabled="getFieldValue('second-document')=='foreign-passport'"
+			       key="||10050"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='FOREIGN_PASSPORT_RF-issue-by']">
+			</field>
+
+			<!-- водительское удостоверение-->
+			<field name="driving-license-series"
+			       type="string"
+			       description="Серия водительского удостоверения"
+			       mandatory="true"
+			       size="4"
+			       enabled="getFieldValue('second-document')=='driving-license'"
+			       key="||10052">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Серия должна состоять из 2 цифр и 2 букв (латинских или русских, написание которых совпадает с латинскими.)</message>
+				   <parameter name="regexp"
+				              value="[0-9]{2}[AaBCcEeHKkMOoPpTXxYyАаВвСсЕеНнКкМмОоРрТтХхУу]{2}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<field name="driving-license-number"
+			       type="string"
+			       description="Номер водительского удостоверения"
+			       mandatory="true"
+			       size="6"
+			       enabled="getFieldValue('second-document')=='driving-license'"
+			       key="||10053">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Номер  водительского удостоверения должна содержать 6 цифры</message>
+				   <parameter name="regexp" value="\d{6}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<field name="driving-license-date"
+			       type="date"
+			       description="Дата выдачи водительского удостоверения"
+			       input-template="__.__.____"
+			       mandatory="true"
+			       enabled="getFieldValue('second-document')=='driving-license'"
+			       key="||10055">
+			</field>
+
+			<!--удостоверения личности военнослужащего/сотрудника правоохранительных органов-->
+			<field name="military-dependent-identity-card-number"
+			       type="string"
+			       description="Номер удостоверения личности военнослужащего/ сотрудника правоохранительных органов"
+			       mandatory="true"
+			       size="10"
+			       enabled="getFieldValue('second-document')=='military-dependent-identity-card'"
+			       key="||15168"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='MILITARY_IDCARD-number']">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Номер удостоверения личности военнослужащего/сотрудника правоохранительных органов должен содержать 10 цифры</message>
+				   <parameter name="regexp" value="\d{10}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<!--военный билет-->
+			<field name="military-card-number"
+			       type="string"
+			       description="Номер военного билета"
+			       mandatory="true"
+			       size="12"
+			       enabled="getFieldValue('second-document')=='military-card'"
+			       key="||15147">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Номер военного билета должен содержать 12 цифры</message>
+				   <parameter name="regexp" value="\d{12}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<field name="military-card-date"
+			       type="date"
+			       description="Дата выдачи военного билета"
+			       input-template="__.__.____"
+			       mandatory="true"
+			       enabled="getFieldValue('second-document')=='military-card'"
+			       key="||15148">
+			</field>
+
+			<!--Свидетельство о присвоении ИНН-->
+			<field name="inn-license-number"
+			       type="string"
+			       description="Свидетельство о присвоении ИНН"
+			       mandatory="true"
+			       size="12"
+			       enabled="getFieldValue('second-document')=='inn-license'"
+			       key="||10057"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='inn']">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Свидетельство о присвоении ИНН должно содержать 12 цифры</message>
+				   <parameter name="regexp" value="\d{12}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<!--Страховое свидетельство пенсионного фонда РФ-->
+			<field name="pensionary-certificate-number"
+			       type="string"
+			       description="Номер"
+			       mandatory="true"
+			       size="11"
+			       enabled="getFieldValue('second-document')=='pensionary-certificate'"
+			       key="||10056">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>Номер страхового свидетельства пенсионного фонда РФ должен содержать 11 цифр</message>
+				   <parameter name="regexp" value="\d{11}"/>
+				</validator>
+			 </validators>
+			</field>
+		</group>
+
+		<group name="client-registration-address" description="Адрес регистрации по месту жительства">
+			<field name="registration-address-index"
+			       type="string"
+			       description="Индекс"
+			       size="6"
+			       key="POSTINDEX||10063"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='registrationAddress-postal-code']">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>поле [Почтовый индекс по регистрации] должен содержать 6 цифр</message>
+				   <parameter name="regexp" value="\d{6}"/>
+				</validator>
+			 </validators>
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('residence-address-equals')=='1) Да'){
+							setFieldValue('residence-address-index', getFieldValue('registration-address-index'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="registration-address-region"
+			       type="string"
+			       description="Регион"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='registrationAddress-province']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('residence-address-equals')=='1) Да'){
+							setFieldValue('residence-address-region', getFieldValue('registration-address-region'));
+						}
+						if (getFieldValue('property-address')=='equals-to-registration-address'){
+							setFieldValue('property-region', getFieldValue('residence-address-region'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="registration-address-city"
+			       type="string"
+			       description="Город (район, населенный пункт)"
+			       mandatory="true"
+			       key="||10064"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='registrationAddress-city']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('residence-address-equals')=='1) Да'){
+							setFieldValue('residence-address-city', getFieldValue('registration-address-city'));
+						}
+						if (getFieldValue('property-address')=='equals-to-registration-address'){
+							setFieldValue('property-city-flat', getFieldValue('residence-address-city'));
+							setFieldValue('property-city-house', getFieldValue('residence-address-city'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="registration-address-street"
+			       type="string"
+			       description="Улица"
+			       mandatory="true"
+			       key="STREET||10065"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='registrationAddress-street']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('residence-address-equals')=='1) Да'){
+							setFieldValue('residence-address-street', getFieldValue('registration-address-street'));
+						}
+						if (getFieldValue('property-address')=='equals-to-registration-address'){
+							setFieldValue('property-street-flat', getFieldValue('residence-address-street'));
+							setFieldValue('property-street-house', getFieldValue('residence-address-street'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="registration-address-house"
+			       type="string"
+			       description="Дом"
+			       mandatory="true"
+			       key="HOUSE||10066"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='registrationAddress-house']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('residence-address-equals')=='1) Да'){
+							setFieldValue('residence-address-house', getFieldValue('registration-address-house'));
+						}
+						if (getFieldValue('property-address')=='equals-to-registration-address'){
+							setFieldValue('property-house-flat', getFieldValue('residence-address-house'));
+							setFieldValue('property-house-house', getFieldValue('residence-address-house'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="registration-address-building"
+			       type="string"
+			       description="Корпус"
+			       key="CORP||10067"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='registrationAddress-building']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('residence-address-equals')=='1) Да'){
+							setFieldValue('residence-address-building', getFieldValue('registration-address-building'));
+						}
+						if (getFieldValue('property-address')=='equals-to-registration-address'){
+							setFieldValue('property-building-flat', getFieldValue('residence-address-building'));
+							setFieldValue('property-building-house', getFieldValue('residence-address-building'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="registration-address-flat"
+			       type="string"
+			       description="Квартира"
+			       key="FLAT||10068"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='registrationAddress-flat']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('residence-address-equals')=='1) Да'){
+							setFieldValue('residence-address-flat', getFieldValue('registration-address-flat'));
+						}
+						if (getFieldValue('property-address')=='equals-to-registration-address'){
+							setFieldValue('property-flat-flat', getFieldValue('residence-address-flat'));
+							setFieldValue('property-flat-house', getFieldValue('residence-address-flat'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="registration-address-period"
+			       type="string"
+			       mandatory="true"
+			       description="Время регистрации в данном регионе"
+			       dictionary="registration-address-period-types"
+			       key="||10069">
+			</field>
+		</group>
+
+		<group name="client-residence-address" description="Фактический адрес проживания">
+			<field name="residence-address-equals"
+			       type="string"
+			       mandatory="true"
+			       description="Совпадает с адресом регистрации по месту жительства"
+			       dictionary="yes-no-dictionary-uppper-case"
+			       key="||10070">
+				<actions>
+					<action type="onchange">
+						var on=getFieldValue('residence-address-equals')=='1) Да';
+						if (on){
+							setFieldValue('residence-address-index', getFieldValue('registration-address-index'));
+							setFieldValue('residence-address-region', getFieldValue('registration-address-region'));
+							setFieldValue('residence-address-city', getFieldValue('registration-address-city'));
+							setFieldValue('residence-address-street', getFieldValue('registration-address-street'));
+							setFieldValue('residence-address-house', getFieldValue('registration-address-house'));
+							setFieldValue('residence-address-building', getFieldValue('registration-address-building'));
+							setFieldValue('residence-address-flat', getFieldValue('registration-address-flat'));
+						}
+						getField('residence-address-index').readOnly=on;
+						getField('residence-address-region').readOnly=on;
+						getField('residence-address-city').readOnly=on;
+						getField('residence-address-street').readOnly=on;
+						getField('residence-address-house').readOnly=on;
+						getField('residence-address-building').readOnly=on;
+						getField('residence-address-flat').readOnly=on;
+					</action>
+				</actions>
+			</field>
+
+			<field name="residence-address-index"
+			       type="string"
+			       description="Индекс"
+			       size="6"
+			       key="POSTINDEXF||10072"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='residenceAddress-postal-code']">
+			 <validators>
+				<validator>
+				   <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+				   <message>поле [Индекс] должен содержать 6 цифр</message>
+				   <parameter name="regexp" value="\d{6}"/>
+				</validator>
+			 </validators>
+			</field>
+
+			<field name="residence-address-region"
+			       type="string"
+			       description="Регион"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='residenceAddress-province']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('property-address')=='equals-to-residence-address'){
+							setFieldValue('property-region', getFieldValue('residence-address-region'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="residence-address-city"
+			       type="string"
+			       description="Город (район, населенный пункт)"
+			       mandatory="true"
+			       key="||10073"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='residenceAddress-city']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('property-address')=='equals-to-residence-address'){
+							setFieldValue('property-city-flat', getFieldValue('residence-address-city'));
+							setFieldValue('property-city-house', getFieldValue('residence-address-city'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="residence-address-street"
+			       type="string"
+			       description="Улица"
+			       mandatory="true"
+			       key="STREETF||10074"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='residenceAddress-street']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('property-address')=='equals-to-residence-address'){
+							setFieldValue('property-street-flat', getFieldValue('residence-address-street'));
+							setFieldValue('property-street-house', getFieldValue('residence-address-street'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="residence-address-house"
+			       type="string"
+			       description="Дом"
+			       mandatory="true"
+			       key="HOUSEF||10075"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='residenceAddress-house']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('property-address')=='equals-to-residence-address'){
+							setFieldValue('property-house-flat', getFieldValue('residence-address-house'));
+							setFieldValue('property-house-house', getFieldValue('residence-address-house'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="residence-address-building"
+			       type="string"
+			       description="Корпус"
+			       key="CORPF||10076"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='residenceAddress-building']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('property-address')=='equals-to-residence-address'){
+							setFieldValue('property-building-flat', getFieldValue('residence-address-building'));
+							setFieldValue('property-building-house', getFieldValue('residence-address-building'));
+						}
+					</action>
+				</actions>
+			</field>
+
+			<field name="residence-address-flat"
+			       type="string"
+			       description="Квартира"
+			       key="FLATF||10077"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='residenceAddress-flat']">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('property-address')=='equals-to-residence-address'){
+							setFieldValue('property-flat-flat', getFieldValue('residence-address-flat'));
+							setFieldValue('property-flat-house', getFieldValue('residence-address-flat'));
+						}
+					</action>
+				</actions>
+			</field>
+		</group>
+
+		<group name="client-contact-info" description="Способы связи">
+			<field name="home-phone-number"
+			       type="string"
+			       description="Домашний телефон"
+			       key="||10058"
+			       size="16"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='homePhone']">
+				<validators>
+				   <validator>
+					  <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+					  <message>Поле [Домашний телефон] должно иметь формат +7 (код_города) номер_телефона.</message>
+					   <parameter name="regexp"
+					              value="\+7( )?\(((\d{3}\)( )?\d{7})|(\d{4}\)( )?\d{6})|(\d{5}\)( )?\d{5}))"/>
+				   </validator>
+				</validators>
+			</field>
+
+			<field name="work-phone-number"
+			       type="string"
+			       description="Рабочий телефон"
+			       key="||10059"
+			       size="16"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='jobPhone']">
+				<validators>
+				   <validator>
+					  <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+					  <message>Поле [Рабочий телефон] должно иметь формат +7 (код_города) номер_телефона.</message>
+					   <parameter name="regexp"
+					              value="\+7( )?\(((\d{3}\)( )?\d{7})|(\d{4}\)( )?\d{6})|(\d{5}\)( )?\d{5}))"/>
+				   </validator>
+				</validators>
+			</field>
+
+			<field name="mobile-phone-number"
+			       type="string"
+			       description="Мобильный телефон"
+			       key="||10060"
+			       size="16"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='mobilePhone']">
+				<validators>
+				   <validator>
+					  <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+					  <message>Поле [Мобильный телефон] должно иметь формат +7 (код_города) номер_телефона.</message>
+					   <parameter name="regexp"
+					              value="\+7( )?\(((\d{3}\)( )?\d{7})|(\d{4}\)( )?\d{6})|(\d{5}\)( )?\d{5}))"/>
+				   </validator>
+				</validators>
+			</field>
+
+			<field name="e-mail"
+			       type="string"
+			       description="E-mail"
+			       key="||10061"
+			       inital="xpath:phiz:document('currentPerson.xml')//field[@name='email']">
+			</field>
+		</group>
+
+		<group name="client-social-state" description="Дополнительные сведения">
+			<field name="education"
+			       type="string"
+			       description="Образование"
+			       mandatory="true"
+			       dictionary="education-types"
+			       key="||10081">
+			</field>
+
+			<field name="social-state"
+			       type="string"
+			       description="Социальный статус"
+			       mandatory="true"
+			       dictionary="social-state-types"
+			       key="||10082">
+			</field>
+
+			<field name="family-state"
+			       type="string"
+			       description="Семейное положение"
+			       mandatory="true"
+			       dictionary="family-state-types"
+			       key="||10078">
+			</field>
+
+			<field name="maintenance-child-count"
+			       type="string"
+			       description="Количество детей на иждивении"
+			       mandatory="true"
+			       key="||10079"
+			       dictionary="maintenance-count-dictionry">
+			</field>
+
+			<field name="other-maintenance-count"
+			       type="string"
+			       description="Количество других иждивенцев"
+			       key="||10080"
+			       mandatory="true"
+			       dictionary="maintenance-count-dictionry">
+			</field>
+		</group>
+
+		<group name="client-work-info" description="Данные о месте работы">
+			<field name="organization-name"
+			       type="string"
+			       description="Полное название организации"
+			       mandatory="true"
+			       key="||10086">
+			</field>
+
+			<field name="organization-address"
+			       type="string"
+			       description="Фактический адрес организации"
+			       mandatory="true"
+			       key="||10089">
+			</field>
+
+			<field name="organization-phone"
+			       type="string"
+			       description="Телефон организации"
+			       key="||10088"
+			       size="16">
+				<validators>
+				   <validator>
+					  <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+					   <message>Поле [Телефон организации] должно иметь формат +7 (код_города) номер_телефона.</message>
+					   <parameter name="regexp"
+					              value="\+7( )?\(((\d{3}\)( )?\d{7})|(\d{4}\)( )?\d{6})|(\d{5}\)( )?\d{5}))"/>
+				   </validator>
+				</validators>
+			</field>
+
+			<field name="direction-of-activity"
+			       type="string"
+			       description="Направление вашей деятельности"
+			       mandatory="true"
+			       dictionary="direction-of-activity-types"
+			       key="||10096">
+			</field>
+
+			<field name="direction-of-activity-time"
+			       type="string"
+			       description="Время работы на этом направлении деятельности"
+			       mandatory="true"
+			       dictionary="direction-of-activity-time-types"
+			       key="||10097">
+			</field>
+
+			<field name="experience-time"
+			       type="string"
+			       description="Время работы в данной организации"
+			       mandatory="true"
+			       dictionary="experience-time-types"
+			       key="||10098">
+			</field>
+
+			<field name="organization-type"
+			       type="string"
+			       description="Тип организации"
+			       mandatory="true"
+			       dictionary="organization-types"
+			       key="||15375">
+			</field>
+
+			<field name="organization-kind"
+			       type="string"
+			       description="Организационная форма работодателя"
+			       mandatory="true"
+			       dictionary="organization-kinds"
+			       key="||15370">
+			</field>
+
+			<field name="other-organization-kind"
+			       type="string"
+			       description="Организационная форма работодателя"
+			       mandatory="true"
+			       enabled="getFieldValue('organization-kind')=='other'">
+			</field>
+
+			<field name="work-post"
+			       type="string"
+			       description="Ваша должность в настоящий момент"
+			       mandatory="true"
+			       dictionary="work-post-types"
+			       key="||10103">
+			</field>
+
+			<field name="organization-business-direction"
+			       type="string"
+			       description="Направление деятельности компании"
+			       mandatory="true"
+			       dictionary="organization-business-direction-types"
+			       key="||10096">
+			</field>
+
+			<field name="other-organization-business-direction"
+			       type="string"
+			       description="Направление деятельности компании"
+			       mandatory="true"
+			       enabled="getFieldValue('organization-business-direction')=='23) Иное'">
+			</field>
+		</group>
+
+		<group name="client-profit" description="Уровень расходов и доходов Заявителя">
+			<field name="profit-amount"
+			       type="money"
+			       description="Персональный среднемесячный доход (в рублях)"
+			       mandatory="true"
+			       key="||10085">
+			</field>
+
+			<field name="spouse-profit-amount"
+			       type="money"
+			       description="Персональный среднемесячный доход супруга(и) в рублях"
+			       mandatory="true"
+			       key="||15100"
+			       enabled="getFieldValue('family-state')=='1) Женат/замужем'">
+			</field>
+
+			<field name="family-profit-amount"
+			       type="string"
+			       description="Среднемесячный доход Вашей семьи"
+			       mandatory="true"
+			       dictionary="family-profit-amount-types"
+			       key="||10083">
+			</field>
+
+			<field name="expenses-amount"
+			       type="money"
+			       description="Обязательные ежемесячные платежи"
+			       key="||15112"
+			       hint="алименты, выплаты по суду, выплаты по кредитам (сумма ежемесячных платежей), суммы платежей по всем кредитным договорам, по которым Вы являетесь поручителем, налоги по договорам наследования и дарения)">
+			</field>
+
+			<field name="family-expenses-amount"
+			       type="money"
+			       description="Расходы на содержание семьи"
+			       mandatory="true"
+			       key="||15108"
+			       hint="включая аренду жилья, коммунальные платежи, транспорт и прочее">
+			</field>
+		</group>
+
+		<group name="client-additional-profit" description="Иные источники дохода">
+
+			<field name="additional-profit"
+			       type="string"
+			       description="Источник дохода"
+			       key="||15155">
+			</field>
+
+			<field name="additional-profit-amount"
+			       type="string"
+			       description="Сумма дохода (в рублях)"
+			       enabled="getFieldValue('additional-profit').length>0"
+			       key="||15156">
+			</field>
+
+			<field name="additional-profit-period"
+			       type="string"
+			       description="Периодичность"
+			       enabled="getFieldValue('additional-profit').length>0"
+			       key="||15157">
+			</field>
+		</group>
+
+		<group name="client-bank-data"
+		       description="Действующие отношения с АКБ «Банк Демо»">
+			<field name="bank-data-deposit"
+			       type="boolean"
+			       description="Депозиты"
+			       key="||15161">
+			</field>
+
+			<field name="bank-data-account"
+			       type="boolean"
+			       description="Текущий счет"
+			       key="||15372">
+			</field>
+
+			<field name="bank-data-card"
+			       type="boolean"
+			       description="Зарплатный счет (карта)"
+			       key="||15162">
+			</field>
+
+			<field name="bank-data-card-number"
+			       type="string"
+			       description="Номер зарплатной карты"
+			       size="16"
+			       enabled="getFieldValue('bank-data-card')"
+			       key="||15163">
+				<validators>
+				   <validator>
+					  <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+					  <message>Поле [Номер зарплатной карты] должно содержать 16 цифр</message>
+					  <parameter name="regexp" value="\d{16}"/>
+				   </validator>
+				</validators>
+			</field>
+
+			<field name="bank-data-loans"
+			       type="boolean"
+			       description="Кредиты"
+			       key="||15164">
+			</field>
+
+			<field name="bank-data-debit-card"
+			       type="boolean"
+			       description="Дебетовая карта"
+			       key="||15166">
+			</field>
+
+			<field name="bank-data-credit-card"
+			       type="boolean"
+			       description="Кредитная карта"
+			       key="||15165">
+			</field>
+
+			<field name="bank-data-cooperation-period"
+			       type="string"
+			       description="Время работы с Банком(месяцев)"
+			       key="||15167">
+				<validators>
+				   <validator>
+					  <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+					  <message>Некорректное число месяцев в поле...</message>
+					  <parameter name="regexp" value="0|0?[1-9]|[1-9]\d+"/>
+				   </validator>
+				</validators>
+			</field>
+		</group>
+
+		<group name="client-loans-history" description="Кредитная история">
+			<field name="loans-history"
+			       type="string"
+			       description="Кредитная история"
+			       dictionary="loans-history-types"
+			       key="||10104">
+			</field>
+
+			<field name="loans-bank1"
+			       type="string"
+			       description="Банк-кредитор 1-го кредита"
+			       mandatory="true"
+			       enabled="getFieldValue('loans-history')=='3) Есть текущие кредиты'"
+			       key="||10105">
+			</field>
+
+			<field name="loans-bank1-credit-remainder"
+			       type="string"
+			       description="Непогашенная сумма 1-го кредита"
+			       mandatory="true"
+			       enabled="getFieldValue('loans-history')=='3) Есть текущие кредиты'"
+			       key="||10106">
+			</field>
+
+			<field name="loans-bank1-credit-deadline"
+			       type="date"
+			       description="Срок окончания 1-го кредита"
+			       input-template="__.__.____"
+			       mandatory="true"
+			       enabled="getFieldValue('loans-history')=='3) Есть текущие кредиты'"
+			       key="||10107">
+			</field>
+
+			<field name="loans-bank1-credit-overdue"
+			       type="string"
+			       description="Наличие просроченных платежей 1-го кредита"
+			       mandatory="true"
+			       enabled="getFieldValue('loans-history')=='3) Есть текущие кредиты'"
+			       dictionary="yes-no-dictionary"
+			       key="||10108">
+			</field>
+
+			<field name="loans-bank2"
+			       type="string"
+			       description="Банк-кредитор 2-го кредита"
+			       enabled="getFieldValue('loans-history')=='3) Есть текущие кредиты'"
+			       key="||10109">
+			</field>
+
+			<field name="loans-bank2-сredit-remainder"
+			       type="string"
+			       description="Непогашенная сумма 2-го кредита"
+			       enabled="getFieldValue('loans-history')=='3) Есть текущие кредиты'"
+			       key="||10110">
+			</field>
+
+			<field name="loans-bank2-сredit-deadline"
+			       type="date"
+			       description="Срок окончания 2-го кредита"
+			       input-template="__.__.____"
+			       enabled="getFieldValue('loans-history')=='3) Есть текущие кредиты'"
+			       key="||10111">
+			</field>
+
+			<field name="loans-bank2-сredit-overdue"
+			       type="string"
+			       description="Наличие просроченных платежей 2-го кредита"
+			       enabled="getFieldValue('loans-history')=='3) Есть текущие кредиты'"
+			       dictionary="yes-no-dictionary"
+			       key="||10112">
+			</field>
+		</group>
+
+		<group name="client-property"
+		       description="Сведения о собственности Заемщика (заполнять при наличии в собственности указанного имущества)">
+			<field name="property-type"
+			       type="string"
+			       description="Сведения о собственности Заемщика"
+			       mandatory="true"
+			       dictionary="property-types">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('property-address')=='equals-to-registration-address'){
+							setFieldValue('property-region', getFieldValue('registration-address-region'));
+							setFieldValue('property-city-flat', getFieldValue('registration-address-city'));
+							setFieldValue('property-city-house', getFieldValue('registration-address-city'));
+							setFieldValue('property-street-flat', getFieldValue('registration-address-street'));
+							setFieldValue('property-street-house', getFieldValue('registration-address-street'));
+							setFieldValue('property-house-flat', getFieldValue('registration-address-house'));
+							setFieldValue('property-house-house', getFieldValue('registration-address-house'));
+							setFieldValue('property-building-flat', getFieldValue('registration-address-building'));
+							setFieldValue('property-building-house', getFieldValue('registration-address-building'));
+							setFieldValue('property-flat-flat', getFieldValue('registration-address-flat'));
+							setFieldValue('property-flat-house', getFieldValue('registration-address-flat'));
+						}else if (getFieldValue('property-address')=='equals-to-residence-address'){
+							setFieldValue('property-region', getFieldValue('residence-address-region'));
+							setFieldValue('property-city-flat', getFieldValue('residence-address-city'));
+							setFieldValue('property-city-house', getFieldValue('residence-address-city'));
+							setFieldValue('property-street-flat', getFieldValue('residence-address-street'));
+							setFieldValue('property-street-house', getFieldValue('residence-address-street'));
+							setFieldValue('property-house-flat', getFieldValue('residence-address-house'));
+							setFieldValue('property-house-house', getFieldValue('residence-address-house'));
+							setFieldValue('property-building-flat', getFieldValue('residence-address-building'));
+							setFieldValue('property-building-house', getFieldValue('residence-address-building'));
+							setFieldValue('property-flat-flat', getFieldValue('residence-address-flat'));
+							setFieldValue('property-flat-house', getFieldValue('residence-address-flat'));
+						}
+						var on=getFieldValue('property-address')!="other";
+						getField('property-region').readOnly=on;
+						getField('property-city-flat').readOnly=on;
+						getField('property-city-house').readOnly=on;
+						getField('property-street-flat').readOnly=on;
+						getField('property-street-house').readOnly=on;
+						getField('property-house-flat').readOnly=on;
+						getField('property-house-house').readOnly=on;
+						getField('property-building-flat').readOnly=on;
+						getField('property-building-house').readOnly=on;
+						getField('property-flat-flat').readOnly=on;
+						getField('property-flat-house').readOnly=on;
+					</action>
+				</actions>
+			</field>
+
+			<field name="property-address"
+			       type="string"
+			       description="Адрес"
+			       mandatory="true"
+			       dictionary="property-address-types"
+			       enabled="getFieldValue('property-type')!='absent'">
+				<actions>
+					<action type="onchange">
+						if (getFieldValue('property-address')=='equals-to-registration-address'){
+							setFieldValue('property-region', getFieldValue('registration-address-region'));
+							setFieldValue('property-city-flat', getFieldValue('registration-address-city'));
+							setFieldValue('property-city-house', getFieldValue('registration-address-city'));
+							setFieldValue('property-street-flat', getFieldValue('registration-address-street'));
+							setFieldValue('property-street-house', getFieldValue('registration-address-street'));
+							setFieldValue('property-house-flat', getFieldValue('registration-address-house'));
+							setFieldValue('property-house-house', getFieldValue('registration-address-house'));
+							setFieldValue('property-building-flat', getFieldValue('registration-address-building'));
+							setFieldValue('property-building-house', getFieldValue('registration-address-building'));
+							setFieldValue('property-flat-flat', getFieldValue('registration-address-flat'));
+							setFieldValue('property-flat-house', getFieldValue('registration-address-flat'));
+						}else if (getFieldValue('property-address')=='equals-to-residence-address'){
+							setFieldValue('property-region', getFieldValue('residence-address-region'));
+							setFieldValue('property-city-flat', getFieldValue('residence-address-city'));
+							setFieldValue('property-city-house', getFieldValue('residence-address-city'));
+							setFieldValue('property-street-flat', getFieldValue('residence-address-street'));
+							setFieldValue('property-street-house', getFieldValue('residence-address-street'));
+							setFieldValue('property-house-flat', getFieldValue('residence-address-house'));
+							setFieldValue('property-house-house', getFieldValue('residence-address-house'));
+							setFieldValue('property-building-flat', getFieldValue('residence-address-building'));
+							setFieldValue('property-building-house', getFieldValue('residence-address-building'));
+							setFieldValue('property-flat-flat', getFieldValue('residence-address-flat'));
+							setFieldValue('property-flat-house', getFieldValue('residence-address-flat'));
+						}
+						var on=getFieldValue('property-address')!="other";
+						getField('property-region').readOnly=on;
+						getField('property-city-flat').readOnly=on;
+						getField('property-city-house').readOnly=on;
+						getField('property-street-flat').readOnly=on;
+						getField('property-street-house').readOnly=on;
+						getField('property-house-flat').readOnly=on;
+						getField('property-house-house').readOnly=on;
+						getField('property-building-flat').readOnly=on;
+						getField('property-building-house').readOnly=on;
+						getField('property-flat-flat').readOnly=on;
+						getField('property-flat-house').readOnly=on;
+					</action>
+				</actions>
+			</field>
+
+			<field name="property-region"
+			       type="string"
+			       description="Регион"
+			       enabled="getFieldValue('property-type')!='absent'">
+			</field>
+
+			<field name="property-city-flat"
+			       type="string"
+			       mandatory="true"
+			       description="Город (район, населенный пункт)"
+			       enabled="getFieldValue('property-type')!='absent'&amp;&amp;getFieldValue('property-type')=='flat'"
+			       key="||10118">
+			</field>
+
+			<field name="property-city-house"
+			       type="string"
+			       mandatory="true"
+			       description="Город (район, населенный пункт)"
+			       enabled="getFieldValue('property-type')!='absent'&amp;&amp;getFieldValue('property-type')=='house'"
+			       key="||10158">
+			</field>
+
+			<field name="property-street-flat"
+			       type="string"
+			       mandatory="true"
+			       description="Улица"
+			       enabled="getFieldValue('property-type')=='flat'"
+			       key="||10119">
+			</field>
+
+			<field name="property-street-house"
+			       type="string"
+			       mandatory="true"
+			       description="Улица"
+			       enabled="getFieldValue('property-type')=='house'"
+			       key="||10159">
+			</field>
+
+			<field name="property-house-flat"
+			       type="string"
+			       mandatory="true"
+			       description="Дом"
+			       enabled="getFieldValue('property-type')=='flat'"
+			       key="||10120">
+			</field>
+
+			<field name="property-house-house"
+			       type="string"
+			       description="Дом"
+			       mandatory="true"
+			       enabled="getFieldValue('property-type')=='house'"
+			       key="||10160">
+			</field>
+
+			<field name="property-building-flat"
+			       type="string"
+			       description="Корпус"
+			       enabled="getFieldValue('property-type')=='flat'"
+			       key="||10121">
+			</field>
+
+			<field name="property-building-house"
+			       type="string"
+			       description="Корпус"
+			       enabled="getFieldValue('property-type')=='house'"
+			       key="||10161">
+			</field>
+
+			<field name="property-flat-flat"
+			       type="string"
+			       description="Квартира"
+			       enabled="getFieldValue('property-type')=='flat'"
+			       key="||10122">
+			</field>
+
+			<field name="property-flat-house"
+			       type="string"
+			       description="Квартира"
+			       enabled="getFieldValue('property-type')=='house'"
+			       key="||10162">
+			</field>
+
+			<field name="property-kind"
+			       type="string"
+			       description="Вид собственности"
+			       mandatory="true"
+			       enabled="getFieldValue('property-type')!='absent'"
+			       dictionary="property-kinds">
+			</field>
+
+			<field name="property-take-way-flat"
+			       type="string"
+			       description="Способ получения"
+			       mandatory="true"
+			       enabled="getFieldValue('property-type')=='flat'"
+			       dictionary="property-take-ways"
+			       key="||10123">
+			</field>
+
+			<field name="property-take-way-house"
+			       type="string"
+			       description="Способ получения"
+			       mandatory="true"
+			       enabled="getFieldValue('property-type')=='house'"
+			       dictionary="property-take-ways"
+			       key="||10163">
+			</field>
+
+			<field name="property-area-flat"
+			       type="string"
+			       description="Общая площадь (кв. м)"
+			       mandatory="true"
+			       enabled="getFieldValue('property-type')=='flat'"
+			       key="||10125">
+			</field>
+
+			<field name="property-area-house"
+			       type="string"
+			       description="Общая площадь (кв. м)"
+			       mandatory="true"
+			       enabled="getFieldValue('property-type')=='house'"
+			       key="||10165">
+			</field>
+
+			<field name="property-tenure"
+			       type="string"
+			       description="Срок владения (лет)"
+			       mandatory="true"
+			       enabled="getFieldValue('property-type')!='absent'"
+			       key="||15178">
+			</field>
+		</group>
+
+		<group name="client-car-property" description="Автомобиль в собственности">
+
+			<field name="car-property-type"
+			       type="string"
+			       description="Автомобиль в собственности"
+			       mandatory="true"
+			       dictionary="car-property-types"
+			       key="||10144">
+				<actions>
+					<action type="onchange">
+						var on=getFieldValue('car-property-type')!="2) есть один";
+						getField('car-property-model').readOnly=on;
+						getField('car-property-year-mark').readOnly=on;
+						getField('car-property-number').readOnly=on;
+						getField('car-property-take-way').readOnly=on;
+					</action>
+				</actions>
+			</field>
+
+			<field name="car-property-model"
+			       type="string"
+			       description="Модель"
+			       mandatory="true"
+			       enabled="getFieldValue('car-property-type')=='2) есть один'"
+			       key="||10145">
+			</field>
+
+			<field name="car-property-year-mark"
+			       type="integer"
+			       description="Год выпуска"
+			       mandatory="true"
+			       enabled="getFieldValue('car-property-type')=='2) есть один'"
+			       key="||10146">
+			</field>
+
+			<field name="car-property-number"
+			       type="string"
+			       description="Государственный регистрационный номер"
+			       mandatory="true"
+			       enabled="getFieldValue('car-property-type')=='2) есть один'"
+			       key="||10147">
+			</field>
+
+			<field name="car-property-take-way"
+			       type="string"
+			       description="Способ приобретения"
+			       mandatory="true"
+			       enabled="getFieldValue('car-property-type')=='2) есть один'"
+			       dictionary="car-property-take-ways">
+			</field>
+
+			<field name="car-take-way-loan-perion"
+			       type="date"
+			       description="Срок погашения"
+			       input-template="__.__.____"
+			       mandatory="true"
+			       enabled="getFieldValue('car-property-take-way')=='bl'"
+			       key="||15336">
+			</field>
+		</group>
+
+		<group name="client-other-data" description="Код субъекта кредитной истории">
+			<field name="allow-transfer-personal-data"
+			       type="string"
+			       mandatory="true"
+			       description="Разрешение передачи сведений в Бюро кредитных историй"
+			       dictionary="allow-dictionary"
+			       hint="Представление АКБ «Банк Сбережений и Кредита» ЗАО в Бюро кредитных историй всей имеющейся у Банка информации, определенной ст. 4 Федерального закона «О кредитных историях» №218-Ф3 от 30.12.2004, по кредитному договору, заключенному на основании настоящей Анкеты-заявления"
+			       key="||15338">
+			</field>
+
+			<field name="loan-bureau-name"
+			       type="string"
+			       description="Наименование бюро кредитных историй"
+			       key="||15182"
+			       hint="Бюро кредитных историй, в котором хранится кредитная история Заявителя">
+			</field>
+
+			<field name="subject-of-loan-history-code"
+			       type="string"
+			       description="Действующий Код субъекта кредитной истории"
+			       size="15"
+			       key="||10196"
+			       enabled="getFieldValue('loan-bureau-name').length>0">
+				<validators>
+				   <validator>
+					  <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+					  <message>Поле Действующий Код субъекта кредитной истории должно содержать 15 цифр</message>
+					  <parameter name="regexp" value="\d{15}"/>
+				   </validator>
+				</validators>
+			</field>
+
+			<field name="new-subject-of-loan-history-code"
+			       type="string"
+			       description="Вновь сформированный Код субъекта кредитной истории"
+			       size="15"
+			       key="||10196"
+			       enabled="getFieldValue('loan-bureau-name').length==0">
+				<validators>
+				   <validator>
+					  <class>com.rssl.common.forms.validators.RegexpFieldValidator</class>
+					  <message>Поле Вновь сформированный Код субъекта кредитной истории должно состоять из букв русского алфавита и цифр (не менее 4 знаков и не более 15 знаков)</message>
+					  <parameter name="regexp" value="[\dа-яА-Я]{4,15}"/>
+				   </validator>
+				</validators>
+			</field>
+		</group>
+	</fields>
+
+	<dictionaries>
+		<entity-list name="client-sex">
+			<entity key="M">мужской</entity>
+			<entity key="F">женский</entity>
+		</entity-list>
+
+		<entity-list name="second-document-types">
+			<entity key="foreign-passport">Заграничный паспорт</entity>
+			<entity key="driving-license">Водительское удостоверение</entity>
+			<entity key="military-dependent-identity-card">Удостоверение личности военнослужащего/ сотрудника правоохранительных органов</entity>
+			<entity key="military-card">Военный билет</entity>
+			<entity key="inn-license">Свидетельство о присвоении ИНН</entity>
+			<entity key="pensionary-certificate">Страховое свидетельство пенсионного фонда РФ</entity>
+		</entity-list>
+
+		<entity-list name="registration-address-period-types">
+			<entity key="1) до 1 года">До 1 года</entity>
+			<entity key="2) от 1 года до 5 лет">От 1 года до 5 лет</entity>
+			<entity key="3) от 5 лет">Свыше 5 лет</entity>
+		</entity-list>
+
+		<entity-list name="education-types">
+			<entity key="1) Среднее/специальное">Среднее (включая специальное)</entity>
+			<entity key="2) Неоконченное высшее">Неполное высшее</entity>
+			<entity key="3) Высшее">Высшее</entity>
+			<entity key="4) Два и более Высших">Несколько высших</entity>
+			<entity key="5) Ученая степень">Ученая степень</entity>
+		</entity-list>
+
+		<entity-list name="social-state-types">
+			<entity key="1) Работаю/служу">работаю/служу</entity>
+			<entity key="2) Учусь (очно)">учусь</entity>
+			<entity key="3) Пенсионер">пенсионер</entity>
+			<entity key="4) Не работаю">не работаю</entity>
+		</entity-list>
+
+		<entity-list name="family-state-types">
+			<entity key="1) Женат/замужем">Женат (замужем)</entity>
+			<entity key="3) Разведен(а)">Разведен (а)</entity>
+			<entity key="2) Холост/не замужем">Холост (не замужем)</entity>
+			<entity key=" ">Вдовец (вдова)</entity>
+		</entity-list>
+
+		<entity-list name="direction-of-activity-types">
+			<entity key="1) Участие в основной деятельности">Участие в основной деятельности</entity>
+			<entity key="2) Бухгалтерия, финансы">Бухгалтерия финансы</entity>
+			<entity key="3) Пр.-тех. обеспечение и телекоммуникации">Производственно-техническое обеспечение и телекоммуникации</entity>
+			<entity key="4) Вспомогат. тех. персонал">Вспомогательный технический персонал.</entity>
+			<entity key="5) Кадры, секретариат">Кадры, секретариат</entity>
+			<entity key="7) Реклама и маркетинг">Реклама и маркетинг</entity>
+			<entity key="6) Адм.-хоз. и трансп. службы">Административно-хозяйственная и транспортная службы</entity>
+			<entity key="8) Юридическая Служба">Юридическая служба</entity>
+			<entity key="9) Служба безопасности">Служба безопасности</entity>
+		</entity-list>
+
+		<entity-list name="direction-of-activity-time-types">
+			<entity key="1) до 3 лет">до 3-х лет</entity>
+			<entity key="2) 3 - 5 лет">3-5 лет</entity>
+			<entity key="3) свыше 5 лет">свыше 5 лет</entity>
+		</entity-list>
+
+		<entity-list name="experience-time-types">
+			<entity key="1) до 1 года">до 1 года</entity>
+			<entity key="2) 1 - 3 года">1-3 лет</entity>
+			<entity key="3) свыше 3 лет">свыше 3 лет</entity>
+		</entity-list>
+
+		<entity-list name="organization-types">
+			<entity key="O">Российская</entity>
+			<entity key="F">Иностранная</entity>
+			<entity key="C">Совместное предприятие</entity>
+		</entity-list>
+
+		<entity-list name="work-post-types">
+			<entity key="1) Рук./Зам.рук.организации">Руководитель/Заместитель руководителя организации</entity>
+			<entity key="2) Рук./Зам.рук.подразделения">Руководитель/Заместитель руководителя подразделения</entity>
+			<entity key="3) Неруководящий работник">Неруководящий работник</entity>
+			<entity key="4) Индивидуальный предприниматель">Индивидуальный предприниматель</entity>
+		</entity-list>
+
+		<entity-list name="family-profit-amount-types">
+			<entity key="1) не более 5000">до 5 000 рублей</entity>
+			<entity key="2) от 5001 до 9000">от 5 001 до 9 000 рублей</entity>
+			<entity key="3) от 9001 до 15000">от 9 001 до 15 000 рублей</entity>
+			<entity key="4) от 15001 до 30000">от 15 001 до 30 000 рублей</entity>
+			<entity key="5) от 30001 до 300000">от 30 001 до 300 000 рублей</entity>
+			<entity key="6) Более 300000">свыше 300 000 рублей</entity>
+		</entity-list>
+
+		<entity-list name="loans-history-types">
+			<entity key="1) Все кредиты погашены">Все кредиты полностью погашены в установленные сроки в Банках</entity>
+			<entity key="2) Кредиты не брались">Кредитами ранее не пользовался</entity>
+			<entity key="3) Есть текущие кредиты">Текущие кредиты</entity>
+		</entity-list>
+
+		<entity-list name="yes-no-dictionary">
+			<entity key="1) нет">Нет</entity>
+			<entity key="2) да">Да</entity>
+		</entity-list>
+
+		<entity-list name="yes-no-dictionary-uppper-case">
+			<entity key="2) Нет">Нет</entity>
+			<entity key="1) Да">Да</entity>
+		</entity-list>
+
+		<entity-list name="property-types">
+			<entity key="absent">Нет</entity>
+			<entity key="flat">Недвижимость квартира (дом) в городе</entity>
+			<entity key="house">Дом/ Дача за городом/ Земельный участок</entity>
+		</entity-list>
+
+		<entity-list name="property-address-types">
+			<entity key="equals-to-registration-address">Совпадает с адресом регистрации</entity>
+			<entity key="equals-to-residence-address">Совпадает с адресом фактического проживания</entity>
+			<entity key="other">Другое</entity>
+		</entity-list>
+
+		<entity-list name="property-kinds">
+			<entity key="i">Индивидуальная</entity>
+			<entity key="d">Совместная долевая</entity>
+			<entity key="c">Совместная общая</entity>
+		</entity-list>
+
+		<entity-list name="property-take-ways">
+			<entity key="1) Покупка">Покупка</entity>
+			<entity key="2) Наследство">Наследование</entity>
+			<entity key="3) Дарение">Дарение</entity>
+			<entity key="4) Приватизация">Приватизация</entity>
+			<entity key="5) В залоге">В залоге</entity>
+		</entity-list>
+
+		<entity-list name="car-property-types">
+			<entity key="2) есть один">Есть</entity>
+			<entity key="1) нет">Нет</entity>
+		</entity-list>
+
+		<entity-list name="car-property-take-ways">
+			<entity key="b">Покупка</entity>
+			<entity key="i">Наследование</entity>
+			<entity key="p">Дарение</entity>
+			<entity key="bl">Покупка в кредит</entity>
+		</entity-list>
+
+		<entity-list name="organization-business-direction-types">
+			<entity key="1) Вооруженные силы">Вооруженные силы</entity>
+			<entity key="2) Добывающая промышленность">Добывающая промышленность</entity>
+			<entity key="3) Здравоохранение">Здравоохранение</entity>
+			<entity key="4) Издательская деятельность">Издательская деятельность</entity>
+			<entity key="5) Информатика, телекоммуникации">Информатика, телекоммуникации</entity>
+			<entity key="6) Комм.хоз-во, сфера услуг">Коммерческое хозяйство, сфера услуг</entity>
+			<entity key="7) Легк. и пищ. промышленность">Легкая и пищевая промышленность</entity>
+			<entity key="8) Машиностроение">Машиностроение</entity>
+			<entity key="9) Наука и культура">Наука и культура</entity>
+			<entity key="10) Образование">Образование</entity>
+			<entity key="11) Общественное питание">Общественное питание</entity>
+			<entity key="12) Посред. деятельность">Посредническая деятельность</entity>
+			<entity key="13) Правоохранительные органы">Правоохранительные органы</entity>
+			<entity key="14) Ресторан, Кафе">Ресторан, кафе</entity>
+			<entity key="15) Сельское хозяйство">Сельское хозяйство</entity>
+			<entity key="16) Строительство">Строительство</entity>
+			<entity key="17) Торговля">Торговля</entity>
+			<entity key="18) Транспорт и связь">Транспорт и связь</entity>
+			<entity key="19) Федер.и муницип.управление">Федеральное и муниципальное управление</entity>
+			<entity key="20) Финансы, банковское дело">Финансы, банковское дело</entity>
+			<entity key="21) Химия, Парфюмерия">Химия, парфюмерия</entity>
+			<entity key="22) Юридич.и нотариальн.услуги">Юридически, нотариальные услуги</entity>
+			<entity key="23) Иное">Иное(укажите)</entity>
+		</entity-list>
+
+		<entity-list name="organization-kinds">
+			<entity key="OOO">ООО</entity>
+			<entity key="ZAO">ЗАО</entity>
+			<entity key="OAO">ОАО</entity>
+			<entity key="GOV_COMPANY">Гос. компания (ГУП, ФГУП, МГУП, МУП)</entity>
+			<entity key="GOV">Государственное учреждение</entity>
+			<entity key="IB">Индивидуальный предприниматель</entity>
+			<entity key="other">Прочее(укажите)</entity>
+		</entity-list>
+
+		<entity-list name="allow-dictionary">
+			<entity key="allow">Разрешаю</entity>
+		</entity-list>
+
+		<entity-list name="maintenance-count-dictionry">
+			<entity key="1) Нет">0</entity>
+			<entity key="2) Один">1</entity>
+			<entity key="3) Двое">2</entity>
+			<entity key="4) Трое">3</entity>
+			<entity key="5) Более трех">Более 3</entity>
+		</entity-list>
+	</dictionaries>
+</loan-claim-definition>

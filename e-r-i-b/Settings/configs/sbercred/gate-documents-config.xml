@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documents xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:noNamespaceSchemaLocation="./../../schemas/gate-documents-config.xsd">
+	<document description = "Перевод между счетами клиента."
+			class = "com.rssl.phizic.gate.payments.ClientAccountsTransfer">
+		<commission-calculator
+				class="com.rssl.phizicgate.rsretailV6r4.commission.DefaultPaymentCommissionCalculator"/>
+
+		<sender class="com.rssl.phizicgate.rsretailV6r4.senders.ClientAccountsTransferSender"/>
+	</document>
+
+	<document description="Перевод физическому\юридическому лицу в другой банк через платежную систему России"
+	          class="com.rssl.phizic.gate.payments.AbstractRUSPayment">
+		<commission-calculator
+				class="com.rssl.phizicgate.rsretailV6r4.commission.RUSPaymentCommissionCalculator"/>
+		<sender class="com.rssl.phizicgate.rsretailV6r4.senders.RUSPaymentSender"/>
+	</document>
+
+	<document description = "Налоговый платеж РФ"
+			class = "com.rssl.phizic.gate.payments.RUSTaxPayment">
+	</document>
+
+	<document description = "Заявка на открытие депозита"
+			class = "com.rssl.phizic.gate.deposit.DepositOpeningClaim">
+		<sender class="com.rssl.phizicgate.rsretailV6r4.senders.DepositOpeningClaimSender">
+			<parameter name="currentRUB"       value="@deposit.current.id.RUB@"/>
+			<parameter name="currentUSD"       value="@deposit.current.id.USD@"/>
+			<parameter name="currentEUR"       value="@deposit.current.id.EUR@"/>
+			<parameter name="posteRestanteRUB" value="@deposit.posteRestante.id.RUB@"/>
+			<parameter name="posteRestanteUSD" value="@deposit.posteRestante.id.USD@"/>
+			<parameter name="posteRestanteEUR" value="@deposit.posteRestante.id.EUR@"/>
+		</sender>
+	</document>
+
+	<document description = "Заявка на закрытие депозита"
+			class = "com.rssl.phizic.gate.claims.DepositClosingClaim">
+		<sender class="com.rssl.phizicgate.rsretailV6r4.senders.DepositClosingClaimSender"/>
+	</document>
+
+	<document description = "Заявка на закрытие счета"
+			class = "com.rssl.phizic.gate.claims.AccountClosingClaim">
+		<sender class="com.rssl.phizicgate.rsretailV6r4.senders.AccountClosingClaimSender"/>
+	</document>
+
+	<document description = "Заявка на получение кредита"
+			class = "com.rssl.phizic.gate.loans.LoanOpeningClaim">
+		<sender class="ru.softlab.phizicgate.rsloansV64.claims.LoanOpeningClaimSender">
+		</sender>
+		<updater class="ru.softlab.phizicgate.rsloansV64.claims.LoanOpeningClaimUpdater"/>
+	</document>
+
+	<revoke-payment
+			class = "com.rssl.phizic.gate.documents.WithdrawDocument"
+			document-type-field = "withdrawType"/>
+
+	<!--TODO EditDocument-->
+</documents>

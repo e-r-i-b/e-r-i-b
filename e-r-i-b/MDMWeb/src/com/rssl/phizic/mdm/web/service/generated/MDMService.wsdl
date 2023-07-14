@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions
+        name="MDMService"
+        targetNamespace="http://com.rssl.phizic.mdm.app/erib/adapter"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:ns="http://com.rssl.phizic.mdm.app/erib/adapter">
+
+    <wsdl:types>
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://com.rssl.phizic.mdm.app/erib/adapter">
+            <xsd:include schemaLocation="MDMService.xsd"/>
+        </xsd:schema>
+    </wsdl:types>
+
+    <wsdl:message name="request">
+        <wsdl:part name="request" element="ns:Request"/>
+    </wsdl:message>
+
+    <wsdl:message name="response">
+        <wsdl:part name="response" element="ns:Response"/>
+    </wsdl:message>
+
+    <wsdl:portType name="MDMService">
+        <wsdl:operation name="exec" parameterOrder="request">
+            <wsdl:input  message="ns:request"  name="request"/>
+            <wsdl:output message="ns:response" name="response"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="MDMServiceSoapBinding" type="ns:MDMService">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="exec">
+            <soap:operation soapAction="http://com.rssl.phizic.mdm.app/erib/adapter/exec"/>
+            <wsdl:input name="request">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="response">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="MDMService">
+        <wsdl:port binding="ns:MDMServiceSoapBinding" name="MDMService">
+            <soap:address location="http://localhost:8080/MDM/services/MDMService"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:ns="http://sbrf.ru/ermb/auxiliary/providers-dictionary/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  name="ProvidersDictionaryService"
+                  targetNamespace="http://sbrf.ru/ermb/auxiliary/providers-dictionary/">
+
+    <wsdl:import namespace="http://sbrf.ru/ermb/auxiliary/providers-dictionary/" location="ermb-dictionaries.xsd"/>
+
+	<wsdl:message name="ProvidersRqMsg">
+		<wsdl:part element="ns:ProvidersRq" name="parameters"/>
+	</wsdl:message>
+	<wsdl:message name="ProvidersRsMsg">
+		<wsdl:part element="ns:ProvidersRs" name="result"/>
+	</wsdl:message>
+
+	<wsdl:portType name="ProvidersDictionaryService">
+		<wsdl:operation name="GetProviders">
+			<wsdl:input message="ns:ProvidersRqMsg"/>
+			<wsdl:output message="ns:ProvidersRsMsg"/>
+		</wsdl:operation>
+	</wsdl:portType>
+
+    <wsdl:binding name="ProvidersDictionaryServiceSoapBinding" type="ns:ProvidersDictionaryService">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="GetProviders">
+            <soap:operation style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+	<wsdl:service name="ProvidersDictionaryServiceImpl">
+		<wsdl:port binding="ns:ProvidersDictionaryServiceSoapBinding" name="ProvidersDictionaryServicePort">
+			<soap:address location="http://localhost:8888/axis-services/ProvidersDictionaryServiceImpl"/>
+		</wsdl:port>
+	</wsdl:service>
+
+</wsdl:definitions>

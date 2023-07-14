@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE orion-ejb-jar PUBLIC "-//Evermind//DTD Enterprise JavaBeans 1.1 runtime//EN"
+        "http://xmlns.oracle.com/ias/dtds/orion-ejb-jar.dtd">
+<orion-ejb-jar deployment-version="1.0.2.2" deployment-time="e7f5a3f42d">
+ <enterprise-beans>
+        <message-driven-deployment name="EventListener" 
+		resource-adapter="PhizicConnectorInstanceName">
+           <resource-ref-mapping
+                location = "OEMSJMSDRASubcontext/PhizicTCF"
+                name = "jms/PhizConnectionFactory"/>
+           	<resource-ref-mapping
+                       location="OEMSJMSDRASubcontext/PhizicTC"
+                       name="jms/PhizEventTopic" />
+            <config-property>
+                <config-property-name>ConnectionFactoryJndiName
+                </config-property-name>
+                <config-property-value>OEMSJMSDRASubcontext/PhizicTCF
+                </config-property-value>
+            </config-property>
+            <config-property>
+                <config-property-name>DestinationName
+                </config-property-name>
+                <config-property-value>OEMSJMSDRASubcontext/PhizicTC
+                </config-property-value>
+            </config-property>
+            <config-property>
+                <config-property-name>DestinationType
+                </config-property-name>
+                <config-property-value>javax.jms.Topic
+                </config-property-value>
+            </config-property>
+            <config-property>
+                <config-property-name>ListenerThreadMaxPollInterval
+                </config-property-name>
+                <config-property-value>250
+                </config-property-value>
+            </config-property>
+        </message-driven-deployment>
+ </enterprise-beans>
+ <assembly-descriptor>
+     	<message-destination-mapping name="AdminToOtherMessage" location="OEMSJMSDRASubcontext/PhizicTC"/>
+                <default-method-access>
+                        <security-role-mapping name="&lt;default-ejb-caller-role&gt;" impliesAll="true"/>
+                </default-method-access>
+ </assembly-descriptor>
+</orion-ejb-jar>

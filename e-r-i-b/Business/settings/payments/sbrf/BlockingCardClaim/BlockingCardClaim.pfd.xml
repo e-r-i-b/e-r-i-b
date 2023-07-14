@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="BlockingCardClaim"
+              description="Блокировка карты"
+			  detailedDescription="Вы можете подать в банк заявку на блокировку пластиковой карты. После исполнения операции разблокировка карты невозможна."
+              confirmDescription="Ваша заявка успешно отправлена в банк! Спасибо, что воспользовались системой «Сбербанк Онлайн»!"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.BlockingCardClaim"/>
+	<statemachine name="PaymentStateMachine"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+
+		<field name="card"
+		       description="Карта"
+		       type="resource"
+		       source="extra-parameters/parameter[@name='card']/@value"
+		       signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+        <field name="cardLink"
+		       description="Карта"
+		       type="string"
+		       source="extra-parameters/parameter[@name='card-link']/@value"
+		       signable="true"/>
+
+        <field name="fullName"
+		       description="Ф.И.О."
+		       type="string"
+		       source="extra-parameters/parameter[@name='full-name']/@value"/>
+
+		<field name="reason"
+		       source="extra-parameters/parameter[@name='reason']/@value"
+				type="string"
+		       description="Причина блокирования"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+        <field name="cardNumber"
+               description="Номер карты"
+               type="string"
+               source="extra-parameters/parameter[@name='card-number']/@value"
+               value="form.card==null?'':form.card.getNumber()">
+        </field>
+
+        <field  name="cardType"
+				source="extra-parameters/parameter[@name='card-type']/@value"
+				description="Тип карты"
+				type="string"
+                value="form.card==null?'':form.card.getValue().getDescription()"/>
+
+        <field  name="cardName"
+				source="extra-parameters/parameter[@name='from-account-name']/@value"
+				description="Наименование карты"
+				type="string"
+                value="form.card==null?'':form.card.getName()"/>
+
+        <field name="account"
+		       description="Спецкартчный счет"
+		       type="string"
+		       source="extra-parameters/parameter[@name='account']/@value"
+		       signable="true"/>
+
+		<field name="externalId"
+		       source="extra-parameters/parameter[@name='externalId']/@value"
+		       description="Идентификатор карты во внешней системе"
+			   type="string"
+               value="form.card==null?'':form.card.getExternalId()" />
+	</fields>
+
+	<form-validators>
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.CardLinkAndClientCompatibles">
+			<field-ref name="cardId">card</field-ref>
+		</form-validator>
+
+		<form-validator class="com.rssl.phizic.business.claims.forms.validators.CardLinkStateEqualToOneFromParametersValidator">
+			<message text="Для указанной карты блокировка невозможна"/>
+			<field-ref name="cardId">card</field-ref>
+			<parameter name="param1">active</parameter>
+		</form-validator>
+	</form-validators>
+</payment-form>

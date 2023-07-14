@@ -1,0 +1,100 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef  name="AdvisableSum" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.products.simple.AdvisableSum</param>
+    </typedef>
+    <typedef  name="ForComplex" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.products.simple.ForComplexProductDiscriminator</param>
+    </typedef>
+    <typedef name="SegmentCodeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.SegmentCodeType</param>
+    </typedef>
+    <typedef name="PortfolioType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.common.PortfolioType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.simple.SimpleProductBase"
+           abstract="true"
+           table="PFP_PRODUCTS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_PRODUCTS</param>
+            </generator>
+        </id>
+        <discriminator column="TYPE" not-null="true"/>
+        <property name="uuid"        type="string"      column="UUID"           not-null="true" update="false"/>
+        <property name="name"        type="string"      column="NAME"           not-null="true"/>
+        <property name="description" type="string"      column="DESCRIPTION"    not-null="false"/>
+        <property name="imageId"     type="long"        column="IMAGE_ID"       not-null="false"/>
+        <map name="parameters" table="PFP_PRODUCT_PARAMETERS" cascade="all-delete-orphan" lazy="false">
+            <key column="PRODUCT_ID"/>
+            <map-key column="KEY_PARAMETER" type="PortfolioType"/>
+            <composite-element class="com.rssl.phizic.business.dictionaries.pfp.products.ProductParameters">
+                <property name="minSum" type="big_decimal" column="MIN_SUM" not-null="true"/>
+            </composite-element>
+        </map>
+
+        <component name="tableParameters" class="com.rssl.phizic.business.dictionaries.pfp.products.TableViewParameters">
+            <property name="useIcon"      type="boolean"   column="USE_ICON"   not-null="true"/>
+            <map name="columns" table="PFP_SP_TABLE_VIEW_PARAMETERS" cascade="all-delete-orphan" lazy="false" sort="com.rssl.phizic.business.dictionaries.pfp.products.types.TableColumnComparator">
+                <key column="PRODUCT_ID"/>
+                <map-key-many-to-many column="TABLE_COLUMN_ID" class="com.rssl.phizic.business.dictionaries.pfp.products.types.TableColumn"/>
+                <element column="VALUE" type="string"/>
+            </map>
+        </component>
+        
+        <property name="minIncome"     type="big_decimal" column="MIN_INCOME"     not-null="false"/>
+        <property name="maxIncome"     type="big_decimal" column="MAX_INCOME"     not-null="false"/>
+        <property name="axisX"         type="long"        column="AXIS_X"         not-null="false"/>
+        <property name="axisY"         type="long"        column="AXIS_Y"         not-null="false"/>
+        <property name="universal"     type="boolean"     column="UNIVERSAL"      not-null="true"/>
+        <property name="enabled"       type="boolean"     column="ENABLED"        not-null="true"/>
+        <property name="defaultIncome" type="big_decimal" column="DEFAULT_INCOME" not-null="false"/>
+        <set      name="targetGroup"   table="PFP_SP_TARGET_GROUPS_BUNDLE" cascade="none" lazy="false">
+            <key     column="PRODUCT_ID"   not-null="true"/>
+			<element column="SEGMENT_CODE" not-null="true" type="SegmentCodeType"/>
+        </set>
+    </class>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.simple.TrustManagingProduct"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.simple.SimpleProductBase"
+              discriminator-value="T">
+        <many-to-one name="risk"             column="RISK_ID"              class="com.rssl.phizic.business.dictionaries.pfp.risk.Risk"               lazy="false" not-null="true"/>
+        <many-to-one name="investmentPeriod" column="INVESTMENT_PERIOD_ID" class="com.rssl.phizic.business.dictionaries.pfp.period.InvestmentPeriod" lazy="false" not-null="true"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.simple.Product"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.simple.SimpleProductBase"
+              abstract="true">
+        <property name="forComplex"  type="ForComplex"  column="FOR_COMPLEX"    not-null="true"/>
+        <property name="sumFactor"   type="big_decimal" column="MAX_SUM_FACTOR" not-null="false"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.simple.AccountProduct"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.simple.Product"
+              discriminator-value="A">
+        <property name="advisableSum" type="AdvisableSum" column="ADVISABLE_SUM" not-null="false"/>
+        <property name="accountId"    type="long"         column="ERIB_PRODUCT_ID"    not-null="false"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.simple.InvestmentProduct"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.simple.Product"
+              abstract="true">
+        <many-to-one name="risk"             column="RISK_ID"              class="com.rssl.phizic.business.dictionaries.pfp.risk.Risk"               lazy="false" not-null="false"/>
+        <many-to-one name="investmentPeriod" column="INVESTMENT_PERIOD_ID" class="com.rssl.phizic.business.dictionaries.pfp.period.InvestmentPeriod" lazy="false" not-null="false"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.simple.FundProduct"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.simple.InvestmentProduct"
+              discriminator-value="F"/>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.simple.IMAProduct"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.simple.InvestmentProduct"
+              discriminator-value="M">
+        <property name="imaId"           type="long" column="ERIB_PRODUCT_ID"            not-null="false"/>
+        <property name="imaAdditionalId" type="long" column="ERIB_PRODUCT_ADDITIONAL_ID" not-null="false"/>
+    </subclass>
+</hibernate-mapping>

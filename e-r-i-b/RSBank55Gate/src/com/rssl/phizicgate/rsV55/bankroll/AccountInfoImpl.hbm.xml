@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsV55.bankroll.AccountInfoImpl">
+        <id name="accountId"/>
+	    <property name="lastTransactionDate"/>
+        <property name="closeDate"/>
+	    <property name="agreementNumber"/>
+    </class>
+
+    <sql-query name="GetAccountInfo">
+        <return alias="accountInfo" class="com.rssl.phizicgate.rsV55.bankroll.AccountInfoImpl">
+            <return-property name="accountId"           column="accountId"/>
+            <return-property name="lastTransactionDate" column="lastTransactionDate"/>
+            <return-property name="closeDate"       column="closeDate"/>
+	        <return-property name="agreementNumber" column="agreementNumber"/>
+        </return>
+	    <![CDATA[
+			SELECT TOP 1
+				   trans.Referenc      AS accountId
+				  ,trans.Date_Document AS lastTransactionDate
+                  ,owned.Close_Date    AS closeDate,
+                  contract.number      AS agreementNumber
+
+			FROM sbdepdoc_dbt trans, depositr_dbt AS owned, depcontr_dbt AS contract
+			WHERE
+				-- Выборка по 6-му ключу
+					trans.Referenc = :id
+				AND trans.Date_Document <= NOW()
+				-- Ф-я IsServDocWithEst из Mac\DEPOSITR\issrvdoc.mac
+				AND trans.KindOp NOT IN (8, 9, 14, 15, 16)
+				AND trans.Action  <> 2
+				-- Получение 17-го бита
+				AND (MOD(trans.Flags, 262144) - MOD(trans.Flags, 131072)) = 0
+				-- Проверка FlagStorn = "" для получения остатка и даты последней операции
+				AND trans.FlagStorn = ''
+				and owned.Referenc = :id  AND contract.ContractID = owned.MainContractID 
+			ORDER BY trans.Date_Document DESC
+					,trans.NumDayDoc     DESC
+        ]]>
+    </sql-query>
+</hibernate-mapping>

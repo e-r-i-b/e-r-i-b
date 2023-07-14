@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsV55.bankroll.CardInfoImpl">
+        <id name="longId"/>
+
+        <!--<property name="statusDescription"/>-->
+        <!--<property name="decimalLimit"   type="big_decimal"/>-->
+        <property name="decimalHoldSum" type="big_decimal"/>
+	    <!--<property name="cardState" type="com.rssl.phizicgate.rsV55.bankroll.CardStateWrapper"/>-->
+    </class>
+
+	<sql-query name="getOverdraftRegDate">
+		<return-scalar column="regDate" type="calendar"/>
+        SELECT account.Close_Date regDate
+		FROM depositr_dbt account
+		WHERE account.referenc = :referenc
+	</sql-query>
+
+    <sql-query name="GetCardInfo">
+        <return alias="cards" class="com.rssl.phizicgate.rsV55.bankroll.CardInfoImpl">
+            <return-property name="longId"            column="longId"/>
+            <return-property name="decimalLimit"      column="decimalLimit"/>
+            <return-property name="decimalHoldSum"    column="decimalHoldSum"/>
+            <return-property name="statusDescription" column="statusDescription"/>
+	        <return-property name="cardState"       column="cardState"/>
+        </return>
+		SELECT TOP 1
+            cards.cardRef        AS longId
+           ,cards.cardLimit      AS decimalLimit
+           ,cards.cardHoldSum    AS decimalHoldSum
+           ,cardStatuses.codName AS statusDescription
+	       ,cards.cardStateCode  AS cardState
+		FROM
+			scCard_dbt cards,
+			scCodif_dbt cardStatuses
+        WHERE
+				cards.cardRef = :cardId
+	        AND cardStatuses.codCode = cards.cardStateCode
+			AND (cardStatuses.psRef = cards.psRef or cardStatuses.psRef = 0)
+			AND cardStatuses.codType = 6
+	    ORDER BY cardStatuses.psRef DESC
+    </sql-query>
+
+    <sql-query name="GetCardCurrency">
+        <return-scalar column="CODCUR" type="long"/>
+
+        SELECT TOP 1 CODCUR FROM scLink_dbt
+        WHERE CardRef = :cardId
+        ORDER BY mainAcc DESC
+    </sql-query>
+
+	<sql-query name="GetCardLastOperationDate">
+		<return-scalar column="lastOperationDate" type="calendar"/>
+		<![CDATA[
+			SELECT opers.Date_Document AS lastOperationDate
+			FROM sbdepdoc_dbt opers
+			WHERE -- Проверка 11-го бита (&& 0x0800)
+				  MOD(opers.Flags, 4096) - MOD(opers.Flags, 2048) = 0
+			  AND opers.Referenc = :accountId
+			  AND opers.Date_Document <= NOW()
+			  -- Ф-я IsServDocWithEst из Mac\DEPOSITR\issrvdoc.mac
+			  AND opers.KindOp NOT IN (8, 9, 14, 15, 16)
+			  AND opers.Action  <> 2
+			  AND (MOD(opers.Flags, 262144) - MOD(opers.Flags, 131072)) = 0
+				-- Проверка FlagStorn = "" (актуальность документа)
+			  AND (trans.FlagStorn) = 0
+			GROUP BY  opers.Date_Document
+			HAVING opers.Date_Document = MAX(opers.Date_Document)
+
+				UNION
+
+			SELECT opers.Date_Document AS lastOperationDate
+			FROM sbdepdoc_dbt opers
+				,scTran_dbt   trans
+				,scLink_dbt   links
+			WHERE trans.FNCash = 1
+			  AND opers.ListTransfer = trans.authRef
+			  AND trans.accCardLinkRef = links.accCardLinkRef
+			  -- Проверка 11-го бита (&& 0x0800)
+			  AND MOD(opers.Flags, 4096) - MOD(opers.Flags, 2048) <> 0
+			  AND opers.Referenc = :accountId
+			  AND opers.Date_Document <= NOW()
+			  -- Ф-я IsServDocWithEst из Mac\DEPOSITR\issrvdoc.mac
+ 			  AND opers.KindOp NOT IN (8, 9, 14, 15, 16)
+			  AND opers.Action  <> 2
+			  AND (MOD(opers.Flags, 262144) - MOD(opers.Flags, 131072)) = 0
+				-- Проверка FlagStorn = "" (актуальность документа)
+			  AND (trans.FlagStorn) = 0
+			  AND links.cardRef = :cardId
+			GROUP BY  opers.Date_Document
+			HAVING opers.Date_Document = MAX(opers.Date_Document)
+
+			ORDER BY 1 DESC
+		]]>
+	</sql-query>
+
+</hibernate-mapping>

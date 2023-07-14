@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="list" type="listType">
+      <xs:annotation>
+          <xs:documentation>Корневой элемент</xs:documentation>
+      </xs:annotation>
+  </xs:element>
+  <xs:complexType name="dependenceType">
+    <xs:annotation>
+        <xs:documentation>Запись привязанного класса</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="class" use="optional">
+            <xs:annotation>
+                <xs:documentation>Название класса</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="parameterType">
+    <xs:annotation>
+        <xs:documentation>Параметр</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name" use="optional">
+            <xs:annotation>
+                <xs:documentation>Название параметра</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="listType">
+    <xs:annotation>
+        <xs:documentation>Корневой элемент</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element type="cache-key-composersType" name="cache-key-composers">
+          <xs:annotation>
+              <xs:documentation>Список композеров</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+      <xs:element type="default-cache-parametersType" name="default-cache-parameters">
+          <xs:annotation>
+              <xs:documentation>Список дефолтных параметров кеширования</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+      <xs:element type="entity-lists-defType" name="entity-lists-def">
+          <xs:annotation>
+              <xs:documentation>Список записей описаний справочников</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="cache-dependencesType">
+    <xs:annotation>
+        <xs:documentation>Список зависимых классов для очистки по типу</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element type="dependenceType" name="dependence" maxOccurs="unbounded" minOccurs="1">
+          <xs:annotation>
+              <xs:documentation>Запись привязанного класса</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="composerType">
+    <xs:annotation>
+        <xs:documentation>Запись соответствия композера классу</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="class" use="optional">
+            <xs:annotation>
+                <xs:documentation>Класс к которому привязан композер</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type="xs:string" name="composer" use="optional">
+            <xs:annotation>
+                <xs:documentation>Класс композера</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="entity-list-defType" mixed="true">
+    <xs:annotation>
+        <xs:documentation>Запись описания справочника</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element type="cache-dependencesType" name="cache-dependences" minOccurs="0">
+          <xs:annotation>
+              <xs:documentation>Список зависимых классов для очистки по типу</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+      <xs:element type="cache-parametersType" name="cache-parameters" minOccurs="0">
+          <xs:annotation>
+              <xs:documentation>Список параметров кеширования</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+      <xs:element type="calbackcache-dependencesType" name="calbackcache-dependences" minOccurs="0">
+          <xs:annotation>
+              <xs:documentation>Список зависимых классов для очистки через колбаккеш (по оъекту)</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+      <xs:element type="parameterType" name="parameter" minOccurs="0" maxOccurs="unbounded">
+          <xs:annotation>
+              <xs:documentation>Параметр</xs:documentation>
+          </xs:annotation>
+      </xs:element>  
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="required">
+        <xs:annotation>
+            <xs:documentation>Название справочника</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="scope" use="required">
+        <xs:annotation>
+            <xs:documentation>Время жизни справочника</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="className" use="required">
+        <xs:annotation>
+            <xs:documentation>Класс сорса строящего справочник</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="maxElementsInMemory" use="optional">
+        <xs:annotation>
+            <xs:documentation>Максимальное количество записей в памяти кеша справочника</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="timeToIdleSeconds" use="optional">
+        <xs:annotation>
+            <xs:documentation>Максимальное время жизни записей кеша справочника без обращений</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="timeToLiveSeconds" use="optional">
+        <xs:annotation>
+            <xs:documentation>Максимальное общее время жизни записей кеша справочника</xs:documentation>
+        </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="session-composerType">
+    <xs:annotation>
+        <xs:documentation>Запись соответствия композера для получения сессионых ключей классу</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="class" use="optional">
+           <xs:annotation>
+               <xs:documentation>Класс к которому привязан композер</xs:documentation>
+           </xs:annotation>
+        </xs:attribute>
+        <xs:attribute type="xs:string" name="composer" use="optional">
+            <xs:annotation>
+               <xs:documentation>Класс композера</xs:documentation>
+           </xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="entity-lists-defType">
+    <xs:annotation>
+        <xs:documentation>Список записей описаний справочников</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element type="entity-list-defType" name="entity-list-def" maxOccurs="unbounded" minOccurs="0">
+        <xs:annotation>
+            <xs:documentation>Запись описания справочника</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="cache-parametersType">
+    <xs:annotation>
+        <xs:documentation>Список параметров кеширования</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element type="parameterType" name="parameter">
+          <xs:annotation>
+              <xs:documentation>Параметр</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="calbackcache-dependencesType">
+    <xs:annotation>
+        <xs:documentation>Список зависимых классов для очистки через колбаккеш (по оъекту)</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element type="dependenceType" name="dependence" maxOccurs="unbounded" minOccurs="1">
+          <xs:annotation>
+              <xs:documentation>Запись привязанного класса</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="default-cache-parametersType">
+    <xs:annotation>
+        <xs:documentation>Список дефолтных параметров кеширования</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+        <xs:element type="parameterType" name="parameter" maxOccurs="unbounded" minOccurs="0">
+            <xs:annotation>
+                <xs:documentation>Параметр</xs:documentation>
+            </xs:annotation>
+        </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="cache-key-composersType">
+    <xs:annotation>
+        <xs:documentation>Список композеров</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element type="composerType" name="composer" maxOccurs="unbounded" minOccurs="0">
+          <xs:annotation>
+              <xs:documentation>Запись соответствия композера классу</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+      <xs:element type="session-composerType" name="session-composer" maxOccurs="unbounded" minOccurs="0">
+          <xs:annotation>
+              <xs:documentation>Запись соответствия композера для получения сессионых ключей классу</xs:documentation>
+          </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

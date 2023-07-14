@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<!--Фильтрация справочника фасилитаторов -->
+    <!-- Опорный объект: IDX_SP_IS_FASILITATOR
+         Предикаты доступа: access("FACILITATOR"."IS_FASILITATOR"='1')
+         Кардинальность: количество поставщиков-фасилитаторов, ограничивается rownum
+    -->
+    <sql-query name="com.rssl.phizic.operations.dictionaries.facilitator.ListFacilitatorsOperation.list">
+        <return-scalar column="facilitator_id" type="long"/>
+        <return-scalar column="facilitator_name"   type="string"/>
+        <return-scalar column="facilitator_inn"   type="string"/>
+        <![CDATA[
+            SELECT facilitator.ID facilitator_id,facilitator.NAME facilitator_name,facilitator.INN facilitator_inn FROM SERVICE_PROVIDERS facilitator
+            WHERE
+                ((:extra_name IS NULL)    OR (:extra_name = '')    OR (upper(facilitator.NAME)    LIKE upper(:extra_like_name))) AND
+                ((:extra_inn IS NULL)     OR (:extra_inn = '')     OR (upper(facilitator.INN)     LIKE upper(:extra_like_inn)))  AND
+                facilitator.IS_FASILITATOR = '1'
+        ]]>
+    </sql-query>
+</hibernate-mapping>

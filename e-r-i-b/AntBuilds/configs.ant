@@ -1,0 +1,838 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+
+<project name="configs" default="prepare_last">
+    
+
+   <import id="common" file="common.ant"/>
+   <import id="websphere" file="websphere.ant"/>
+
+    <dirname property="project.root"        file="${basedir}"/>
+    <dirname property="project.builds.root" file="${ant.file.configs}"/>
+
+    <property name="settings.dir"       value="${project.root}/Settings"/>
+    <property name="image.dir"         value="${project.root}/PhizIC.image"/>
+
+    <path id="project.tasks.classpath">
+        <fileset dir="${project.root}/Libraries" includes="*/*.jar"/>
+        <dirset dir="${project.root}" includes="*/bin"/>
+    </path>
+
+   <target name="setup_project_paths" depends="start_logging">
+
+      <echo message="Настройка путей проекта"/>
+
+        <echo message="Project root dir:   ${project.root}"/>
+        <echo message="Builds root dir:    ${project.builds.root}"/>
+        <echo message="Settings dir:       ${settings.dir}"/>
+        <echo message="Image dir:          ${image.dir}"/>
+   </target>
+
+   <target description="Обновление конфигов текущей активной конфигурации" depends="init.configuration"
+         name="prepare_last">
+       <propertycopy name="installer.settings.file" from="ikfl.build.installer.settings.file"/>
+      <antcall target="do_all"/>
+   </target>
+
+   <target description="Проверка наличия рабочей конфигурации"
+         name="check_current_config"
+         unless="current.config.name">
+      <fail message="Не установлена рабочая конфигурация."/>
+   </target>
+
+
+   <target name=".save.current.configuration" depends="init.configuration" if="current.config.name">
+      <echo>Запоминание конфигурации ${current.config.name}</echo>
+      <mkdir dir="${settings.dir}/bin"/>
+      <propertyfile file="${settings.dir}/bin/configs.properties" comment="Current configuration">
+         <entry key="current.config.name" value="${current.config.name}"/>
+      </propertyfile>
+   </target>
+
+    <target name=".clear" depends=".init.application.configuration" if = "application.name">
+        <delete failonerror="no">
+            <fileset dir="${application.explode.dir}">
+                <include name="Settings/**/*.*"/>
+                <include name="META-INF/**/*.*"/>
+            </fileset>
+        </delete>
+    </target>
+
+    <target name= ".clear.by.config" if=".config.name">
+        <propertyregex property="application.name"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false" />
+
+        <propertyregex property="ear.suffix"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false"/>
+
+        <antcall target=".clear">
+            <param name="application.name" value="${application.name}"/>
+            <param name="ear.suffix" value="${ear.suffix}"/>
+        </antcall>
+    </target>
+
+   <target name="clear" depends="init.configuration" description="Очистка папок с настройками 'старой' конфигурации">
+      <echo>Очистка папок с настройками "старой" конфигурации</echo>
+        <path id=".aplications.configs.path">
+              <fileset dir="${project.builds.root}/configs">
+                  <include name="${current.config.name}.*.properties"/>
+                  <exclude name="${current.config.name}*.local.properties"/>
+              </fileset>
+         </path>
+        <!--получаем список конфигурационных файлов приложений.-->
+        <pathconvert pathsep="|" dirsep="/" property=".aplications.configs.list" refid=".aplications.configs.path">
+            <map from="${project.builds.root}/configs/" to=""/>
+         </pathconvert>
+
+        <delete failonerror="no">
+            <fileset dir="${settings.dir}">
+                <include name="bin/*.*"/>
+                <exclude name="bin/configs.properties"/>
+            </fileset>
+        </delete>
+        <foreach list="${.aplications.configs.list}" delimiter="|" target=".clear.by.config" param=".config.name" inheritall="true"/>
+   </target>
+
+    <target name="compile.module"
+            depends="setup_project_paths">
+        <mkdir dir="${project.root}/${module-name}/bin"/>
+        <javac debug="true" source="1.5"
+               destdir="${project.root}/${module-name}/bin"
+               srcdir="${project.root}/${module-name}/src"
+               includes="${includes}">
+            <classpath>
+                <fileset dir="${project.root}/Libraries" includes="*/*.jar"/>
+                <dirset dir="${project.root}" includes="*/bin"/>
+            </classpath>
+        </javac>
+        <copy todir="${project.root}/${module-name}/bin">
+            <fileset dir="${project.root}/${module-name}/src"
+                     includes="${includes}"
+                     excludes="**/*.java"/>
+        </copy>
+    </target>
+
+    <target name="compile.configs.ant.tasks"
+            depends="setup_project_paths"
+            description="Компиляция ант-тасков, предназначенных для решения задач конфигурирования">
+        <echo message="Компиляция конфигурационных ант-тасков"/>
+        <antcall target="compile.module">
+            <param name="module-name" value="CommonTypes"/>
+            <param name="includes" value="*/**"/>
+        </antcall>
+        <antcall target="compile.module">
+            <param name="module-name" value="Utilities"/>
+            <param name="includes" value="*/**"/>
+        </antcall>
+        <antcall target="compile.module">
+            <param name="module-name" value="Modulus"/>
+            <param name="includes" value="*/**"/>
+        </antcall>
+        <antcall target="compile.module">
+            <param name="module-name" value="DataAccess"/>
+            <param name="includes" value="*/**"/>
+        </antcall>
+        <antcall target="compile.module">
+            <param name="module-name" value="Configuration"/>
+            <param name="includes" value="com/rssl/phizic/config/ant/**,com/rssl/phizic/config/build/**"/>
+        </antcall>
+        <antcall target="compile.module">
+            <param name="module-name" value="AntBuilds"/>
+            <param name="includes" value="**"/>
+        </antcall>
+    </target>
+
+    <target name="createSpoobkMock"
+            depends="setup_project_paths, setup_db_oracle"
+            description="Служит для создания заглушки спообк">
+
+        <path id="jdbc.classpath">
+		    <fileset dir="${project.root}/Libraries/JDBC" includes="*.jar"/>
+		</path>
+
+        <delete file="${project.root}/AntBuilds/db-data/create_spoobk_mock.sql"/>
+
+        <copy file   ="${project.root}/AntBuilds/db-data/create_spoobk_mock_template.sql"
+              tofile ="${project.root}/AntBuilds/db-data/create_spoobk_mock.sql">
+        </copy>
+
+        <var name="connection_props" value=""/>
+        <if>
+            <available file="${project.root}/AntBuilds/configs/sbrf.PhizIC.local.properties"/>
+            <then>
+                <var name="connection_props" value="${project.root}/AntBuilds/configs/sbrf.PhizIC.local.properties"/>
+                <property file="${project.root}/AntBuilds/configs/sbrf.PhizIC.local.properties"/>
+            </then>
+            <else>
+                <var name="connection_props" value="${project.root}/AntBuilds/configs/sbrf.PhizIC.properties"/>
+                <property file="${project.root}/AntBuilds/configs/sbrf.PhizIC.properties"/>
+            </else>
+        </if>
+
+        <replace file="${project.root}/AntBuilds/db-data/create_spoobk_mock.sql"
+                 propertyfile="${connection_props}">
+
+            <replacefilter token="@dbserver.username@" property="dbserver.username"/>
+            <replacefilter token="@dbserver.password@" property="dbserver.password"/>
+            <replacefilter token="@dbserver.name@"     property="dbserver.name"/>
+            <replacefilter token="@dbserver.port@"     property="dbserver.port"/>
+            <replacefilter token="@dbserver.database@" property="dbserver.database"/>
+            <replacefilter token="@dbserver.spoobk_table_name@" property="dbserver.spoobk_table_name"/>
+        </replace>
+
+        <sql driver = "oracle.jdbc.OracleDriver"
+                url = "jdbc:oracle:thin:@//${dbserver.name}:${dbserver.port}/${dbserver.database}"
+             userid = "${dbserver.admin.username}"
+           password = "${dbserver.admin.password}"
+       classpathref = "jdbc.classpath"
+            onerror = "abort"
+         autocommit = "true">GRANT CREATE DATABASE LINK TO ${dbserver.username};</sql>
+
+        <sql driver = "oracle.jdbc.driver.OracleDriver"
+                url = "jdbc:oracle:thin:@//${dbserver.name}:${dbserver.port}/${dbserver.database}"
+                src = "${project.root}/AntBuilds/db-data/create_spoobk_mock.sql"
+             userid = "${dbserver.username}"
+           password = "${dbserver.password}"
+       classpathref = "jdbc.classpath"
+            onerror = "continue"
+         autocommit = "true"/>
+
+
+        <taskdef name="spoobkMock" classpathref="project.tasks.classpath"
+				 classname="com.rssl.phizic.business.ant.FillMockSpoobkTask"/>
+		<spoobkMock file="${project.root}/Docs/Dictionaries/offices.xml"/>
+    </target>
+
+   <target description="Установка конфигурации"
+            name="make_current_config"
+            depends="create.config.files, copy.gates.configs, copy.to.exploded"/>
+
+   <target description="Все что надо для запуска под IDE"
+         name="do_all"
+         depends="make_current_config"/>
+
+   <target name = "init.configuration" depends="setup_project_paths" description = "Инициализация конфигурации">
+        <echo message="Инициализация конфигурации"/>
+
+        <!-- Если не задано до этого то узнаем конфиг из проперти -->
+        <property file="${settings.dir}/bin/configs.properties"/>
+        <antcall target="check_current_config"/>
+
+        <echo message="Configuration [${current.config.name}] ${current.config.description}"/>
+        <property file="${settings.dir}/configs/${current.config.name}/buildIKFL.properties"/>
+        <property file="${settings.dir}/configs/global/buildIKFL.properties"/>
+        <if>
+            <available file="${settings.dir}/configs/${current.config.name}/erib-jms-jndi.properties"/>
+            <then>
+                <property file="${settings.dir}/configs/${current.config.name}/erib-jms-jndi.properties"/>
+            </then>
+        </if>
+
+       <!-- Файл содержащий настройки для сборки гейтов -->
+        <property name="earGatesConfig" value="${basedir}/configs/earGatesConfig.xml"/>
+
+       <!--переменная для хранения пути временных файлов-->
+         <property  name="temp.module.explode.dir" value="${project.root}/PhizicTempModules.ear"/>
+    </target>
+
+    <target name = ".init.application.configuration" description = "Инициализация конфигурации приложения" if="application.name">
+        <echo message="Инициализация конфигурации приложения ${application.name}"/>
+        <if>
+            <and>
+                <isset property="ear.suffix"/>
+                <not>
+                    <equals arg1="${ear.suffix}" arg2="$${ear.suffix}" />
+                </not>
+            </and>
+            <then>
+                <property file="${project.builds.root}/configs/${current.config.name}.${application.name}.${ear.suffix}.local.properties"/>
+                <property file="${project.builds.root}/configs/${current.config.name}.${application.name}.${ear.suffix}.properties"/>
+                <property  name="application.explode.dir" value="${project.root}/${application.name}-${ear.suffix}.ear"/>
+                <property name="application.settings.dir" value="${settings.dir}/bin/${application.name}-${ear.suffix}"/>
+                <filterset id="current.config.filterset" onmissingfiltersfile="warn">
+                    <filtersfile file="${project.builds.root}/configs/${current.config.name}.${application.name}.${ear.suffix}.properties"/>
+                    <filtersfile file="${project.builds.root}/configs/${current.config.name}.${application.name}.${ear.suffix}.local.properties"/>
+                </filterset>
+            </then>
+            <else>
+                <property file="${project.builds.root}/configs/${current.config.name}.${application.name}.local.properties"/>
+                <property file="${project.builds.root}/configs/${current.config.name}.${application.name}.properties"/>
+                <property  name="application.explode.dir" value="${project.root}/${application.name}.ear"/>
+                <property name="application.settings.dir" value="${settings.dir}/bin/${application.name}"/>
+                <filterset id="current.config.filterset" onmissingfiltersfile="warn">
+                    <filtersfile file="${project.builds.root}/configs/${current.config.name}.${application.name}.properties"/>
+                    <filtersfile file="${project.builds.root}/configs/${current.config.name}.${application.name}.local.properties"/>
+                </filterset>
+            </else>
+        </if>
+    </target>
+
+    <target name=".create.exploded.structure" if="application.explode.dir">
+      <mkdir dir="${application.explode.dir}/META-INF"/>
+      <mkdir dir="${application.explode.dir}/Settings"/>
+      <mkdir dir="${application.explode.dir}/lib"/>
+      <mkdir dir="${application.explode.dir}/lib/phizic"/>
+   </target>
+
+    <target name = ".create.config.files.internal">
+        <copy todir="${dest.dir}" overwrite="true">
+            <fileset dir="${global.config.dir}/.." >
+                <include name="config-factory.xml" />
+            </fileset>
+            <filterset refid="project.filterset"/>
+        </copy>
+        <!-- 1. Копируем с замещением настройки из /Settings/configs/global -->
+        <copy todir="${dest.dir}" overwrite="true">
+            <fileset dir="${global.config.dir}" >
+                <include name="system.properties"/>
+                <include name="hibernate.properties"/>
+                <include name="hibernate.cfg.xml"/>
+                <include name="globals.hbm.xml"/>
+                <include name="erib-ehcache.xml"/>
+                <include name="log4j.properties"/>
+                <include name="phizic-log4j.properties"/>
+                <include name="quartz.properties"/>
+                <include name="events.properties"/>
+                <include name="employee-authentication-modes.xml"/>
+                <include name="struts-layout.properties"/>
+                <include name="log.properties"/>
+                <include name="version.properties" />
+                <include name="config-factory.xml" />
+                <exclude name="buildIKFL.properties"/>
+            </fileset>
+            <filterset refid="project.filterset"/>
+        </copy>
+        <!-- 2. Копируем с замещением настройки из /Settings/configs/${конфигурация} -->
+        <copy todir="${dest.dir}" overwrite="true">
+            <fileset dir="${settings.dir}/configs/${current.config.name}" includes="buildIKFL.properties"/>
+            <filterset refid="project.filterset"/>
+        </copy>
+        <!-- 3. Копируем с замещением настройки из /Settings/configs/${конфигурация}/${приложение} -->
+        <copy todir="${dest.dir}" overwrite="true">
+            <fileset dir="${current.config.dir}" includes="*.*" excludes="buildIKFL.properties">
+                <different targetdir="${dest.dir}" ignorefiletimes="true"/>
+            </fileset>
+            <filterset refid="project.filterset"/>
+        </copy>
+        <!--копируем gate-documents-config.xml из Settings\configs\sbrf в PhizMB.ear\Settings-->
+        <copy todir="${dest.dir}" overwrite="true">
+            <fileset dir="${settings.dir}/configs/${current.config.name}">
+                <include name="gate-documents-config.xml" if="ikfl.build.${application.name}.ejb.module.ErmbEjbListener"/>
+            </fileset>
+            <filterset refid="project.filterset"/>
+        </copy>
+        <copy todir="${dest.dir}" overwrite="false">
+            <fileset dir="${settings.dir}/configs/${current.config.name}">
+                <include name="security-config.xml" if="ikfl.build.${application.name}.jar.module.Security"/>
+                <include name="lists.xml" if="ikfl.build.${application.name}.jar.module.Business"/>
+                <include name="operations.xml" if="ikfl.build.${application.name}.jar.module.Operations"/>
+                <include name="mobilebank.properties" if="ikfl.build.${application.name}.gate.module.MobileBankGate"/>
+                <include name="esberib.properties" if="ikfl.build.${application.name}.gate.module.ESBERIBGate"/>
+                <include name="rsa.properties" if="ikfl.build.${application.name}.jar.module.FraudMonitoringGate"/>
+                <!--копируем state-machine из Settings\configs\sbrf в PhizMB.ear\Settings-->
+                <include name="state-machine.xml" if="ikfl.build.${application.name}.jar.module.Business"/>
+            </fileset>
+            <fileset dir="${settings.dir}/bin">
+                <include name="csa.properties" if="ikfl.build.${application.name}.jar.module.CSAAuthGate"/>
+            </fileset>
+            <filterset refid="project.filterset"/>
+        </copy>
+        <!---
+        Копируем из глобал файлы со свойствами котрорые не зависят от конфигурации но зависят от сервера приложений
+        -->
+         <foreach list="oracle,jboss,websphere" delimiter="," target=".copy.appServer.specific.properties" param="appServerName" inheritall="true" inheritrefs="true"/>
+
+        <if>
+            <equals arg1="PhizIC" arg2="${application.name}" casesensitive="true" trim="true"/>
+            <then>
+                <copy todir="${dest.dir}" overwrite="false">
+                    <fileset dir="${settings.dir}/configs/${current.config.name}/PhizMB">
+                        <!-- Копируем в PhizIC.ear параметры Кварца для джобов ЕРМБ -->
+                        <include name="ermb_quartz_jobs.xml"/>
+                        <include name="ermb-quartz.properties"/>
+                    </fileset>
+                    <filterset refid="project.filterset"/>
+                </copy>
+            </then>
+        </if>
+    </target>
+
+    <target name=".copy.appServer.specific.properties"  depends="init.configuration" description="копирует специфичные для сервера приложения настройки из settings"
+            if="appServerName">
+        <propertycopy property="is.this.app" from="appserver.type.${appServerName}" override="true" silent="true"/>
+        <if>
+            <and>
+                <isset property="is.this.app"/>
+                <istrue value="${is.this.app}"/>
+            </and>
+            <then>
+                <copy todir="${dest.dir}" failonerror="false">
+                    <fileset dir="${global.config.dir}/${appServerName}" includes="*.*"/>
+                    <filterset refid="project.filterset"/>
+                </copy>
+            </then>
+        </if>
+    </target>
+
+    <target name=".create.config.files" if="application.name" depends=".init.application.configuration, create_db_data">
+
+        <if>
+            <not>
+                <or>
+                    <isset property="ikfl.build.${application.name}.global.config.dir"/>
+                    <isset property="ikfl.build.${application.name}.current.config.dir"/>
+                </or>
+            </not>
+            <then>
+                <property name="global.config.dir"  value="${settings.dir}/configs/global/gate"/>
+                <property name="current.config.dir" value="${settings.dir}/configs/${current.config.name}/${application.name}"/>
+
+                <mkdir dir="${settings.dir}/configs/${current.config.name}/${application.name}"/>
+                <mkdir dir="${settings.dir}/configs/${current.config.name}/${application.name}/META-INF"/>
+            </then>
+            <else>
+                <propertycopy name="global.config.dir" from="ikfl.build.${application.name}.global.config.dir"/>
+                <propertycopy name="current.config.dir" from="ikfl.build.${application.name}.current.config.dir"/>
+            </else>
+        </if>
+        <echo message="Создание файлов настроек для приложения ${application.name}(${application.settings.dir})"/>
+
+        <!-- TODO сжираются слеши при подстановке в properties -->
+        <filterset id="project.filterset">
+            <filterset refid="current.config.filterset"/>
+            <filterset refid="current.dbdata.filterset"/>
+        </filterset>
+
+
+        <antcall target=".create.config.files.internal" inheritrefs="true" inheritall="true">
+            <param name="dest.dir" value="${application.settings.dir}"/>
+            <param name="global.config.dir" value="${global.config.dir}"/>
+            <param name="current.config.dir" value="${current.config.dir}"/>
+        </antcall>
+
+        <copy todir="${application.settings.dir}/META-INF" overwrite="true">
+            <!-- Копирование стандартного дескриптора развертывания -->
+            <fileset file="${current.config.dir}/application.xml"/>
+            <!--Копирование пропиетарного дескриптора развертывания & остальные настройки -->
+            <!--Копировать аккуратно, например директория ibmconfig  и все ее содержимое, копироваться не должно-->
+            <fileset dir="${current.config.dir}/META-INF" includes="*.*" excludes="ibmconfig/*.*"/>
+            <filterset refid="project.filterset"/>
+        </copy>
+        <!--копируем сферовские дескрипторы, если сервер приложений -сфера-->
+        <antcall target="copy-websphere-deploy-descriptors" inheritall="true" inheritRefs="true"/>
+        <!-- копирование дискрипторов приложения для работы через oracle jms -->
+         <if>
+            <istrue value="${jms.type.oracle}"/>
+            <then>
+                <copy todir="${application.settings.dir}/META-INF" overwrite="true">
+                    <fileset dir="${current.config.dir}/META-INF/oracleJmsConfig" includes="*.*" erroronmissingdir="false"/>
+                    <filterset refid="project.filterset"/>
+                </copy>
+             </then>
+        </if>
+
+    </target>
+
+    <target name= ".create.application.configs.by.config" if=".config.name">
+        <propertyregex property="application.name"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false" />
+
+        <propertyregex property="ear.suffix"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false"/>
+
+        <antcall target=".create.config.files">
+            <param name="application.name" value="${application.name}"/>
+            <param name="ear.suffix" value="${ear.suffix}"/>
+        </antcall>
+    </target>
+
+    <target name=".create.installer.config.files.internal" depends="create_db_data">
+        <filterset id="current.config.filterset" onmissingfiltersfile="warn">
+            <filtersfile file="${project.builds.root}/configs/${installer.settings.file}.properties"/>
+            <filtersfile file="${project.builds.root}/configs/${installer.settings.file}.local.properties"/>
+        </filterset>
+
+        <!-- TODO сжираются слеши при подстановке в properties -->
+        <filterset id="project.filterset">
+            <filterset refid="current.config.filterset"/>
+            <filterset refid="current.dbdata.filterset"/>
+        </filterset>
+        <antcall target=".create.config.files.internal" inheritall="true" inheritrefs="true">
+            <param name="dest.dir" value="${settings.dir}/bin"/>
+            <param name="global.config.dir" value="${global.config.dir}"/>
+            <param name="current.config.dir" value="${current.config.dir}"/>
+        </antcall>
+    </target>
+
+    <target name="create.installer.config.files" >
+        <!--копируем настройки для инсталлятора-->
+        <propertycopy name="global.config.dir" from="ikfl.build.installer.global.config.dir"/>
+        <propertycopy name="current.config.dir" from="ikfl.build.installer.current.config.dir"/>
+        <property file="${project.builds.root}/configs/${installer.settings.file}.local.properties"/>
+        <property file="${project.builds.root}/configs/${installer.settings.file}.properties"/>
+
+        <antcall target=".create.installer.config.files.internal"/>
+    </target>
+
+    <target name="create.config.files" depends="init.configuration, clear, get.list.of.gates" description="Создание настроек">
+        <antcall target="create.installer.config.files" inheritall="true"/>
+
+        <!-- формируем список конфигурационных файлов, для приложений которые надо собрать -->
+        <var name="filenames" value= "" />
+        <for list="${ikfl.build.app}" delimiter="," param="app">
+          <sequential>
+              <var name="filenames" value="${filenames}${current.config.name}.@{app}.properties|"/>
+          </sequential>
+        </for>
+
+        <if>
+            <isset property="build.gates.by.earGatesConfig"/>
+            <then>
+                <for list="${list.of.gate.names}" delimiter="," param="gate">
+                    <sequential>
+                        <var name="filenames" value="${filenames}|${current.config.name}.@{gate}.properties"/>
+                    </sequential>
+                </for>
+
+                <foreach list="${filenames}" delimiter="|" target=".create.application.configs.by.config" param=".config.name" inheritall="true"/>
+            </then>
+            <else>
+                <property name=".aplications.configs.list" value="${filenames}"/>
+                <foreach list="${.aplications.configs.list}" delimiter="|" target=".create.application.configs.by.config" param=".config.name" inheritall="true"/>
+            </else>
+        </if>
+    </target>
+
+    <target name=".copy.to.exploded" if="application.name" depends=".init.application.configuration,.create.exploded.structure">
+        <echo message="Копирование файлов настроек для приложения ${application.name} в ${application.explode.dir}"/>
+
+        <copy todir="${application.explode.dir}\Settings\" overwrite="true">
+            <fileset dir="${application.settings.dir}" includes="*.*" excludes="*.properties"/>
+        </copy>
+        <!--копируем проперти файлы и заодно преобразуем русские символы в UTF коды, иначе не будут считываться-->
+        <native2ascii encoding="Windows-1251" src="${application.settings.dir}" dest="${application.explode.dir}\Settings\" includes="*.properties" />
+        <copy todir="${application.explode.dir}\META-INF" overwrite="true">
+            <fileset dir="${application.settings.dir}\META-INF\"/>
+        </copy>
+    </target>
+
+    <target name= ".copy.to.exploded.by.config" if=".config.name">
+        <propertyregex property="application.name"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false" />
+
+        <propertyregex property="ear.suffix"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false"/>
+
+        <antcall target=".copy.to.exploded">
+            <param name="application.name" value="${application.name}"/>
+            <param name="ear.suffix" value="${ear.suffix}"/>
+        </antcall>
+    </target>
+
+    <target name="copy.to.exploded" depends="init.configuration, create.config.files" description="Сохранение настроек в exploded">
+        <!-- формируем список конфигурационных файлов, для приложений которые надо собрать -->
+        <var name="filenames" value= "" />
+
+        <if>
+            <isset property="build.gates.by.earGatesConfig"/>
+            <then>
+                <for list="${ikfl.build.app}" delimiter="," param="app">
+                    <sequential>
+                        <var name="filenames" value= "${filenames}${current.config.name}.@{app}.properties|"/>
+                    </sequential>
+                </for>
+
+                <for list="${list.of.gate.names}" delimiter="," param="gate">
+                    <sequential>
+                        <var name="filenames" value="${filenames}|${current.config.name}.@{gate}.properties|"/>
+                    </sequential>
+                </for>
+
+                <foreach list="${filenames}" delimiter="|" target=".copy.to.exploded.by.config" param=".config.name" inheritall="true"/>
+            </then>
+            <else>
+                <!--
+                    Смотрим все ear собранные с помощья explode и с их помощью определяем какие и куда настройки нужны
+                -->
+                <dirset id="ears" dir="${project.root}/" >
+                    <include name="*.ear"/>
+                </dirset>
+
+                <pathconvert property="ears" refid="ears" pathsep=","/>
+
+                <for list="${ears}" param="item" delimiter=",">
+                    <sequential>
+                        <propertyregex property="ear"
+                                       input="@{item}"
+                                       regexp="(\w*.ear)"
+                                       select="\1"
+                                       casesensitive="false"
+                                       override="true"/>
+
+                        <var name="filenames" value="${filenames}|${ear}"/>
+                    </sequential>
+                </for>
+
+                <property name=".aplications.configs.list" value= "${filenames}" />
+                <foreach list="${.aplications.configs.list}" delimiter="|" target=".copy.to.exploded.by.config" param=".config.name" inheritall="true"/>
+            </else>
+        </if>
+    </target>
+
+    <target name="append.project.path" depends="init.configuration">
+        <taskdef name="append.path" classname="com.rssl.phizic.business.ant.SetupProjectFolderPathTask" classpathref="project.tasks.classpath"/>
+        
+        <append.path fix="@project.root@" value="${project.root}">
+            <fileset dir="${project.root}">
+                <include name="Settings/bin/bars.properties"/>
+                <include name="Settings/configs/${current.config.name}/**/bars.properties"/>
+                <include name="IQWaveGate/bin/**/settings.properties"/>
+                <include name="Settings/configs/${current.config.name}/**/pfp.properties"/>
+            </fileset>
+        </append.path>
+    </target>
+
+    <!--
+        *************************************************************
+         Вспомогательные задачи для сборки гейтовых приложений.
+         Читают и записывают в temporary.properties основную информацию
+         о составе ear.
+        *************************************************************
+    -->
+    <!--
+        Читает из тэга web-modules находящегося внутри элемента group
+    -->
+    <target name="read.gates.web.modules" depends="get.group.by.application">
+        <var name="moduleNames" value=""/>
+        <var name="uri"         value=""/>
+
+        <xmlTask source="${earGatesConfig}">
+            <call path="groups/group[@name='${group-name}']/web-modules/module">
+                <param name="uri"  path="@uri"  default=""/>
+
+                <actions>
+                    <var name="uri" value="${uri},@{uri}"/>
+                </actions>
+            </call>
+        </xmlTask>
+
+        <propertyfile file="${temp.module.explode.dir}/temporary.properties">
+            <entry key="web-uri" value="${uri}"/>
+        </propertyfile>
+
+        <antcall target="read.gates.global.web.modules">
+            <param name="config" value="${earGatesConfig}"/>
+        </antcall>
+    </target>
+
+    <target name="get.group.by.application" if="application.name">
+
+        <xmlTask source="${earGatesConfig}">
+            <call path="groups/group/contexts/context[@name='${application.name}']">
+                <param name="group-name" path="ancestor::group/@name" default=""/>
+
+                <actions>
+                    <var name="group-name" value="@{group-name}"/>
+                </actions>
+            </call>
+        </xmlTask>
+        <property name="group-name" value="${group-name}"/>
+    </target>
+    <!--
+        Читает остальные тэги из earGatesConfig.xml находящиеся внутри элемента group
+    -->
+    <target name="read.gates.other.modules">
+        <var name="variable" value=""/>
+        <xmlTask source="${earGatesConfig}">
+            <call path="groups/group[@name='${group-name}']/${rootElement}/${element}">
+                <param name="name"   path="@name"/>
+
+                <actions>
+                    <var name="variable" value="${variable},@{name}"/>
+                </actions>
+            </call>
+        </xmlTask>
+
+        <propertyfile file="${temp.module.explode.dir}/temporary.properties">
+            <entry key="${rootElement}" value="${variable}"/>
+        </propertyfile>
+
+        <antcall target="read.gates.global.other.modules" inheritall="true"/>
+    </target>
+
+    <!--
+        Читает из earGatesConfig.xml содержимое тэга global-web-modules
+    -->
+    <target name="read.gates.global.web.modules">
+        <var name="uri"         value=""/>
+
+        <xmlTask source="${earGatesConfig}">
+            <call path="groups/global-web-modules">
+                <param name="uri"  path="module/@uri"  default=""/>
+
+                <actions>
+                    <var name="uri" value="${uri},@{uri}"/>
+                </actions>
+            </call>
+        </xmlTask>
+
+        <propertyfile file="${temp.module.explode.dir}/temporary.properties">
+            <entry key="web-uri"     value="${uri}" operation="+"/>
+        </propertyfile>
+    </target>
+
+    <!--
+       Читает остальные global элементы
+    -->
+    <target name="read.gates.global.other.modules">
+        <var name="variable" value=""/>
+
+        <xmlTask source="${earGatesConfig}">
+            <call path="groups/global-${rootElement}/${element}">
+                <param name="name"   path="@name" default=""/>
+
+                <actions>
+                    <var name="variable" value="${variable},@{name}"/>
+                </actions>
+            </call>
+        </xmlTask>
+
+        <propertyfile file="${temp.module.explode.dir}/temporary.properties">
+            <entry key="${rootElement}" value="${variable}" operation="+"/>
+        </propertyfile>
+    </target>
+
+    <!--
+     Сохраняет в "переменной" list.of.app.names список собранных ear файлов.
+     -->
+    <target name="get.list.of.exploded.ears" depends="setup_project_paths">
+        <var name="filenames" value=""/>
+        <dirset id="ears" dir="${project.root}/">
+            <include name="*.ear"/>
+        </dirset>
+
+        <pathconvert property="ears" refid="ears" pathsep=","/>
+
+        <for list="${ears}" param="item" delimiter=",">
+            <sequential>
+                <propertyregex property="ear"
+                               input="@{item}"
+                               regexp="(\w*.ear)"
+                               select="\1"
+                               casesensitive="false"
+                               override="true"/>
+
+                <if>
+                    <not>
+                        <equals arg1="${ear}" arg2="PhizicTempModules.ear"/>
+                    </not>
+                    <then>
+                        <var name="filenames" value="${ear},${filenames}"/>
+                    </then>
+                </if>
+            </sequential>
+        </for>
+
+        <property name="list.of.exploded.ears" value="${filenames}"/>
+    </target>
+
+    <!--
+     Сохраняет в "переменной" list.of.app.names список собранных ear файлов без расширения ear.
+     -->
+    <target name="get.list.of.all.exploded" depends="get.list.of.exploded.ears">
+        <var name="application.names" value=""/>
+
+        <for list="${list.of.exploded.ears}" param="item" delimiter=",">
+            <sequential>
+                <propertyregex property="application"
+                               input="@{item}"
+                               regexp="(\w*)(.ear)"
+                               select="\1"
+                               casesensitive="false"
+                               override="true"/>
+
+                <if>
+                    <not>
+                        <equals arg1="${application}" arg2="PhizicTempModules"/>
+                    </not>
+
+                    <then>
+                        <var name="application.names" value="${application},${application.names}"/>
+                    </then>
+                </if>
+
+            </sequential>
+        </for>
+
+        <property name="list.of.app.names" value="${application.names}"/>
+    </target>
+
+    <!--
+     Сохраняет в "переменной" list.of.gate.names список собранных гейтов.
+     -->
+    <target name="get.list.of.gates" depends="init.configuration" if="build.gates.by.earGatesConfig">
+        <taskdef name="xmlTask" classname="com.oopsconsultancy.xmltask.ant.XmlTask">
+            <classpath>
+                <path>
+                    <fileset dir="${basedir}/../Libraries/ForAnt"/>
+                </path>
+            </classpath>
+        </taskdef>
+
+        <var name="application.names" value=""/>
+
+        <xmlTask source="${earGatesConfig}">
+            <call path="groups/group/contexts/context">
+                <param name="context" path="@name"/>
+                <actions>
+                    <var name="application.names" value="@{context},${application.names}"/>
+                </actions>
+            </call>
+        </xmlTask>
+
+        <property name="list.of.gate.names" value="${application.names}"/>
+    </target>
+
+
+    <target name="set.application.instance.prefix">
+        <taskdef name="xmlTask" classname="com.oopsconsultancy.xmltask.ant.XmlTask">
+            <classpath>
+                <path>
+                    <fileset dir="${basedir}/../Libraries/ForAnt"/>
+                </path>
+            </classpath>
+        </taskdef>
+
+        <var name="application-instance" value=""/>
+        <xmlTask source="${earGatesConfig}">
+            <call path="groups/group/contexts/context[@name='${application.name}']">
+                <param name="application-instance" path="@application-instance"/>
+
+                <actions>
+                    <var name="application-instance" value="@{application-instance}"/>
+                </actions>
+            </call>
+        </xmlTask>
+
+        <propertyfile file="${basedir}/../${application.name}.ear/Settings/iccs.properties">
+            <entry key="com.rssl.iccs.application.instance.prefix" value="${application-instance}"/>
+        </propertyfile>
+    </target>
+</project>

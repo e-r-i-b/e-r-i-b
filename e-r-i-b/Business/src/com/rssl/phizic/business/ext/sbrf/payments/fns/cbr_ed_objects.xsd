@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+<!--Центральный Банк Российской Федерации.
+Унифицированные форматы электронных банковских сообщений. 
+
+Схемы с описанием общих прикладных объектов электронных сообщений, используемых в расчетной сети Банка России.
+
+июнь 2010 г.-->
+<!--e-mail:  wlad@e-burg.cbr.ru-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ed="urn:cbr-ru:ed:v2.0" xmlns:lt="urn:cbr-ru:ed:leaftypes:v2.0" targetNamespace="urn:cbr-ru:ed:v2.0" elementFormDefault="qualified" version="2.4.8">
+	<xs:import namespace="urn:cbr-ru:ed:leaftypes:v2.0" schemaLocation="cbr_ed_leaftypes.xsd"/>
+	<xs:annotation>
+		<xs:documentation>Прикладные объекты электронных сообщений</xs:documentation>
+	</xs:annotation>
+	<xs:complexType name="AccDocRefID">
+		<xs:annotation>
+			<xs:documentation>Реквизиты расчетного документа</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="AccDocNo" type="lt:AccountDocIDType" use="required">
+			<xs:annotation>
+				<xs:documentation>Номер расчетного документа</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="AccDocDate" type="lt:DateType" use="required">
+			<xs:annotation>
+				<xs:documentation>Дата выписки расчетного документа</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="BankRU">
+		<xs:annotation>
+			<xs:documentation>Реквизиты банка в электронных платежных документах</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="BIC" type="lt:BICRUIDType" use="required">
+			<xs:annotation>
+				<xs:documentation>БИК КО, филиала КО или УБР (поле 11 или 14)</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="CorrespAcc" type="lt:AccountNumberRUIDType">
+			<xs:annotation>
+				<xs:documentation>Номер счета банка клиента (поле 12 или 15). Проставляется номер корреспондентского счета (субсчета), открытого кредитной организации, филиалу кредитной организации в УБР, или не заполняется, если плательщик-клиент, не являющийся КО, филиалом КО, обслуживается в УБР, или УБР</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="CustomerRU">
+		<xs:annotation>
+			<xs:documentation>Реквизиты клиента (плательщика или получателя) в полноформатных электронных платежных документах</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Name" type="lt:Max160TextType">
+				<xs:annotation>
+					<xs:documentation>Наименование плательщика или получателя (поле 8 или 16)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="Bank" type="ed:BankRU">
+				<xs:annotation>
+					<xs:documentation>Реквизиты банка клиента</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="PersonalAcc" type="lt:AccountNumberRUIDType">
+			<xs:annotation>
+				<xs:documentation>Лицевой счет клиента (поле 9 или 17). В случае, когда плательщиком или получателем выступает КО, лицевой счет может не указываться</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="INN" type="lt:INNIDTextType">
+			<xs:annotation>
+				<xs:documentation>ИНН клиента (поле 60 или 61). Указывается, если он присвоен</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="KPP" type="lt:KPPIDTextType">
+			<xs:annotation>
+				<xs:documentation>Код постановки на учет (КПП) клиента (поле 102 или 103). Указывается, если он присвоен</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="CustomerRU0">
+		<xs:annotation>
+			<xs:documentation>Реквизиты клиента (плательщика или получателя) в полноформатных электронных платежных документах</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="PersonalAcc" type="lt:AccountNumberRUIDType">
+			<xs:annotation>
+				<xs:documentation>Лицевой счет клиента (поле 9 или 17). В случае, когда плательщиком или получателем выступает КО, лицевой счет может не указываться</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="INN" type="lt:INNIDTextType">
+			<xs:annotation>
+				<xs:documentation>ИНН клиента (поле 60 или 61). Указывается, если он присвоен</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="KPP" type="lt:KPPIDTextType">
+			<xs:annotation>
+				<xs:documentation>Код постановки на учет (КПП) клиента (поле 102 или 103). Указывается, если он присвоен</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="DepartmentalInfo">
+		<xs:annotation>
+			<xs:documentation>Ведомственная информация, установленная Министерством Российской Федерации по налогам и сборам, Министерством финансов Российской Федерации и Государственным таможенным комитетом Российской Федерации</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="DrawerStatus" type="lt:DrawerStatusCodeTextType">
+			<xs:annotation>
+				<xs:documentation>Статус составителя расчетного документа (поле 101). Заполняется при наличии. При заполнении данного поля поля 102-110 должны быть заполнены</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="CBC" type="lt:CBCIDTextType">
+			<xs:annotation>
+				<xs:documentation>Код бюджетной классификации (поле 104). КБК, по которому учитывается налог (сбор). Заполняется в соответствии с классификацией доходов бюджетов РФ</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="OKATO" type="lt:OKATOIDTextType">
+			<xs:annotation>
+				<xs:documentation>Код ОКАТО (поле 105). Код муниципального образования ОКАТО заполняется в соответствии с Общероссийским классификатором объектов административно-территориального деления. Указывается код муниципального образования, на территории которого мобилизуются денежные средства от уплаты налога (сбора)</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="PaytReason" type="lt:TaxPaytReasonCodeTextType">
+			<xs:annotation>
+				<xs:documentation>Основание налогового платежа (поле 106)</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="TaxPeriod" type="lt:TaxPeriodCodeTextType">
+			<xs:annotation>
+				<xs:documentation>Налоговый период (поле 107). Специальный формат</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="DocNo" type="lt:TaxDocIDTextType">
+			<xs:annotation>
+				<xs:documentation>Номер налогового документа (поле 108)</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="DocDate" type="lt:TaxDocDateCodeTextType">
+			<xs:annotation>
+				<xs:documentation>Дата налогового документа (поле 109)</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="TaxPaytKind" type="lt:TaxPaytKindCodeTextType">
+			<xs:annotation>
+				<xs:documentation>Тип налогового платежа (поле 110)</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ED0">
+		<xs:annotation>
+			<xs:documentation>Базовый комплексный тип для всех электронных документов данного пространства имен (без привязки к EDRefID)</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:any namespace="urn:cbr-ru:dsig:v1.1" processContents="strict" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Реквизит ЭД со значением ЗК</xs:documentation>
+				</xs:annotation>
+			</xs:any>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ED">
+		<xs:annotation>
+			<xs:documentation>Базовый комплексный тип для всех электронных документов данного пространства имен</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="ed:EDRefID">
+				<xs:sequence>
+					<xs:any namespace="urn:cbr-ru:dsig:v1.1" processContents="strict" minOccurs="0" maxOccurs="unbounded">
+						<xs:annotation>
+							<xs:documentation>Реквизит ЭД со значением ЗК</xs:documentation>
+						</xs:annotation>
+					</xs:any>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="EDRefID">
+		<xs:annotation>
+			<xs:documentation>Реквизиты призначной группы ЭД</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="EDNo" type="lt:EDNumberType" use="required">
+			<xs:annotation>
+				<xs:documentation>Номер ЭД в течение опердня</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="EDDate" type="lt:DateType" use="required">
+			<xs:annotation>
+				<xs:documentation>Дата составления ЭД</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="EDAuthor" type="lt:EDDrawerIDType" use="required">
+			<xs:annotation>
+				<xs:documentation>Уникальный идентификатор составителя ЭД - УИС</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="EPDComplete">
+		<xs:annotation>
+			<xs:documentation>Базовый комплексный тип для всех электронных платежных документов. Содержит реквизиты, общие для всех типов ЭПД</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="ed:ED">
+				<xs:sequence>
+					<xs:element name="AccDoc" type="ed:AccDocRefID">
+						<xs:annotation>
+							<xs:documentation>Реквизиты исходного расчетного документа (поля 3 и 4)</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Payer" type="ed:CustomerRU">
+						<xs:annotation>
+							<xs:documentation>Реквизиты плательщика (далее - "клиента") (поля 8-12, 60, 102)</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Payee" type="ed:CustomerRU">
+						<xs:annotation>
+							<xs:documentation>Реквизиты получателя (далее - "клиента") (поля 14-17, 61, 103)</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+				<xs:attribute name="PaytKind" type="lt:OneDigitCodeType" use="required">
+					<xs:annotation>
+						<xs:documentation>Вид платежа (поле 5)</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="Sum" type="lt:KopeckAmountType" use="required">
+					<xs:annotation>
+						<xs:documentation>Сумма (поле 7)</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ESID">
+		<xs:annotation>
+			<xs:documentation>Базовый комплексный тип для всех электронных служебно-информационных документов. Содержит реквизиты, общие для всех типов ЭСИД</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="ed:ED">
+				<xs:attribute name="EDReceiver" type="lt:EDDrawerIDType">
+					<xs:annotation>
+						<xs:documentation>Уникальный идентификатор получателя ЭД. Может быть заполнен ТПК УОС</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="ESIDWithPartInfo">
+		<xs:annotation>
+			<xs:documentation>Базовый комплексный тип для ЭСИД с информацией о части</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="ed:ESID">
+				<xs:sequence>
+					<xs:element name="PartInfo" type="ed:PartInfo" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Информация о части. Заполняется при передаче информации в нескольких ЭСИД</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="InitialED" type="ed:EDRefID" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Идентификаторы исходного ЭСИД. Заполняются при наличии исходного запроса</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="PartInfo">
+		<xs:annotation>
+			<xs:documentation>Информация о части передаваемой информации</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="PartNo" type="lt:OrdinalNumberType" use="required">
+			<xs:annotation>
+				<xs:documentation>Номер части. Указывается порядковый номер части, начиная с 1 (номер первой части в совокупности)</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="PartQuantity" type="lt:OrdinalNumberType" use="required">
+			<xs:annotation>
+				<xs:documentation>Количество частей. Указывается номер последней части в совокупности</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="PartAggregateID" type="lt:PartAggregateIDType" use="required">
+			<xs:annotation>
+				<xs:documentation>Уникальный идентификатор совокупности частей</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+</xs:schema>

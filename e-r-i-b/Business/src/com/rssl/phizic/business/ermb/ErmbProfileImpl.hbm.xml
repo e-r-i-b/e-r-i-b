@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.ermb.ErmbProfileImpl" table="ERMB_PROFILE">
+
+        <id name="id" type="long" column="PERSON_ID">
+            <generator class="foreign">
+                <param name="property">person</param>
+            </generator>
+        </id>
+
+        <one-to-one name="person" class="com.rssl.phizic.person.Person" constrained="true" lazy="false"/>
+        <property name="profileVersion" type="long" column="VERSION" not-null="true"/>
+        <property name="confirmProfileVersion" type="long" column="CONFIRM_VERSION" not-null="true"/>
+        <property name="serviceStatus" type="boolean" column="SERVICE_STATUS" not-null="true"/>
+        <property name="clientBlocked" type="boolean" column="CLIENT_BLOCKED" not-null="true"/>
+        <property name="paymentBlocked" type="boolean" column="PAYMENT_BLOCKED" not-null="true"/>
+        <property name="endServiceDate" type="calendar" column="END_SERVICE_DATE" not-null="false"/>
+
+        <many-to-one name="foreginProduct"
+                     class="com.rssl.phizic.business.resources.external.CardLink"
+                     column="FOREG_PRODUCT_ID"
+                     not-null="false"
+                     fetch="join"
+                     lazy="false"/>
+
+        <property name="connectionDate" type="calendar" column="CONNECTION_DATE" not-null="false"/>
+        <property name="newProductNotification" type="boolean" column="NEW_PRODUCT_NOTIFICATION"
+                  not-null="true"  access="field"/>
+        <property name="newProductShowInSms" type="boolean" column="NEW_PRODUCT_SHOW_IN_SMS"
+                  not-null="true"  access="field"/>
+		<property name="notificationStartTime" type="string-time" column="TIME_START" not-null="true"/>
+		<property name="notificationEndTime" type="string-time" column="TIME_END" not-null="true"/>
+        <property name="timeZone" type="long" column="TIME_ZONE" not-null="true"/>
+        <property name="daysOfWeek" type="days-of-week" column="DAYS_OF_WEEK" not-null="false"/>
+        <property name="suppressAdv" type="boolean" column="SUPPRESS_ADVERTISING" not-null="true"/>
+        <property name="depositsTransfer" type="boolean" column="DEPOSITS_TRANSFER" not-null="true"/>
+        <property name="lockTime" type="calendar" column="LOCK_TIME" not-null="false"/>
+        <property name="fppUnloadDate" type="calendar" column="FPP_UNLOAD_DATE" not-null="false"/>
+        <property name="chargeNextDate" type="calendar" column="CHARGE_NEXT_DATE" not-null="true"/>
+        <property name="chargeDayOfMonth"       type="integer"      column="CHARGE_DAY_OF_MONTH"        not-null="false"/>
+        <property name="fppInProgress"          type="boolean"      column="FPP_IN_PROGRESS"            not-null="true"/>
+        <property name="fppBlocked"             type="boolean"      column="FPP_BLOCKED"                not-null="true"/>
+        <property name="lockDescription"        type="string"       column="LOCK_DESCRIPTION"           not-null="false"/>
+        <property name="codActivated"           type="boolean"      column="COD_ACTIVATED"              not-null="true"/>
+        <property name="wayActivated"           type="boolean"      column="WAY_ACTIVATED"              not-null="true"/>
+        <property name="activationTryDate"      type="calendar"     column="ACTIVATION_TRY_DATE"        not-null="true"/>
+        <property name="incompleteSmsPayment"   type="long"         column="INCOMPLETE_SMS_PAYMENT"     not-null="false"/>
+        <property name="gracePeriodEnd"         type="calendar"     column="GRACE_PERIOD_DATE"          not-null="true"/>
+        <property name="connectedDepartment"    type="long"         column="CONNECT_DEP_ID"             not-null="false"/>
+        <property name="migrationConflict"      type="boolean"      column="CONFLICT_MIGRATION"         not-null="false"/>
+        <property name="mbkPaymentBlocked"      type="boolean"      column="MBK_PAYMENT_BLOCKED"        not-null="true"/>
+
+        <many-to-one name="tarif"
+                     class="com.rssl.phizic.business.ermb.ErmbTariff"
+                     column="ERMB_TARIF_ID"
+                     not-null="true"
+                     fetch="join"
+                     lazy="false"/>
+
+        <property name="fastServiceAvailable" type="boolean" column="FAST_SERVICE" not-null="true"/>
+
+        <set name="phones"
+             table="ERMB_CLIENT_PHONE"
+             cascade="all-delete-orphan"
+             lazy="false"
+             inverse="true"
+             fetch="join">
+            <key column="PROFILE_ID" not-null="true"/>
+            <one-to-many class="com.rssl.phizic.business.ermb.ErmbClientPhone"/>
+        </set>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.ermb.ErmbProfileStatistic" table="ERMB_PROFILE_STATISTIC">
+        <id name="id" type="long" column="PROFILE_ID">
+            <generator class="foreign">
+                <param name="property">profile</param>
+            </generator>
+        </id>
+        <one-to-one name="profile" class="com.rssl.phizic.business.ermb.ErmbProfileImpl" constrained="true" lazy="false"/>
+        <property name="lastRequestTime" type="calendar" column="LAST_REQUEST_TIME" not-null="false"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.ermb.profile.findByPersonId">
+        select profile
+        from ErmbProfileImpl as profile
+        where profile.id = :personId
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.ermb.ErmbProfileServiceImpl.findProfileByCardNumber">
+        <return class="com.rssl.phizic.business.ermb.ErmbProfileImpl" alias="profile"/>
+        <![CDATA[
+        select * from ERMB_PROFILE profile
+        where profile.PERSON_ID in
+        (
+        select users.ID from USERS users join CARD_LINKS links
+        on users.LOGIN_ID = links.LOGIN_ID
+                   where card_number = :card_number
+                   and users.STATUS = 'A'
+        )
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.ermb.profile.findByFIOAndDoc">
+        select profile
+        from ErmbProfileImpl as profile
+        where profile.id in
+        (
+            select person.id
+            from ActivePerson person, ExtendedDepartment office
+            where upper(concat(replace(person.surName,' ',''),concat(replace(person.firstName,' ',''), replace(person.patrName,' ','')))) = :FIO
+            and
+                (select count(person.personDocuments.id)
+                from  person.personDocuments
+                where concat(replace(person.personDocuments.documentSeries,' ',''), replace(person.personDocuments.documentNumber,' ',''))  = :Doc) > 0
+            and person.birthDay = :birthDay
+            and office.id = person.departmentId and office.code.region in (:regions)
+        )
+    </query>
+
+    <!-- Возвращает профиль по основному номеру телефона -->
+    <query name="com.rssl.phizic.business.ermb.profile.findByMainPhone">
+        select profile
+        from ErmbProfileImpl as profile
+        join profile.phones as phone
+        where phone.number = :phone
+            and phone.main = true
+    </query>
+
+    <!-- Возвращает профиль по номеру телефона -->
+    <query name="com.rssl.phizic.business.ermb.profile.findByPhone">
+        select profile
+        from ErmbProfileImpl as profile
+        join profile.phones as phone
+        where phone.number = :phone
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.ErmbProfileBusinessService.findProfilesByIds">
+        select profile
+        from ErmbProfileImpl as profile
+        where profile.id in (:ids)
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.ermb.ErmbProfileBusinessService.findProfilesToUpdate">
+        <return class="com.rssl.phizic.business.ermb.ErmbProfileImpl" alias="profile"/>
+        <![CDATA[
+        select * from ERMB_PROFILE profile
+        where profile.VERSION != profile.CONFIRM_VERSION
+        and rownum <= 1000
+        ]]>
+   </sql-query>
+
+   <query name="com.rssl.phizic.business.ermb.profile.ErmbProfileBusinessService.isErmbProfileExistsByPersonId">
+       select 1
+       from ErmbProfileImpl as profile
+       where profile.id = :personId
+            and profile.serviceStatus = true
+   </query>
+
+   <query name="com.rssl.phizic.business.ermb.profile.ErmbProfileBusinessService.isErmbProfileExistsByLoginId">
+        select 1
+        from ErmbProfileImpl as profile
+        where profile.person.login.id = :loginId
+            and profile.serviceStatus = true
+   </query>
+
+    <!--Найти профили для выгрузки ФПП на списание абонплаты-->
+    <!--
+        Опорный объект: IDX_ERMB_SRV_FEE_CHARGE_DATE
+        Предикаты доступа: "PROFILE"."CHARGE_NEXT_DATE"<=SYSDATE@!
+        Кардинальность: размер пачки джоба
+    -->
+   <sql-query name="com.rssl.auth.csa.back.servises.Profile.getSubscribeeFeeProfiles.withLock">
+       <return alias="profiles" class="com.rssl.phizic.business.ermb.ErmbProfileImpl"/>
+       <![CDATA[
+        SELECT * FROM ERMB_PROFILE WHERE person_id IN (
+            SELECT person_id FROM
+                (SELECT profile.person_id FROM ERMB_PROFILE profile
+                 WHERE
+                     profile.FPP_IN_PROGRESS = '0'
+                     and profile.SERVICE_STATUS = '1'
+                     and profile.CLIENT_BLOCKED = '0'
+                     and (profile.PAYMENT_BLOCKED = '0' or profile.MBK_PAYMENT_BLOCKED = '1')
+                     and profile.CHARGE_NEXT_DATE <= :currentDate
+                     and profile.FPP_BLOCKED = '0'
+                     and exists (select 1 from ERMB_CLIENT_PHONE phone where phone.PROFILE_ID = profile.PERSON_ID and rownum <=1)
+                     and rownum <= :allJobPackSize
+                     ORDER BY dbms_random.value)
+                 WHERE rownum <= :oneJobPackSize
+        )
+        FOR UPDATE SKIP LOCKED
+       ]]>
+   </sql-query>
+
+    <!--найти профили для активации в ЦОД и/или Way относительно даты-->
+    <query name="com.rssl.phizic.business.ermb.profile.ErmbProfileBusinessService.getProfilesToActivate">
+        from ErmbProfileImpl
+        where
+            serviceStatus = true
+            and (codActivated = false or wayActivated = false)
+            and activationTryDate &lt; :date
+    </query>
+
+    <!--найти профили для активации в ЦОД относительно даты-->
+    <query name="com.rssl.phizic.business.ermb.profile.ErmbProfileBusinessService.getProfilesToActivate.codOnly">
+        from ErmbProfileImpl
+        where
+            serviceStatus = true
+            and codActivated = false
+            and activationTryDate &lt; :date
+    </query>
+
+    <!-- Установить недовведенный платеж смс-канала-->
+    <!--
+        Опорный объект: PK_ERMB_PROFILE
+        Предикаты доступа: "PERSON_ID"=TO_NUMBER(:ID)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.ermb.profile.ErmbProfileBusinessService.getProfilesToActivate.updateIncompletePayment">
+        update
+            ErmbProfileImpl
+        set
+            incompleteSmsPayment = :incompleteSmsPaymentId
+        where
+            id = :id
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.ErmbProfileBusinessService.unlockFppBlockedProfiles">
+        update ErmbProfileImpl ermbProfile
+        set ermbProfile.fppBlocked = false
+    </query>
+
+</hibernate-mapping>

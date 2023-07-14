@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.rssl.phizic.security.certification.CertOwn" table="CERT_OWN">
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_CERT_OWN</param>
+			</generator>
+		</id>
+		<version name="version" type="long" column="VERSION"/>
+
+		<property name="certificate" type="com.rssl.phizic.security.certification.CertificateType" column="CERT_ID" not-null="true"/>
+
+		<many-to-one name="owner"
+		             class="com.rssl.phizic.auth.CommonLogin"
+		             column="LOGIN_ID"
+		             not-null="true"
+		             lazy="false"/>
+
+		<property name="status" type="string" column="STATUS" not-null="true"/>
+		<property name="startDate" type="calendar" column="START_DATE"/>
+		<property name="endDate"   type="calendar" column="END_DATE"  />
+	</class>
+
+	<query name="findCertOwn">
+		select co from com.rssl.phizic.security.certification.CertOwn co
+		where co.certificate = :certificate
+	</query>
+
+	<query name="findActiveCertOwn">
+		select co from com.rssl.phizic.security.certification.CertOwn co
+		where co.owner = :owner and co.status = 'A'
+	</query>
+
+	<query name="findAllCertOwn">
+		select co from com.rssl.phizic.security.certification.CertOwn co
+		where co.owner = :owner
+	</query>
+
+	<query name="setExpired">
+		<![CDATA[
+		update com.rssl.phizic.security.certification.CertOwn
+		set status = :status
+		where (endDate < :currentDate) and (status = :oldStatus)
+		]]>
+	</query>
+
+	<query name="getAllStatusCerts">
+		select co from com.rssl.phizic.security.certification.CertOwn co
+		where co.status = :status
+	</query>
+
+</hibernate-mapping>

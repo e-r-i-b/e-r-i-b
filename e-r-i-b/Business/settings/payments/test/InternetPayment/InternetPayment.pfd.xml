@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="InternetPayment"
+		description="Оплата интернета"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd" >
+	<implementation class="com.rssl.phizic.business.documents.payments.RurPayment"/>
+	<sender class="com.rssl.phizic.business.payments.forms.meta.NullSender"/>
+	<fields>
+		<field
+			name="clientAccount"
+			description="Счет списания"
+			type="string"
+			source="payer-account">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.UserAccountValidator"/>
+			</validators>
+		</field>
+        <field
+			name="numberClPayment"
+			description="Номер лицевого счета/Номер карты/Логин"
+			type="string"
+			source="extra-parameters/parameter[@name='numberClPayment']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+        <field name="amount"
+			description="Сумма"
+			source="amount"
+			type="money">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение суммы должно быть в диапазоне 0,01 - 999999999,99"/>
+                </validator>
+                <validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение суммы должно быть в диапазоне 0,01 - 999999999,99"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999.99</parameter>
+                </validator>
+            </validators>
+		</field>
+		<field
+			name="internetProvider"
+			description="Провайдер"
+			source="extra-parameters/parameter[@name='internetProvider']/@value"
+			type="string"
+			>
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+	</fields>
+	<dictionaries>
+		<entity-list name="internetProviders">
+            <entity key="Stream">МТУ-Интел</entity>
+            <entity key="Corbina">Корбина-Телеком</entity>
+            <entity key="Zebra">Зебра-Телеком</entity>
+            <entity key="ROL">РОЛ</entity>
+        </entity-list>
+	</dictionaries>
+	<form-validators>
+		<form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">clientAccount</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

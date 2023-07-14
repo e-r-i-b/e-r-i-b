@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="GKHPayment" description="Оплата услуг ЖКХ"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.GKHPayment"/>
+	<fields>
+		<field
+				name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"
+				signable="true">
+		</field>
+
+		<field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+			   type="string"/>
+		<field name="admissionDate"
+		       source="admissionDate"
+			   type="date"
+		       description="Дата приема плaтежа банком">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="payerName"
+				description="Ф.И.О."
+				type="string"
+				source="payer-name"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="amount"
+				description="Сумма к оплате"
+				source="amount"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение суммы к оплате должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение суммы к оплате должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field
+				name="payerAccountSelect"
+				description="Счет списания"
+				type="account"
+				source="payer-account"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="currency"
+				description="Валюта"
+				source="extra-parameters/parameter[@name='currency']/@value"
+				type="string"
+				signable="true">
+		</field>
+		<field
+				name="payerCode"
+				description="Код плательщика"
+				source="extra-parameters/parameter[@name='payer-code']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Код плательщика должен состоять из 10 цифр"/>
+					<parameter name="regexp">^\d{10}$</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field
+				name="payerAddress"
+				description="Адрес плательщика"
+				source="extra-parameters/parameter[@name='payer-address']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field name="monthSelect" description="Месяц" type="string"
+		       source="extra-parameters/parameter[@name='month']/@value"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<parameter name="regexp">[1-9]|1[012]</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="yearSelect" description="Год" type="string"
+		       source="extra-parameters/parameter[@name='year']/@value"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<parameter name="regexp">20\d\d</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="commissionAmount"
+				description="Сумма коммисии"
+				source="commission"
+				type="money"
+				signable="true"/>
+
+		<field
+				name="insuranceAmount"
+				description="Сумма страхования"
+				source="extra-parameters/parameter[@name='insurance-amount']/@value"
+				type="money"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение суммы страхования должно быть в диапазоне 0,00 - 999999999,99"/>
+					<parameter name="minValue">0.00</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+	</fields>
+	<form-validators>
+		<form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">payerAccountSelect</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

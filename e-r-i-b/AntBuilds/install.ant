@@ -1,0 +1,1048 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+
+<project name="install">
+
+	<import id="configs" file="configs.ant"/>
+	<import id="common"  file="common.ant" />
+    <target name="init.installer.configuration" depends="init.configuration">
+        <propertycopy name="installer.settings.file" from="ikfl.build.installer.settings.file"/>
+        <property file="${project.builds.root}/configs/${installer.settings.file}.local.properties"/>
+        <property file="${project.builds.root}/configs/${installer.settings.file}.properties"/>
+    </target>
+
+	<target name="CreateDB" depends="init.installer.configuration" description="Создание баз данных для приложения">
+		<echo message="start create DB's"/>
+		<antcall target="CreateShadowDB">
+		</antcall>
+		<antcall target="CreateMainDB">
+		</antcall>
+		<echo message="end create DB's"/>
+	</target>
+
+    <target name="CreateOnlyDataBaseCSA" depends="init.installer.configuration" description="Создание одной только базы данных для CSA">
+       <ant antfile="PhizIC.ant" target=".prepare.scripts"/>
+       <antcall target="CreateDbCSAInner">
+       </antcall>
+    </target>
+
+    <target name="CreateDataBaseCSA" depends="init.installer.configuration" description="Создание базы данных для CSA во время install">
+		<echo message="start create CSA DB"/>
+		<antcall target="CreateDbCSAInner">
+		</antcall>
+		<echo message="end create CSA DB"/>
+	</target>
+
+    <target name="CreateDataBaseLimits" depends="init.installer.configuration" description="Создание базы данных для LimitsApp во время install">
+        <echo message="start create Limits DB"/>
+        <antcall target="CreateDbLimitsInner">
+        </antcall>
+        <echo message="end create Limits DB"/>
+    </target>
+
+    <target name="CreateOnlyDataBaseLimits" depends="init.installer.configuration" description="Создание одной только базы данных для LimitsApp">
+        <ant antfile="PhizIC.ant" target=".prepare.scripts"/>
+        <antcall target="CreateDbLimitsInner">
+        </antcall>
+    </target>
+
+	<target name="CreateOnlyDataBaseCSAAdmin" depends="init.installer.configuration" description="Создание базы данных для CSAAdmin">
+		<ant antfile="PhizIC.ant" target=".prepare.scripts"/>
+		<antcall target="CreateDbCSAAdminInner">
+		</antcall>
+	</target>
+
+    <target name="CreateDataBaseCSAAdmin" depends="init.installer.configuration" description="Создание базы данных для CSAAdmin во время install">
+		<echo message="start create CSAAdmin DB"/>
+		<antcall target="CreateDbCSAAdminInner">
+		</antcall>
+		<echo message="end create CSAAdmin DB"/>
+	</target>
+
+    <target name="CreateDataBaseOfflineDoc" depends="init.installer.configuration" description="Создание базы данных для OfflineDoc во время install">
+		<echo message="start create OfflineDoc DB"/>
+		<antcall target="CreateDataBaseOfflineDocInner">
+		</antcall>
+		<echo message="end create OfflineDoc DB"/>
+	</target>
+
+    <target name="CreateOnlyDataBaseAsynchSearch" depends="init.installer.configuration" description="Создание одной только базы данных для 'живого' поиска">
+       <ant antfile="PhizIC.ant" target=".prepare.scripts"/>
+       <antcall target="CreateDbAsynchSearchInner">
+       </antcall>
+    </target>
+
+    <target name="CreateDataBaseAsynchSearch" depends="init.installer.configuration" description="Создание базы данных для 'живого' поиска во время install">
+		<echo message="start create AsynchSearch DB"/>
+		<antcall target="CreateDbAsynchSearchInner">
+		</antcall>
+		<echo message="end create AsynchSearch DB"/>
+	</target>
+
+    <target name="CreatePushDB" depends="init.installer.configuration" description="Создание БД Push">
+        <ant antfile="PhizIC.ant" target=".prepare.scripts"/>
+        <antcall target="CreateDbPushInner">
+        </antcall>
+    </target>
+
+    <target name="CreateDataBasePush" depends="init.installer.configuration" description="Создание базы данных для Push во время install">
+        <echo message="start create Push DB"/>
+        <antcall target="CreateDbPushInner">
+        </antcall>
+        <echo message="end create Push DB"/>
+    </target>
+
+    <target name="CreateEInvoicingDB" depends="init.installer.configuration" description="Создание БД E-Invoicing">
+        <ant antfile="PhizIC.ant" target=".prepare.scripts"/>
+        <antcall target="CreateDBEInvoicingInner">
+        </antcall>
+    </target>
+
+    <target name="CreateDataBaseEInvoicing" depends="init.installer.configuration" description="Создание базы данных для CreateEInvoicingDB во время install">
+        <echo message="start create EInvoicing DB"/>
+        <antcall target="CreateDBEInvoicingInner">
+        </antcall>
+        <echo message="end create EInvoicing DB"/>
+    </target>
+
+    <target name="CreateLogDB" depends="init.installer.configuration" description="Создание БД Логов">
+        <ant antfile="PhizIC.ant" target=".prepare.scripts"/>
+        <antcall target="CreateDBLogInner">
+        </antcall>
+    </target>
+
+    <target name="CreateDataBaseLog" depends="init.installer.configuration" description="Создание базы данных для CreateLogDB во время install">
+        <echo message="start create logDB"/>
+        <antcall target="CreateDBLogInner">
+        </antcall>
+        <echo message="end create logDB"/>
+    </target>
+
+    <target name="CreateDataBaseUSCT" depends="init.installer.configuration" description="Создание базы данных для USCTApp (шаблоны) во время install">
+        <echo message="start create USCT DB"/>
+        <antcall target="CreateDbUSCTInner">
+        </antcall>
+        <echo message="end create USCT DB"/>
+    </target>
+
+    <target name="CreateOnlyDataBaseUSCT" depends="init.installer.configuration" description="Создание только базы данных для USCTApp (Шаблоны)">
+        <ant antfile="PhizIC.ant" target=".prepare.scripts"/>
+        <antcall target="CreateDbUSCTInner">
+        </antcall>
+    </target>
+
+	<target name="CreateMainDB" description="Создание основной БД">
+		<echo message="Start create main DB"/>
+		<antcall target="CreateDbInner">
+		</antcall>
+		<echo message="End create main DB"/>
+	</target>
+
+	<target name="CreateShadowDB" description="Создание вспомогательной БД" if="shadow.database.on">
+		<echo message="Start create shadow DB"/>
+		<antcall target="CreateDbInner">
+			<param name="dbserver.username" value="${dbserver.shadow.username}"/>
+			<param name="dbserver.password" value="${dbserver.shadow.password}"/>
+		</antcall>
+		<echo message="End create shadow DB"/>
+	</target>
+
+	<target name="CreateDbInner" description="Таск для непосредственного создания БД" depends="create_db_data">
+		<echo level="info" message="Подготовка данных для создания БД"/>
+		<path id="jdbc.classpath">
+			<fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+		</path>
+		<property name="dbserver.sql.delimiter.string" value="go"/>
+		<property name="dbserver.sql.delimiter.type"   value="row"/>
+
+		<copy file="${basedir}/db-data/create-${dbserver.type}.sql"
+		      tofile="${basedir}/db-data/create.sql" overwrite="true">
+			<filterset refid="current.dbdata.filterset"/>
+		</copy>
+		<echo level="info" message="Создание базы данных ${dbserver.database}"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.url.lite}"
+		     src="${basedir}/db-data/create.sql" onerror="continue"
+		     userid="${dbserver.admin.username}" password="${dbserver.admin.password}"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}"/>
+
+		<echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.url.full}"
+		     userid="${dbserver.table.username}" password="${dbserver.table.password}" onerror="continue"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+			<fileset dir="${basedir}/db-data"
+			         includes="tables-${dbserver.type}.sql,quartz-${dbserver.type}.sql"/>
+		</sql>
+
+        <if>
+         <equals arg1="${dbserver.type}" arg2="oracle" />
+         <then>
+            <echo level="info" message="Создание других объектов БД"/>
+             
+            <copy file="${basedir}/db-data/create-other-oracle.sql"
+                  tofile="${basedir}/db-data/create-other.sql" overwrite="true">
+                <filterset refid="current.dbdata.filterset"/>
+            </copy>
+
+            <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.url.full}"
+                 userid="${dbserver.admin.username}" password="${dbserver.admin.password}" onerror="continue"
+                 delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+                <fileset dir="${basedir}/db-data"
+                         includes="create-other.sql"/>
+            </sql>
+
+         </then>
+         <else>
+             <echo level="error" message="Для работы shadow небходимо создать другие объекты БД, которые в ms-sql недоступны"/>
+         </else>
+        </if>
+
+
+		<echo level="info" message="Завершено создание БД"/>
+	</target>
+
+    <target name="CreateDbCSAInner" description="Таск для непосредственного создания БД CSA" depends="create_db_data">
+		<echo level="info" message="Подготовка данных для создания csa БД"/>
+		<path id="jdbc.classpath">
+			<fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+		</path>
+		<property name="dbserver.sql.delimiter.string" value="go"/>
+		<property name="dbserver.sql.delimiter.type"   value="row"/>
+
+        <copy file="${basedir}/db-data/create-csa-${dbserver.type}.sql"
+		      tofile="${basedir}/db-data/create-csa.sql" overwrite="true">
+			<filterset refid="current.dbdata.filterset"/>
+		</copy>
+
+		<echo level="info" message="Создание базы данных ${dbserver.csa.database} пользователь ${dbserver.csa.table.username}"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.csa.url.lite}"
+		     src="${basedir}/db-data/create-csa.sql" onerror="continue"
+		     userid="${dbserver.csa.admin.username}" password="${dbserver.csa.admin.password}"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}"/>
+
+		<echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.csa.url.full}"
+		     userid="${dbserver.csa.table.username}" password="${dbserver.csa.table.password}" onerror="continue"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+			<fileset dir="${basedir}/db-data"
+			         includes="tables-csa-${dbserver.type}.sql"/>
+		</sql>
+		<echo level="info" message="Завершено создание csa БД"/>
+	</target>
+
+    <target name="CreateDbLimitsInner" description="Таск для непосредственного создания БД Limits" depends="create_db_data">
+        <echo level="info" message="Подготовка данных для создания Limits БД"/>
+        <path id="jdbc.classpath">
+            <fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+        </path>
+        <property name="dbserver.sql.delimiter.string" value="go"/>
+        <property name="dbserver.sql.delimiter.type" value="row"/>
+
+        <copy file="${basedir}/db-data/create-limits-${dbserver.type}.sql"
+                tofile="${basedir}/db-data/create-limits.sql" overwrite="true">
+            <filterset refid="current.dbdata.filterset"/>
+        </copy>
+
+        <echo level="info" message="Создание базы данных ${dbserver.limits.database} пользователь ${dbserver.limits.table.username}"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.limits.url.lite}"
+             src="${basedir}/db-data/create-limits.sql" onerror="continue"
+             userid="${dbserver.limits.admin.username}" password="${dbserver.limits.admin.password}"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+        </sql>
+
+        <echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.limits.url.full}"
+             userid="${dbserver.limits.table.username}" password="${dbserver.limits.table.password}" onerror="continue"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+            <fileset dir="${basedir}/db-data" includes="tables-limits-${dbserver.type}.sql"/>
+        </sql>
+
+        <echo level="info" message="Завершено создание Limits БД"/>
+    </target>
+
+    <target name="CreateDbCSAAdminInner" description="Таск для непосредственного создания БД CSAAdmin" depends="create_db_data">
+		<echo level="info" message="Подготовка данных для создания CSAAdmin БД"/>
+		<path id="jdbc.classpath">
+			<fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+		</path>
+		<property name="dbserver.sql.delimiter.string" value="go"/>
+		<property name="dbserver.sql.delimiter.type"   value="row"/>
+
+        <copy file="${basedir}/db-data/create-csa-admin-${dbserver.type}.sql"
+		      tofile="${basedir}/db-data/create-csa-admin.sql" overwrite="true">
+			<filterset refid="current.dbdata.filterset"/>
+		</copy>
+
+		<echo level="info" message="Создание базы данных ${dbserver.csaadmin.database} пользователь ${dbserver.csaadmin.table.username}"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.csaadmin.url.lite}"
+		     src="${basedir}/db-data/create-csa-admin.sql" onerror="continue"
+		     userid="${dbserver.csaadmin.admin.username}" password="${dbserver.csaadmin.admin.password}"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}"/>
+
+		<echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.csaadmin.url.full}"
+		     userid="${dbserver.csaadmin.table.username}" password="${dbserver.csaadmin.table.password}" onerror="continue"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+			<fileset dir="${basedir}/db-data"
+			         includes="tables-csa-admin-${dbserver.type}.sql,quartz-${dbserver.type}.sql"/>
+		</sql>
+		<echo level="info" message="Завершено создание CSAAdmin БД"/>
+	</target>
+
+    <target name="CreateDataBaseOfflineDocInner" description="Таск для непосредственного создания БД OfflineDoc" depends="create_db_data">
+		<echo level="info" message="Подготовка данных для создания OfflineDoc БД"/>
+		<path id="jdbc.classpath">
+			<fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+		</path>
+		<property name="dbserver.sql.delimiter.string" value="go"/>
+		<property name="dbserver.sql.delimiter.type"   value="row"/>
+
+        <copy file="${basedir}/db-data/create-offline-doc-${dbserver.type}.sql"
+		      tofile="${basedir}/db-data/create-offline-doc.sql" overwrite="true">
+			<filterset refid="current.dbdata.filterset"/>
+		</copy>
+
+		<echo level="info" message="Создание базы данных ${dbserver.documents.offline.database} пользователь ${dbserver.documents.offline.table.username}"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.documents.offline.url.full}"
+		     src="${basedir}/db-data/create-offline-doc.sql" onerror="continue"
+		     userid="${dbserver.documents.offline.admin.username}" password="${dbserver.documents.offline.admin.password}"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}"/>
+
+		<echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.documents.offline.url.full}"
+		     userid="${dbserver.documents.offline.table.username}" password="${dbserver.documents.offline.table.password}" onerror="continue"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+			<fileset dir="${basedir}/db-data"
+			         includes="tables-offline-doc-${dbserver.type}.sql"/>
+		</sql>
+		<echo level="info" message="Завершено создание OfflineDoc БД"/>
+	</target>
+
+    <target name="CreateDbAsynchSearchInner" description="Таск для непосредственного создания БД 'живого' поиска" depends="create_db_data">
+		<echo level="info" message="Подготовка данных для создания БД 'живого' поиска"/>
+		<path id="jdbc.classpath">
+			<fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+		</path>
+		<property name="dbserver.sql.delimiter.string" value="go"/>
+		<property name="dbserver.sql.delimiter.type"   value="row"/>
+
+        <copy file="${basedir}/db-data/create-asynchsearch-${dbserver.type}.sql"
+		      tofile="${basedir}/db-data/create-asynchsearch.sql" overwrite="true">
+			<filterset refid="current.dbdata.filterset"/>
+		</copy>
+
+		<echo level="info" message="Создание базы данных ${dbserver.asyncsearch.database} пользователь ${dbserver.asyncsearch.table.username}"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.asyncsearch.url.lite}"
+		     src="${basedir}/db-data/create-asynchsearch.sql" onerror="continue"
+		     userid="${dbserver.asyncsearch.admin.username}" password="${dbserver.asyncsearch.admin.password}"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}"/>
+
+		<echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.asyncsearch.url.full}"
+		     userid="${dbserver.asyncsearch.table.username}" password="${dbserver.asyncsearch.table.password}" onerror="continue"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+			<fileset dir="${basedir}/db-data"
+			         includes="tables-asynchsearch-${dbserver.type}.sql"/>
+		</sql>
+		<echo level="info" message="Завершено создание БД 'живого' поиска"/>
+	</target>
+
+    <target name="CreateDbPushInner" description="Таск для непосредственного создания БД Push" depends="create_db_data">
+        <echo level="info" message="Подготовка данных для создания Push БД"/>
+        <path id="jdbc.classpath">
+            <fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+        </path>
+        <property name="dbserver.sql.delimiter.string" value="go"/>
+        <property name="dbserver.sql.delimiter.type"   value="row"/>
+
+        <copy file="${basedir}/db-data/create-push-${dbserver.type}.sql"
+              tofile="${basedir}/db-data/create-push.sql" overwrite="true">
+            <filterset refid="current.dbdata.filterset"/>
+        </copy>
+
+        <echo level="info" message="Создание базы данных ${dbserver.push.database} пользователь ${dbserver.push.table.username}"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.push.url.lite}"
+             src="${basedir}/db-data/create-push.sql" onerror="continue"
+             userid="${dbserver.push.admin.username}" password="${dbserver.push.admin.password}"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}"/>
+
+        <echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.push.url.full}"
+             userid="${dbserver.push.table.username}" password="${dbserver.push.table.password}" onerror="continue"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+            <fileset dir="${basedir}/db-data"
+                     includes="tables-push-${dbserver.type}.sql"/>
+        </sql>
+        <echo level="info" message="Завершено создание push БД"/>
+    </target>
+
+    <target name="CreateDBEInvoicingInner" description="Таск для непосредственного создания БД EInvoicing" depends="create_db_data">
+        <echo level="info" message="Подготовка данных для создания EInvoicing БД"/>
+        <path id="jdbc.classpath">
+            <fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+        </path>
+        <property name="dbserver.sql.delimiter.string" value="go"/>
+        <property name="dbserver.sql.delimiter.type"   value="row"/>
+
+        <copy file="${basedir}/db-data/create-einvoicing-${dbserver.type}.sql"
+              tofile="${basedir}/db-data/create-einvoicing.sql" overwrite="true">
+            <filterset refid="current.dbdata.filterset"/>
+        </copy>
+
+        <echo level="info" message="Создание базы данных ${dbserver.einvoicing.database} пользователь ${dbserver.einvoicing.table.username}"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.einvoicing.url.lite}"
+             src="${basedir}/db-data/create-einvoicing.sql" onerror="continue"
+             userid="${dbserver.admin.username}" password="${dbserver.admin.password}"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}"/>
+
+        <echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.einvoicing.url.full}"
+             userid="${dbserver.einvoicing.table.username}" password="${dbserver.einvoicing.table.password}" onerror="continue"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+            <fileset dir="${basedir}/db-data"
+                     includes="tables-einvoicing-${dbserver.type}.sql,quartz-${dbserver.type}.sql"/>
+        </sql>
+        <echo level="info" message="Завершено создание einvoicing БД"/>
+    </target>
+
+
+    <target name="CreateDBLogInner" description="Таск для непосредственного создания логов" depends="create_db_data">
+        <echo level="info" message="Подготовка данных для создания БД логов"/>
+        <path id="jdbc.classpath">
+            <fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+        </path>
+        <property name="dbserver.sql.delimiter.string" value="go"/>
+        <property name="dbserver.sql.delimiter.type"   value="row"/>
+
+        <copy file="${basedir}/db-data/create-logs-${dbserver.type}.sql"
+              tofile="${basedir}/db-data/create-logs.sql" overwrite="true">
+            <filterset refid="current.dbdata.filterset"/>
+        </copy>
+
+        <echo level="info" message="Создание базы данных ${dbserver.log.database} пользователь ${dbserver.log.table.username}"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.log.url.lite}"
+             src="${basedir}/db-data/create-logs.sql" onerror="continue"
+             userid="${dbserver.admin.username}" password="${dbserver.admin.password}"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}"/>
+
+        <echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.log.url.full}"
+             userid="${dbserver.log.table.username}" password="${dbserver.log.table.password}" onerror="continue"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+            <fileset dir="${basedir}/db-data" includes="tables-log-${dbserver.type}.sql"/>
+        </sql>
+        <echo level="info" message="Создание структуры таблиц МДМ (onerror=abort)"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.log.url.full}"
+             userid="${dbserver.log.table.username}" password="${dbserver.log.table.password}" onerror="continue"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+            <fileset dir="${basedir}/db-data" includes="tables-mdm-${dbserver.type}.sql"/>
+        </sql>
+        <echo level="info" message="Завершено создание БД логов"/>
+    </target>
+
+    <target name="CreateDbUSCTInner" description="Таск для непосредственного создания БД USCT (Шаблоны)" depends="create_db_data">
+        <echo level="info" message="Подготовка данных для создания USCT БД"/>
+        <path id="jdbc.classpath">
+            <fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+        </path>
+        <property name="dbserver.sql.delimiter.string" value="go"/>
+        <property name="dbserver.sql.delimiter.type" value="row"/>
+
+        <copy file="${basedir}/db-data/create-usct-${dbserver.type}.sql"
+              tofile="${basedir}/db-data/create-usct.sql" overwrite="true">
+            <filterset refid="current.dbdata.filterset"/>
+        </copy>
+
+        <echo level="info" message="Создание базы данных ${dbserver.usct.database} пользователь ${dbserver.usct.table.username}"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.usct.url.lite}"
+             src="${basedir}/db-data/create-usct.sql" onerror="continue"
+             userid="${dbserver.usct.admin.username}" password="${dbserver.usct.admin.password}"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+        </sql>
+
+        <echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.usct.url.full}"
+             userid="${dbserver.usct.table.username}" password="${dbserver.usct.table.password}" onerror="continue"
+             delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+            <fileset dir="${basedir}/db-data" includes="tables-usct-${dbserver.type}.sql"/>
+        </sql>
+
+        <echo level="info" message="Завершено создание USCT (Шаблоны) БД"/>
+    </target>
+
+	<target name=".set.paths" depends="init.configuration">
+		<path id="project.tasks.classpath">
+			<fileset dir="${project.root}/Libraries" includes="*/*.jar"/>
+			<dirset dir="${project.root}" includes="*/bin"/>
+		</path>
+	</target>
+
+	<target name=".set.paymentspath" unless="payments.path">
+		<property name="payments.path" value="payments/${current.config.name}"/>
+	</target>
+
+	<target name=".set.load.type" unless="load.type">
+		<property name="load.type" value="true"/>
+	</target>
+
+	<target name=".set.depositspath" unless="deposits.path">
+		<property name="deposits.path" value="deposits/${current.config.name}"/>
+	</target>
+
+	<target name=".set.loanspath" unless="loans.path">
+		<property name="loans.path" value="loans/${current.config.name}"/>
+	</target>
+
+    <target name="_Load_Pages"
+            description="Загрузка справочника страниц"
+            depends=".set.paths">
+        <taskdef name="update-pages" classname="com.rssl.phizic.business.ant.UpdatePagesTask"
+                 classpathref="project.tasks.classpath"/>
+        <update-pages deleteUknownPages="true"
+                      file="${project.root}/Settings/configs/${current.config.name}/pages.xml">
+        </update-pages>
+    </target>
+
+    <target name="_Load_MonitoringGateConfig"
+            description="Обновление натроек мониторинга."
+            depends=".set.paths">
+        <taskdef name="update-monitoring-gate-config"
+                 classname="com.rssl.phizic.business.ant.configs.gate.monitoring.UpdateMonitoringGateConfigTask"
+                 classpathref="project.tasks.classpath"/>
+        <update-monitoring-gate-config file="${project.root}/Settings/configs/${current.config.name}/monitoringGateConfig.xml"/>
+    </target>
+
+    <target name="_Load21_LocalizingExceptionMapping"
+            description="Обновление локалезависимых сообщений об ошибках внешних систем."
+            depends=".set.paths">
+        <taskdef name="update-localizing_exception_mapping"
+                 classname="com.rssl.phizic.business.exception.locale.LocalizingExceptionMappingLoader"
+                 classpathref="project.tasks.classpath"/>
+        <update-localizing_exception_mapping file="${project.root}/Settings/configs/${current.config.name}/externalLocalizingExceptionsMapping.properties"/>
+    </target>
+
+    <target name="_Load_PFPDictionaries"
+            description="Загрузка справочников ПФП"
+            depends=".set.paths">
+        <taskdef name="update-pfp" classname="com.rssl.phizic.business.ant.pfp.dictionary.PFPDictionaryUpdateTask"
+                 classpathref="project.tasks.classpath"/>
+        <update-pfp deleteUnknownProduct="false"
+                    file="${project.root}/Settings/configs/${current.config.name}/PhizPFP/pfp.xml"/>
+    </target>
+
+   <target name="_Load_Securities"
+            description="Загрузка справочника ценных бумаг"
+            depends=".set.paths">
+        <taskdef name="load-security" classname="com.rssl.phizic.business.ant.SecuritiesLoaderTask"
+                 classpathref="project.tasks.classpath"/>
+        <load-security file="${project.root}/Docs/Dictionaries/securities.csv" />
+    </target>
+
+    <target name="_Load_ErmbSmsConfig"
+             description="Загрузка конфига СМС-канала ЕРМБ"
+             depends=".set.paths">
+         <taskdef name="load-ermb-sms-config" classname="com.rssl.phizic.business.ermb.sms.config.LoadSmsConfigTask"
+                  classpathref="project.tasks.classpath"/>
+         <load-ermb-sms-config/>
+     </target>
+
+    <target name="_Load_ErmbBankrollProductRulesConfig"
+             description="Загрузка конфига с правилами установления видимости продуктов по умолчанию в ЕРМБ"
+             depends=".set.paths">
+         <taskdef name="load-ermb-bankroll-product-rules-config" classname="com.rssl.phizic.business.ermb.bankroll.config.LoadBankrollProductRuleConfigTask"
+                  classpathref="project.tasks.classpath"/>
+         <load-ermb-bankroll-product-rules-config/>
+     </target>
+
+    <target name="_Load_OSSConfig"
+             description="Загрузка конфига интеграции с ОСС"
+             depends=".set.paths">
+         <taskdef name="load-oss-config" classname="com.rssl.phizic.business.ermb.disconnector.OSSConfigTask"
+                  classpathref="project.tasks.classpath"/>
+         <load-oss-config/>
+     </target>
+
+	<target name="_Load2_Operations" description="Загрузка ресурсов, операций">
+		<!--
+			При необходимости удаления неизвестных (старых) услуг и операций просетьте эти свойства в true
+			для преопределенbя изпользуйте настроечные файлы или параметры запуска ANT
+			login
+			password
+			initByParams
+		-->
+		<property name="update-operations.deleteUknownOperations" value="false"/>
+		<property name="update-operations.deleteUknownServices"   value="false"/>
+		<antcall target="LoadMainOperations">
+			<param name="update-operations.deleteUknownOperations" value="${update-operations.deleteUknownOperations}"/>
+			<param name="update-operations.deleteUknownServices" value="${update-operations.deleteUknownServices}"/>
+		</antcall>
+	</target>
+
+	<target name="LoadMainOperations">
+		<echo message="**start** LoadMainOperations"/>
+		<antcall target="LoadOperationsInternal">
+			<param name="update-operations.deleteUknownOperations" value="${update-operations.deleteUknownOperations}"/>
+			<param name="update-operations.deleteUknownServices" value="${update-operations.deleteUknownServices}"/>
+			<param name="initByParams" value="false"/>
+			<param name="login" value=""/>
+			<param name="password" value=""/>
+		</antcall>
+		<echo message="**stop** LoadMainOperations"/>
+	</target>
+
+	<target name="LoadShadowOperations" if="shadow.database.on">
+		<echo message="**start** LoadShadowOperations"/>
+		<antcall target="LoadOperationsInternal">
+			<param name="update-operations.deleteUknownOperations" value="${update-operations.deleteUknownOperations}"/>
+			<param name="update-operations.deleteUknownServices" value="${update-operations.deleteUknownServices}"/>
+			<param name="initByParams" value="true"/>
+			<param name="login" value="${dbserver.shadow.username}"/>
+			<param name="password" value="${dbserver.shadow.password}"/>
+		</antcall>
+		<echo message="**stop** LoadShadowOperations"/>
+	</target>
+
+	<target name="LoadOperationsInternal" depends=".set.paths">
+		<taskdef name="update-operations" classname="com.rssl.phizic.business.ant.UpdateOperationsTask"
+		         classpathref="project.tasks.classpath"/>		
+		<update-operations deleteUknownOperations="${update-operations.deleteUknownOperations}"
+		                   deleteUknownServices="${update-operations.deleteUknownServices}"
+						   initByParams="${initByParams}"
+						   login="${login}"
+						   password="${password}"/>
+	</target>
+
+    <target name="UpdateServicesGroupTask" depends=".set.paths">
+        <taskdef name="update-services-groups"
+                 classname="com.rssl.phizic.business.ant.services.groups.UpdateServicesGroupTask"
+                 classpathref="project.tasks.classpath"/>
+        <update-services-groups/>
+    </target>
+
+	<target name="_InitCommissions" depends=".set.paths" description="Инициализация комиссий">
+		<taskdef name="init-commissions" classname="com.rssl.phizic.business.ant.InitCommissionsTask"
+		         classpathref="project.tasks.classpath"/>
+		<init-commissions/>
+	</target>
+
+	<target name="_PrepareDictionaryData" depends=".set.paths" description="Подготовка данных для репликации">
+		<unjar src="${project.root}\Libraries\configs\russlav.jar" dest="${java.io.tmpdir}">
+			<patternset includes="*.dbf"/>
+		</unjar>
+		<propertyfile file="${project.root}/Settings/bin/iccs.properties">
+			<entry key="com.rssl.iccs.dictionaries.contact.path" value="${java.io.tmpdir}"/>
+		</propertyfile>
+	</target>
+
+	<!-- для РусСлава выполнить предварительно _PrepareDictionaryData -->
+	<target name="_Load3_Dictionaries" description="Репликация справочников">
+		<antcall target="LoadMainDictionaries"/>
+	</target>
+
+    <target name="LoadDictionariesInternal" depends=".set.paths">
+            <taskdef name="load-dictionaries" classname="com.rssl.phizic.business.ant.DictionariesLoaderTask"
+                     classpathref="project.tasks.classpath">
+            </taskdef>
+			<load-dictionaries initByParams="${initByParams}"
+                               login="${login}"
+                               password="${password}"/>
+	</target>
+
+	<target name="LoadMainDictionaries">
+		<antcall target="LoadDictionariesInternal">
+			<param name="initByParams" value="false"/>
+			<param name="login" value=""/>
+			<param name="password" value=""/>
+		</antcall>
+	</target>
+
+
+    <target name="_Load14_CBRates" depends=".set.paths" description="Справочник истории изменения курса ЦБ">
+			<taskdef name="load-cbrateshistory" classname="com.rssl.phizic.business.dictionaries.finances.CBRatesHistoryLoaderTask"
+		         classpathref="project.tasks.classpath"/>
+			<load-cbrateshistory/>
+	</target>
+
+    <!--Таск загружает все необходимые справочники из основной базы в базу "живого" поиска-->
+    <target name="_Load17_AsynchSearchDictionaries" depends=".set.paths" description="Загрузка справочников для 'живого' поиска">
+			<taskdef name="load-asynch-search-dictionaries" classname="com.rssl.phizic.business.dictionaries.asyncSearch.AsynchSearchDictionariesLoaderTask"
+		         classpathref="project.tasks.classpath"/>
+            <load-asynch-search-dictionaries/>
+	</target>
+
+    <target name="_CreateMailDictionaries" description="Загрузка значений Enum в БД">
+        <antcall target="LoadMailDictionaries"/>
+    </target>
+
+    <target name="LoadMailDictionaries" depends=".set.paths">
+			<taskdef name="create-mail-dictionary" classname="com.rssl.phizic.business.ant.InitMailDictionary"
+		         classpathref="project.tasks.classpath"/>
+            <create-mail-dictionary/>
+	</target>
+
+    <target name="CreateMessagesXml" depends=".set.paths">
+        <property name="default-locale.name" value="Русский"/>
+        <property name="bundle.name" value=""/>
+            <taskdef name="create-messages-xml" classname="com.rssl.phizic.ant.LoadDefaultLocale"
+                 classpathref="project.tasks.classpath"/>
+            <create-messages-xml defaultLocaleName="${default-locale.name}" bundleName="${bundle.name}">
+                <fileset dir="${project.root}">
+                    <include name="WebAdmin/web/WEB-INF/struts-config.xml"/>
+                    <include name="WebClient/web/WEB-INF/struts-config.xml"/>
+                    <include name="WebMobile5/web/WEB-INF/struts-config.xml"/>
+                    <include name="WebMobile6/web/WEB-INF/struts-config.xml"/>
+                    <include name="WebMobile7/web/WEB-INF/struts-config.xml"/>
+                    <include name="WebMobile8/web/WEB-INF/struts-config.xml"/>
+                    <include name="WebATM/web/WEB-INF/struts-config.xml"/>
+                    <include name="WebPFP/web/WEB-INF/struts-config.xml"/>
+                </fileset>
+            </create-messages-xml>
+    </target>
+
+	<target name="_CreateDefaultAdmin" depends=".set.paths" description="Создание дефолтового админа">
+		<taskdef name="create-default-admin" classname="com.rssl.phizic.business.ant.CreateAdminTask"
+		         classpathref="project.tasks.classpath"/>
+		<create-default-admin/>
+	</target>
+
+	<target name="_CreateDefaultAdminCSAAdmin" depends=".set.paths" description="Создание дефолтового админа в ЦСА Админ">
+		<taskdef name="create-default-admin-csaadmin" classname="com.rssl.phizic.business.ant.csaadmin.CreateAdminTask"
+		         classpathref="project.tasks.classpath"/>
+		<create-default-admin-csaadmin/>
+	</target>
+
+	<target name="_CreateAnonymousClient" depends=".set.paths" description="Создание анонимного клиента">
+		<taskdef name="create-anonymous-client" classname="com.rssl.phizic.business.ant.CreateAnonymousClientTask"
+		         classpathref="project.tasks.classpath"/>
+		<create-anonymous-client/>
+	</target>
+
+	<target name="_Load4_PaymentForms" depends=".set.paths,.set.paymentspath,.set.load.type"
+	        description="Загрузка форм платежей">
+		<taskdef name="load-payments-forms" classname="com.rssl.phizic.business.ant.PaymentFormLoaderTask"
+		         classpathref="project.tasks.classpath"/>
+		<load-payments-forms root="${project.root}/Business/settings/${payments.path}"
+		                     globals="${project.root}/Business/settings/payments/globals"
+                             type="${load.type}"/>
+        </target>
+
+	<target name="_Load5_DepositGlobal" depends=".set.paths,.set.depositspath"
+	        description="Загрузка общих данных о депозитах">
+		<taskdef name="load-deposit-global" classpathref="project.tasks.classpath"
+		         classname="com.rssl.phizic.business.ant.deposits.DepositGlobalLoaderTask"/>
+		<load-deposit-global root="${project.root}/Business/settings/${deposits.path}"/>
+	</target>
+
+	<target name="_Load7_ErrorMessages" depends=".set.paths" description="Загрузка справочника ошибок">
+		<taskdef name="load-errors" classpathref="project.tasks.classpath"
+				 classname="com.rssl.phizic.business.ant.ErrorMessagesLoaderTask"/>
+		<load-errors root="${project.root}/Settings/configs/${current.config.name}"/>
+	</target>
+
+	<target name="_Load8_Skins" depends=".set.paths" description="Загрузка скинов">
+		<taskdef name="load-skins" classpathref="project.tasks.classpath"
+				 classname="com.rssl.phizic.business.ant.SkinsLoaderTask"/>
+		<load-skins root="${project.root}/Settings/configs/${current.config.name}"/>
+	</target>
+
+    <target name="_Load9_Groups" depends=".set.paths" description="Загрузка групп пользователей">
+        <taskdef name="load-groups" classpathref="project.tasks.classpath"
+                 classname="com.rssl.phizic.business.ant.GroupsLoaderTask"/>
+        <load-groups path="${project.root}/Settings/configs/${current.config.name}"/>
+    </target>
+
+	<target name="_Load10_LoanGlobal" depends=".set.paths,.set.loanspath"
+	        description="Загрузка общих данных о кредитах">
+		<taskdef name="load-loan-global" classpathref="project.tasks.classpath"
+		         classname="com.rssl.phizic.business.ant.LoanGlobalLoaderTask"/>
+		<load-loan-global root="${project.root}/Business/settings/${loans.path}"/>
+	</target>
+
+    <target name="_Load11_SystemPaymentServices" depends=".set.paths" description="Загрузка системных платежных сервисов">
+		<taskdef name="load-services" classpathref="project.tasks.classpath"
+				 classname="com.rssl.phizic.business.ant.PaymentServicesLoaderTask"/>
+		<load-services root="${project.root}/Settings/configs/${current.config.name}"/>
+	</target>
+
+    <target name="_Load12_XSLT" depends=".set.paths,.set.load.type"
+            description="Загрузка XSLT-шаблонов">
+        <taskdef name="load-xslt" classname="com.rssl.phizic.business.ant.XSLTLoaderTask"
+                 classpathref="project.tasks.classpath"/>
+        <load-xslt>
+            <fileset dir="${project.root}/Business/settings/xslt">
+                <include name="**/*.xslt"/>
+                <include name="**/*.xsd"/>
+            </fileset>
+        </load-xslt>
+    </target>
+
+	<target name="_Load13_LoadTranslateMessagesFormFile" depends=".set.paths"
+	        description="Загрузка русского перевода полей 'Тип запроса', 'Тип ответа' для  журнала сообщений">
+		<taskdef name="load-translate-messages" classpathref="project.tasks.classpath"
+		         classname="com.rssl.phizic.business.ant.MessageTranslateTask"/>
+        <if>
+            <isset property="fileName"/>
+            <then>
+                <load-translate-messages fileName="${fileName}"/>     <!-- fileName -  параметр путь к файлу -->
+            </then>
+            <else>
+                <load-translate-messages fileName="${project.root}/Settings/configs/${current.config.name}/message_translate.csv"/>    <!-- отсюда будем брать по умолчанию -->
+            </else>
+        </if>
+	</target>
+
+    <target name="_Load15_UpdateReceptionTimes"
+            description="Загрузка справочника времени приема документов"
+            depends=".set.paths">
+        <taskdef name="update-reception-times" classname="com.rssl.phizic.business.ant.UpdateReceptionTimesTask"
+                 classpathref="project.tasks.classpath"/>
+        <update-reception-times/>
+    </target>
+
+    <target name="_Load16_WidgetDefinition"
+            description="Загрузка описания (класса) виджета"
+            depends=".set.paths">
+        <taskdef name="update-widget-definition"
+                 classname="com.rssl.phizic.business.ant.WidgetDefinitionTask"
+                 classpathref="project.tasks.classpath"/>
+        <update-widget-definition resourcePath="${project.root}/Settings/configs/${current.config.name}/widget.cfg.json"/>
+    </target>
+
+    <target name="_Load18_SMSResources"
+            depends=".set.paths"
+            description="Загрузка СМС-шаблонов">
+
+            <taskdef name="load-sms-templates"
+                     classname="com.rssl.phizic.business.ant.SMSResourcesLoaderTask"
+                     classpathref="project.tasks.classpath"/>
+
+        <load-sms-templates configDir="${project.root}/Settings/configs/${current.config.name}"
+                            refuseConfig="sms-refuse-config.xml"
+                            confirmConfig="sms-password-config.xml"
+                            informingConfig="sms-informing-config.xml"
+                            ermbConfig="ermb-sms-texts.xml"
+                            updateIfExist="true"/>
+    </target>
+
+    <target name="_Load19_PushResources"
+            depends=".set.paths"
+            description="Загрузка push-шаблонов">
+
+            <taskdef name="load-push-templates"
+                     classname="com.rssl.phizic.business.ant.PushResourcesLoaderTask"
+                     classpathref="project.tasks.classpath"/>
+
+        <load-push-templates configDir="${project.root}/Settings/configs/${current.config.name}"
+                            confirmConfig="push-password-config.xml"
+                            informingConfig="push-informing-config.xml"
+                            updateIfExist="true"/>
+    </target>
+
+    <target name="_Load20_EmailResources"
+                depends=".set.paths"
+                description="Загрузка Email-шаблонов">
+
+            <taskdef name="load-email-resources"
+                     classname="com.rssl.phizic.business.ant.EmailResourcesLoaderTask"
+                     classpathref="project.tasks.classpath"/>
+
+        <load-email-resources  configDir="${project.root}/Settings/configs/${current.config.name}"
+                               config="email-informing-config.xml"
+                               deleteIfMissing="true"
+                               updateIfExist="true"/>
+    </target>
+    <target name="_LoadCSA_SMSResources"
+            depends=".set.paths">
+
+            <taskdef name="load-csa-sms-resources"
+                     classname="com.rssl.phizic.business.ant.CSASmsResourcesLoaderTask"
+                     classpathref="project.tasks.classpath"/>
+
+            <load-csa-sms-resources configDir="${project.root}/Settings/configs/${current.config.name}"
+                                    config="csa-sms-resources-config.xml"
+                                    updateIfExist="true"/>
+    </target>
+
+
+    <target name="_LoadCSA_PushCSABackResources"
+                depends=".set.paths"
+                description="Загрузка push-шаблонов для CSABack">
+
+            <taskdef name="load-csa-push-resources"
+                     classname="com.rssl.phizic.business.ant.CSAPushResourcesLoaderTask"
+                     classpathref="project.tasks.classpath"/>
+
+        <load-csa-push-resources  configDir="${project.root}/Settings/configs/${current.config.name}"
+                               config="csa-push-resources-config.xml"
+                               deleteIfMissing="true"
+                               updateIfExist="true"/>
+    </target>
+
+	<target name="_CreatePIN" depends=".set.paths" description="Создание pin-конверта">
+		<taskdef name="create-pin" classname="com.rssl.phizic.operations.security.CreatePINTask"
+		         classpathref="project.tasks.classpath"/>
+		<create-pin departmentId="${departmentId}"/>
+	</target>
+
+	<target name="_ShowAvailablePINs" depends=".set.paths"
+	        description="Список подготовленных pin-конвертов">
+		<taskdef name="show-pins" classname="com.rssl.phizic.operations.security.ShowAvailablePINsTask"
+		         classpathref="project.tasks.classpath"/>
+		<show-pins departmentId="${departmentId}"/>
+	</target>
+
+    <!--
+         Используется в install.bat.
+         Делать LoadData в нем нельзя покольку анту не хватает памяти и он захлебывается, слишком много
+         "тяжелых" задач.
+    -->
+    <target name="LoadSpecifiedData" depends="init.installer.configuration">
+        <antcall target="${data.name}"/>
+    </target>
+
+    <!-- TODO BUG042457. После внедрение релиза 8.0.2 данный таск убрать. -->
+    <target name="UpdateImagesHashKey" description="Обновление всех картинок, так чтобы у каждой был сформирован md5 hash" depends=".set.paths">
+        <taskdef name="update-images" classname="com.rssl.phizic.business.ant.UpdateImagesTask"
+                 classpathref="project.tasks.classpath"/>
+        <update-images/>
+    </target>
+
+	<target name="LoadData" depends="init.installer.configuration" description="Инициализация системы первичными данными">
+		<antcall target="_Load2_Operations"/>
+		<antcall target="_CreateDefaultAdmin"/>
+		<antcall target="_CreateAnonymousClient"/>
+		<antcall target="_Load3_Dictionaries"/>
+		<antcall target="_Load4_PaymentForms"/>
+		<antcall target="_Load11_SystemPaymentServices"/>
+		<antcall target="_Load5_DepositGlobal"/>
+		<antcall target="_Load7_ErrorMessages"/>
+        <antcall target="_Load8_Skins"/>
+        <antcall target="_Load9_Groups"/>
+		<antcall target="_InitCommissions"/>
+		<antcall target="_Load10_LoanGlobal"/>
+        <antcall target="_Load13_LoadTranslateMessagesFormFile"/>
+        <antcall target="_Load14_CBRates"/>
+        <antcall target="_Load18_SMSResources"/>
+        <antcall target="_LoadCSA_SMSResources"/>
+        <antcall target="_CreateMobilePlatformInfo"/>
+	</target>
+    <!--
+    Формирует настройки для гейтов.
+    -->
+    <target name="create.gate.configs" if="build.gates.by.earGatesConfig" depends="init.configuration, setup_project_paths, get.list.of.gates, get.list.of.all.exploded">
+
+        <taskdef name="xmlTask" classname="com.oopsconsultancy.xmltask.ant.XmlTask">
+            <classpath>
+                <path>
+                    <fileset dir="${basedir}/../Libraries/ForAnt"/>
+                </path>
+            </classpath>
+        </taskdef>
+
+        <taskdef name="xmlGen" classname="com.rssl.phizic.config.ant.ApplicationXMLGenerationTask">
+            <classpath>
+                <path>
+                    <dirset dir="${project.root}" includes="*/bin"/>
+                </path>
+            </classpath>
+        </taskdef>
+
+        <for list="${list.of.gate.names}" param="application.name" delimiter=",">
+            <sequential>
+                <delete dir="${settings.dir}/bin/@{application.name}" includeemptydirs="true" failonerror="false"/>
+
+                <antcall target=".clear">
+                    <param name="application.name" value="@{application.name}"/>
+                </antcall>
+
+                <var name="dir.name" value=""/>
+
+                <xmlTask source="${earGatesConfig}">
+                    <call path="groups/group/contexts/context[@name='@{application.name}']">
+                        <param name="dir.name" path="ancestor::group/@name"/>
+
+                        <actions>
+                            <var name="dir.name" value="@{dir.name}"/>
+                        </actions>
+                    </call>
+               </xmlTask>
+
+               <antcall   target="copy.standarts.gate.configs">
+                    <param  name="application.name"         value="${dir.name}"/>
+                    <param  name="application.settings.dir" value="${settings.dir}/bin/@{application.name}"/>
+               </antcall>
+
+               <antcall target=".create.config.files">
+                   <param  name="application.name"         value="${dir.name}"/>
+                   <param  name="application.settings.dir" value="${settings.dir}/bin/@{application.name}"/>
+               </antcall>
+
+               <xmlGen earConfig="${earGatesConfig}"
+                           group="${dir.name}"
+                         context="@{application.name}"
+                          formIn="${settings.dir}/bin/@{application.name}"/>
+            </sequential>
+        </for>
+    </target>
+    <!--
+    Копирует общие для всех гейтов настройки в указанную папку.
+    -->
+    <target name="copy.standarts.gate.configs">
+        <copy todir="${application.settings.dir}">
+            <fileset dir="${settings.dir}/configs/${current.config.name}/standartGateCfg" includes="*.*" excludes="buildIKFL.properties"/>
+        </copy>
+    </target>
+    <!--
+    Копирует необходимые для гейтов настройки.
+    -->
+    <target name="copy.gates.configs" depends="init.configuration, get.list.of.gates, create.gate.configs" if="build.gates.by.earGatesConfig" description="Создание настроек">
+        <taskdef name="xmlTask" classname="com.oopsconsultancy.xmltask.ant.XmlTask">
+            <classpath>
+                <path>
+                    <fileset dir="${basedir}/../Libraries/ForAnt"/>
+                </path>
+            </classpath>
+        </taskdef>
+
+        <for list="${list.of.gate.names}" param="application.name" delimiter=",">
+            <sequential>
+                <var name="dir.name" value=""/>
+
+                <xmlTask source="${earGatesConfig}">
+                    <call path="groups/group/contexts/context[@name='@{application.name}']">
+                        <param name="dir.name" path="ancestor::group/@name"/>
+
+                        <actions>
+                            <var name="dir.name" value="@{dir.name}"/>
+                        </actions>
+                    </call>
+                </xmlTask>
+
+                <antcall target=".copy.to.exploded">
+                    <param name="application.name"        value="@{application.name}"/>
+                    <param name="application.explode.dir" value="${basedir}/../@{application.name}.ear"/>
+                </antcall>
+
+                <antcall target="set.application.instance.prefix">
+                    <param name="application.name" value="@{application.name}"/>
+                </antcall>
+
+                <if>
+                    <istrue value="${dbserver.type.oracle}"/>
+                    <then>
+                        <replaceregexp file="${basedir}/../@{application.name}.ear/META-INF/application.xml"
+                                       flags="gi"
+                                       match="(\w\w\w\w\.war)(&lt;)"
+                                       replace="\1.war\2"/>
+                    </then>
+                </if>
+            </sequential>
+        </for>
+    </target>
+
+    <target name="_CreateMobilePlatformInfo" depends=".set.paths" description="Заполнение справочника мобильных платформ">
+        <taskdef name="create-mobile-platform-info" classname="com.rssl.phizic.business.ant.CreateMobilePlatformInfo"
+                 classpathref="project.tasks.classpath"/>
+        <create-mobile-platform-info/>
+    </target>
+
+</project>

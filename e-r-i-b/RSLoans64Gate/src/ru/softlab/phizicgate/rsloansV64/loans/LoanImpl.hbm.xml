@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+	<typedef name="LoanState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.loans.LoanState</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+	<class name="ru.softlab.phizicgate.rsloansV64.loans.LoanImpl">
+		<id name="id"/>
+		<property name="description"/>
+		<property name="agreementNumber"/>
+		<property name="termStart"/>
+		<property name="termEnd"/>
+		<property name="termDurationMonths"/>
+		<property name="lastPaymentDate"/>
+		<property name="loanAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="loanAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="lastPaymentAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="lastPaymentAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="nextPaymentDate"/>
+		<property name="nextPaymentAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="nextPaymentAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+        <property name="state" type="LoanState"/>
+		<property name="pastDueAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="pastDueAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="balanceAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="balanceAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="rate"/>
+	</class>
+
+	<sql-query name="GetLoans">
+	    <return alias="loans" class="ru.softlab.phizicgate.rsloansV64.loans.LoanImpl">
+	        <return-property name="id"              column="id"/>
+	        <return-property name="description"     column="description"/>
+	        <return-property name="agreementNumber" column="agreementNumber"/>
+	        <return-property name="termStart"       column="termStart"/>
+	        <return-property name="termEnd"         column="termEnd"/>
+	        <return-property name="termDurationMonths"    column="termDurationMonths"/>
+	        <return-property name="lastPaymentDate" column="lastPaymentDate"/>
+		    <return-property name="nextPaymentDate" column="nextPaymentDate"/>
+	        <return-property name="loanAmount">
+				<return-column name="loanAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="lastPaymentAmount">
+				<return-column name="lastPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="nextPaymentAmount">
+				<return-column name="nextPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="state" column="state"/>
+		    <return-property name="pastDueAmount">
+				<return-column name="pastDueAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="balanceAmount">
+				<return-column name="balanceAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="rate"       column="rate"/>
+		</return>
+    	<![CDATA[
+    SELECT
+    	 credit.T_CREDITNUMBER as id
+    	,creditType.t_credittypename as description
+    	,credit.t_creditstate as state
+    	,credit.t_uscreditnumber as agreementNumber
+    	,credit.t_regdate as termStart
+    	,credit.t_returndate as termEnd
+    	,credit.t_duration as termDurationMonths
+    	,credit.t_creditsum as loanAmountVal
+    	,credit.t_curcode   as AmountCur
+    	,CASE WHEN (planpay.T_PLANNEDPAYDATE > CURRENT_DATE-1) THEN planpay.T_PLANNEDPAYDATE ELSE null END as nextPaymentDate
+    	,CASE WHEN (planpay.T_PLANNEDPAYDATE > CURRENT_DATE-1) THEN planpay.T_PLANNEDPAYSUM + planpay.T_PLANNEDPERCENTSUM ELSE 0 END as nextPaymentAmountVal
+		,planfact.t_credoperdate as lastPaymentDate
+        ,sum(planfact.t_actualamount) as lastPaymentAmountVal
+        ,loanskernel.getlastregrest( 6, duty.t_dutyid, 2) + loanskernel.getlastregrest( 6, duty.t_dutyid, 3) as pastDueAmountVal
+		,claim.lnGetRateVal( 1, credit.t_creditnumber, 1) as rate
+		,loanskernel.getlastregrest( 6, duty.t_dutyid , 1) as balanceAmountVal
+    FROM
+    	 dcredit_c_dbt credit
+    	,dduty_crd_dbt duty
+    	,dplanpay_dbt planpay
+    	,dtype_crd_dbt creditType
+    	,dplanfact_dbt planfact
+  	    ,dlcusrate_dbt cusrate
+
+    WHERE
+        credit.t_clientid_ref = :clientId
+		and credit.T_CREDITNUMBER = cusrate.T_CREDOBJID_REF
+ 	    and cusrate.T_OBJECTID_REF = 1
+		and cusrate.T_TYPERATEID_REF = 1
+		and credit.T_CREDITNUMBER = duty.T_CREDITNUMBER_REF
+        and duty.t_dutytype = 0
+		and duty.T_DUTYID = planpay.T_OBJECTID_REF
+    	and planpay.T_OBJECTTYPEID_REF = 6
+    	and planpay.T_CREDOPERID_REF <>0
+        and planpay.T_PLANNEDPAYDATE =
+        (
+            CASE WHEN EXISTS
+            (
+				select planpay1.T_PLANNEDPAYDATE
+                                        from dplanpay_dbt planpay1
+                                        where duty.T_DUTYID = planpay1.T_OBJECTID_REF
+                                        and planpay1.T_PLANNEDPAYDATE > CURRENT_DATE-1
+			)
+			THEN
+			(
+				select min( planpay1.T_PLANNEDPAYDATE )
+                                        from dplanpay_dbt planpay1
+                                        where duty.T_DUTYID = planpay1.T_OBJECTID_REF
+                                        and planpay1.T_PLANNEDPAYDATE > CURRENT_DATE-1
+			                            and duty.T_CREDITNUMBER_REF = credit.T_CREDITNUMBER
+			)
+			ELSE
+			(
+				select min( planpay1.T_PLANNEDPAYDATE )
+                                        from dplanpay_dbt planpay1
+                                        where duty.T_DUTYID = planpay1.T_OBJECTID_REF
+			)
+            END
+          )
+         and planfact.T_CREDITNUMBER = credit.T_CREDITNUMBER
+         and planfact.T_TYPEOPERNUMBER_REF = 1021
+         and planfact.T_CREDOPERDATE =
+        (
+            select max(planfact2.t_credoperdate)
+	        from dplanfact_dbt planfact2
+            where
+		        planfact2.T_CREDITNUMBER = credit.T_CREDITNUMBER
+				and planfact2.T_TYPEOPERNUMBER_REF = 1021
+        )
+        and credit.T_CREDITTYPEID_REF = creditType.T_CREDITTYPEID
+    GROUP BY loanskernel.getlastregrest( 6, duty.t_dutyid , 1), claim.lnGetRateVal( 1, credit.t_creditnumber, 1),
+             loanskernel.getlastregrest( 6, duty.t_dutyid, 2) + loanskernel.getlastregrest( 6, duty.t_dutyid, 3) ,
+             planfact.t_credoperdate, planpay.T_PLANNEDPAYDATE,
+			 planpay.T_PLANNEDPAYSUM + planpay.T_PLANNEDPERCENTSUM, credit.t_curcode, credit.t_creditsum, credit.t_duration,
+			 credit.t_returndate, credit.t_regdate, credit.t_uscreditnumber, credit.t_creditstate,
+			 creditType.t_credittypename, credit.T_CREDITNUMBER
+		]]>
+	</sql-query>
+
+	<sql-query name="GetLoanById">
+	    <return alias="loans" class="ru.softlab.phizicgate.rsloansV64.loans.LoanImpl">
+	        <return-property name="id"              column="id"/>
+	        <return-property name="description"     column="description"/>
+	        <return-property name="agreementNumber" column="agreementNumber"/>
+	        <return-property name="termStart"       column="termStart"/>
+	        <return-property name="termEnd"         column="termEnd"/>
+	        <return-property name="termDurationMonths"    column="termDurationMonths"/>
+	        <return-property name="lastPaymentDate" column="lastPaymentDate"/>
+		    <return-property name="nextPaymentDate" column="nextPaymentDate"/>
+	        <return-property name="loanAmount">
+				<return-column name="loanAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="nextPaymentAmount">
+				<return-column name="nextPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="lastPaymentAmount">
+				<return-column name="lastPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="state" column="state"/>
+		    <return-property name="pastDueAmount">
+				<return-column name="pastDueAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="balanceAmount">
+				<return-column name="balanceAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="rate"       column="rate"/>
+		</return>
+    	<![CDATA[
+   	SELECT
+    	 credit.T_CREDITNUMBER as id
+    	,creditType.t_credittypename as description
+    	,credit.t_creditstate as state
+    	,credit.t_uscreditnumber as agreementNumber
+    	,credit.t_regdate as termStart
+    	,credit.t_returndate as termEnd
+    	,credit.t_duration as termDurationMonths
+    	,credit.t_creditsum as loanAmountVal
+    	,credit.t_curcode   as AmountCur
+    	,CASE WHEN (planpay.T_PLANNEDPAYDATE > CURRENT_DATE-1) THEN planpay.T_PLANNEDPAYDATE ELSE null END as nextPaymentDate
+    	,CASE WHEN (planpay.T_PLANNEDPAYDATE > CURRENT_DATE-1) THEN planpay.T_PLANNEDPAYSUM + planpay.T_PLANNEDPERCENTSUM ELSE 0 END as nextPaymentAmountVal
+		,planfact.t_credoperdate as lastPaymentDate
+        ,sum(planfact.t_actualamount) as lastPaymentAmountVal
+        ,loanskernel.getlastregrest( 6, duty.t_dutyid, 2) + loanskernel.getlastregrest( 6, duty.t_dutyid, 3) as pastDueAmountVal
+		,claim.lnGetRateVal( 1, credit.t_creditnumber, 1) as rate
+		,loanskernel.getlastregrest( 6, duty.t_dutyid , 1) as balanceAmountVal
+    FROM
+    	 dcredit_c_dbt credit
+    	,dduty_crd_dbt duty
+    	,dplanpay_dbt planpay
+    	,dtype_crd_dbt creditType
+    	,dplanfact_dbt planfact
+  	    ,dlcusrate_dbt cusrate
+
+    WHERE
+        credit.T_CREDITNUMBER = :id
+		and credit.T_CREDITNUMBER = cusrate.T_CREDOBJID_REF
+ 	    and cusrate.T_OBJECTID_REF = 1
+		and cusrate.T_TYPERATEID_REF = 1
+		and credit.T_CREDITNUMBER = duty.T_CREDITNUMBER_REF
+        and duty.t_dutytype = 0
+		and duty.T_DUTYID = planpay.T_OBJECTID_REF
+    	and planpay.T_OBJECTTYPEID_REF = 6
+    	and planpay.T_CREDOPERID_REF <>0
+        and planpay.T_PLANNEDPAYDATE =
+        (
+            CASE WHEN EXISTS
+            (
+				select planpay1.T_PLANNEDPAYDATE
+                                        from dplanpay_dbt planpay1
+                                        where duty.T_DUTYID = planpay1.T_OBJECTID_REF
+                                        and planpay1.T_PLANNEDPAYDATE > CURRENT_DATE-1
+			)
+			THEN
+			(
+				select min( planpay1.T_PLANNEDPAYDATE )
+                                        from dplanpay_dbt planpay1
+                                        where duty.T_DUTYID = planpay1.T_OBJECTID_REF
+                                        and planpay1.T_PLANNEDPAYDATE > CURRENT_DATE-1
+			                            and duty.T_CREDITNUMBER_REF = credit.T_CREDITNUMBER
+			)
+			ELSE
+			(
+				select min( planpay1.T_PLANNEDPAYDATE )
+                                        from dplanpay_dbt planpay1
+                                        where duty.T_DUTYID = planpay1.T_OBJECTID_REF
+			)
+            END
+          )
+         and planfact.T_CREDITNUMBER = credit.T_CREDITNUMBER
+         and planfact.T_TYPEOPERNUMBER_REF = 1021
+         and planfact.T_CREDOPERDATE =
+        (
+            select max(planfact2.t_credoperdate)
+	        from dplanfact_dbt planfact2
+            where
+		        planfact2.T_CREDITNUMBER = credit.T_CREDITNUMBER
+				and planfact2.T_TYPEOPERNUMBER_REF = 1021
+        )
+        and credit.T_CREDITTYPEID_REF = creditType.T_CREDITTYPEID
+    GROUP BY loanskernel.getlastregrest( 6, duty.t_dutyid , 1), claim.lnGetRateVal( 1, credit.t_creditnumber, 1),
+             loanskernel.getlastregrest( 6, duty.t_dutyid, 2) + loanskernel.getlastregrest( 6, duty.t_dutyid, 3),
+             loanskernel.getlastregrest(6, duty.T_DUTYID, 2) ,  planfact.t_credoperdate, planpay.T_PLANNEDPAYDATE,
+			 planpay.T_PLANNEDPAYSUM + planpay.T_PLANNEDPERCENTSUM, credit.t_curcode, credit.t_creditsum, credit.t_duration,
+			 credit.t_returndate, credit.t_regdate, credit.t_uscreditnumber, credit.t_creditstate,
+			 creditType.t_credittypename, credit.T_CREDITNUMBER
+		]]>
+	</sql-query>
+
+	<sql-query name="GetLoanByClaim">
+	    <return alias="loans" class="ru.softlab.phizicgate.rsloansV64.loans.LoanImpl">
+	        <return-property name="id"              column="id"/>
+	        <return-property name="description"     column="description"/>
+	        <return-property name="agreementNumber" column="agreementNumber"/>
+	        <return-property name="termStart"       column="termStart"/>
+	        <return-property name="termEnd"         column="termEnd"/>
+	        <return-property name="termDurationMonths"    column="termDurationMonths"/>
+	        <return-property name="lastPaymentDate" column="lastPaymentDate"/>
+		    <return-property name="nextPaymentDate" column="nextPaymentDate"/>
+	        <return-property name="loanAmount">
+				<return-column name="loanAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="lastPaymentAmount">
+				<return-column name="lastPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="nextPaymentAmount">
+				<return-column name="nextPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="state" column="state"/>
+		    <return-property name="pastDueAmount">
+				<return-column name="pastDueAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="balanceAmount">
+				<return-column name="balanceAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="rate"       column="rate"/>
+		</return>
+    	<![CDATA[
+    SELECT
+    	 credit.T_CREDITNUMBER as id
+    	,creditType.t_credittypename as description
+    	,credit.t_creditstate as state
+    	,credit.t_uscreditnumber as agreementNumber
+    	,credit.t_regdate as termStart
+    	,credit.t_returndate as termEnd
+    	,credit.t_duration as termDurationMonths
+    	,credit.t_creditsum as loanAmountVal
+    	,credit.t_curcode   as AmountCur
+    	,null as nextPaymentDate
+    	,0  as nextPaymentAmountVal
+		,null as lastPaymentDate
+        ,0 as lastPaymentAmountVal
+        ,0 as pastDueAmountVal
+		,claim.lnGetRateVal( 1, credit.t_creditnumber, 1) as rate
+		,0 as balanceAmountVal
+    FROM
+    	 dcredit_c_dbt credit
+    	,dtype_crd_dbt creditType
+  	    ,dlcusrate_dbt cusrate
+		,dclaim_dbt claim
+    	WHERE
+    	claim.T_CLAIMID = :claimId
+		and credit.T_CREDITNUMBER = cusrate.T_CREDOBJID_REF
+ 	    and cusrate.T_OBJECTID_REF = 1
+		and cusrate.T_TYPERATEID_REF = 1
+    	and credit.T_CREDITNUMBER = claim.T_CREDITNUMBER_REF
+        and credit.T_CREDITTYPEID_REF = creditType.T_CREDITTYPEID
+    GROUP BY claim.lnGetRateVal( 1, credit.t_creditnumber, 1),
+             credit.t_curcode, credit.t_creditsum, credit.t_duration,
+			 credit.t_returndate, credit.t_regdate, credit.t_uscreditnumber, credit.t_creditstate,
+			 creditType.t_credittypename, credit.T_CREDITNUMBER
+		]]>
+	</sql-query>
+
+	<sql-query name="GetLoanOwnerId">
+        <return-scalar column="CodClient" type="long"/>
+	    <![CDATA[
+	        SELECT * FROM(
+                SELECT owned.t_clientid_ref AS CodClient
+                FROM dcredit_c_dbt owned
+                WHERE owned.t_creditnumber = :loanId
+			)WHERE ROWNUM<2
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

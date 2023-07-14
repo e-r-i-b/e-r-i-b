@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="statusDescExternalCode">
+        <param name="enumClass">com.rssl.phizic.gate.bankroll.StatusDescExternalCode</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="cardType">
+        <param name="enumClass">com.rssl.phizic.gate.bankroll.CardType</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="cardState">
+        <param name="enumClass">com.rssl.phizic.gate.bankroll.CardState</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="cardLevel">
+        <param name="enumClass">com.rssl.phizic.gate.bankroll.CardLevel</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="cardBonusSign">
+        <param name="enumClass">com.rssl.phizic.gate.bankroll.CardBonusSign</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.resources.external.StoredCard" table="STORED_CARD">
+        <id name="storedId" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_STORED_CARD</param>
+            </generator>
+        </id>
+
+        <many-to-one name="resourceLink"  class="com.rssl.phizic.business.resources.external.CardLink" column="RESOURCE_ID"   lazy="false" unique="true"/>
+
+        <property name="statusDescExternalCode" type="statusDescExternalCode" column="EXTERNAL_STATUS_CODE"/>
+        <property name="cardType"               type="cardType"               column="CARD_TYPE"/>
+        <property name="holderName"             type="string"                 column="HOLDER_NAME"/>
+        <property name="statusDescription"      type="string"                 column="STATUS_DESCRIPTION"/>
+        <property name="entityUpdateTime"       type="calendar"               column="ENTITY_UPDATE_TIME"/>
+        <property name="entityInfoUpdateTime"   type="calendar"               column="ENTITY_UPDATE_INFO_TIME"/>
+        <property name="displayedExpireDate"    type="string"                 column="DISPLAYED_EXPIRE_DATE"/>
+
+        <property name="cardState"              type="cardState"              column="CARD_STATE"/>
+        <property name="issueDate"              type="calendar"               column="ISSUE_DATE"/>
+        <property name="nextReportDate"         type="calendar"               column="NEXT_REPORT_DATE"/>
+        <property name="virtual"                type="boolean"                column="VIRTUAL"/>
+
+        <property name="departmentId"           type="long"                   column="DEPARTMENT_ID"/>
+
+        <property name="officeOSB"              type="string"                 column="OFFICE_OSB"/>
+        <property name="officeTB"               type="string"                 column="OFFICE_TB"/>
+        <property name="officeVSP"              type="string"                 column="OFFICE_VSP"/>
+
+        <property name="availableLimit"         type="money">
+            <column  name="LIMIT_AMOUNT"/>
+            <column  name="LIMIT_AMOUNT_CURRENCY"/>
+        </property>
+
+        <property name="availableCashLimit"     type="money">
+            <column  name="CASH_LIMIT_AMOUNT"/>
+            <column  name="CASH_LIMIT_AMOUNT_CURRENCY"/>
+        </property>
+
+        <property name="purchaseLimit"          type="money">
+            <column  name="PURCHASE_LIMIT_AMOUNT"/>
+            <column  name="PURCHASE_LIMIT_AMOUNT_CURRENCY"/>
+        </property>
+
+        <property name="cardLevel"              type="cardLevel"              column="CARD_LEVEL"/>
+        <property name="cardBonusSign"          type="cardBonusSign"          column="CARD_BONUS_SIGN"/>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<query name="com.rssl.phizic.operations.ext.sbrf.dictionaries.GetSBRFOfficesOperation.list">
+		select
+			office, bank
+		from
+			com.rssl.phizic.business.dictionaries.offices.extended.ExtendedOfficeImpl as office,
+			com.rssl.phizic.gate.dictionaries.ResidentBank as bank
+		where (office.code.region like '%'||:extra_region||'%' or :extra_region is null)
+		  and (office.code.branch like '%'||:extra_branch||'%' or :extra_branch is null)
+		  and (office.code.office like '%'||:extra_office||'%' or :extra_office is null)
+          and (upper(office.name) like '%'||upper(:extra_name)||'%' or :extra_name   is null)
+          and (office.sbidnt   like '%'||:extra_code||'%'   or :extra_code   is null)
+		  and (office.BIC = bank.BIC)
+        order by office.name
+	</query>
+</hibernate-mapping>

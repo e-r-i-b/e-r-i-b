@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.creditcards.conditions.CreditCardCondition" table="CREDIT_CARD_CONDITIONS" abstract="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CREDIT_CARD_CONDITIONS</param>
+            </generator>
+        </id>
+
+        <property name="productId"             type="long"        column="PRODUCT_ID"               not-null="true" insert="false" update="false"/>
+        <property name="currency"              type="currency"    column="CURRENCY"                 not-null="true"/>
+        <many-to-one name="minCreditLimit" class="com.rssl.phizic.business.cardAmountStep.CardAmountStep"        column="MIN_CREDIT_LIMIT" not-null="true" lazy="false"/>
+        <many-to-one name="maxCreditLimit" class="com.rssl.phizic.business.cardAmountStep.CardAmountStep"        column="MAX_CREDIT_LIMIT" not-null="true" lazy="false"/>
+        <property name="maxCreditLimitInclude" type="boolean"     column="IS_MAX_CREDIT_LIMIT_INCL" not-null="true"/>
+        <property name="interestRate"          type="big_decimal" column="INT_RATE"                 not-null="true"/>
+        <property name="offerInterestRate"     type="big_decimal" column="OFFER_INT_RATE"           not-null="true"/>
+
+        <property name="firstYearPayment" type="money" not-null="true">
+            <column name="FIRST_YEAR_PAY_AMOUNT"/>
+            <column name="FIRST_YEAR_PAY_CURRENCY"/>
+        </property>
+        <property name="nextYearPayment" type="money" not-null="true">
+            <column name="NEXT_YEAR_PAY_AMOUNT"/>
+            <column name="NEXT_YEAR_PAY_CURRENCY"/>
+        </property>
+    </class>
+
+</hibernate-mapping>

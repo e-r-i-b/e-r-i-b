@@ -1,0 +1,172 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping auto-import="false">
+    <typedef name="ContactCategoryType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.profile.addressbook.ContactCategory</param>
+    </typedef>
+
+    <typedef name="ContactAddedByType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.profile.addressbook.AddedType</param>
+    </typedef>
+
+    <typedef name="ContactStatusType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.profile.addressbook.ContactStatus</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.profile.addressbook.Contact" table="ADDRESS_BOOKS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_ADDRESS_BOOK</param>
+            </generator>
+        </id>
+
+        <many-to-one name="owner" column="LOGIN_ID" class="com.rssl.phizic.auth.CommonLogin"/>
+        <property name="phone" column="PHONE" type="string" not-null="true"/>
+        <property name="fullName" column="FULL_NAME" type="string" not-null="true"/>
+        <property name="sberbankClient" column="SBERBANK_CLIENT" type="boolean" not-null="true"/>
+        <property name="incognito" column="INCOGNITO" type="boolean" not-null="true"/>
+        <property name="fio" column="FIO" type="string"/>
+        <property name="alias" column="ALIAS" type="string"/>
+        <property name="cutAlias" column="CUT_ALIAS" type="string"/>
+        <property name="avatarPath" column="AVATAR" type="string"/>
+        <property name="cardNumber" column="CARD_NUMBER" type="string"/>
+        <property name="category" column="CATEGORY" type="ContactCategoryType" not-null="true"/>
+        <property name="trusted" column="TRUSTED" type="boolean" not-null="true"/>
+        <property name="frequencypP2P" column="FREQUENCY_P2P" type="integer" not-null="true"/>
+        <property name="frequencyPay" column="FREQUENCY_PAY" type="integer" not-null="true"/>
+        <property name="addedBy" column="ADDED_BY" type="ContactAddedByType" not-null="true"/>
+        <property name="status" column="STATUS" type="ContactStatusType" not-null="true"/>
+    </class>
+
+    <resultset name="com.rssl.phizic.business.profile.addressbook.findByPhone.resultset">
+        <return-scalar column="ID" type="string"/>
+    </resultset>
+
+    <!--
+        Получаем список контактов для соответствующего логина.
+        Опорный объект: IDX_AB_LGID
+        Предикаты доступа: "CONTACT"."LOGIN_ID"=:LOGINID
+        Кардинальность: в среднем 300 - количество контактов в адресной книге клиента
+    -->
+    <query name="com.rssl.phizic.business.profile.addressbook.Contact.list">
+        select contact from com.rssl.phizic.business.profile.addressbook.Contact contact
+        where contact.owner.id = :loginId and contact.status in ('ACTIVE', 'DELETE')
+    </query>
+
+    <!--
+        Получаем список всех контактов для соответствующего логина.
+        Опорный объект: IDX_AB_LGID
+        Предикаты доступа: "CONTACT"."LOGIN_ID"=:LOGINID
+        Кардинальность: в среднем 300 - количество контактов в адресной книге клиента
+    -->
+    <query name="com.rssl.phizic.business.profile.addressbook.Contact.alllist">
+        select contact from com.rssl.phizic.business.profile.addressbook.Contact contact
+        where contact.owner.id = :loginId
+    </query>
+
+    <!--
+        Получаем контакт для соответствующего логина по номеру телефона.
+        Опорный объект: IDX_AB_LGID
+        Предикаты доступа: access("CONTACT"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "CONTACT"."PHONE"=:PHONE)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.profile.addressbook.Contact.byphone">
+        select contact from com.rssl.phizic.business.profile.addressbook.Contact contact
+        where contact.owner.id = :loginId and contact.phone = :phone
+    </query>
+
+    <!--
+        Определяем, есть ли в адресной книге контакт по логину и номеру телефона.
+        Опорный объект: IDX_AB_LGID
+        Предикаты доступа: access("CONTACT"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "CONTACT"."PHONE"=:PHONE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.profile.addressbook.Contact.byphone.exist">
+        <return-scalar column="NUM" type="integer"/>
+        <![CDATA[
+            select 1 as NUM from ADDRESS_BOOKS contact
+            where contact.PHONE = :phone and contact.LOGIN_ID = :loginId and ROWNUM < 2
+        ]]>
+    </sql-query>
+
+    <!--
+        Получаем контакт для соответствующего логина по id.
+        Опорный объект: IDX_AB_LGID
+        Предикаты доступа: access("CONTACT"."LOGIN_ID"=TO_NUMBER(:LOGINID))
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.profile.addressbook.Contact.byLoginAndId">
+        select contact from com.rssl.phizic.business.profile.addressbook.Contact contact
+        where contact.owner.id = :loginId and contact.id = :id
+    </query>
+
+    <!--
+        Получаем контакт для соответствующего логина и списка контактов по номеру телефона.
+        Опорный объект: IDX_AB_LGID
+        Предикаты доступа: access("CONTACT"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "CONTACT"."PHONE"=:PHONE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.profile.addressbook.findByPhone"/>
+
+    <!--
+         Получаем номера телефонов не клиентов сбербанка для соответствующего логина.
+         Опорный объект: IDX_AB_LGID
+         Предикаты доступа: access("CONTACT"."LOGIN_ID"=TO_NUMBER(:LOGINID))
+         Кардинальность: 300
+     -->
+     <query name="com.rssl.phizic.business.profile.addressbook.Contact.notSberPhones">
+         select contact from com.rssl.phizic.business.profile.addressbook.Contact contact
+         where contact.owner.id = :loginId and contact.sberbankClient = '0'
+     </query>
+
+    <!--
+        Обновляем признак клиент сбербанка, инкогнито и аватар.
+        Опорный объект: IDX_AB_LGID
+        Предикаты доступа: "AB"."LOGIN_ID"=TO_NUMBER(:LOGINID)
+        Кардинальность: 300
+    -->
+    <sql-query name="com.rssl.phizic.business.profile.addressbook.Contact.updateContacts">
+        <![CDATA[
+        update ADDRESS_BOOKS ab
+        set ab.SBERBANK_CLIENT =
+        (
+            select CASE count(mb.PHONE) WHEN 0 THEN '0' ELSE '1' END from MBK_CAST mb where mb.PHONE = ab.PHONE and ROWNUM < 2
+        ),
+        ab.INCOGNITO =
+         (
+             select CASE count(ip.PHONE_NUMBER) WHEN 0 THEN '0' ELSE '1' END from INCOGNITO_PHONES ip where ip.PHONE_NUMBER = ab.PHONE and ROWNUM < 2
+         ),
+        ab.AVATAR =
+         (
+            select pta.AVATAR_PATH from PHONES_TO_AVATAR pta where pta.PHONE = ab.PHONE and ROWNUM < 2
+         )
+        where ab.LOGIN_ID = :extra_loginId
+        ]]>
+    </sql-query>
+
+    <!--
+         Обновляем признак путь к аватару.
+         Опорный объект: IDX_AB_PHN
+         Предикаты доступа: "CONTACT"."PHONE"=:phone
+         Кардинальность: 108174
+     -->
+     <sql-query name="com.rssl.phizic.business.profile.addressbook.Contact.updateAvatarClient">
+         update ADDRESS_BOOKS
+         set AVATAR = :extra_avatar
+         where PHONE = :extra_phone
+     </sql-query>
+
+    <!--
+        Получаем список всех контактов для соответствующего логина.
+        Опорный объект:
+        Предикаты доступа: "CONTACT"."LOGIN_ID"=:LOGINID
+        Кардинальность: в среднем 300 - количество контактов в адресной книге клиента
+    -->
+    <query name="com.rssl.phizic.business.profile.addressbook.Contact.phoneMaxCountPaylist">
+        select contact from com.rssl.phizic.business.profile.addressbook.Contact contact
+        where contact.owner.id = :loginId
+          and contact.frequencyPay > 0
+        order by contact.frequencyPay asc
+    </query>
+</hibernate-mapping>

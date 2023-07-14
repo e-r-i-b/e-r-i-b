@@ -1,0 +1,71 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class entity-name="com.rssl.phizic.business.schemes.AccessScheme"
+	       name="com.rssl.phizic.business.schemes.AccessSchemeBase"
+	       table="ACCESSSCHEMES"
+	       abstract="true">
+
+		<id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ACCESSSCHEMES</param>
+            </generator>
+		</id>
+
+		<discriminator column="PERSONAL"/>
+
+		<property name="externalId" type="long" column="EXTERNAL_ID" not-null="false"/>
+		<property name="name" type="string" column="NAME" not-null="true"/>
+		<property name="category" type="string" column="CATEGORY" not-null="true"/>
+        <property name="CAAdminScheme" type="boolean" column="CA_ADMIN_SCHEME" not-null="true"/>
+        <property name="VSPEmployeeScheme" type="boolean" column="VSP_EMPLOYEE_SCHEME" not-null="true"/>
+
+		<bag name="services" table="SCHEMESSERVICES" lazy="false" cascade="none">
+			<key column="SCHEME_ID" not-null="true"/>
+			<many-to-many column="SERVICE_ID" class="com.rssl.phizic.business.services.Service" unique="true"/>
+		</bag>
+
+		<subclass name="com.rssl.phizic.business.schemes.SharedAccessScheme"
+		          extends="com.rssl.phizic.business.schemes.AccessScheme"
+		          discriminator-value="0">
+			<property name="key" type="string" column="SCHEME_KEY" not-null="false"/>
+		</subclass>
+
+		<subclass name="com.rssl.phizic.business.schemes.PersonalAccessScheme"
+		          extends="com.rssl.phizic.business.schemes.AccessScheme"
+		          discriminator-value="1">
+		</subclass>
+	</class>
+
+	<!-- Для удаления услуг без перебора схем -->
+	<class entity-name="com.rssl.phizic.business.schemes.AccessScheme.services" abstract="true" table="SCHEMESSERVICES">
+		 <composite-id>
+			 <key-property name="schemeId" type="long" column="SCHEME_ID"/>
+			 <key-property name="serviceId" type="long" column="SERVICE_ID"/>
+		 </composite-id>
+	</class>
+
+	<query name="com.rssl.phizic.business.schemes.AccessSchemeService.findByKey">
+		select scheme from com.rssl.phizic.business.schemes.SharedAccessScheme scheme where scheme.key = :key
+	</query>
+
+	<query name="com.rssl.phizic.business.schemes.AccessSchemeService.findByCategory">
+		select scheme from com.rssl.phizic.business.schemes.SharedAccessScheme scheme where scheme.category in (:category)
+	</query>
+
+    <!--
+       Опорный объект: UK_4
+       Предикаты доступа: "SO"."LOGIN_ID"="LOGIN"."ID"
+       Кардинальность: 1
+    -->
+	<query name="com.rssl.phizic.business.schemes.AccessSchemeService.deleteUnusedOwns">
+		delete com.rssl.phizic.business.resources.own.SchemeOwn so
+			where
+		        so.loginId in (select login.id from CommonLogin login where login.deleted = true)
+				and so.accessScheme = :scheme
+	</query>
+
+</hibernate-mapping>

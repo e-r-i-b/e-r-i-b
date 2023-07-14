@@ -1,0 +1,196 @@
+// ══════════════════════════════════════
+// ──────────────────────────────────────
+// ИКФЛ. Главный макрос
+// ──────────────────────────────────────
+// ══════════════════════════════════════
+
+
+import rcw, rsd, deprintr;
+import "rt_ib_xml.mac";
+import "rt_ib_extract.mac",
+       "rt_ib_getDepositList.mac",
+       "rt_ib_DepositProduct.mac",
+       "rt_ib_makePostDocument.mac",
+       "rt_ib_carryDeposit.mac",
+       "rt_ib_getCurrencyRate.mac",
+       "rt_ib_recallDocument.mac",
+       "rt_ib_getClientDepositInfo",
+       "rt_ib_CalcComPay.mac",
+       "rt_ib_getReferencFromDocument.mac",
+       "rt_ib_serviceFeePayment.mac",
+       "rt_ib_Calendar.mac",
+       "rt_ib_makeLossPassbookDocument.mac",
+       "rt_ib_validateDocument.mac",
+       "rt_ib_ClientById.mac",
+       "rt_ib_ClientList.mac",
+       "rt_ib_getAccount.mac",
+       "rt_ib_getAccountList.mac",
+       "rt_ib_SubscribeAccount.mac",
+       "rt_ib_getCard.mac",
+       "rt_ib_getAccountInfo.mac",
+       "rt_ib_getCardList.mac",
+	   "rt_ib_getPrimaryCardAccount.mac";
+
+var isExtract = false;
+
+// ───────────────────────────────────────
+// Обработчик 
+// ───────────────────────────────────────
+macro requestDispatcher( xmlDoc, outXml )
+  var firstNode, nextNode;
+  var proc_ref = "";
+  isExtract = false;
+  outXml = null;
+
+  firstNode = xmlDoc.documentElement.childNodes.item(0);   
+  
+  if ( firstNode.NodeName == "id" )
+    ParentId = firstNode.text;
+  end;
+
+  nextNode = firstNode.nextSibling;
+  if ( nextNode )
+    NameInputTag = nextNode.nodeName;
+  end;
+
+                                     
+
+  if  ( NameInputTag == "getDepositList_q" )
+    proc_ref = "GetDepositList";    // 
+  elif( NameInputTag == "depositProduct_q" )
+    proc_ref = "DepositProduct";    // 
+  elif( NameInputTag == "getClientDepositInfo_q" )
+    proc_ref = "GetClientDepositInfo";
+  elif( NameInputTag == "commissionPay_q" )
+    proc_ref = "CalcComPay";       // комиссия вкладного документа
+  elif(( NameInputTag == "internalTransfer_q" ) or
+       ( NameInputTag == "openDeposit_q"      ) or
+       ( NameInputTag == "closeDeposit_q"     ) or
+       ( NameInputTag == "externalTransfer_q" ) 
+      )
+    proc_ref = "makePayDocument";       // комиссия вкладного документа
+  elif( NameInputTag == "carryDeposit_q" )
+    proc_ref = "carryDeposit";       // комиссия вкладного документа
+  elif( NameInputTag == "recallDocument_q" )
+    proc_ref = "recallDocument";       // Отзыв платежа
+  elif ( NameInputTag == "getAccountTransactions_q" )
+    proc_ref = "Extract";        //  выписка по счету (и информация о состоянии вклада)
+    isExtract = true;
+  elif ( NameInputTag == "getCurrencyRate_q" )
+    proc_ref = "getCurrencyRate";  // курс валюты
+  elif ( NameInputTag == "getReferencFromDocument_q" )
+    proc_ref = "getReferencFromDocument"; // получение референса счета из документа
+  elif ( NameInputTag == "serviceFeePayment_q" )
+    proc_ref = "CalcServiceFee";   // снятие платы за обслуживание
+  elif ( NameInputTag == "nextWorkDate_q" )
+    proc_ref = "GetNextWorkDate";   // снятие платы за обслуживание
+  elif ( NameInputTag == "validatePayment_q" )
+    proc_ref = "ValidatePayment";   // снятие платы за обслуживание
+  elif ( NameInputTag == "savingsBookLoss_q" )
+    proc_ref = "makeLossPassbook";  // заявка об утрате сберегательной книжки
+  elif ( NameInputTag == "getClientById_q" )
+    proc_ref = "GetClientById";  // поиск клиента по идентификатору
+  elif ( NameInputTag == "getClientsByTemplate_q" )
+    proc_ref = "GetClientList";  // список клиентов по шаблону
+  elif ( NameInputTag == "getAccount_q" )
+    proc_ref = "GetAccountById";  // поиск счета по идентификатору
+  elif ( NameInputTag == "getAccountInfo_q" )
+    proc_ref = "GetAccountInfoById";  // поиск счета по идентификатору
+  elif ( NameInputTag == "getClientAccounts_q" )
+    proc_ref = "GetAccountList";  // список счетов по клиенту
+  elif ( NameInputTag == "subscribeAccount_q" )
+    proc_ref = "SubscribeAcount";  // подписка счета на оповещения
+  elif ( NameInputTag == "getCard_q" )
+    proc_ref = "GetCardById";  // подписка счета на оповещения
+  elif ( NameInputTag == "getClientCards_q" )
+    proc_ref = "GetCardList";  // подписка счета на оповещения
+  elif ( NameInputTag == "getPrimaryCardAccount_q" )
+    proc_ref = "GetPrimaryCardAccount";  // получение СКС
+  else
+    outXml = AddError2OutXml_(outXML, "неизвестный запрос");
+  end;
+
+  if( proc_ref )
+
+    if(not ExecMacro(proc_ref, xmlDoc, outXml))
+      outXml = AddError2OutXml_(outXML, "Ошибка запуска процедуры "+proc_ref+" rt_ib__mail.mac" );
+    end;  
+
+  end;                                 
+
+
+  SetParm( 1, outXml );
+
+end;
+
+
+// ═══════════════════════════════════════
+// Головная функция
+// ═══════════════════════════════════════
+macro XML_Dispatch( xml_request )
+  var xmlDoc, outXml, strErr = "ERROR";
+  var account, filial, dateDoc, sum, currency, clientID, operationType, operationSubspecies;
+
+  xmlDoc = CreateXMLObject();
+
+  if( xmlDoc )
+    
+    if( xmlDoc.loadXML(xml_request) )
+      if( xmlDoc.documentElement.nodeName == "request" )
+        requestDispatcher( xmlDoc, outXml );
+      else
+        // другие действия :)
+        outXml = AddError2OutXml_(outXML, "Запрос '"+xmlDoc.documentElement.nodeName+"' не поддерживается" );
+      end;
+    else
+      outXml = AddError2OutXml_(outXML, "Ошибка загрузки xml-документа" );
+    end;
+  else
+    strErr = "Ошибка инициализации Active-X компонента";
+  end;
+
+  if( outXml )
+
+    if (isExtract)
+       return "<?xml version=\"1.0\" encoding=\"CP866\"?>"+outXml;
+    end;    
+      
+    return "<?xml version=\"1.0\" encoding=\"CP866\"?>"+string(outXml.xml);
+  else
+    return (strErr);
+  end;
+
+end;
+
+
+
+
+// ───────────────────────────────────────
+// Отладка
+// ───────────────────────────────────────              
+macro debug
+  var request = "";
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_CalcComPay.xml") txt;
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_DepositProduct.xml") txt;
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_getClientDepositInfo_.xml") txt;
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_getDepositList.xml") txt;
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_makePostDocument.xml") txt; 
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_carryDeposit.xml") txt; 
+  FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_recallDocument.xml") txt; 
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_07.xml") txt; 
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\err2.xml") txt; 
+
+  if ( open(t) )
+    while(next(t) )
+      if ( substr( t.str, 1, 1 ) != ";" )
+        request = request + t.str;
+      end;
+    end;
+    close(t);
+
+    println(XML_Dispatch(request));
+  
+  end;
+end;
+
+//debug;

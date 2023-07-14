@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://service.cod.sbrf.ru"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://service.cod.sbrf.ru"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+    <xsd:element name="ERMBConnActionRq">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="Version" type="VersionType"/>
+                <xsd:element name="RqUID" type="UUIDType"/>
+                <xsd:element name="RqTm" type="xsd:dateTime"/>
+                <xsd:element name="Action" type="ActionEnum"/>
+                <xsd:element name="Client" type="ClientType"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="ERMBConnActionRs">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="Version" type="VersionType"/>
+                <xsd:element name="RqUID" type="UUIDType"/>
+                <xsd:element name="RqTm" type="xsd:dateTime"/>
+                <xsd:element name="Result" type="ResultEnum"/>
+                <xsd:element name="ResultMessage" type="xsd:string" minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:simpleType name="VersionType">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="\d(\.\d)*"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="UUIDType">
+          <xsd:restriction base="xsd:string">
+              <xsd:pattern value="[0-9a-fA-F]{32}"/>
+          </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ActionEnum">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="000"/>
+            <xsd:enumeration value="001"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ClientType">
+        <xsd:sequence>
+            <xsd:element name="Birthday" type="xsd:date"/>
+            <xsd:element name="PersonName">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="LastName" type="xsd:string"/>
+                        <xsd:element name="FirstName" type="xsd:string"/>
+                        <xsd:element name="MiddleName" type="xsd:string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="IdentityCard">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="IdType" type="xsd:string"/>
+                        <xsd:element name="IdSeries" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="IdNum" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ResultEnum">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="000_Success"/>
+            <xsd:enumeration value="001_No_Parameter"/>
+            <xsd:enumeration value="002_No_Connect"/>
+            <xsd:enumeration value="003_Already_Done"/>
+            <xsd:enumeration value="004_Exception"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>

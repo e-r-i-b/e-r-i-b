@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+    <typedef name="CreationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.common.forms.doc.CreationType</param>
+        <param name="identifierMethod">toValue</param>
+        <param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="InputSumType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.documents.InputSumType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef name="FormType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.documents.FormType</param>
+	</typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="ReminderType">
+        <param name="enumClass">com.rssl.phizic.gate.reminder.ReminderType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.documents.templates.attributes.ExtendedAttributeBase" table="PAYMENTS_DOCUMENTS_EXT"
+           abstract="true" entity-name="TemplateExtendedAttribute">
+
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_PAYMENTS_DOCUMENTS_EXT</param>
+			</generator>
+		</id>
+
+		<discriminator type="string" column="KIND"/>
+
+		<property name="name"           type="string"           not-null="true"     column="NAME"  insert="false" update="false"/>
+        <property name="stringValue"    type="string"           not-null="false"    column="VALUE"/>
+        <property name="changed"        type="boolean"          not-null="true"     column="CHANGED"/>
+
+		<subclass name="com.rssl.phizic.business.documents.templates.attributes.StringAttribute"      discriminator-value="string"/>
+		<subclass name="com.rssl.phizic.business.documents.templates.attributes.IntegerAttribute"     discriminator-value="int"/>
+		<subclass name="com.rssl.phizic.business.documents.templates.attributes.DateAttribute"        discriminator-value="date"/>
+        <subclass name="com.rssl.phizic.business.documents.templates.attributes.DateTimeAttribute"    discriminator-value="dateTime"/>
+		<subclass name="com.rssl.phizic.business.documents.templates.attributes.BooleanAttribute"     discriminator-value="boolean"/>
+        <subclass name="com.rssl.phizic.business.documents.templates.attributes.DecimalAttribute"     discriminator-value="decimal"/>
+        <subclass name="com.rssl.phizic.business.documents.templates.attributes.LongAttribute"        discriminator-value="long"/>
+	</class>
+
+    <class name="com.rssl.phizic.business.documents.templates.impl.PaymentTemplateBase" table="PAYMENTS_DOCUMENTS" abstract="true">
+
+        <id name="id" type="long" column="ID">
+            <generator class="com.rssl.phizic.dataaccess.common.counters.AssignedOrSequenceGenerator">
+                <param name="sequence">S_PAYMENTS_DOCUMENTS</param>
+            </generator>
+        </id>
+
+        <discriminator column="KIND"    type="string"/>
+        <timestamp name="changed"       column="CHANGED"/>
+
+        <property name="externalId"                 type="string"           not-null="false"    column="EXTERNAL_ID"/>
+        <property name="documentNumber"             type="string"           not-null="true"     column="DOCUMENT_NUMBER"/>
+        <property name="clientCreationDate"         type="calendar"         not-null="true"     column="CLIENT_CREATION_DATE"/>
+        <property name="clientCreationChannel"      type="CreationType"     not-null="true"     column="CLIENT_CREATION_CHANNEL"/>
+        <property name="clientOperationDate"        type="calendar"         not-null="false"    column="CLIENT_OPERATION_DATE"/>
+        <property name="clientOperationChannel"     type="CreationType"     not-null="false"    column="CLIENT_OPERATION_CHANNEL"/>
+        <property name="additionalOperationDate"    type="calendar"         not-null="false"    column="EMPLOYEE_OPERATION_DATE"/>
+        <property name="additionalOperationChannel" type="CreationType"     not-null="false"    column="EMPLOYEE_OPERATION_CHANNEL"/>
+        <property name="clientExternalId"           type="string"           not-null="true"     column="CLIENT_GUID"/>
+
+        <component name="createdEmployeeInfo" class="com.rssl.phizgate.common.documents.payments.EmployeeInfoImpl">
+            <property name="guid"   type="string"   not-null="false"    column="CREATED_EMPLOYEE_GUID"/>
+            <component name="personName" class="com.rssl.phizgate.common.documents.payments.PersonNameImpl">
+                <property name="fullName"   type="string"       not-null="false"    column="CREATED_EMPLOYEE_FULL_NAME"/>
+            </component>
+        </component>
+
+        <component name="confirmedEmployeeInfo" class="com.rssl.phizgate.common.documents.payments.EmployeeInfoImpl">
+            <property name="guid"   type="string"   not-null="false"     column="CONFIRMED_EMPLOYEE_GUID"/>
+            <component name="personName" class="com.rssl.phizgate.common.documents.payments.PersonNameImpl">
+                <property name="fullName"   type="string"       not-null="false"    column="CONFIRMED_EMPLOYEE_FULL_NAME"/>
+            </component>
+        </component>
+
+        <property name="operationUID"               type="string"           not-null="false"    column="OPERATION_UID"/>
+
+        <component name="state" class="com.rssl.phizic.common.types.documents.State">
+            <property name="code"           type="string"       not-null="true"     column="STATE_CODE"/>
+            <property name="description"    type="string"       not-null="false"    column="STATE_DESCRIPTION"/>
+        </component>
+
+        <property name="formType"                   type="FormType"         not-null="true"     column="FORM_TYPE"/>
+        <property name="classType"                  type="string"           not-null="false"    column="CLASS_TYPE"/>
+
+        <property name="regionId"                   type="string"           not-null="false"    column="REGION_ID"/>
+        <property name="agencyId"                   type="string"           not-null="false"    column="AGENCY_ID"/>
+        <property name="branchId"                   type="string"           not-null="false"    column="BRANCH_ID"/>
+
+        <component name="templateInfo" class="com.rssl.phizic.business.documents.templates.TemplateInfoImpl">
+            <property name="name"           type="string"          not-null="true"     column="TEMPLATE_NAME"/>
+            <property name="useInMAPI"      type="boolean"         not-null="true"     column="TEMPLATE_USE_IN_MAPI"/>
+            <property name="useInATM"       type="boolean"         not-null="true"     column="TEMPLATE_USE_IN_ATM"/>
+            <property name="useInERMB"      type="boolean"         not-null="true"     column="TEMPLATE_USE_IN_ERMB"/>
+            <property name="useInERIB"      type="boolean"         not-null="true"     column="TEMPLATE_USE_IN_ERIB"/>
+            <property name="orderInd"       type="integer"         not-null="true"     column="TEMPLATE_ORDER_IND"/>
+            <property name="visible"        type="boolean"         not-null="true"     column="TEMPLATE_IS_VISIBLE"/>
+
+            <component name="state" class="com.rssl.phizic.common.types.documents.State">
+                <property name="code"           type="string"       not-null="true"     column="TEMPLATE_STATE_CODE"/>
+                <property name="description"    type="string"       not-null="false"    column="TEMPLATE_STATE_DESCRIPTION"/>
+            </component>
+        </component>
+
+        <component name="reminderInfo" class="com.rssl.phizic.business.documents.templates.impl.ReminderInfoImpl">
+            <property name="type"               type="ReminderType"     not-null="false"    column="REMINDER_TYPE"/>
+            <property name="onceDate"           type="calendar"         not-null="false"    column="REMINDER_ONCE_DATE"/>
+            <property name="dayOfMonth"         type="integer"          not-null="false"    column="REMINDER_DAY_OF_MONTH"/>
+            <property name="monthOfQuarter"     type="integer"          not-null="false"    column="REMINDER_MONTH_OF_QUARTER"/>
+            <property name="createdDate"        type="calendar"         not-null="false"    column="REMINDER_CREATED_DATE"/>
+        </component>
+
+        <map name="extendedAttributes" table="PAYMENTS_DOCUMENTS_EXT" cascade="all-delete-orphan"    lazy="false"    batch-size="5">
+            <key column="PAYMENT_ID"    not-null="true"/>
+            <map-key column="NAME"      type="string"/>
+            <one-to-many entity-name="TemplateExtendedAttribute"/>
+        </map>
+    </class>
+
+    <subclass name="com.rssl.phizic.business.documents.templates.impl.TransferTemplateBase"
+              extends="com.rssl.phizic.business.documents.templates.impl.PaymentTemplateBase"
+              abstract="true">
+
+        <property name="chargeOffResource"          type="string"           not-null="false"    column="CHARGEOFF_RESOURCE"/>
+        <property name="destinationResource"        type="string"           not-null="false"    column="DESTINATION_RESOURCE"/>
+        <property name="ground"                     type="string"           not-null="false"    column="GROUND"/>
+
+        <property name="chargeOffAmount"    type="money">
+            <column name="CHARGEOFF_AMOUNT"        not-null="false"/>
+            <column name="CHARGEOFF_CURRENCY"      not-null="false"/>
+        </property>
+
+        <property name="destinationAmount"  type="money">
+            <column name="DESTINATION_AMOUNT"       not-null="false"/>
+            <column name="DESTINATION_CURRENCY"     not-null="false"/>
+        </property>
+
+        <property name="inputSumType"               type="InputSumType"     not-null="false"    column="SUMM_TYPE"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.templates.impl.InternalTransferTemplate"
+              extends="com.rssl.phizic.business.documents.templates.impl.TransferTemplateBase"
+              discriminator-value="A">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.templates.impl.ExternalTransferTemplate"
+                  extends="com.rssl.phizic.business.documents.templates.impl.TransferTemplateBase">
+        <property name="receiverName"               type="string"   not-null="false"        column="RECEIVER_NAME"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.templates.impl.IndividualTransferTemplate"
+              extends="com.rssl.phizic.business.documents.templates.impl.ExternalTransferTemplate"
+              discriminator-value="B">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.templates.impl.PaymentSystemTransferTemplate"
+              extends="com.rssl.phizic.business.documents.templates.impl.ExternalTransferTemplate"
+              discriminator-value="C">
+
+        <property name="extendedFieldsAsString"         type="text"     not-null="false"        column="EXTENDED_FIELDS"/>
+        <property name="receiverInternalId"             type="long"     not-null="false"        column="INTERNAL_RECEIVER_ID"/>
+        <property name="receiverPointCode"              type="string"   not-null="false"        column="RECEIVER_POINT_CODE"/>
+        <property name="multiBlockReceiverPointCode"    type="string"   not-null="false"        column="MULTI_BLOCK_RECEIVER_CODE"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.templates.impl.LoanTransferTemplate"
+              extends="com.rssl.phizic.business.documents.templates.impl.TransferTemplateBase"
+              discriminator-value="D">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.templates.impl.SecuritiesTransferTemplate"
+              extends="com.rssl.phizic.business.documents.templates.impl.TransferTemplateBase"
+              discriminator-value="E">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.templates.impl.IMATransferTemplate"
+              extends="com.rssl.phizic.business.documents.templates.impl.InternalTransferTemplate"
+              discriminator-value="F">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.templates.impl.ConvertCurrencyTransferTemplate"
+              extends="com.rssl.phizic.business.documents.templates.impl.InternalTransferTemplate"
+              discriminator-value="G">
+    </subclass>
+</hibernate-mapping>

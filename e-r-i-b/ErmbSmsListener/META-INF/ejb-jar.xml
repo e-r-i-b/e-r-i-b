@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ejb-jar
+        PUBLIC "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 2.0//EN"
+        "http://java.sun.com/dtd/ejb-jar_2_0.dtd">
+        
+<ejb-jar id="EJBJar_ErmbSmsListener">
+    <enterprise-beans>
+
+        <!-- Message Driven Bean (MDB) -->
+        <message-driven id="MessageDriven_ErmbSmsListener">
+
+            <!-- Логическое имя MDB -->
+            <ejb-name>ErmbSmsListener</ejb-name>
+
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.ermb.ejb.SmsEjbListener</ejb-class>
+
+            <transaction-type>Bean</transaction-type>
+
+            <!-- MDB слушает очередь (а не топик) -->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+
+            <!-- Ссылка на фабрику соединений для очереди входящих СМС -->
+            <resource-ref id="ResourceRef_ErmbSmsQCF">
+                <res-ref-name>jms/ermb/sms/SmsQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+
+            <!-- Ссылка на очередь входящих СМС -->
+            <resource-ref id="ResourceRef_ErmbSmsQueue">
+                <res-ref-name>jms/ermb/sms/SmsQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+
+        </message-driven>
+
+    </enterprise-beans>
+
+    <assembly-descriptor/>
+</ejb-jar>

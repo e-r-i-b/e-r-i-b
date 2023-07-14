@@ -1,0 +1,26 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.fund.initiator.FundGroup" table="FUND_GROUPS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_FUND_GROUPS</param>
+            </generator>
+        </id>
+
+        <property name="name"           type="string"               column="NAME"               not-null="true"/>
+        <property name="loginId"        type="long"                 column="LOGIN_ID"           not-null="true"/>
+    </class>
+
+    <!-- Получение списка групп получателей по логину клиента
+        Опорный элемент: I_FUND_GROUP_LOGIN
+        Предикат доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+        Кардинальность: не превышает числа групп получателей у клиента
+    !-->
+    <sql-query name="com.rssl.phizic.business.fund.initiator.FundGroup.getByLoginId">
+        <return class="com.rssl.phizic.business.fund.initiator.FundGroup" alias="groups"/>
+        select {groups.*} from FUND_GROUPS groups where groups.LOGIN_ID = :loginId
+    </sql-query>
+</hibernate-mapping>

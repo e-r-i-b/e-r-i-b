@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by  () -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="message">
+		<xs:complexType>
+			<xs:attribute name="text" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Текстовое сообщение об ошибке</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="action">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element ref="property" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="class" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="parameter">
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="template" type="xs:boolean" default="true">
+				<xs:annotation>
+					<xs:documentation>
+						Флаг, определяющий используется ли действие в шаблоне
+					</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="order" type="xs:integer" use="required">
+				<xs:annotation>
+					<xs:documentation>
+						Число, определяющее порядок исполнения
+					</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="payment-form">
+		<xs:annotation>
+			<xs:documentation>Метаданные описывающие форму платежа</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="implementation">
+					<xs:annotation>
+						<xs:documentation>Класс имплементации платежа</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="class" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="template-implementation" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Класс имплементации шаблона платежа</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="class" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="statemachine" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Положение statemachine</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="name" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="extended-metadata-loader" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Класс загрузчик доп полей</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="class" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+				
+				<xs:element name="withdraw-options" minOccurs="0" type="OperationOptions">
+					<xs:annotation>
+						<xs:documentation>Настройки отзыва документа</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+
+				<xs:element name="edit-options" minOccurs="0" type="OperationOptions">
+					<xs:annotation>
+						<xs:documentation>Настройки редактирования документа</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+
+				<xs:element name="list-form" minOccurs="0">
+					<xs:complexType>
+						<xs:attribute name="name" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="need-parent" minOccurs="0">
+					<xs:complexType>
+						<xs:attribute name="value" type="xs:boolean" default="false"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="fields">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="field" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="dictionaries" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Статические справочники формы</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="entity-list" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:any namespace="##any" processContents="skip" minOccurs="0"
+										        maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Элемент справочника вида  ключ-значение</xs:documentation>
+											</xs:annotation>
+										</xs:any>
+									</xs:sequence>
+									<xs:attribute name="name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>Название справочника</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+
+				<xs:element name="form-validators" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Валидаторы формы</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="form-validator" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Имя формы</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="description" use="required">
+				<xs:annotation>
+					<xs:documentation>Название отображаемое в UI</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+            <xs:attribute name="templateName" use="optional">
+				<xs:annotation>
+					<xs:documentation>Название шаблона</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="detailedDescription" use="optional">
+				<xs:annotation>
+					<xs:documentation>Описание отображаемое в UI</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+            <xs:attribute name="confirmDescription" use="optional">
+				<xs:annotation>
+					<xs:documentation>Подтверждение отображаемое в UI</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="form-validator">
+		<xs:annotation>
+			<xs:documentation>Валидатор осуществляющий проверку полей формы (например, что первая дата в периоде дат не превышает вторую)</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="message" minOccurs="0"/>
+				<xs:element ref="field-ref" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="error-field" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="class" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Класс реализующий данный валидатор</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="mode" type="xs:string" default="document|template">
+				<xs:annotation>
+					<xs:documentation>
+                        режим работы валидатора. данное поле используется стратегиями валдиции.
+                        см com.rssl.common.forms.processing.ValidationStrategy
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="enabled" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>Javascript выражение булевого типа. Если результат true, то валидатор включен.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="validator">
+		<xs:annotation>
+			<xs:documentation>Проверка отдельного поля формы</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="message" minOccurs="0"/>
+				<xs:element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="class" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Имя класса валидатора</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="mode" type="xs:string" default="document|template|mobile">
+				<xs:annotation>
+					<xs:documentation>
+                        режим работы валидатора. данное поле используется стратегиями валдиции.
+                        см com.rssl.common.forms.processing.ValidationStrategy
+                    </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="enabled" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>Javascript выражение булевого типа. Если результат true, то валидатор включен.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="field">
+		<xs:annotation>
+			<xs:documentation>Поле формы</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="validators" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Набор валидаторов для данного поля</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="validator" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="formater" minOccurs="0">
+					<xs:complexType>
+						<xs:attribute name="class" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Класс форматирующий вывод</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="parser" minOccurs="0">
+					<xs:complexType>
+						<xs:attribute name="class" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Класс для разбора ввода</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Имя поля формы, используется в Payment -&gt; HTML преобразовании</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="source" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>XPath выражение для получения значения поля из Payment</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="description" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Описание поля, используется для вывода сообщеий валидации</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="type" type="xs:string" use="optional" default="string">
+				<xs:annotation>
+					<xs:documentation>Тип поля, по умочанию string</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="subType" use="optional" default="dinamic">
+				<xs:annotation>
+					<xs:documentation>Доп. тип поля, по умолчанию dinamic</xs:documentation>
+				</xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="dinamic"/>
+                        <xs:enumeration value="static"/>
+                    </xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+            <xs:attribute name="category" use="optional">
+				<xs:annotation>
+					<xs:documentation>Бизнес категория поля</xs:documentation>
+				</xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="phone"/>
+                        <xs:enumeration value="surname"/>
+                        <xs:enumeration value="extended_phone"/>
+                        <xs:enumeration value="street"/>
+                        <xs:enumeration value="date"/>
+                        <xs:enumeration value="full_masked"/>
+                        <xs:enumeration value="external_card"/>
+                    </xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+            <xs:attribute name="mask" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>Маска поля</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="signable" default="false" type="xs:boolean"/>
+			<xs:attribute name="enabled" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>выражение булевого типа. Если результат true, то поле включено.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+            <xs:attribute name="fromApi" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>Начиная с какой версии mobile API включается данное поле(только для mobile Api)(либо fromApi либо toApi)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+            <xs:attribute name="toApi" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>До какой версии mobile API включается данное поле(только для mobile Api)(либо fromApi либо toApi)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="value" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>Вычислимое значение поля.</xs:documentation>
+			</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="inital" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>Начальное значение поля.</xs:documentation>
+			</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="field-ref">
+		<xs:annotation>
+			<xs:documentation>Ссылки на поля требуемые для проверки</xs:documentation>
+		</xs:annotation>
+		<xs:complexType mixed="true">
+			<xs:attribute name="name" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Ссылка на field-&gt;name</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="property">
+		<xs:annotation>
+			<xs:documentation>Свойство</xs:documentation>
+		</xs:annotation>
+		<xs:complexType mixed="true">
+			<xs:attribute name="name" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>Устанавливает добавочный атрибут</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="parameter">
+		<xs:annotation>
+			<xs:documentation>Параметры валидации</xs:documentation>
+		</xs:annotation>
+		<xs:complexType mixed="true">
+			<xs:attribute name="name" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Имя параметра валидатора</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="value" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+
+    <xs:element name="error-field">
+   		<xs:annotation>
+   			<xs:documentation>Поле, которое нужно подсвечивать как ошибочное</xs:documentation>
+   		</xs:annotation>
+   		<xs:complexType mixed="true">
+   			<xs:attribute name="name" type="xs:string" use="required">
+   				<xs:annotation>
+   					<xs:documentation>Ссылка на field-&gt;name</xs:documentation>
+   				</xs:annotation>
+   			</xs:attribute>
+   		</xs:complexType>
+   	</xs:element>
+
+	<xs:complexType name="Actions">
+	    <xs:sequence>
+	        <xs:element ref="action" minOccurs="1" maxOccurs="unbounded"/>
+	    </xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="OperationOptions">
+		<xs:sequence>
+			<xs:element ref="form"/>
+			<xs:element ref="check" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:element name="check">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="parameter" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="class" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="form">
+		<xs:annotation>
+			<xs:documentation>Форма</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="name" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

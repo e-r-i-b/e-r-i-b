@@ -1,0 +1,29 @@
+<!-- Use this file to deploy some handlers/chains and services      -->
+<!-- Two ways to do this:                                           -->
+<!--   java org.apache.axis.client.AdminClient deploy.wsdd          -->
+<!--      after the axis server is running                          -->
+<!-- or                                                             -->
+<!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   -->
+<!--      from the same directory that the Axis engine runs         -->
+
+<deployment
+    xmlns="http://xml.apache.org/axis/wsdd/"
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from MBVEnableServiceService WSDL service -->
+
+  <service name="MBVEnableService" provider="java:RPC" style="wrapped" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://service.mbv.sbrf.ru"/>
+      <parameter name="wsdlServiceElement" value="MBVEnableServiceService"/>
+      <parameter name="schemaUnqualified" value="http://service.mbv.sbrf.ru"/>
+      <parameter name="wsdlServicePort" value="MBVEnableService"/>
+      <parameter name="className" value="ru.sbrf.mbv.service.MBVEnableServiceSoapBindingImpl"/>
+      <parameter name="wsdlPortType" value="MBVEnableService"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="sendMessage" qname="operNS:sendMessage" xmlns:operNS="http://service.mbv.sbrf.ru" returnQName="sendMessageReturn" returnType="rtns:string" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="sendMessage" >
+        <parameter qname="message" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <parameter name="allowedMethods" value="sendMessage"/>
+
+  </service>
+</deployment>

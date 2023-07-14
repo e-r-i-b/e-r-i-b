@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping catalog="RSBankV50">
+
+    <class name="com.rssl.phizic.gate.dictionaries.ForeignBank" table="CURBANKS"
+        batch-size="500">
+
+       <id name="synchKey" type="string" column="id"/>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+		<property name="place" type="string" column="PLACE"/>
+        <property name="account" type="string" column="CORR_ACCOUNT" />
+        <property name="SWIFT" type="string" column="SWIFT" not-null="true"/>
+        <property name="countryCode" type="string" column="COUNTRY"/>
+        <property name="address" type="string" column="ADDRESS"/>
+    </class>
+
+    <class name="com.rssl.phizic.gate.dictionaries.ResidentBank" table="RUSBANKS"
+        batch-size="500">
+
+       <id name="synchKey" type="string" column="id"/>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+		<property name="place" type="string" column="PLACE"/>
+        <property name="account" type="string" column="CORR_ACCOUNT" />
+        <property name="BIC" type="string" column="BIC" not-null="true"/>
+     	<property name="shortName" type="string" column="SHORT_NAME"/>
+    </class>
+
+    <sql-query name="GetResidentBanks">
+        <return alias="party" class="com.rssl.phizic.gate.dictionaries.ResidentBank">
+            <return-property name="synchKey" column="synchKey"/>
+            <return-property name="name" column="name"/>
+            <return-property name="BIC" column="BIC"/>
+            <return-property name="place" column="place"/>
+            <return-property name="account" column="account"/>
+            <return-property name="shortName" column="shortName"/>
+        </return>
+        <![CDATA[
+            SELECT
+                bank.MFO_Depart  AS synchKey,
+                bank.Name_Depart AS name,
+                bank.MFO_Depart  AS BIC,
+                bank.NamePlace   AS place,
+                bank.Corr_Acc    AS account,
+                ''               AS shortName
+
+            FROM "bankdprt_dbt" bank
+            WHERE bank.VKey <> ''
+              AND bank.Lock <> 'X'
+              AND bank.DateDel is null
+            ORDER BY synchKey
+        ]]>
+    </sql-query>
+
+    <sql-query name="GetResidentBanksByTemplate">
+        <return alias="party" class="com.rssl.phizic.gate.dictionaries.ResidentBank">
+            <return-property name="synchKey" column="synchKey"/>
+            <return-property name="name" column="name"/>
+            <return-property name="BIC" column="BIC"/>
+            <return-property name="place" column="place"/>
+            <return-property name="account" column="account"/>
+            <return-property name="shortName" column="shortName"/>
+        </return>
+        <![CDATA[
+            SELECT
+                bank.MFO_Depart  AS synchKey,
+                bank.Name_Depart AS name,
+                bank.MFO_Depart  AS BIC,
+                bank.NamePlace   AS place,
+                bank.Corr_Acc    AS account,
+                ''               AS shortName
+
+            FROM "bankdprt_dbt" bank
+            WHERE bank.VKey <> ''
+              AND bank.Lock <> 'X'
+              AND bank.DateDel is null
+              AND ( :name is null or bank.Name_Depart = :name)
+              AND ( :bic is null or bank.MFO_Depart = :bic)
+              AND ( :place is null or bank.NamePlace = :place)
+            ORDER BY synchKey
+        ]]>
+    </sql-query>
+
+    <sql-query name="GetForeignBanks">
+        <return alias="party" class="com.rssl.phizic.gate.dictionaries.ForeignBank">
+            <return-property name="synchKey" column="synchKey"/>
+            <return-property name="name" column="name"/>
+            <return-property name="SWIFT" column="SWIFT"/>
+            <return-property name="place" column="place"/>
+            <return-property name="account" column="account"/>
+	        <return-property name="countryCode" column="countryCode"/>
+	        <return-property name="address" column="address"/>
+        </return>
+        <![CDATA[
+            SELECT
+                bank.BIC_Key           AS synchKey,
+                bank.Institution_Name1 AS name,
+                bank.BIC_Key           AS SWIFT,
+                bank.City_Heading      AS place,
+                bank.CountryCode       AS countryCode,
+                bank.Physical_Address1 + bank.Physical_Address2 +
+                bank.Physical_Address3 + bank.Physical_Address4 AS address,
+                bank.MFO_Depart        AS account
+           FROM bicdir_dbt bank, codebank_dbt code
+             Where code.MFO_Depart = bank.MFO_Depart AND bank.CorAcc = ''
+           ORDER BY synchKey
+        ]]>
+    </sql-query>
+
+   <sql-query name="GetForeignBanksByTemplate">
+        <return alias="party" class="com.rssl.phizic.gate.dictionaries.ForeignBank">
+            <return-property name="synchKey" column="synchKey"/>
+            <return-property name="name" column="name"/>
+            <return-property name="SWIFT" column="SWIFT"/>
+            <return-property name="place" column="place"/>
+            <return-property name="account" column="account"/>
+	        <return-property name="countryCode" column="countryCode"/>
+	        <return-property name="address" column="address"/>
+        </return>
+        <![CDATA[
+            SELECT
+                bank.BIC_Key           AS synchKey,
+                bank.Institution_Name1 AS name,
+                bank.BIC_Key           AS SWIFT,
+                bank.City_Heading      AS place,
+                bank.CountryCode       AS countryCode,
+                bank.Physical_Address1 + bank.Physical_Address2 +
+                bank.Physical_Address3 + bank.Physical_Address4 AS address,
+                bank.MFO_Depart        AS account
+           FROM bicdir_dbt bank, codebank_dbt code
+             Where code.MFO_Depart = bank.MFO_Depart AND bank.CorAcc = ''
+             and ( :bic is null or bank.BIC_Key = :bic)
+             and ( :name is null or bank.Institution_Name1 = :name)
+             and ( :countryCode is null or bank.CountryCode = :countryCode)
+             and ( :place is null or bank.City_Heading = :place)
+           ORDER BY synchKey
+        ]]>
+    </sql-query>
+
+    <sql-query name="FindAccountBySWIFT">
+        <return-scalar type="string" column="account"/>
+	    <![CDATA[
+           SELECT bank.MFO_Depart AS account
+           FROM bicdir_dbt bank, codebank_dbt code
+             Where code.MFO_Depart = bank.MFO_Depart AND bank.CorAcc = '' and bank.BIC_Key = :swift
+        ]]>
+    </sql-query>
+    
+</hibernate-mapping>

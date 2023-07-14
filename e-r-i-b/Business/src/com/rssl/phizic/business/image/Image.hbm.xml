@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.image.Image" table="IMAGES" abstract="false">
+        <id column="ID" name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_IMAGES</param>
+            </generator>
+        </id>
+        <timestamp name="updateTime"    column="UPDATE_TIME"/>
+        <property name="imageHelp"      column="IMAGE_HELP"     type="string"/>
+        <property name="extendImage"    column="EXTEND_IMAGE"   type="string"/>
+        <property name="innerImage"     column="INNER_IMAGE"    type="string"/>
+        <property name="linkURL"        column="LINK_URL"       type="string" not-null="false"/>
+        <property name="name"           column="NAME"           type="string" not-null="false"/>
+        <property name="md5"            column="MD5"            type="string"/>
+        <property name="haveImageBlob"  type="boolean" formula="case when IMAGE is null then 0 else 1 end"/>
+    </class>
+
+    <!--Получение картинки по id
+        Опорный объект: PK_IMAGES
+        Предикаты доступа: "IMAGES"."ID"=TO_NUMBER(:IMAGEID)
+        Кардинальность: Ищем по id, поэтому будет получено не более одного значения
+    -->
+    <sql-query name="com.rssl.phizic.business.image.loadImageData">
+        <return-scalar column="imgData"         type="com.rssl.phizic.business.template.BinaryBlobType"/>
+        <![CDATA[
+            select images.IMAGE as imgData
+            from IMAGES images
+            where images.ID=:imageId
+        ]]>
+   	</sql-query>
+
+    <!--Обновление картинки по id
+        Опорный объект: PK_IMAGES
+        Предикаты доступа: "IMAGES"."ID"=TO_NUMBER(:IMAGEID)
+        Кардинальность: Обновляем по id, поэтому в выборке будет получено не более одного значения
+    -->
+    <sql-query name="com.rssl.phizic.business.image.saveImageData">
+        <![CDATA[
+            update IMAGES set IMAGE = :extra_imgData
+            where ID=:extra_imageId
+        ]]>
+    </sql-query>
+
+    <!-- удаление изображения по идентификатору -->
+    <query name="com.rssl.phizic.business.image.ImageService.removeImageById">
+    <![CDATA[
+        delete from com.rssl.phizic.business.image.Image as image
+        where image.id = :id
+    ]]>
+    </query>
+</hibernate-mapping>

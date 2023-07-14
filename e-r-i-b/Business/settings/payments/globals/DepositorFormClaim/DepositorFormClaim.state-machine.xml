@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/state-machine.xsd">
+
+	<states inital-state="INITIAL"
+	        description="Машина состояний поручения на получение анкетных данных из депозитария" saveNodeInfo="true">
+
+		<state id="INITIAL"
+               description="Вы создали, но еще не сохранили документ."
+			   client-form="/private/payments/payment.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+			<events>
+				<event name="SAVE" description="Сохранение документа клиентом"  type="client">
+                    <next-states default="SAVED"/>
+				</event>
+                <event name="DELETE" description="Удалить документ" type="client">
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="system">
+                    <next-states default="DELETED"/>
+                </event>
+			</events>
+		</state>
+
+		<state
+			id="SAVED" description="Вы сохранили, но еще не подтвердили документ."
+			client-form="/private/payments/confirm.do"
+			system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+			<events>
+				<event name="CONFIRM" description="Отправка документа клиентом" type="client" lock="true">
+					<handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+                            <parameter name="datePropertyName" value="admissionDate"/>
+                            <parameter name="datePropertyType" value="java.util.Calendar"/>
+                        </handler>
+					</handlers>
+                    <next-states default="EXECUTED">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.DelayedStateCondition" state="DELAYED_DISPATCH"/>
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CacheClearHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+				<event name="EDIT" description="Редактирование документа" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PrepareEditDocumentHandler"/>
+                    </handlers>
+                    <next-states default="INITIAL"/>
+				</event>
+                <event name="DELETE" description="Удалить документ" type="client">
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="system">
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="DOUNKNOW" description="таймаут" type="client">
+                    <next-states default="UNKNOW"/>
+                </event>
+			</events>
+		</state>
+        <state
+            id="DELAYED_DISPATCH" description="Ожидается обработка документа в банке."
+            client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+			<events>
+                <event name="DISPATCH" description="Отправка документа клиентом"
+					   type="system">
+                    <handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+					</handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="ERROR" description="Ошибка исполнения платежа" type="system">
+                    <next-states default="ERROR"/>
+                </event>
+                <event name="RECALL" description="Отзыв документа" type="client">
+                    <next-states default="RECALLED"/>
+				</event>
+                <event name="DOUNKNOW" description="таймаут" type="client">
+                    <next-states default="UNKNOW"/>
+                </event>
+            </events>
+		</state>
+        <state
+			id="EXECUTED" description="Документ успешно исполнен банком."
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+            system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+					</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+		<state
+			id="REFUSED" description="Вам отказано в исполнении операции."
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"/>
+		<state
+			id="ERROR" description="Операция не может быть исполнена, Вам необходимо обратиться в банк."
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+            system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="EXECUTE" description="Подтверждение документа сотрудником" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+		    </events>
+        </state>
+        <state id="DELETED" description="Документ удален."
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"/>
+        <state
+			id="RECALLED" description="Документ отозван Вами по какой-либо причине."
+			client-form="/private/payments/view.do"
+			system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"/>
+
+        <state id="UNKNOW" description="Статус документа не определен. Пожалуйста, обратитесь в Контактный центр банка для уточнения информации."
+			   client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+                    </handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+                    </handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="ERROR" description="Ошибка исполнения документа" type="system">
+                    <next-states default="ERROR"/>
+                </event>
+            </events>
+        </state>
+	</states>
+
+</config>

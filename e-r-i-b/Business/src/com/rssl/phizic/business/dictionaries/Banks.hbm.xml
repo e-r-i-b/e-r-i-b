@@ -1,0 +1,61 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+
+    <class name="com.rssl.phizic.gate.dictionaries.ResidentBank" table="RUSBANKS"
+        batch-size="500" polymorphism="explicit">
+
+       <id name="synchKey" type="string" column="id"/>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+		<property name="place" type="string" column="PLACE"/>
+        <property name="account" type="string" column="CORR_ACCOUNT" />
+        <property name="BIC" type="string" column="BIC" not-null="true"/>
+     	<property name="shortName" type="string" column="SHORT_NAME"/>
+        <property name="our" type="boolean" column="OUR"/>
+        <property name="address" type="string" column="ADDRESS" not-null="false"/>
+        <property name="participantCode" type="string" column="PARTICIPANT_CODE" not-null="false"/>
+        <property name="INN" type="string" column="INN" not-null="false"/>
+        <property name="KPP" type="string" column="KPP" not-null="false"/>
+        <property name="dateCh" type="calendar" column="DATE_CH" not-null="false"/>
+    </class>
+
+    <!--
+        Опорный объект: AK_UK_BANKS_BIC
+        Предикаты доступа: "BIC"=:BIC
+        Кардинальность: 1 (для каждого банка возможно существование только одного БИК)
+    -->
+    <query name="com.rssl.phizic.business.getBankByBIC">
+        select bank from com.rssl.phizic.gate.dictionaries.ResidentBank as bank
+            where bank.BIC=:BIC and (bank.dateCh>:CUR_DATE or bank.dateCh is null)
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.getResidentBankBySynchKey">
+        <return alias="bank" class="com.rssl.phizic.gate.dictionaries.ResidentBank"/>
+		<![CDATA[
+		SELECT * FROM RUSBANKS bank order by ID COLLATE Cyrillic_General_BIN  asc
+		]]>
+    </sql-query>
+
+    <!--
+        ООпорный объект: PK_RUSBANKS
+        Предикаты доступа: "ID"=:SYNCH_KEY
+        Кардинальность: 1 (для каждого банка ID уникален)
+    -->
+	<query name="com.rssl.phizic.business.getOneResidentBankBySynchKey">
+	    select bank from com.rssl.phizic.gate.dictionaries.ResidentBank as bank
+			where bank.synchKey=:SYNCH_KEY and (bank.dateCh>:CUR_DATE or bank.dateCh is null)
+	</query>
+
+	<sql-query name="com.rssl.phizic.business.getResidentBankBySynchKey.oracle">
+		<return alias="bank" class="com.rssl.phizic.gate.dictionaries.ResidentBank"/>
+		<![CDATA[
+		SELECT * FROM RUSBANKS bank
+		order by NLSSORT(BIC,'NLS_SORT=BINARY') asc
+		]]>
+	</sql-query>
+
+</hibernate-mapping>

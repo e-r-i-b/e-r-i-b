@@ -1,0 +1,24 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--
+     Опорный объект: AGGREGATION_STATE
+     Предикаты доступа: фулскан
+     Кардинальность: 2
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.providers.aggr.AggregationService.markNeedAggregation">
+        UPDATE AGGREGATION_STATE SET time = SYSTIMESTAMP WHERE key = 'catalog.last.update.timestamp'
+    </sql-query>
+
+    <!--
+     Опорный объект: AGGREGATION_STATE
+     Предикаты доступа: фулскан
+     Кардинальность: 2
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.providers.aggr.AggregationService.getCurrentPartition">
+        <return-scalar column="PROPERTY_VALUE" type="string"/>
+        select PROPERTY_VALUE from PROPERTIES where PROPERTY_KEY = 'com.rssl.iccs.phizic.catalog.aggreagation.current.partition' and CATEGORY = 'phiz'
+    </sql-query>
+</hibernate-mapping>

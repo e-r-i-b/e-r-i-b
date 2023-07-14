@@ -1,0 +1,46 @@
+<?xml version="1.0" standalone='yes'?>
+
+<data-sources
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://xmlns.oracle.com/oracleas/schema/data-sources-10_1.xsd">
+
+  <native-data-source
+      name="PhizIC" jndi-name="jdbc/PhizIC" data-source-class="@dbserver.dsclass@"
+      url="@dbserver.url@" user="@dbserver.username@" password="@dbserver.password@">
+	<property name="serverName" value="@dbserver.name@"/>
+	<property name="portNumber" value="@dbserver.port@"/>
+	<property name="databaseName" value="@dbserver.database@"/>
+	<property name="connectionCacheName" value="PhizICConCache"/>
+	<property name="connectionCachingEnabled" value="true"/>
+	<!--
+	The enhanced standard APIs for manipulating CLOBs are the setString() and getString() of the 
+	PreparedStatement and ResultSet objects respectively. By default, the method preparedStatement.setString()
+	will allow processing of the strings up to 32765 bytes. In order to insert data greater than 32765 bytes,
+	a newly introduced Connection property - SetBigStringTryClob can be set. This forces the
+	preparedStatement.setString() to use another newly introduced method,
+	OraclePreparedStatement.setStringForClob() instead.
+	This is actually done internally, transparent to the user.
+	-->
+	<!--property name="SetBigStringTryClob" value="true"/-->
+  </native-data-source>
+  <native-data-source data-source-class="oracle.jdbc.pool.OracleDataSource"
+        name="RSLoans6" jndi-name="jdbc/RSLoans6"
+        url="jdbc:oracle:thin:@@loans.dbserver.name@:@loans.dbserver.port@:@loans.dbserver.database@"
+        user="@loans.dbserver.username@"
+        password="@loans.dbserver.password@"/>
+	<property name="connectionCacheName" value="PhizICConCache"/>
+	<property name="connectionCachingEnabled" value="true"/>
+
+  <native-data-source
+      name="PhizIC@application.instance.prefix@" jndi-name="jdbc/V6R4@application.instance.prefix@" data-source-class="oracle.jdbc.pool.OracleDataSource"
+      url="jdbc:oracle:thin:@@rsretailv6r4.dbserver.name@:@rsretailv6r4.dbserver.port@:@rsretailv6r4.dbserver.database@"
+      user="@rsretailv6r4.dbserver.username@"
+      password="@rsretailv6r4.dbserver.password@">
+	<property name="serverName" value="@rsretailv6r4.dbserver.name@"/>
+	<property name="portNumber" value="@rsretailv6r4.dbserver.port@"/>
+	<property name="databaseName" value="@rsretailv6r4.dbserver.database@"/>
+	<property name="connectionCacheName" value="V6R4@application.instance.prefix@ConCache"/>
+	<property name="connectionCachingEnabled" value="true"/>
+  </native-data-source>
+
+</data-sources>

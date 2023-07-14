@@ -1,0 +1,94 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class table="CARD_OPERATION_CATEGORIES" name="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory" polymorphism="explicit">
+	    <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CARD_OPERATION_CATEGORIES</param>
+            </generator>
+	    </id>
+		<property name="name" type="string" column="NAME" not-null="true"/>
+	    <property name="income" type="boolean" column="INCOME" not-null="true"/>
+        <property name="cash" type="boolean" column="CASH" not-null="true"/>
+        <property name="cashless" type="boolean" column="CASHLESS" not-null="true"/>
+        <property name="visible" type="boolean" column="VISIBLE" not-null="false"/>
+        <property name="ownerId" type="long" column="LOGIN_ID" not-null="false"/>
+        <property name="externalId" type="string" column="EXTERNALID"/>
+        <property name="incompatibleOperationsAllowed" type="boolean" column="ALLOW_INCOMPATIBLE_OPERATIONS" not-null="true"/>
+        <property name="isDefault" type="boolean" column="IS_DEFAULT" not-null="false"/>
+        <property name="forInternalOperations" type="boolean" column="FOR_INTERNAL_OPERATIONS" not-null="true"/>
+        <property name="isTransfer" type="boolean" column="IS_TRANSFER" not-null="true"/>
+        <property name="idInmAPI" type="string" column="ID_IN_MAPI" not-null="false"/>
+        <property name="color" type="string" column="COLOR" not-null="false"/>
+    </class>
+
+    <!-- Список категорий операций, доступных пользователю -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.finances.getPersonAvailableCategories">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory"/>
+        <![CDATA[
+            select {category.*}
+            from CARD_OPERATION_CATEGORIES category
+            where nvl(LOGIN_ID, -1) in (:extra_loginId, -1)
+            and category.VISIBLE = '1'
+        ]]>
+    </sql-query>
+
+    <!-- Список категорий операций без "owner" (загружены при помощи "_Load3_Dictionaries")-->
+    <sql-query name="com.rssl.phizic.business.dictionaries.finances.getOperationCategoriesWithOwnerNull">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory"/>
+        <![CDATA[
+            select {category.*}
+            from CARD_OPERATION_CATEGORIES category
+            where nvl(LOGIN_ID, -1) = -1
+            order by decode(translate(EXTERNALID, '_0123456789', '_'), null, to_number(EXTERNALID)), EXTERNALID
+        ]]>
+    </sql-query>
+
+    <!-- Получает список цветов, которые уже используются у клиента для категорий
+        Опорный объект: DXFK_CARDOP_CATEGORY_OWNER
+        Предикаты доступа: "CATEGORIES"."LOGIN_ID"=TO_NUMBER(:LOGINID)
+        Кардинальность: не более 20 (количество категорий доступных для заведения клиенту, задается в propeties, ключ - com.rssl.iccs.settings.alf.categories.count)
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.finances.getUsedColors">
+        <return-scalar column="color" type="string"/>
+        SELECT categories.COLOR
+        FROM CARD_OPERATION_CATEGORIES categories
+        WHERE categories.LOGIN_ID = :loginId
+    </sql-query>
+
+    <!-- Ищет АЛФ категорию для услуги по коду услуги
+        Опорный объект: PK_PAYMENT_SERV_TO_CATEGORIES
+        Предикаты доступа: "PAYMENTSERVICECATEGORY"."SERVICE_CODE"=:SERVICECODE
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.findCardOperationCategoryByServiceCode">
+        <return alias="cardOpCategory" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory"/>
+        SELECT {cardOpCategory.*}
+        FROM CARD_OPERATION_CATEGORIES cardOpCategory
+        JOIN PAYMENT_SERVICES_TO_CATEGORIES paymentServiceCategory ON cardOpCategory.ID = paymentServiceCategory.CATEGORY_ID
+        WHERE paymentServiceCategory.SERVICE_CODE = :extra_serviceCode
+    </sql-query>
+
+    <!-- Удаляет АЛФ категорию по коду услуги
+        Опорный объект: PK_PAYMENT_SERV_TO_CATEGORIES
+        Предикаты доступа: "SERVICE_CODE"=:EXTRA_SERVICECODE
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.deleteCardOperationCategoryByServiceCode">
+        DELETE FROM PAYMENT_SERVICES_TO_CATEGORIES
+        WHERE SERVICE_CODE = :extra_serviceCode
+    </sql-query>
+
+    <!-- Добавляет/обновляет АЛФ категорию по коду услуги
+        Опорный объект: PK_PAYMENT_SERV_TO_CATEGORIES
+        Предикаты доступа: "SERVICE_CODE"=:EXTRA_SERVICECODE
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.saveCardOperationCategoryToPaymentService">
+        merge into PAYMENT_SERVICES_TO_CATEGORIES using DUAL on (SERVICE_CODE = :extra_serviceCode)
+        WHEN MATCHED THEN UPDATE SET CATEGORY_ID = :extra_categoryId
+        WHEN NOT MATCHED THEN INSERT (SERVICE_CODE, CATEGORY_ID) VALUES (:extra_serviceCode, :extra_categoryId)
+    </sql-query>
+</hibernate-mapping>

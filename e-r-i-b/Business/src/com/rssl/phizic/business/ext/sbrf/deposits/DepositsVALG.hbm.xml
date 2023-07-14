@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsVALG" table="DEPOSITS_V_ALG">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_V_ALG</param>
+            </generator>
+        </id>
+
+        <property name="depositType"        type="long"         column="V_AVKL_QDTN1"       not-null="true"/>
+        <property name="depositSubType"     type="long"         column="V_AVKL_QDTSUB"      not-null="true"/>
+        <property name="foreignCurrency"    type="boolean"      column="V_AVKL_QVAL"        not-null="true"/>
+        <property name="operationCode"      type="long"         column="V_TYPE_OP"          not-null="true"/>
+        <property name="depositCode"        type="long"         column="V_CODE_VKL"         not-null="true"/>
+    </class>
+
+    <!--
+        Очистка таблицы DEPOSITS_V_ALG
+        Опорный объект: DEPOSITS_V_ALG
+        Предикаты доступа: fullscan
+        Кардинальность: ~5300
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsVALG.deleteAll">
+        delete from com.rssl.phizic.business.ext.sbrf.deposits.DepositsVALG
+    </query>
+
+    <!--
+        Получить признак, определяющий доступность приходных операций для вкладного продукта
+        Опорный объект: IDX_D_VALG_TYPE_SUBTYPE
+        Предикаты доступа: "VAL"."V_AVKL_QDTN1"=TO_NUMBER(:TYPE) AND "VAL"."V_AVKL_QDTSUB"=TO_NUMBER(:SUBTYPES)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsVALG.getCreditAllowed">
+        select distinct 1 from com.rssl.phizic.business.ext.sbrf.deposits.DepositsVALG val
+        where val.depositType = :type and val.depositSubType in (:subTypes) and val.operationCode = 26
+    </query>
+
+    <!--
+        Получить признак, определяющий доступность расходных операций для вкладного продукта
+        Опорный объект: IDX_D_VALG_TYPE_SUBTYPE
+        Предикаты доступа: "VAL"."V_AVKL_QDTN1"=TO_NUMBER(:TYPE) AND "VAL"."V_AVKL_QDTSUB"=TO_NUMBER(:SUBTYPES)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsVALG.getDebitAllowed">
+        select distinct 1 from com.rssl.phizic.business.ext.sbrf.deposits.DepositsVALG val
+        where val.depositType = :type and val.depositSubType in (:subTypes) and val.operationCode = 27
+    </query>
+
+    <!--
+        Получить признак, определяющий доступность операций по выдаче процентов для вкладного продукта
+        Опорный объект: IDX_D_VALG_TYPE_SUBTYPE
+        Предикаты доступа: "VAL"."V_AVKL_QDTN1"=TO_NUMBER(:TYPE) AND "VAL"."V_AVKL_QDTSUB"=TO_NUMBER(:SUBTYPES)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsVALG.getInterestAllowed">
+        select distinct 1 from com.rssl.phizic.business.ext.sbrf.deposits.DepositsVALG val
+        where val.depositType = :type and val.depositSubType in (:subTypes) and val.operationCode = 65
+    </query>
+
+</hibernate-mapping>

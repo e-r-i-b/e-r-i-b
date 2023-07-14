@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.departments.CreditCardOfficeOperation.list">
+        <return alias="department" class="com.rssl.phizic.business.departments.Department"/>
+        <![CDATA[
+           select {department.*}
+           from DEPARTMENTS department
+           where
+              department.is_credit_card_office = 1
+              and (department.name like :extra_like_name)
+              and (upper(department.post_address) like upper(:extra_like_address) or upper(department.post_address) like upper(:extra_like_reverse_address))
+              and (:extra_regionCodeTB is null or :extra_regionCodeTB = '' or department.tb = :extra_regionCodeTB
+                  or (:extra_regionCodeTB = 38 and department.tb = 99) or (:extra_regionCodeTB = 99 and department.tb = 38))
+           order by department.post_address
+        ]]>
+    </sql-query>
+</hibernate-mapping>

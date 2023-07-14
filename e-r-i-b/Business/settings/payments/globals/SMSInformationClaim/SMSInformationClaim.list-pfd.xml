@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../PaymentList.xsd" 
+		title="Заявка на SMS-информирование по операциям с пластиковой картой"
+>
+	<filter>
+		<fields>
+			<field name="state" description="Статус"/>
+
+			<field name="refusingReason" description="Причина отказа"/>
+
+			<field name="fromDate" description="Начальная дата" type="date">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				</validators>	
+			</field>
+
+			<field name="toDate" description="Конечная дата" type="date">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				</validators>	
+			</field>
+
+			<field name="claimType" description="Тип заявки"/>
+
+			<field name="number" description="Номер заявки"/>
+
+			<field name="card" description="Пластиковая карта"/>
+
+			<field name="operatorSelect" description="Сотовый оператор"/>
+
+			<field name="phoneCode" description="Номер телефона (код)"/>
+
+			<field name="phoneNumber" description="Номер телефона"/>
+		</fields>
+
+		<form-validators>
+			<form-validator class="com.rssl.common.forms.validators.CompareValidator">
+				<message text="Конечная дата должна быть больше либо равна начальной"/>
+				<field-ref name="obj1">fromDate</field-ref>
+				<field-ref name="obj2">toDate</field-ref>
+				<parameter name="operator">le</parameter>
+			</form-validator>
+		</form-validators>
+	</filter>
+
+	<hql-query>
+		<returnKey property="id"/>
+		<return property="dateCreated"/>
+		<return property="changed"/>
+		<return property="state.code"/>
+		<return property="formName"/>
+		<return property="attributes.card.value"/>
+		<return property="attributes.operator-select.value"/>
+		<return property="attributes.phone-code.value"/>
+		<return property="attributes.phone-number.value"/>
+<!--
+		<return property="refusingReason"/>
+-->
+		<![CDATA[
+			select claim
+				from com.rssl.phizic.business.documents.DefaultClaim claim
+			where claim.formName = 'SMSInformationClaim'
+				and claim.owner.id = :loginId
+				and (:state is null     or :state = '' or claim.state.code = :state)
+				and (:fromDate is null  or claim.dateCreated >= :fromDate)
+				and (:toDate is null    or claim.dateCreated <= :toDate  )
+				and (:claimType is null or :claimType = '' or claim.formName = :claimType)
+				and (:number is null or :number = '' or claim.id = :number)
+				and (:operatorSelect is null or :operatorSelect = '' or claim.attributes['operator-select'].stringValue = :operatorSelect)
+				and (:card is null or :card = '' or claim.attributes['card'].stringValue in
+						(SELECT cardlink.number from com.rssl.phizic.business.resources.external.CardLink cardlink where cardlink.login.id=:loginId and cardlink.externalId=:card)
+                    )
+				and (:phoneCode is null or :phoneCode = '' or claim.attributes['phone-code'].stringValue = :phoneCode)
+				and (:phoneNumber is null or :phoneNumber = '' or claim.attributes['phone-number'].stringValue = :phoneNumber)
+            order by claim.dateCreated desc, claim.changed desc, claim.id desc
+	    ]]>
+	</hql-query>
+</payment-list>

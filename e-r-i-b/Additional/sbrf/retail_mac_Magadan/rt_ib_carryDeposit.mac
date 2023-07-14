@@ -1,0 +1,311 @@
+import rcw, rsd, deprintr;
+import "rt_ib_xml.mac";
+import "rt_ib_getcurrencyrate.mac";
+import "chk_stop.mac";
+
+
+// ----------------------------------------------------------------
+// Проводка отложенных документов
+// ----------------------------------------------------------------
+class(cBaseDeposit) 
+    cCarryDeposit( inXml, outXml ) 
+
+  var outXML_cur;
+  var appKind, appKey;
+  private  var psdepdoc = TBFile( "psdepdoc.dbt",  "w", 4, NULL, "sbbank.def" );
+  private  var sbdepdoc1 = TRecHandler( "sbdepdoc.1" ); 
+
+/* 
+    -------------------
+      ИСХОДНЫЕ ДАННЫЕ  
+    -------------------
+
+Элемент сообщения          Тип             Комментарий                             Кратность
+--------------------------+---------------+---------------------------------------+--------------
+request                 
++-id                       string(32)      Идентификатор запроса в системе  ИКФЛ        
+L-carryDeposit_q                 
+
+
+    -------------------
+          ОТВЕТ
+    -------------------
+Элемент сообщения       Тип             Комментарий
+-----------------------+---------------+----------------------------------------------------------------------
+response                        
++-parentId              string(32)      Идентификатор запроса в системе  ИКФЛ   
++-id                    string(32)      Идентификатор ответа    
+L-carryDeposit_a
+  L-document
+    +-errorCode         int             Код ошибки
+    +-errorText         string(80)      Текст ошибки
+    +-applicationKind   int             Идентификатор документа 
+    L-applicationKey    string(29)      Идентификатор документа
+*/
+
+// ----------------------------------------------------------------
+// Провести документ
+// ----------------------------------------------------------------
+
+  // ----------------------------------------------------------------  
+  // Формируем выходной XML 
+  // ----------------------------------------------------------------
+  private macro createDateTag( stat, errMes )
+    var nodeTemp;
+    if ( stat == null )
+      stat = 0;
+    end;
+     
+    nodeTemp = nodeAnswer.appendChild( outXML_cur.createNode(1, "document", "") ); 
+   
+    node = nodeTemp.appendChild( outXML_cur.createNode(1, "errorCode", "") ); 
+    node.text = stat;
+
+    if ( stat != 0 )
+      if ( errMes == null )
+        errMes = getErrorString( stat );
+      end;
+
+      node = nodeTemp.appendChild( outXML_cur.createNode(1, "errorText", "") ); 
+      node.text = errMes;
+    end;
+
+    node = nodeTemp.appendChild( outXML_cur.createNode(1, "applicationKind", "") ); 
+    node.text = appKind;
+                
+    node = nodeTemp.appendChild( outXML_cur.createNode(1, "applicationKey", "") ); 
+    node.text = appKey;
+
+  end;
+
+
+/*  private macro createDateTag( ApplicationKind, ApplicationKey, errorCode )
+
+    nodeAnswer = outXML_cur.documentElement.appendChild( outXML_cur.createNode(1, "document", "") );
+
+    node = nodeAnswer.appendChild( outXML_cur.createNode(1, "errorCode", "") ); 
+    node.text = errorCode;
+
+    if (errorCode != 0 )
+      node = nodeAnswer.appendChild( outXML_cur.createNode(1, "errorText", "") ); 
+      node.text = getErrorString(errorCode);
+    end;
+    node = nodeAnswer.appendChild( outXML_cur.createNode(1, "applicationKind", "") ); 
+    node.text = ApplicationKind;
+                
+    node = nodeAnswer.appendChild( outXML_cur.createNode(1, "applicationKey", "") ); 
+    node.text = ApplicationKey;
+                                                             
+  end; // createDateTag( ApplicationKind, ApplicationKey, errorCode )   */
+
+
+
+  //_________________________________________________________________
+  //  проверим совпадение курсов валют
+  //  процедура возвращает true, если текущий курс совпадает с курсом платежа
+  //_________________________________________________________________
+
+  macro CheckRates(appKind, appKey, My_rs_date)
+
+    var rate = 0.0;
+    var errorMessage = "";
+    var returnRes = true;
+
+    var dbRate;
+    var calculatedRate;
+
+    psdepdoc.rec.iApplicationKind = appKind;
+    psdepdoc.rec.ApplicationKey = appKey;
+    
+    if (psdepdoc.getEQ)
+        SetRecordAddr( sbdepdoc1, psdepdoc, 0, 0, true);
+        /*указанную в форме покупки-продажи-обмена валюты в поле "продать" (сумма списания)
+          банк покупает - codeCur_receiver - это то, что банк продает (клиент покупает)*/
+        GetRatesWhenBankBuys(My_rs_date, sbdepdoc1.rec.Code_Currency, sbdepdoc1.rec.CodeCur_Receiver, rate);
+    end;
+
+    dbRate = Round(moneyl(10000*doublel(sbdepdoc1.rec.PercTrnRest)),0);
+    calculatedRate = Round(moneyl(10000*doublel(rate)),0);
+    if ( dbRate != calculatedRate)
+       returnRes = false;
+    end;
+
+    return returnRes;
+
+  end;
+
+  // ----------------------------------------------------------------  
+  // Запустк процедуры
+  // ----------------------------------------------------------------
+  macro start( inXml, outXml)
+    var nodeParentElement;
+    var cmd, cmd_raw, date_cmd;
+    var rs_psdoc, rs_date;
+//    var stat = 0;
+    var fncash, flagcur;
+    var errCode  = 0;
+    var ratesAreEqual = true; //говорит о том, что курсы валют отличаются-отказываем в платеже.
+    var firstStep = true, isOpenFiles = false;
+
+    var errorText = "";
+
+    //-ы· ЁрёўхЄр ъюьшёёшш
+    var sumComm = $0.0;
+    var typeComm = "";          
+    var numOpert = 0;
+    var com;
+
+var ctr;
+
+    file tmpDoc ("sbdepdoc.dbt", "sbbank.def");
+
+    outXML_cur = outXml;    
+    if(not outXml_cur )
+      outXml_cur = CreateXMLObject();
+      if(not outXml_cur) return; end;
+
+      nodeParentElement = inXml.documentElement.selectSingleNode( "//" + NameInputTag );
+      CreateBeginTag( outXml_cur );
+    
+      if( nodeParentElement )
+
+        cmd_raw = RsdCommand("call rsb_struct.readstruct( 'dsbdepdoc_1' )");
+        cmd_raw.execute;
+
+        cmd = RsdCommand(
+            "select t_iapplicationkind, t_account, t_applicationkey, t_DepDate_Document date_doc, t_fncash, t_iscur, t_percoprsum, t_referenc, t_type_account, t_date_document, t_typeoper, t_typecomplexoper, t_outsum, t_codclient, t_applType " + 
+              "from dpsdepdoc_dbt " +
+             "where t_flags2 = 4 " +   // Признак того, что документы из ИКФЛ
+               "and t_typeOper <> 51 " +                                              // Проверяем не открытие ли это нового счета.
+               "and not(    (t_typeOper = 65 or t_typeOper = 80) " +                  // Открытие не проводим, так как оно только по
+                       "and substr(rsb_struct.getstring('t_Account_Receiver', " +     // личной явке вкладчика
+                                                       "t_unionpart, " +
+                                                       "-(select t_offset " +
+                                                           "from fmt_fields " +
+                                                          "where t_fmtid = (select t_id " +
+                                                                             "from fmt_names " +
+                                                                            "where lower(t_name) = 'dsbdepdoc_1') " +
+                                                            "and lower(t_name) = 't_account_receiver') " +
+                                                      "), 1, 1 " +
+                                 ") = chr(0) ) " +
+            "order by t_fncash, t_iscur " );
+        cmd.execute;
+
+        rs_psdoc = RsdRecordSet( cmd );
+        while ( rs_psdoc.moveNext )
+          fncash = setfncash(rs_psdoc.value("t_fncash"));
+          flagcur = setflagcur(rs_psdoc.value("t_iscur"));
+          date_cmd = RsdCommand(
+                "select t_operdate  " +
+                "from ddepparm_dbt  " +
+                "where t_fncash = ? " +
+                " and t_flagcur = ? "
+          );
+          date_cmd.addParam("fncash", RSDBP_IN); date_cmd.value("fncash") = rs_psdoc.value("t_fncash");
+          date_cmd.addParam("flagcur", RSDBP_IN); date_cmd.value("flagcur") = rs_psdoc.value("t_iscur");
+
+          date_cmd.execute;
+          rs_date = RsdRecordSet(date_cmd);
+          rs_date.moveNext;
+
+          /*проверим совпадение курсов валют в отложенном документе с текущим курсом*/
+          if (rs_psdoc.value("t_typeoper") == OP_CONVERT)
+             ratesAreEqual = CheckRates(rs_psdoc.value( "t_iapplicationkind" ), rs_psdoc.value( "t_applicationkey" ),rs_date.value("t_operdate") );
+             if (ratesAreEqual == false)
+                errorText = CURRENCY_RATE_CHANGED_ERRORMESSAGE;
+                errCode = CURRENCY_RATE_CHANGED_ERRORCODE;                      
+             end;       
+          else 
+             ratesAreEqual = true;
+          end;
+
+          ClearRecord(tmpDoc);
+
+          SetBitFlag(tmpDoc.Flags, 31, 1);
+
+          tmpDoc.Referenc = rs_psdoc.value("t_referenc");           
+          tmpDoc.Type_Account = rs_psdoc.value("t_type_account");
+          tmpDoc.Date_Document = rs_psdoc.value("date_doc");
+          tmpDoc.DepDate_Document = rs_psdoc.value("date_doc");
+          tmpDoc.TypeOper = rs_psdoc.value("t_typeoper");
+          tmpDoc.TypeComplexOper = rs_psdoc.value("t_typecomplexoper");
+          tmpDoc.OutSum = rs_psdoc.value("t_outsum");
+          tmpDoc.CodClient = rs_psdoc.value("t_codclient");
+          tmpDoc.FNCash = rs_psdoc.value("t_fncash");
+          tmpDoc.ApplType = rs_psdoc.value("t_applType");
+          tmpDoc.IsCur    = rs_psdoc.value("t_iscur");
+
+          creategddlist;        
+          GetCommissionOnOper(tmpDoc,tmpDoc.outSum,1,sumComm,typeComm,numOpert,0);
+          deletegddlist;
+
+          if ((rs_psdoc.value("t_percoprsum") != sumComm) and 
+            (((rs_psdoc.value("t_typeoper") == 63 )and (rs_psdoc.value("t_applType") != 52)) or (rs_psdoc.value("t_typeoper") != 63)))
+                ratesAreEqual = false;
+                errCode = COMMISSION_CHANGED_ERRORCODE;
+                errorText = COMMISSION_CHANGED_ERRORMESSAGE;    
+          end;
+
+          if ( firstStep )
+            isOpenFiles = OpenDepFiles;
+            firstStep = false;
+          end;
+         
+
+          if(rs_psdoc.value("date_doc") <= rs_date.value("t_operdate"))
+                
+             appKind = rs_psdoc.value( "t_iapplicationkind" );
+             appKey  = rs_psdoc.value( "t_applicationkey" );
+
+//Принудительный запуск проверки стоп-листов
+
+	     tmpDoc.iApplicationKind = rs_psdoc.value( "t_iapplicationkind" );
+	     tmpDoc.ApplicationKey = rs_psdoc.value( "t_applicationkey" );
+
+	ctr = CheckStopList(2, tmpDoc);
+    if (ctr==-1)
+	errCode = STOPLIST_CHECK_FAILED_ERRORCODE;
+	errorText = STOPLIST_CHECK_FAILED_ERRORMESSAGE;
+    end;
+//------------------------------------------
+
+             if (ratesAreEqual == true)
+                errCode = CarryPsDoc( rs_psdoc.value( "t_iapplicationkind" ), rs_psdoc.value( "t_applicationkey" ) );
+                createDateTag(errCode);
+             else
+                createDateTag( errCode, errorText );
+             end;       
+
+          end; // if(rs_psdoc.value("date_doc") <= {curdate})
+
+        setfncash(fncash);
+        setflagcur(flagcur);
+
+        end; // while ( rs_psdoc.moveNext )
+
+        if ( isOpenFiles )
+          CloseDepFiles;
+        end;
+
+      end; // if( nodeParentElement )
+
+    end;//if(not outXml )
+
+    return outXml_cur;
+  end;//start( inXml, outXml ) 
+
+
+end;
+
+
+
+// ---------------------------------------
+// Вставка отложенного документа
+// ---------------------------------------
+macro carryDeposit( inXml, outXml ) 
+
+  var t = cCarryDeposit;
+  outXml = t.start( inXml, outXml );
+
+  SetParm(1, outXml);
+end;

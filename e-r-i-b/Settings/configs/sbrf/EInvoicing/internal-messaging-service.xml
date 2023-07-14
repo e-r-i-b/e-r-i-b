@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<internal-messaging-service xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../schemas/internalMessagingService.xsd">
+    <server>
+        <requestHandlers>
+            <handler request="GetOrderRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.GetOrderRequestProcessor"/>
+            <handler request="GetOrderByIdRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.GetOrderByIdRequestProcessor"/>
+            <handler request="LinkOrderToClientRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.LinkOrderToClientRequestProcessor"/>
+            <handler request="GetOrdersByProfileHistoryRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.GetOrdersByProfileHistoryRequestProcessor"/>
+            <handler request="GetOrderInfoRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.GetOrderInfoRequestProcessor"/>
+            <handler request="ChangeOrderStatusRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.ChangeOrderStatusRequestProcessor"/>
+            <handler request="ChangeRecallStatusRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.ChangeRecallStatusRequestProcessor"/>
+            <handler request="GetTicketInfoRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.GetTicketInfoRequestProcessor"/>
+            <handler request="MarkViewedRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.MarkViewedRequestProcessor"/>
+            <handler request="GetEndPointProvidersByCodeRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.GetEndPointProvidersByCodeRequestProcessor"/>
+            <handler request="GetEndPointProvidersByNameRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.GetEndPointProvidersByNameRequestProcessor"/>
+            <handler request="GetEndPointProviderRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.GetEndPointProviderRequestProcessor"/>
+            <handler request="UpdateEndPointProviderRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.UpdateEndPointProviderRequestProcessor"/>
+            <handler request="UpdateEndPointProvidersRequest" class="com.rssl.phizic.einvoicing.multiblock.processors.UpdateEndPointProvidersRequestProcessor"/>
+        </requestHandlers>
+        <exceptionHandlers defaultCode="1" defaultDescription="Операция временно недоступна">
+            <handler exception="com.rssl.phizic.einvoicing.exceptions.OrderNotFoundException"
+                 class="com.rssl.phizgate.messaging.internalws.server.protocol.handlers.exceptions.ExceptionHandler"
+                 code="500"
+                 description="Заказ не найден"/>
+            <handler exception="com.rssl.phizic.einvoicing.exceptions.InactualOrderInInternetShopException"
+                 class="com.rssl.phizgate.messaging.internalws.server.protocol.handlers.exceptions.ExceptionHandler"
+                 code="501"
+                 description="Заказ неактуален"/>
+            <handler exception="com.rssl.phizic.einvoicing.exceptions.ProviderNotFoundException"
+                 class="com.rssl.phizgate.messaging.internalws.server.protocol.handlers.exceptions.ExceptionHandler"
+                 code="502"
+                 description="Конечный поставщик услуг не найден"/>
+        </exceptionHandlers>
+    </server>
+    <client>
+        <errors>
+            <!--ошибки по умолчанию-->
+            <error code="1" exception="com.rssl.phizic.gate.exceptions.GateException"/>
+        </errors>
+    </client>
+</internal-messaging-service>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../PaymentList.xsd"
+		title="Заявка "
+>
+	<filter>
+		<fields>
+			<field name="state" description="Статус"/>
+			<field name="state_list" description="Вспомогательный статус"/>
+
+			<field name="number" description="Номер заявки"/>
+
+			<field name="fromDate" description="Начальная дата" type="date">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				</validators>
+			</field>
+
+			<field name="toDate" description="Конечная дата" type="date">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				</validators>
+			</field>
+		</fields>
+	</filter>
+
+	<hql-query>
+		<returnKey property="id"/>
+		<return property="state.code"/>
+		<return property="dateCreated"/>
+		<return property="documentNumber"/>
+		<return property="attributes.client-request-amount.value"/>
+		<return property="attributes.loan-currency.value"/>
+		<return property="attributes.product-name.value"/>
+		<return property="attributes.client-request-term.value"/>
+		<return property="attributes.bank-accept-amount.value"/>
+		<return property="attributes.bank-accept-term.value"/>
+		<return property="attributes.bank-comment.value"/>
+		<![CDATA[
+			select claim
+							from com.rssl.phizic.business.documents.LoanClaim claim
+							where claim.owner.id = :loginId
+								and (:state_list is null      or :state_list = '' or claim.state.code in (:state))
+								and (:number is null    or :number = '' or claim.documentNumber = :number)
+								and (:fromDate is null or claim.dateCreated >= :fromDate)
+								and (:toDate is null   or claim.dateCreated <= :toDate  )
+				            order by claim.dateCreated desc, claim.changed desc, claim.id desc
+					    ]]>
+	</hql-query>
+</payment-list>

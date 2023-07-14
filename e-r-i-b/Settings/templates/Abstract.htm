@@ -1,0 +1,268 @@
+<html>
+<head>
+</head>
+<style type="text/css">
+.bdTable {
+	border-top:1px solid black; border-left:1px solid black; border-right:1px solid black;
+}
+.bdCell {
+	border-bottom:1px solid black; border-right:1px solid black;
+}
+.bdCellLast {
+	border-bottom:1px solid black;
+}
+</style>
+<body>
+<span style="text-align:center; width:100%">
+Уважаемый, ${fullName}!<br/><br/>
+</span>
+   <#list Abstract.AccountAbstracts as abstract>
+<nobr>
+	<span style="text-align:center; width:100%">
+	<b>Выписка по счету №${abstract.account.number}&nbsp;${abstract.account.currency.name}</b><br/>
+	за период с «${abstract.fromDate.time?string("dd")}»&nbsp;${abstract.fromMonth}&nbsp;&nbsp;${abstract.fromDate.time?string("yyyy")}&nbsp;г.
+	   по «${abstract.toDate.time?string("dd")}»&nbsp;${abstract.toMonth}&nbsp;&nbsp;${abstract.toDate.time?string("yyyy")}&nbsp;г.
+	</span>
+</nobr>
+   <br/>
+		  <table cellspacing="0" cellpadding="0" width="100%">
+		  <tr>
+			<td colspan="9">
+			  Входящий остаток: &nbsp; ${abstract.accountAbstract.openingBalance.decimal}
+			</td>
+		 </tr>
+		<#if abstract.operationCount== 0>
+		  <tr>
+			<td colspan="9">
+			  <b>Нет операций по счету за заданный период.</b>
+			</td>
+		 </tr>
+		<#else>
+		  <tr>
+			  <td height="20px">Дата</td>
+			  <td>Сумма прихода</td>
+			  <td>Сумма расхода</td>
+			  <td>Валюта</td>
+			  <td>Получатель/Плательщик</td>
+			  <td>Счет получателя</td>
+			  <td>Банк получателя</td>
+			  <td>Основание</td>
+			  <td>Остаток</td>
+		 </tr>
+		 <#list abstract.accountAbstract.accountTransactions as transaction>
+			<tr>
+			  <td align="center">&nbsp;${transaction.date.time?string("dd.MM.yyyy")}</td>
+			  <td align="right">&nbsp;${transaction.creditSum.decimal}</td>
+			  <td align="right">&nbsp;${transaction.debitSum.decimal}</td>
+			  <td align="center">&nbsp;${transaction.balance.currency.code}</td>
+              <td>&nbsp;${transaction.counteragent}</td>
+              <td>&nbsp;${transaction.counteragentAccount}</td>
+              <td>&nbsp;${transaction.counteragentBank}</td>
+		      <td>&nbsp;${transaction.description}</td>
+		      <td>&nbsp;${transaction.balance.decimal}</td>
+		    </tr>
+		</#list>
+		</#if>	
+		 <tr>
+			<td colspan="9">
+			  Исходящий остаток: &nbsp; ${abstract.accountAbstract.closingBalance.decimal}
+			</td>
+		 </tr>
+		 </table>
+		 <br/>
+ </#list>
+<#assign size=false>
+<#list Abstract.CardAbstract as abstract>
+<#assign size=true>
+	<span style="text-align:center; width:100%"><b>
+		<#if abstract.card.value.main = true>Выписка по карте
+		<#else>Список операций по карте
+		</#if>
+		№${abstract.card.number}</b><br/>за период с ${abstract.fromDate.time?string("dd.MM.yyyy")}&nbsp;г. по ${abstract.toDate.time?string("dd.MM.yyyy")}&nbsp;г.
+	</span>
+	<table width="100%" style="font-size:12pt">
+		<tr>
+			<td style="text-align:left;width:20%">
+				ФИО держателя:
+			</td>
+			<td style="text-align:left;width:80%">
+				${abstract.cardClient.fullName}
+			</td>
+		</tr>
+		<tr>
+			<td style="text-align:left;width:20%">
+			    Номер карточки:
+			</td>
+			<td style="text-align:left;width:20%">
+				${abstract.card.number}&nbsp;[${abstract.card.value.description}]
+			</td>
+		</tr>
+		<tr>
+			<#if abstract.card.value.main = true>
+				<td style="text-align:left;width:20%">
+					Номер лицевого счета:
+				</td>
+				<td style="text-align:left;width:20%">
+					${abstract.cardAccount.number}
+				</td>
+			</#if>
+		</tr>
+	</table>
+	<#if abstract.card.value.main = true>
+	<br/>Входящий остаток:&nbsp;${abstract.cardAbstract.openingBalance.decimal}&nbsp;${abstract.cardAccount.currency.code}<br/>
+	</#if>
+	<#if abstract.operationCount = 0>
+		<b>Нет операций по карте за заданный период.<br/></b>
+	<#else>
+		<table style="font-size:8pt; padding-right:0px; padding-left:0px;width:98%" class="bdTable" cellpadding="0" cellspacing="0">
+			<tr bgcolor="#cccccc">
+				<td height="20px" align="center" class="bdCell"><b>Дата списания</b></td>
+				<td height="20px" align="center" class="bdCell"><b>Дата операции</b></td>
+				<td align="center" class="bdCell"><b>Приход</b></td>
+				<td align="center" class="bdCell"><b>Расход</b></td>
+				<td align="center" class="bdCell"><b>Сумма в валюте счета</b></td>
+				<td align="center" class="bdCell"><b>Вал</b></td>
+				<td align="center" class="bdCell"><b>Сумма операции</b></td>
+				<td align="center" class="bdCell"><b>Вал</b></td>
+				<td align="center" class="bdCellLast"><b>Содержание операции</b></td>
+			</tr>
+			<#list abstract.cardAbstract.operations as operation>
+				<tr>
+					<td class="bdCell" align="center" valign="center">${operation.date.time?string("dd.MM.yyyy")}&nbsp;</td>
+					<td class="bdCell" align="center" valign="center">${operation.operationDate.time?string("dd.MM.yyyy")}&nbsp;</td>
+					<td class="bdCell" align="right" valign="center">${operation.creditSum.decimal?string("0.00")}&nbsp;</td>
+					<td class="bdCell" align="right" valign="center">${operation.debitSum.decimal?string("0.00")}&nbsp;</td>
+					<td class="bdCell" align="center">${(operation.creditSum.decimal + operation.debitSum.decimal)?string("0.00")}&nbsp;</td>
+					<td class="bdCell" align="center">${operation.debitSum.currency.code}&nbsp;</td>
+					<td class="bdCell" align="center">${operation.accountDebitSum.decimal?string("0.00")}&nbsp;</td>
+					<td class="bdCell" align="center">${operation.accountDebitSum.currency.code}&nbsp;</td>
+					<td class="bdCellLast" valign="center">${operation.description}&nbsp;</td>
+				</tr>	
+			</#list>
+		</table>
+	</#if>
+	<#if abstract.card.value.main = true>
+		Исходящий остаток:&nbsp;${abstract.cardAbstract.closingBalance.decimal?string("0.00")}&nbsp;${abstract.cardAccount.currency.code}<br/><br/>
+	<#if  abstract.unsettledOperations = 0> &nbsp;
+	<#else>
+	Операции, по которым ожидается списание:
+			<table class="bdTable" cellspacing="0" cellpadding="0" width="100%" style="font-size:9pt">
+				<tr>
+					<td height="20px" align="center" class="bdCell"><b>Дата операции</b></td>
+					<td align="center" class="bdCell"><b>Сумма в валюте карты</b></td>
+					<td align="center" class="bdCell"><b>Сумма оплаты</b></td>
+					<td align="center" class="bdCell"><b>Код валюты</b></td>
+					<td align="center" class="bdCellLast"><b>Содержание операции</b></td>
+				</tr>
+		<#list abstract.cardAbstract.unsettledOperations as operation>
+			<#assign debitPlusCredit = operation.creditSum.decimal + operation.debitSum.decimal>
+					<tr>
+						<td class="bdCell" align="center" valign="center">${operation.operationDate.time?string("dd.MM.yyyy")}&nbsp;</td>
+						<td class="bdCell" align="center">
+							<#if debitPlusCredit = operation.debitSum.decimal>
+								${operation.debitSum.decimal?string("0.00")}
+							<#else>
+								${operation.creditSum.decimal?string("0.00")}
+							</#if>&nbsp;
+						</td>
+						<td class="bdCell" align="center">
+							<#if debitPlusCredit = operation.debitSum.decimal>
+								${operation.accountDebitSum.decimal?string("0.00")}
+							<#else>
+								${operation.accountCreditSum.decimal?string("0.00")}
+							</#if>&nbsp;
+						</td>
+						<td class="bdCell" align="center">
+							<#if debitPlusCredit = operation.debitSum.decimal>
+								${operation.accountDebitSum.currency.code}
+							<#else>
+								${operation.accountCreditSum.currency.code}
+							</#if>&nbsp;
+						</td>
+						<td class="bdCellLast" valign="center">${operation.description}&nbsp;</td>
+					</tr>
+			</#list>
+			</table>
+		</#if>
+		<#if abstract.card.value.cardType = 'overdraft'>
+			<br/>Сведения по овердрафту и штрафам:
+			<table style="width:100%" cellpadding="0"cellspacing="0">
+			<tr>
+				<td>
+			<table cellspacing="0" cellpadding="3" class="bdTable" width="60%" align="left" style="font-size:9pt; padding-left:0px; padding-right:0px">
+				<tr>
+					<td class="bdCell"><b>Дата открытия овердрафта</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.openDate.time?string("dd.MM.yyyy")}&nbsp;</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Лимит овердрафта</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.limit.decimal?string("0.00")}&nbsp;</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Сумма просроченного долга</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.unsettledDebtSum.decimal?string("0.00")}&nbsp;</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Сумма штрафа за просрочку</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.unsettledPenalty.decimal?string("0.00")!"&nbsp"}
+					</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Сумма текущего овердрафта</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.currentOverdraftSum.decimal?string("0.00")}&nbsp;</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Сумма процентов по овердрафту</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.rate.decimal?string("0.00")}&nbsp;</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Сумма технического овердрафта</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.technicalOverdraftSum.decimal?string("0.00")}&nbsp;</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Сумма штрафа за технический овердрафт</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.technicalPenalty.decimal?string("0.00")}&nbsp;</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Общая сумма долга</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.totalDebtSum.decimal?string("0.00")}&nbsp;</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Дата выноса долга на просрочку</b></td>
+					<td class="bdCellLast">${(abstract.overdraftInfo.unsetltedDebtCreateDate.time?string("dd.MM.yyyy"))!"&nbsp"}</td>
+				</tr>
+				<tr>
+					<td class="bdCell"><b>Сумма доступного лимита</b></td>
+					<td class="bdCellLast">${abstract.overdraftInfo.availableLimit.decimal?string("0.00")}&nbsp;</td>
+				</tr>
+			</table>
+		</#if>
+     </#if>
+	<tr>
+		<td>  <br/><br/>
+	<table width="100%">
+		<tr>
+			<td width="100%" style="text-align:center;font-size:12pt">
+		Извещаем&nbsp;Вас,&nbsp;что&nbsp;cрок&nbsp;действия&nbsp;Вашей&nbsp;карты&nbsp;заканчивается&nbsp;${abstract.card.value.expireDate.time?string("dd.MM.yyyy")}&nbsp;г. <br/>
+		Для&nbsp;замены карты,&nbsp;приглашаем&nbsp;Вас&nbsp;посетить&nbsp;Банк&nbsp;за&nbsp;5&nbsp;дней&nbsp;до&nbsp;окончания&nbsp;срока&nbsp;ее&nbsp;действия.                            <br/>
+		 <br/>
+			</td>
+		</tr>
+	</table>
+		</td>
+		</tr>
+	</table>
+</#list>
+<#if size>
+	<table width="100%">
+		<tr>
+			<td width="100%" style="text-align:center;font-size:12pt">
+		В&nbsp;случае&nbsp;несогласия&nbsp;с&nbsp;указанной&nbsp;в&nbsp;выписке&nbsp;суммой&nbsp;операции&nbsp;претензии&nbsp;принимаются&nbsp;в&nbsp;срок    <br/>
+		не&nbsp;позднее&nbsp;30&nbsp;календарных&nbsp;дней&nbsp;со&nbsp;дня&nbsp;операции.&nbsp;Претензии,&nbsp;поступившие&nbsp;в&nbsp;Банк&nbsp;по&nbsp;истечении   <br/>
+		30&nbsp;календарных&nbsp;дней&nbsp;со&nbsp;дня&nbsp;операции,&nbsp;Банком&nbsp;не&nbsp;рассматриваются.
+			</td>
+		</tr>
+	</table>
+</#if>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.currencies.locale.CurrencyImplResources" table="CURRENCIES_RES">
+        <composite-id>
+            <key-property name="id" column="ID"        type="string"/>
+            <key-property name="localeId" column="LOCALE_ID" type="string"/>
+        </composite-id>
+        <property name="name" column="NAME" type="string"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.currencies.locale.LocaledCurrencyImpl" table="CURRENCIES" batch-size="500" mutable="false">
+        <id name="synchKey" type="string" column="ID"/>
+
+		<property name="number" type="string" column="NUMERICCODE"/>
+        <property name="code" type="string" column="CODE" />
+	    <property name="name" type="string" column="NAME"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.currencies.locale.CurrencyImplResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <!--
+        Получение валюты по ее Alphabetic ISO коду (RUB, USD etc)
+        Опорный объект: INDEX_CODE_3
+        Предикаты доступа: access("CURRENCY"."CODE"=:EXTRA_CODE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.currencies.getCurrencyByCode.multilocale">
+        <return alias="currency" class="com.rssl.phizic.business.dictionaries.currencies.locale.LocaledCurrencyImpl"/>
+        <return-join alias="currencyRes" property="currency.resources"/>
+        SELECT
+            {currency.*},
+            {currencyRes.*}
+        FROM CURRENCIES currency
+        LEFT JOIN CURRENCIES_RES currencyRes
+        ON
+            currency.ID = currencyRes.ID
+            and currencyRes.LOCALE_ID = :extra_localeId
+        WHERE
+            currency.CODE = :extra_code
+    </sql-query>
+
+    <!--
+        Получение валюты по ее Numeric ISO коду (643, 840 etc)
+        Опорный объект: INDEX_NUMERICCODE
+        Предикаты доступа: access("CURRENCY"."NUMERICCODE"=:EXTRA_CODE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.currencies.getCurrencyByNumericCode.multilocale">
+        <return alias="currency" class="com.rssl.phizic.business.dictionaries.currencies.locale.LocaledCurrencyImpl"/>
+        <return-join alias="currencyRes" property="currency.resources"/>
+        SELECT
+            {currency.*},
+            {currencyRes.*}
+        FROM CURRENCIES currency
+        LEFT JOIN CURRENCIES_RES currencyRes
+        ON
+            currency.ID = currencyRes.ID
+            and currencyRes.LOCALE_ID = :extra_localeId
+        WHERE
+            currency.NUMERICCODE = :extra_code
+    </sql-query>
+
+    <!--
+        Получение валюты по идентификатору
+        Опорный объект: PK_CURRENCIES
+        Предикаты доступа: access("CURRENCY"."ID"=:EXTRA_ID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.currencies.getCurrencyById.multilocale">
+        <return alias="currency" class="com.rssl.phizic.business.dictionaries.currencies.locale.LocaledCurrencyImpl"/>
+        <return-join alias="currencyRes" property="currency.resources"/>
+        SELECT
+            {currency.*},
+            {currencyRes.*}
+        FROM CURRENCIES currency
+        LEFT JOIN CURRENCIES_RES currencyRes
+        ON
+            currency.ID = currencyRes.ID
+            and currencyRes.LOCALE_ID = :extra_localeId
+        WHERE
+            currency.ID = :extra_id
+    </sql-query>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

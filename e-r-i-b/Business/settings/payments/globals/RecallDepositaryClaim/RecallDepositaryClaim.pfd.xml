@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RecallDepositaryClaim"
+              description="Отзыв документа"
+              detailedDescription="На этой странице Вы можете отозвать документ, который был отправлен в Депозитарий.
+              Для совершения операции заполните поле «Причина отзыва» и нажмите на кнопку «Сохранить»."
+              confirmDescription="Ваш отзыв успешно отправлен в банк. Спасибо, что Вы воспользовались «Сбербанк Онлайн»! Обратите внимание: документ не будет отозван, если он уже исполнен или его обработка не может быть приостановлена по независящим от банка причинам."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+    <implementation class="com.rssl.phizic.business.documents.RecallDepositaryClaim"/>
+
+    <fields>
+        <field  name="state"
+                description="Статус заявки"
+                type="string"
+                source="state"/>
+
+        <field  name="documentNumber"
+                description="Номер отзыва"
+                type="string"
+                source="document-number"/>
+
+        <field  name="documentDate"
+                description="Дата отзыва"
+                type="date"
+                source="document-date"/>
+
+        <field  name="revokePurpose"
+                description="Причина отзыва документа"
+                type="string"
+                source="extra-parameters/parameter[@name='revoke-purpose']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, укажите причину отзыва документа, отправленного в Депозитарий."/>
+                </validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 150 символов."/>
+					<parameter name="regexp">^.{1,150}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <field  name="documentType"
+                description="Тип документа"
+                type="string"
+                source="extra-parameters/parameter[@name='document-type']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field  name="documentFormName"
+                description="Тип документа"
+                type="string"
+                source="extra-parameters/parameter[@name='document-form-name']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field  name="recallDocumentNumber"
+                description="Номер"
+                type="string"
+                source="extra-parameters/parameter[@name='recall-document-number']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field  name="recallDocumentId"
+                description="Номер"
+                type="string"
+                source="extra-parameters/parameter[@name='recall-document-id']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field  name="recallDocumentDate"
+                description="Дата"
+                type="string"
+                source="extra-parameters/parameter[@name='recall-document-date']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field  name="recallDocumentDepoAccount"
+                description="Счет депо"
+                type="string"
+                source="extra-parameters/parameter[@name='depo-account']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field  name="deponentFIO"
+                description="ФИО депонента"
+                type="string"
+                source="extra-parameters/parameter[@name='deponent-fio']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field  name="claimExternalId"
+                description="Идентификатор отзываемого документа"
+                type="string"
+                source="extra-parameters/parameter[@name='claim-external-id']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+    </fields>
+
+    <!--Описания отзываемых заявок-->
+    <!-- formName ->> description -->
+    <dictionaries>
+		<entity-list name="claimDescriptors">
+            <entity key="SecuritiesTransferClaim">Поручение на перевод/прием перевода ценных бумаг</entity>
+            <entity key="SecurityRegistrationClaim">Заявка на регистрацию ценной бумаги</entity>
+        </entity-list>
+	</dictionaries>
+
+</payment-form>

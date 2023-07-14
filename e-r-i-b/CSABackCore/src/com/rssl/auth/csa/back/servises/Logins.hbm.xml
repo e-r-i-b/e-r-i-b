@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+        <!DOCTYPE hibernate-mapping PUBLIC
+                "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--
+        Существует ли логин в базе
+        Опорный объект: IDX_CSA_LOGINS
+        Предикаты доступа: UPPER("LOGIN")=UPPER(:LOGIN)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Login.isExistLogin">
+        <![CDATA[
+            select 1 from CSA_LOGINS where upper(LOGIN) = upper(:login)
+        ]]>
+    </sql-query>
+
+    <!--
+        Вставка логина в базу
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Login.createLogin">
+        <![CDATA[
+            insert into CSA_LOGINS(LOGIN, CONNECTOR_ID, GUEST_ID) values(:extra_login, :extra_connectorId, :extra_guestId)
+        ]]>
+    </sql-query>
+
+    <!--
+        Обновление параметров логина в базе
+        Опорный объект: IDX_CSA_LOGINS
+        Предикаты доступа: UPPER("LOGIN")=UPPER(:EXTRA_LOGIN)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Login.update">
+        <![CDATA[
+            update CSA_LOGINS set CONNECTOR_ID = :extra_connectorId, GUEST_ID = :extra_guestId where upper(LOGIN) = upper(:extra_login)
+        ]]>
+    </sql-query>
+
+    <!--
+        Обновление значения логина в базе
+        Опорный объект: IDX_CSA_LOGINS
+        Предикаты доступа: UPPER("LOGIN")=UPPER(:EXTRA_LOGIN)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Login.updateLogin">
+        <![CDATA[
+            update CSA_LOGINS set LOGIN = :extra_newLogin where upper(LOGIN) = upper(:extra_login)
+        ]]>
+    </sql-query>
+
+    <!--
+        Выборка значения логина для коннектора
+        Опорный объект: DXFK_CSA_LOGINS_TO_CONNECTORS
+        Предикаты доступа: "CONNECTOR_ID"=TO_NUMBER(:CONNECTORID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Login.getLoginValueByConnectorId">
+        <return-scalar column="LOGIN" type="string"/>
+        <![CDATA[
+            select LOGIN from CSA_LOGINS where CONNECTOR_ID = :connectorId
+        ]]>
+    </sql-query>
+
+    <!--
+        Выборка значения логина для гостевого профиля
+        Опорный объект: DXFK_CSA_LOGINS_TO_GUEST_PROF
+        Предикаты доступа: ("GUEST_ID"=TO_NUMBER(:GUESTID))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Login.getLoginValueByGuestId">
+        <return-scalar column="LOGIN" type="string"/>
+        <![CDATA[
+            select LOGIN from CSA_LOGINS where GUEST_ID = :guestId
+        ]]>
+    </sql-query>
+
+    <!--
+        Выборка значения логина для коннектора
+        Опорный объект: DXFK_CSA_LOGINS_TO_CONNECTORS
+        Предикаты доступа: "CONNECTOR_ID"=TO_NUMBER(:CONNECTORID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Login.findByConnectorId">
+        <return-scalar  column="LOGIN"          type="string"/>
+        <return-scalar  column="CONNECTOR_ID"   type="long"/>
+        <return-scalar  column="GUEST_ID"       type="long"/>
+        <![CDATA[
+            select LOGIN, CONNECTOR_ID, GUEST_ID from CSA_LOGINS where CONNECTOR_ID = :connectorId
+        ]]>
+    </sql-query>
+
+    <!--
+        Выборка значения логина для коннектора
+        Опорный объект: IDX_CSA_LOGINS
+        Предикаты доступа: UPPER("LOGIN")=UPPER(:LOGIN)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Login.findByLogin">
+        <return-scalar  column="LOGIN"          type="string"/>
+        <return-scalar  column="CONNECTOR_ID"   type="long"/>
+        <return-scalar  column="GUEST_ID"       type="long"/>
+        <![CDATA[
+            select LOGIN, CONNECTOR_ID, GUEST_ID from CSA_LOGINS where upper(LOGIN) = upper(:login)
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

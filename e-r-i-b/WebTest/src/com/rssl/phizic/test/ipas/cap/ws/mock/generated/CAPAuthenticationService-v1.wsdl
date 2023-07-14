@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions
+                  name="CAPAuthenticationService-v1"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+                  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+                  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:tns="http://www.openwaygroup.com/iPAS/WSDL/CAPAuthenticationService-v1"
+                  targetNamespace="http://www.openwaygroup.com/iPAS/WSDL/CAPAuthenticationService-v1"
+                  xmlns:v1_0="http://www.openwaygroup.com/iPAS/WSDL/CAPAuthenticationService-v1.0">
+
+    <!--
+        Revision   Date           Author               Comments
+        ========   ==========     ================     ==================
+          1.0       26/04/2012     Phil Gorbachev       Initial version
+    -->
+
+
+    <wsdl:types>
+     <xsd:schema targetNamespace="http://www.openwaygroup.com/iPAS/WSDL/CAPAuthenticationService-v1.0"
+                 xmlns:types-tns="http://www.openwaygroup.com/iPAS/Schema/CAPTypes-v1"
+                 xmlns:types-common="http://www.openwaygroup.com/iPAS/Schema/CommonTypes-v1">
+
+         <xsd:import namespace="http://www.openwaygroup.com/iPAS/Schema/CAPTypes-v1"
+                     schemaLocation="CAPTypes-v1.xsd"/>
+
+         <xsd:element name="VerifyCAPRq" type="types-tns:VerifyCAPRqType"/>
+         <xsd:element name="VerifyCAPRs" type="types-common:CommonRsType"/>
+
+     </xsd:schema>
+
+ </wsdl:types>
+
+    <!-- Messages: -->
+    <wsdl:message name="VerifyCAPRq">
+        <wsdl:part name="parameters" element="v1_0:VerifyCAPRq"/>
+    </wsdl:message>
+    <wsdl:message name="VerifyCAPRs">
+        <wsdl:part name="parameters" element="v1_0:VerifyCAPRs"/>
+    </wsdl:message>
+
+    <!-- Ports: -->
+	<wsdl:portType name="CAPAuthenticationPortType_v1_0">
+        <wsdl:operation name="VerifyCAP">
+            <wsdl:input message="tns:VerifyCAPRq"/>
+            <wsdl:output message="tns:VerifyCAPRs"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+	<wsdl:binding name="CAPAuthenticationBinding_v1_0" type="tns:CAPAuthenticationPortType_v1_0">
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="VerifyCAP">
+            <soap:operation soapAction="http://www.openwaygroup.com/iPAS/CAPAuthenticationService_v1/VerifyCAP" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+	</wsdl:binding>
+
+	<wsdl:service name="CAPAuthenticationService_v1_0">
+		<wsdl:port name="iPASWSSoap" binding="tns:CAPAuthenticationBinding_v1_0">
+			<soap:address location="http://localhost:12100/WS/iPAS/CAPAuthenticationService-v1"/>
+		</wsdl:port>
+	</wsdl:service>
+
+</wsdl:definitions>
+

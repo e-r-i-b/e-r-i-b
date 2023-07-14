@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="com.rssl.phizic.gate.bankroll.generated"/>
+				<jxb:nameXmlTransform>
+					<jxb:elementName suffix="Element"/>
+					<jxb:typeName suffix="Descriptor"/>
+				</jxb:nameXmlTransform>
+			</jxb:schemaBindings>
+		</xsd:appinfo>
+	</xsd:annotation>
+
+	<xsd:element name="services">
+        <xsd:complexType>
+            <xsd:sequence>
+	            <xsd:element name="sources" maxOccurs="1" minOccurs="1">
+		            <xsd:annotation>
+						<xsd:documentation>Описание классов, необходимых для получения информации описанными методами.</xsd:documentation>
+					</xsd:annotation>
+		            <xsd:complexType>
+			            <xsd:sequence>
+		                    <xsd:element name="source" type="Source" minOccurs="1" maxOccurs="unbounded"/>
+			            </xsd:sequence>
+		                <xsd:attribute name="default" use="required"/>			            
+			        </xsd:complexType>
+	            </xsd:element>
+                <xsd:element name="methods" maxOccurs="1" minOccurs="1">
+				   <xsd:annotation>
+						<xsd:documentation>Описание методов. ВНИМАНИЕ!!! В текущей реализации, если возвращается контейнер, например list. Field прописывать нельзя.</xsd:documentation>
+				   </xsd:annotation>
+				   <xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="method" minOccurs="1" maxOccurs="unbounded" type="Method"/>
+					   </xsd:sequence>
+				   </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+	<xsd:complexType name="Source">
+			<xsd:annotation>
+				<xsd:documentation>Описание конкретного класса. Хотя бы один source длжен быть default="true".</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="alias" use="required" type="xsd:string"/>
+			<xsd:attribute name="class-name" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Method">
+		<xsd:annotation>
+            <xsd:documentation>Описание метода получения данных.</xsd:documentation>
+        </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="conditions"  minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Условия выбора класса, в зависимости от переданных параметров</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="condition" type="Condition"  minOccurs="1" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="field" type="Field" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="signature" use="required"/>
+		<xsd:attribute name="source" use="optional"/>
+		<xsd:attribute name="condition" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Condition">
+		<xsd:annotation>
+			<xsd:documentation>Условия выбора source'а</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="case" type="Case" minOccurs="1" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="alias" type="xsd:string" use="required"/>
+		<xsd:attribute name="parameterNmber" type="xsd:int" use="required">
+			<xsd:annotation>
+				<xsd:documentation>Номер параметра вызываемого метода, начиная с 0</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="type" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Field">
+		<xsd:annotation>
+			<xsd:documentation>Получаем конкретное поле из указанного класса, в таком порядке: 1. condition, если нет 2.source, если нет 3. source у Method'а, если нет 4.default source'а</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="name" use="required"/>
+		<xsd:attribute name="source" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Case">
+		<xsd:annotation>
+			<xsd:documentation>Описания условия выбора источника.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="value" use="required"/>
+		<xsd:attribute name="source" use="required"/>
+	</xsd:complexType>
+
+</xsd:schema>

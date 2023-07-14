@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         id="WebApp_BasketProxyListener">
+
+	<listener>
+		<listener-class>com.rssl.phizic.init.InitializerListenerBase</listener-class>
+	</listener>
+
+    <servlet>
+        <servlet-name>BasketReceiverServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.web.basket.BasketReceiverServlet</servlet-class>
+        <!-- слушатель очереди Q.IN -->
+        <init-param>
+            <param-name>receive-addBillBasketInfo</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>addBillBasketInfo-timeout</param-name>
+            <param-value>1000</param-value>
+        </init-param>
+
+        <!-- слушатель очереди Q.Response -->
+        <init-param>
+            <param-name>receive-acceptBillBasketExecute</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>acceptBillBasketExecute-timeout</param-name>
+            <param-value>1000</param-value>
+        </init-param>
+        <init-param>
+            <param-name>acceptBillBasketExecute-threads-count</param-name>
+            <param-value>10</param-value>
+        </init-param>
+
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <filter>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>BasketProxyListener</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <resource-ref id="BasketProxyListener_ResourceRef_JDBC_OfflineDoc">
+        <res-ref-name>jdbc/OfflineDoc</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+
+    <resource-ref id="BasketProxyListener_ResourceRef_JDBC_PhizICLog">
+        <res-ref-name>jdbc/PhizICLog</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+</web-app>

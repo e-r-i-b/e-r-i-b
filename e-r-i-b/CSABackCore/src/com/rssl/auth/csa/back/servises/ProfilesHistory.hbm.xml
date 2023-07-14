@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.auth.csa.back.servises.ProfileHistory" table="CSA_PROFILES_HISTORY">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CSA_PROFILES_HISTORY</param>
+            </generator>
+        </id>
+        <property name="profileId" type="long" column="PROFILE_ID" not-null="true"/>
+
+        <property name="firstname" type="string" column="FIRST_NAME" not-null="true"/>
+        <property name="surname" type="string" column="SUR_NAME" not-null="true"/>
+        <property name="patrname" type="string" column="PATR_NAME" not-null="false"/>
+
+        <property name="birthdate" type="calendar" column="BIRTHDATE" not-null="true"/>
+        <property name="passport" type="string" column="PASSPORT" not-null="true"/>
+        <property name="tb" type="string" column="TB" not-null="true"/>
+
+        <property name="expireDate" type="calendar" formula="EXPIRE_DATE" not-null="true" generated="insert"/>
+    </class>
+
+    <query name="com.rssl.auth.csa.back.servises.ProfileHistory.changeProfile">
+        update com.rssl.auth.csa.back.servises.ProfileHistory history
+        set profileId = :new_profile
+        where profileId in (:old_profile)
+    </query>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.ProfileHistory.getHistoryByUserInfo">
+        <return alias="history" class="com.rssl.auth.csa.back.servises.ProfileHistory"/>
+        <![CDATA[
+        SELECT {history.*} FROM CSA_PROFILES_HISTORY history
+        WHERE history.PROFILE_ID =
+            (
+                SELECT profile.id FROM CSA_PROFILES profile
+                WHERE UPPER(TRIM(REGEXP_REPLACE(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                    AND REPLACE(profile.PASSPORT,' ','') = REPLACE(:passport,' ','')
+                    AND profile.BIRTHDATE = :birthdate
+                    AND profile.TB = :tb
+            )
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.ProfileHistory.find">
+        <return alias="profileHistory" class="com.rssl.auth.csa.back.servises.ProfileHistory"/>
+        <![CDATA[
+         SELECT {profileHistory.*} FROM CSA_PROFILES_HISTORY profileHistory
+         WHERE
+             UPPER(TRIM(REGEXP_REPLACE(profileHistory.SUR_NAME||' '||profileHistory.FIRST_NAME||' '||profileHistory.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+             AND REPLACE(profileHistory.PASSPORT,' ','') = REPLACE(:passport,' ','')
+             AND profileHistory.birthdate = :birthdate
+             AND profileHistory.tb = :tb
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

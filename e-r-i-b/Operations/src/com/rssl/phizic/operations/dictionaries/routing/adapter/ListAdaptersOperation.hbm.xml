@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.dictionaries.routing.adapter.ListAdaptersOperation.list">
+        <return alias="adapter" class="com.rssl.phizicgate.manager.routing.Adapter"/>
+        <return-scalar column="NODE_TYPE"/>
+            select {adapter.*}, node.TYPE as NODE_TYPE from ADAPTERS adapter
+                left join NODE_ADAPTERS nd on adapter.ID = nd.ADAPTER_ID
+                left join NODES node on nd.NODE_ID = node.ID
+            where
+                ((:extra_name is null) or (:extra_name = '') or (upper(adapter.NAME) like upper(:extra_like_name))) and
+                ((:extra_UUID is null)  or (:extra_UUID = '')  or (upper(adapter.UUID)  like upper(:extra_like_UUID)))
+    </sql-query>
+</hibernate-mapping>
+

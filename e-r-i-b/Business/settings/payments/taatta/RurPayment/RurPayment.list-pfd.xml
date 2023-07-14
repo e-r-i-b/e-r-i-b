@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../PaymentList.xsd"
+		title="Список платежей - перевод рублей РФ"
+>
+	<filter>
+		<fields>
+			<field name="state" description="Статус"/>
+			<field name="minAmount" description="Минимальная сумма" type="money">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.MoneyFieldValidator"/>
+				</validators>
+			</field>
+			<field name="maxAmount" description="Максимальная сумма" type="money">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.MoneyFieldValidator"/>
+				</validators>
+			</field>
+			<field name="fromDate" description="Начальная дата" type="date">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				</validators>
+			</field>
+			<field name="toDate" description="Конечная дата" type="date">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				</validators>
+			</field>
+			<field name="payerAccount" description="Счет списания"/>
+			<field name="receiverAccount" description="Счет зачисления"/>
+		</fields>
+
+		<form-validators>
+			<form-validator class="com.rssl.common.forms.validators.CompareValidator">
+				<message text="Максимальная сумма должна быть больше либо равна минимальной"/>
+				<field-ref name="obj1">minAmount</field-ref>
+				<field-ref name="obj2">maxAmount</field-ref>
+				<parameter name="operator">le</parameter>
+			</form-validator>
+			<form-validator class="com.rssl.common.forms.validators.CompareValidator">
+				<message text="Конечная дата должна быть больше либо равна начальной"/>
+				<field-ref name="obj1">fromDate</field-ref>
+				<field-ref name="obj2">toDate</field-ref>
+				<parameter name="operator">le</parameter>
+			</form-validator>
+		</form-validators>
+	</filter>
+
+	<hql-query>
+		<returnKey property="id"/>
+		<return property="documentDate"/>
+		<return property="documentNumber"/>
+		<return property="chargeOffAccount"/>
+		<return property="receiverAccount"/>
+		<return property="chargeOffAmount.decimal"/>
+		<return property="chargeOffAmount.currency.code"/>
+		<return property="state.code"/>
+		<return property="state.category"/>
+
+		<![CDATA[
+			select payment
+				from com.rssl.phizic.business.documents.payments.RurPayment as payment
+			where payment.formName = 'RurPayment'
+			    and payment.owner.id = :loginId
+				and (:state is null           or :state = '' or payment.state.code = :state)
+				and (:minAmount is null       or payment.chargeOffAmount.decimal >= :minAmount)
+				and (:maxAmount is null       or payment.chargeOffAmount.decimal <= :maxAmount)
+				and (:fromDate is null        or payment.dateCreated >= :fromDate)
+				and (:toDate is null          or payment.dateCreated <= :toDate  )
+				and (:payerAccount is null    or :payerAccount    = '' or payment.chargeOffAccount    = :payerAccount   )
+				and (:receiverAccount is null or :receiverAccount = '' or payment.receiverAccount = :receiverAccount   )
+			order by payment.documentDate asc, payment.id desc
+		]]>
+	</hql-query>
+</payment-list>
+
+

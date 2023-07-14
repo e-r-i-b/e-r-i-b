@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--
+        Таблица предварительного хранения оферт, созданных в каналах отличных от УКО
+    -->
+    <class name="com.rssl.phizgate.ext.sbrf.etsm.OfferOfficePrior" table="OFFER_OFFICE_PRIOR">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_OFFER_OFFICE_PRIOR</param>
+            </generator>
+        </id>
+        <property name="rqUid"                      type="string"               column="RQ_UID"/>
+        <property name="offerDate"                  type="date"                 column="OFFER_DATE"/>
+        <property name="applicationNumber"          type="string"               column="APPLICATION_NUMBER"/>
+        <property name="firstName"                  type="string"               column="FIRST_NAME"/>
+        <property name="lastName"                   type="string"               column="LAST_NAME"/>
+        <property name="middleName"                 type="string"               column="MIDDLE_NAME"/>
+        <property name="idType"                     type="string"               column="ID_TYPE"/>
+        <property name="idSeries"                   type="string"               column="ID_SERIES"/>
+        <property name="idNum"                      type="string"               column="ID_NUM"/>
+        <property name="idIssueBy"                  type="string"               column="ID_ISSUE_BY"/>
+        <property name="idIssueDate"                type="calendar"             column="ID_ISSUE_DATE "/>
+        <property name="birthDate"                  type="calendar"             column="BIRTH_DATE"/>
+        <property name="clientCategory"             type="string"               column="CLIENT_CATEGORY"/>
+        <property name="altPeriod"                  type="long"                 column="ALT_PERIOD"/>
+        <property name="altAmount"                  type="big_decimal"          column="ALT_AMOUNT"/>
+        <property name="altInterestRate"            type="big_decimal"          column="ALT_INTEREST_RATE"/>
+        <property name="altFullLoanCost"            type="big_decimal"          column="ALT_FULL_LOAN_COST"/>
+        <property name="altAnnuityPayment"          type="big_decimal"          column="ALT_ANNUITY_PAYMENT"/>
+        <property name="altCreditCardLimit"         type="big_decimal"          column="ALT_CREDIT_CARD_LIMIT"/>
+        <property name="state"                      type="string"               column="STATE"/>
+        <property name="productTypeCode"            type="string"               column="PRODUCT_TYPE_CODE"/>
+        <property name="productCode"                type="string"               column="PRODUCT_CODE"/>
+        <property name="subProductCode"             type="string"               column="SUB_PRODUCT_CODE"/>
+        <property name="department"                 type="string"               column="DEPARTMENT"/>
+        <property name="currency"                   type="string"               column="CURRENCY"/>
+        <property name="typeOfIssue"                type="string"              column="TYPE_OF_ISSUE"/>
+        <property name="accountNumber"              type="string"               column="ACCAUNT_NUMBER"/>
+        <property name="visibilityCounter"          type="long"                 column="VISIBILITY_COUNTER"/>
+        <property name="registrationAddress"        type="string"               column="REGISTRATION_ADDRESS"/>
+    </class>
+
+    <!--
+        Получение неподтвержденных оферт клиента (по заявкам, созданным в каналах, отличных от УКО)
+        Опорный объект: OFFER_OP_FIO_BD_DOC_IDX
+        Предикаты доступа: (UPPER(REPLACE(REPLACE("LAST_NAME"||"FIRST_NAME"||"MIDDLE_NAME",' ',''),'-',''))=:FIO AND
+              UPPER(REPLACE("ID_SERIES",' ','')||REPLACE("ID_NUM",' ',''))=:DOC AND "OFFER"."BIRTH_DATE"=TO_TIMESTAMP(:BIRTHDAY)
+                 AND "OFFER"."OFFER_DATE"<TO_TIMESTAMP(:CREATEDATE))
+        Кардинальность: max – 16 (оговорено, что у одного клиента будет только одна действующая оферта, для одной оферты может быть до 16 условий, которые и образуют запись в БД)
+    -->
+    <query name="com.rssl.phizgate.ext.sbrf.etsm.OfferOfficePrior.getOfferOfficePrior">
+        select offer
+        from com.rssl.phizgate.ext.sbrf.etsm.OfferOfficePrior as offer
+        where upper(replace(replace(offer.lastName||offer.firstName||offer.middleName,' ',''),'-','')) = :FIO
+            and upper(replace(offer.idSeries,' ','')||replace(offer.idNum,' ',''))  = :Doc
+            and offer.birthDate = :birthDay
+            and offer.offerDate >= :actualDate
+            and offer.state = 'ACTIVE'
+    </query>
+
+    <!--
+       удаление оферт по applicationNumber и offerDate
+       Опорный объект: OFFER_PRIOR_APP_IDX
+       Предикаты доступа:    3 - filter("OFFER_DATE"=TO_TIMESTAMP(:OFFERDATE))
+                             4 - access("APPLICATION_NUMBER"=:APPNUM)
+       Кардинальность: по количеству найденых заявок
+   -->
+    <query name="com.rssl.phizgate.ext.sbrf.etsm.OfferOfficePrior.deleteOffers">
+            update com.rssl.phizgate.ext.sbrf.etsm.OfferOfficePrior as offer
+            set offer.state = 'DELETED'
+            where offer.applicationNumber = :appNum
+            and offer.offerDate = :offerDate
+    </query>
+
+    <!--
+      Получить предложение по appNum, state и lifeDate(31 день от offerDate) >  offerDate
+      Опорный объект: OFFER_PRIOR_APP_IDX
+      Предикаты доступа: access("APPLICATION_NUMBER"=:APPNUM AND "STATE"=:STATUS)
+      Кардинальность: по количеству  найденных
+  -->
+    <query name="com.rssl.phizgate.ext.sbrf.etsm.OfferOfficePrior.getOffers">
+        select offer
+        from com.rssl.phizgate.ext.sbrf.etsm.OfferOfficePrior offer
+        where :appNum = offer.applicationNumber
+        and  :lifeDate > offer.offerDate
+        and  :status = offer.state
+    </query>
+
+</hibernate-mapping>

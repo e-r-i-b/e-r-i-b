@@ -1,0 +1,59 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.dictionaries.promoCodesDeposit.PromoCodeDeposit" table="PROMO_CODES_DEPOSIT">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PROMO_CODES_DEPOSIT</param>
+            </generator>
+        </id>
+
+        <property name="code"                   type="long"         column="CODE"                   not-null="true"/>
+        <property name="codeG"                  type="long"         column="CODE_G"                 not-null="true"/>
+        <property name="mask"                   type="string"       column="MASK"                   not-null="true"/>
+        <property name="codeS"                  type="long"         column="CODE_S"                 not-null="true"/>
+        <property name="dateBegin"              type="calendar"     column="DATE_BEGIN"             not-null="true"/>
+        <property name="dateEnd"                type="calendar"     column="DATE_END"               not-null="true"/>
+        <property name="srokBegin"              type="string"       column="SROK_BEGIN"             not-null="true"/>
+        <property name="srokEnd"                type="string"       column="SROK_END"               not-null="true"/>
+        <property name="numUse"                 type="long"         column="NUM_USE"                not-null="true"/>
+        <property name="prior"                  type="integer"      column="PRIORITY"               not-null="true"/>
+        <property name="abRemove"               type="boolean"      column="AB_REMOVE"              not-null="true"/>
+        <property name="activeCount"            type="long"         column="ACTIVE_COUNT"           not-null="true"/>
+        <property name="histCount"              type="long"         column="HIST_COUNT"             not-null="true"/>
+        <property name="nameAct"                type="string"       column="NAME_ACT"               not-null="true"/>
+        <property name="nameS"                  type="string"       column="NAME_S"                 not-null="true"/>
+        <property name="nameF"                  type="string"       column="NAME_F"                 not-null="false"/>
+        <property name="uuid"                   type="string"       column="UUID"                   not-null="true"/>
+    </class>
+
+    <!-- Получить весь справочник промо-кодов. Используется только при загрузке справочника -->
+    <!--
+       Опорный объект: PROMO_CODES_DEPOSIT
+       Предикаты доступа: fullscan
+       Кардинальность: равна количеству записей в справочнике промо-кодов
+    -->
+    <query name="com.rssl.phizic.business.dictionaries.promoCodesDeposit.PromoCodeDeposit.getAll">
+        select promoCodeDeposit
+        from com.rssl.phizic.business.dictionaries.promoCodesDeposit.PromoCodeDeposit as promoCodeDeposit
+        order by to_number(promoCodeDeposit.code)
+    </query>
+
+    <!--Справочник промо-кодов актуальный на дату. Используется при проверке промо-кода-->
+    <!--
+       Опорный объект: PROMO_CODES_DEPOSIT
+       Предикаты доступа: fullscan
+       Кардинальность: равна количеству записей в справочнике промо-кодов актуальных на дату. При fullscan кол-во записей не более 500.
+    -->
+    <query name="com.rssl.phizic.business.dictionaries.promoCodesDeposit.PromoCodeDeposit.findActualByDate">
+        <![CDATA[
+        select promoCodeDeposit from com.rssl.phizic.business.dictionaries.promoCodesDeposit.PromoCodeDeposit promoCodeDeposit
+        where promoCodeDeposit.dateBegin <= :actualDate
+          and promoCodeDeposit.dateEnd >= :actualDate
+         ]]>
+    </query>
+</hibernate-mapping>

@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--
+        Таблица предварительного хранения оферт, созданных в ЕРИБ
+    -->
+    <class name="com.rssl.phizic.business.etsm.offer.OfferEribPrior" table="OFFER_ERIB_PRIOR">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_OFFER_ERIB_PRIOR</param>
+            </generator>
+        </id>
+
+
+        <property name="rqUid"                      type="string"               column="RQ_UID"/>
+        <property name="offerDate"                  type="calendar"             column="OFFER_DATE"/>
+        <property name="applicationNumber"          type="string"               column="APPLICATION_NUMBER"/>
+        <property name="claimId"                    type="long"                 column="CLAIM_ID"/>
+        <property name="clientLoginId"              type="long"                 column="CLIENT_LOGIN_ID"/>
+        <property name="clientCategory"             type="string"               column="CLIENT_CATEGORY"/>
+        <property name="altPeriod"                  type="long"                 column="ALT_PERIOD"/>
+        <property name="altAmount"                  type="big_decimal"          column="ALT_AMOUNT"/>
+        <property name="altInterestRate"            type="big_decimal"          column="ALT_INTEREST_RATE"/>
+        <property name="altFullLoanCost"            type="big_decimal"          column="ALT_FULL_LOAN_COST"/>
+        <property name="altAnnuityPayment"          type="big_decimal"          column="ALT_ANNUITY_PAYMENT"/>
+        <property name="altCreditCardLimit"         type="big_decimal"          column="ALT_CREDIT_CARD_LIMIT"/>
+        <property name="state"                      type="string"               column="STATE"/>
+        <property name="visibilityCounter"          type="long"                 column="VISIBILITY_COUNTER"/>
+    </class>
+
+    <!--
+        Таблица подтвержденных оферт по заявкам, созданным в ЕРИБ, и в каналах отличных от УКО
+    -->
+    <class name="com.rssl.phizic.business.etsm.offer.OfferConfirmed" table="OFFER_CONFIRMED">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_OFFER_CONFIRMED</param>
+            </generator>
+        </id>
+
+        <property name="offerDate"                  type="calendar"             column="OFFER_DATE"/>
+        <property name="applicationNumber"          type="string"               column="APPLICATION_NUMBER"/>
+        <property name="claimId"                    type="long"                 column="CLAIM_ID"/>
+        <property name="clientLoginId"              type="long"                 column="CLIENT_LOGIN_ID"/>
+        <property name="templateId"                 type="long"                 column="TEMPLATE_ID"/>
+        <property name="firstName"                  type="string"               column="FIRST_NAME"/>
+        <property name="lastName"                   type="string"               column="LAST_NAME"/>
+        <property name="middleName"                 type="string"               column="MIDDLE_NAME"/>
+        <property name="idType"                     type="string"               column="ID_TYPE"/>
+        <property name="idSeries"                   type="string"               column="ID_SERIES"/>
+        <property name="idNum"                      type="string"               column="ID_NUM"/>
+        <property name="issuedBy"                   type="string"               column="ISSUED_BY"/>
+        <property name="issueDt"                    type="calendar"             column="ISSUE_DT"/>
+        <property name="altPeriod"                  type="long"                 column="ALT_PERIOD"/>
+        <property name="altAmount"                  type="big_decimal"          column="ALT_AMOUNT"/>
+        <property name="altInterestRate"            type="big_decimal"          column="ALT_INTEREST_RATE"/>
+        <property name="altFullLoanCost"            type="big_decimal"          column="ALT_FULL_LOAN_COST"/>
+        <property name="altAnnuityPayment"          type="big_decimal"          column="ALT_ANNUITY_PAYMENT"/>
+        <property name="altCreditCardLimit"         type="big_decimal"          column="ALT_CREDIT_CARD_LIMIT"/>
+        <property name="accountNumber"              type="string"               column="ACCOUNT_NUMBER"/>
+        <property name="borrower"                   type="string"               column="BORROWER"/>
+        <property name="registrationAddress"        type="string"               column="REGISTRATION_ADDRESS"/>
+    </class>
+
+    <!--
+        Получение неподтвержденных оферт клиента (по заявкам, созданным в УКО)
+        Опорный объект: IDX_OFFER_ERIB_PRIOR_CLIENT
+        Предикаты доступа: ("CLIENT_LOGIN_ID"=TO_NUMBER(:LOGINID) AND "OFFER_DATE">=TO_TIMESTAMP(:ACTUALDATE) AND "OFFER_DATE" IS NOT NULL)
+        Кардинальность: max – 16 (оговорено, что у одного клиента будет только одна действующая оферта, для одной оферты может быть до 16 условий, которые и образуют запись в БД)
+    -->
+    <query name="com.rssl.phizic.business.etsm.offer.OfferEribPrior.getOfferEribPrior">
+        select offer
+        from com.rssl.phizic.business.etsm.offer.OfferEribPrior offer
+        where offer.clientLoginId = :loginId and
+        offer.offerDate >= :actualDate and
+        offer.state = 'ACTIVE'
+    </query>
+
+    <!--
+        Получение подтвержденной оферты по номеру заявки
+        Опорный объект: APPLICATION_NUMBER_IDX
+        Предикаты доступа: "APPLICATION_NUMBER"=:APPNUM
+        Кардинальность: 1 (только одна запись на подтвержденную оферту)
+    -->
+    <query name="com.rssl.phizic.business.etsm.offer.OfferConfirmed">
+        select offer
+        from com.rssl.phizic.business.etsm.offer.OfferConfirmed offer
+        where offer.applicationNumber = :appNum
+    </query>
+
+    <!--
+        Получение неподтвержденной оферты по номеру заявки и ID записи
+        Опорный объект: OFFER_ERIB_PRIOR_PK
+        Предикаты доступа: "ID"=TO_NUMBER(:ID)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.etsm.offer.OfferEribPrior.getOneOfferEribPrior">
+        select offer
+        from com.rssl.phizic.business.etsm.offer.OfferEribPrior offer
+        where offer.applicationNumber = :appNum and
+        offer.id = :id
+    </query>
+
+    <!--
+        Получить предложение по appNum, state и lifeDate(31 день от offerDate) >  offerDate
+        Опорный объект: OFFER_PRIOR_APP_IDX
+        Предикаты доступа: access("APPLICATION_NUMBER"=:APPNUM AND "STATE"=:STATUS)
+        Кардинальность: по количеству  найденных
+    -->
+    <query name="com.rssl.phizic.business.etsm.offer.OfferEribPrior.getOffers">
+        select offer
+        from com.rssl.phizic.business.etsm.offer.OfferEribPrior offer
+        where :appNum = offer.applicationNumber
+        and  :lifeDate > offer.offerDate
+        and  :status = offer.state
+    </query>
+
+</hibernate-mapping>

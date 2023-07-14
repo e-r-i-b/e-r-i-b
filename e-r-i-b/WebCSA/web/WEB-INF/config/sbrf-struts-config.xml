@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<!DOCTYPE struts-config PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN"
+        "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+
+<struts-config>
+     <form-beans>
+        <form-bean name="AuthenticationFormBase" type="com.rssl.phizic.web.auth.AuthenticationFormBase"/>
+        <form-bean name="RegistrationForm" type="com.rssl.phizic.web.auth.registration.RegistrationForm"/>
+        <form-bean name="RecoverPasswordForm" type="com.rssl.phizic.web.auth.recover.RecoverPasswordForm"/>
+        <form-bean name="LoginForm" type="com.rssl.phizic.web.auth.login.LoginForm"/>
+
+        <form-bean name="AuthNewsForm" type="com.rssl.phizic.web.news.AuthNewsForm"/>
+        <form-bean name="ListDownloadLinksForm" type="com.rssl.phizic.web.unallowedbrowsers.ListDownloadLinksForm"/>
+    </form-beans>
+
+    <global-exceptions>
+        <exception
+                key="message.default.error"
+                type="java.lang.Exception"
+                handler="com.rssl.auth.csa.front.exceptions.LogableExceptionHandler"
+                path="/WEB-INF/jsp/auth/error.jsp"
+                bundle="commonBundle"/>
+    </global-exceptions>
+
+    <global-forwards>
+        <forward name="turingTest" path="/WEB-INF/jsp/auth/turingTest.jsp"/>
+        <forward name="error" path="/WEB-INF/jsp/auth/error.jsp"/>
+        <forward name="reset" path="/WEB-INF/jsp/auth/reset.jsp"/>
+    </global-forwards>
+    
+    <action-mappings>
+        <action path="/index" type="com.rssl.phizic.web.auth.AuthenticationActionBase" name="AuthenticationFormBase" scope="request" validate="false">
+            <forward name="start" path="/WEB-INF/jsp/common/frontContent.jsp"/>
+        </action>
+
+        <action path="/popup/registration" type="com.rssl.phizic.web.auth.registration.asynch.RegistrationAction" name="RegistrationForm" scope="request" validate="false">
+            <forward name="confirm" path="/WEB-INF/jsp/auth/registration/confirm.jsp"/>
+            <forward name="post-confirm" path="/WEB-INF/jsp/auth/registration/postConfirm.jsp"/>
+            <forward name="complete" path="/WEB-INF/jsp/auth/registration/complete.jsp"/>
+        </action>
+
+        <action path="/internal/page/registration" type="com.rssl.phizic.web.auth.registration.synch.InternalRegistrationAction" name="RegistrationForm" scope="request" validate="false">
+            <forward name="turingTest" path="/internal/page/registration.do" redirect="true"/>
+            <forward name="login-form" path="/index.do?form=login-form" redirect="true"/>
+            <forward name="start-reg" path="/WEB-INF/jsp/auth/registration/internal-start-reg.jsp"/>
+            <forward name="confirm-reg" path="/WEB-INF/jsp/auth/registration/internal-confirm-reg.jsp"/>
+            <forward name="finish-reg" path="/WEB-INF/jsp/auth/registration/internal-finish-reg.jsp"/>
+            <forward name="complete" path="/WEB-INF/jsp/auth/registration/internal-finish-reg.jsp"/>
+        </action>
+
+        <action path="/external/page/registration" type="com.rssl.phizic.web.auth.registration.synch.ExternalRegistrationAction" name="RegistrationForm" scope="request" validate="false">
+            <forward name="turingTest" path="/external/page/registration.do" redirect="true"/>
+            <forward name="login-form" path="/index.do?form=login-form" redirect="true"/>
+            <forward name="start-reg" path="/WEB-INF/jsp/auth/registration/external-start-reg.jsp"/>
+            <forward name="confirm-reg" path="/WEB-INF/jsp/auth/registration/external-confirm-reg.jsp"/>
+            <forward name="finish-reg" path="/WEB-INF/jsp/auth/registration/external-finish-reg.jsp"/>
+            <forward name="complete" path="/WEB-INF/jsp/auth/registration/external-finish-reg.jsp"/>
+        </action>
+
+        <action path="/recover-password" type="com.rssl.phizic.web.auth.recover.RecoverPasswordAction" name="RecoverPasswordForm" scope="request" validate="false">
+            <forward name="confirm" path="/WEB-INF/jsp/auth/recover/confirm.jsp"/>
+            <forward name="post-confirm" path="/WEB-INF/jsp/auth/recover/postConfirm.jsp"/>
+            <forward name="complete" path="/WEB-INF/jsp/auth/recover/complete.jsp"/>
+        </action>
+
+        <action path="/login" type="com.rssl.phizic.web.auth.login.LoginAction" name="LoginForm" scope="request" validate="false">
+            <forward name="choice-logins" path="/WEB-INF/jsp/auth/login/choice-logins.jsp"/>
+            <forward name="complete" path="/WEB-INF/jsp/auth/login/redirect.jsp"/>
+        </action>
+
+        <action path="/async/news" type="com.rssl.phizic.web.news.AuthNewsAction" name="AuthNewsForm" scope="request" validate="false">
+            <forward name="start" path="/WEB-INF/jsp/news/sendAjaxNews.jsp"/>
+        </action>
+
+        <action path="/unallowedbrowsers" type="com.rssl.phizic.web.unallowedbrowsers.ListDownloadLinksAction" name="ListDownloadLinksForm" scope="request" validate="false">
+            <forward name="start" path="/WEB-INF/jsp/unallowedbrowsers/downloadLinks.jsp"/>
+            <forward name="loadFullVersion" path="/index.do" redirect="true"/>
+        </action>
+    </action-mappings>
+
+    <message-resources
+            factory="com.rssl.phizic.web.struts.MultiPropertyMessageResourcesFactory"
+            parameter="com.rssl.phizic.web.common.resources;
+                       com.rssl.phizic.business.documents.payments.forms.validator"
+            key="commonBundle"/>
+
+</struts-config>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <resultset name="com.rssl.phizic.operations.calendar.ListCalendarOperation.list.resultset">
+		<return alias="calendar" class="com.rssl.phizic.business.calendar.WorkCalendar"/>
+    </resultset>
+	<sql-query name="com.rssl.phizic.operations.calendar.ListCalendarOperation.list"
+               resultset-ref="com.rssl.phizic.operations.calendar.ListCalendarOperation.list.resultset">
+        SELECT
+            {calendar.*}
+        FROM
+            CALENDARS calendar
+        WHERE :CAAdmin='1' OR
+              :AllTbAccess='1' OR
+              calendar.TB is null OR
+              exists(select 1
+                     from ALLOWED_DEPARTMENTS ad
+                     where ad.LOGIN_ID = :employeeLoginId
+                            and ad.TB in (calendar.TB,'*')
+                            and ad.OSB = '*'
+                            and ad.VSP = '*')
+	</sql-query>
+</hibernate-mapping>

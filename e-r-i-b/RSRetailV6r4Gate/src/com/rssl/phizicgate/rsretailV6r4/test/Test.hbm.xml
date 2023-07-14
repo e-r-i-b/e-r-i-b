@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.rssl.phizicgate.rsretailV6r4.test">
+	<class name="com.rssl.phizicgate.rsretailV6r4.test.TestV6" table="DRT_PAYM_DBT">
+		<id name="id" type="string" column="T_APPLICATIONKEY"/>
+		<property name="attrId" type="string" column="T_ATTRID"/>
+		<property name="blobInfo" type="string">
+			<formula>
+				REPLACE(RSB_STRUCT.getString('t_Accnt',T_FMTBLOBDATA_XXXX , 0),CHR(0),'')
+			</formula>
+		</property>
+	</class>
+
+    <query name="com.rssl.phizicgate.rsretailV6r4.test.getBlobTest">
+	    select test 
+	    from com.rssl.phizicgate.rsretailV6r4.test.TestV6 as test
+        where test.id = :appKind and (NOT test.blobInfo IS NULL)
+    </query>
+
+	<query name="com.rssl.phizicgate.rsretailV6r4.test.getBlobTest.list">
+	    select test
+	    from com.rssl.phizicgate.rsretailV6r4.test.TestV6 as test
+        where NOT test.blobInfo IS NULL
+    </query>
+
+
+</hibernate-mapping>

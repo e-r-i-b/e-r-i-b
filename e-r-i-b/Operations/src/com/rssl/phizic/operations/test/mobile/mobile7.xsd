@@ -1,0 +1,3223 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xsd:schema xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:annotation>
+        <xsd:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="com.rssl.phizic.operations.test.generated"/>
+				<jxb:nameXmlTransform>
+					<jxb:elementName suffix="Element"/>
+					<jxb:typeName suffix="Descriptor"/>
+				</jxb:nameXmlTransform>
+			</jxb:schemaBindings>
+		</xsd:appinfo>
+    </xsd:annotation>
+
+    <xsd:element name="response">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="status" type="Status"/>
+
+                <xsd:choice>
+
+                    <!-- Список шаблонов платежей (Мобильного Банка) -->
+                    <xsd:element name="templateList" minOccurs="0">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="card" maxOccurs="unbounded">
+                                    <xsd:complexType>
+                                        <xsd:sequence>
+                                            <xsd:element name="id" type="xsd:int"/>
+                                            <xsd:element name="name" type="xsd:string"/>
+                                            <xsd:element name="number" type="xsd:string" minOccurs="0"/>
+                                            <xsd:element name="availableLimit" type="Money" minOccurs="0"/>
+                                            <xsd:element name="state" type="CardState"/>
+                                            <xsd:element name="templates" minOccurs="0">
+                                                <xsd:complexType>
+                                                    <xsd:sequence>
+                                                        <xsd:element name="template" maxOccurs="unbounded">
+                                                            <xsd:complexType>
+                                                                <xsd:sequence>
+                                                                    <xsd:element name="id" type="xsd:int"/>
+                                                                    <xsd:element name="state" type="TempStatus"/>
+                                                                    <xsd:element name="error" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                                                                    <xsd:element name="recipient" type="xsd:string"/>
+                                                                    <xsd:element name="payer" minOccurs="0">
+                                                                        <xsd:complexType>
+                                                                            <xsd:sequence>
+                                                                                <xsd:element name="name" type="xsd:string"/>
+                                                                                <xsd:element name="value" type="xsd:string"/>
+                                                                            </xsd:sequence>
+                                                                        </xsd:complexType>
+                                                                    </xsd:element>
+                                                                </xsd:sequence>
+                                                            </xsd:complexType>
+                                                        </xsd:element>
+                                                    </xsd:sequence>
+                                                </xsd:complexType>
+                                            </xsd:element>
+                                        </xsd:sequence>
+                                    </xsd:complexType>
+                                </xsd:element>
+                            </xsd:sequence>
+                        </xsd:complexType>
+                    </xsd:element>
+
+                    <!-- Оплата услуги, Перевод организации -->
+                    <xsd:sequence>
+                        <xsd:element name="transactionToken" type="TransactionToken" minOccurs="0"/>
+                        <xsd:choice>
+                            <xsd:element name="billingPayments" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="payment" type="BillingPayment" maxOccurs="unbounded"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="document" type="Document" minOccurs="0"/>
+                            <xsd:element name="initialData" type="InitialData" minOccurs="0"/>
+                            <xsd:element name="incomeStage" type="IncomeStageData" minOccurs="0"/>
+                            <xsd:element name="loanCardOfferStage" type="LoanCardOfferStageData" minOccurs="0"/>
+                            <xsd:element name="loanCardProductStage" type="LoanCardProductStageData" minOccurs="0"/>
+                            <xsd:element name="loanProductStage" type="LoanProductStageData" minOccurs="0"/>
+                            <xsd:element name="loanOfferStage" type="LoanOfferStageData" minOccurs="0"/>
+                        </xsd:choice>
+                        <xsd:element name="confirmStage" type="ConfirmStage" minOccurs="0"/>
+                        <xsd:element name="autopayable" type="xsd:boolean" minOccurs="0"/>
+                    </xsd:sequence>
+
+                </xsd:choice>
+
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="LoanOfferStageData">
+        <xsd:sequence>
+            <xsd:element name="option" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="loanId" type="xsd:integer"/>
+                        <xsd:element name="name" type="string"/>
+                        <xsd:element name="offerSum" type="Money"/>
+                        <xsd:element name="rate" type="Amount"/>
+                        <xsd:element name="duration" type="xsd:integer"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+     <xsd:complexType name="LoanProductStageData">
+        <xsd:sequence>
+            <xsd:element name="option" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="loanKindName" type="string" minOccurs="0"/>
+                        <xsd:element name="name" type="string"/>
+                        <xsd:element name="duration">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="min" type="xsd:integer" minOccurs="0"/>
+                                    <xsd:element name="max" type="xsd:integer" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="initialInstalment" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="min" type="Amount" minOccurs="0"/>
+                                    <xsd:element name="max" type="Amount" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="needSurety" type="xsd:boolean"/>
+                        <xsd:element name="conditions">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="condition" maxOccurs="unbounded">
+                                       <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="changeDate" type="xsd:integer"/>
+                                                <xsd:element name="loanId" type="xsd:integer"/>
+                                                <xsd:element name="amount">
+                                                    <xsd:complexType>
+                                                         <xsd:sequence>
+                                                            <xsd:element name="min" type="Money" minOccurs="0"/>
+                                                            <xsd:element name="max" minOccurs="0">
+                                                                <xsd:complexType>
+                                                                    <xsd:sequence>
+                                                                        <xsd:element name="maxAmount" type="Money" minOccurs="0"/>
+                                                                        <xsd:element name="maxPercent" type="Amount" minOccurs="0"/>
+                                                                        <xsd:element name="include" type="xsd:boolean"/>
+                                                                    </xsd:sequence>
+                                                                </xsd:complexType>
+                                                            </xsd:element>
+                                                         </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="interestRate" minOccurs="0">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="min" type="Amount" minOccurs="0"/>
+                                                            <xsd:element name="max" minOccurs="0">
+                                                                <xsd:complexType>
+                                                                    <xsd:sequence>
+                                                                        <xsd:element name="maxAmount" type="Amount"/>
+                                                                        <xsd:element name="include" type="xsd:boolean"/>
+                                                                    </xsd:sequence>
+                                                                </xsd:complexType>
+                                                            </xsd:element>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="additionalTerms" type="string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="IncomeStageData">
+        <xsd:sequence>
+            <xsd:element name="option" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="id" type="xsd:integer"/>
+                        <xsd:element name="minIncome" type="Money" minOccurs="0"/>
+                        <xsd:element name="maxIncome" type="Money" minOccurs="0"/>
+                        <xsd:element name="maxIncomeInclude" type="xsd:boolean" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LoanCardOfferStageData">
+        <xsd:sequence>
+            <xsd:element name="option" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="loanId" type="xsd:integer"/>
+                        <xsd:element name="offerId" type="xsd:integer"/>
+                        <xsd:element name="name" type="string"/>
+                        <xsd:element name="gracePeriodDuration" type="xsd:integer" minOccurs="0"/>
+                        <xsd:element name="gracePeriodInterestRate" type="Amount" minOccurs="0"/>
+                        <xsd:element name="maxLimit" type="Money"/>
+                        <xsd:element name="offerInterestRate" type="Amount"/>
+                        <xsd:element name="firstYearPayment" type="Money"/>
+                        <xsd:element name="nextYearPayment" type="Money"/>
+                        <xsd:element name="terms" type="string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LoanCardProductStageData">
+        <xsd:sequence>
+            <xsd:element name="option" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="loanId" type="xsd:integer"/>
+                        <xsd:element name="changeDate" type="xsd:integer"/>
+                        <xsd:element name="name" type="string"/>
+                        <xsd:element name="gracePeriod" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="duration" type="xsd:integer"/>
+                                    <xsd:element name="interestRate" type="Amount"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="creditLimit">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="min" type="Money"/>
+                                    <xsd:element name="max" type="Money"/>
+                                    <xsd:element name="includeMax" type="xsd:boolean"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="offerInterestRate" type="Amount"/>
+                        <xsd:element name="firstYearPayment" type="Money"/>
+                        <xsd:element name="nextYearPayment" type="Money"/>
+                        <xsd:element name="terms" type="string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="BillingPayment">
+        <xsd:sequence>
+            <xsd:element name="billing" type="string"/>
+            <xsd:element name="service">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="id" type="string"/>
+                        <xsd:element name="name" type="string"/>
+                        <xsd:element name="img" type="Image" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="provider">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="id" type="string"/>
+                        <xsd:element name="name" type="string"/>
+                        <xsd:element name="img" type="Image" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="autoPaymentSupported" type="xsd:boolean"/>
+            <xsd:element name="isBarSupported" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="providerSubType" type="string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Image">
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="staticImage">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="url" type="string"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="dbImage">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="id" type="string"/>
+                            <xsd:element name="updated" type="string"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitialData">
+        <xsd:sequence>
+            <xsd:element name="form">
+                <xsd:simpleType>
+                    <xsd:restriction base="string">
+                        <xsd:enumeration value="RurPayJurSB"/>
+                        <xsd:enumeration value="InternalPayment"/>
+						<xsd:enumeration value="InternalPaymentLongOffer"/>
+                        <xsd:enumeration value="LoanPayment"/>
+                        <xsd:enumeration value="LoanPaymentLongOffer"/>
+                        <xsd:enumeration value="JurPayment"/>
+                        <xsd:enumeration value="BlockingCardClaim"/>
+                        <xsd:enumeration value="AccountOpeningClaim"/>
+                        <xsd:enumeration value="AccountClosingPayment"/>
+                        <xsd:enumeration value="RurPayment"/>
+                        <xsd:enumeration value="RurPaymentLongOffer"/>
+                        <xsd:enumeration value="IMAPayment"/>
+                        <xsd:enumeration value="IMAOpeningClaim"/>
+                        <xsd:enumeration value="LoanCardOffer"/>
+                        <xsd:enumeration value="LoanCardProduct"/>
+                        <xsd:enumeration value="LoanProduct"/>
+                        <xsd:enumeration value="LoanOffer"/>
+                        <xsd:enumeration value="EditAutoPaymentPayment"/>
+                        <xsd:enumeration value="RefuseAutoPaymentPayment"/>
+                        <xsd:enumeration value="EditAutoSubscriptionPayment"/>
+                        <xsd:enumeration value="DelayAutoSubscriptionPayment"/>
+                        <xsd:enumeration value="RecoveryAutoSubscriptionPayment"/>
+                        <xsd:enumeration value="CloseAutoSubscriptionPayment"/>
+                        <xsd:enumeration value="RefuseLongOffer"/>
+                        <xsd:enumeration value="ExternalProviderPayment"/>
+                        <xsd:enumeration value="AirlineReservationPayment"/>
+                        <xsd:enumeration value="AccountChangeInterestDestinationClaim"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:choice>
+                <xsd:element name="RurPayJurSB" type="InitRurPayJurSB"/>
+                <xsd:element name="JurPayment" type="InitJurPayment"/>
+                <xsd:element name="LoanPayment" type="InitLoanPayment"/>
+                <xsd:element name="LoanPaymentLongOffer" type="InitLoanPaymentLongOffer"/>
+                <xsd:element name="BlockingCardClaim" type="InitBlockingCardClaim"/>
+                <xsd:element name="InternalPayment" type="InitInternalPayment"/>
+				<xsd:element name="InternalPaymentLongOffer" type="InitInternalPaymentLongOffer"/>
+                <xsd:element name="RurPayment" type="InitRurPayment"/>
+                <xsd:element name="RurPaymentLongOffer" type="InitRurPaymentLongOffer"/>
+                <xsd:element name="AccountOpeningClaim" type="InitAccountOpeningClaim"/>
+                <xsd:element name="AccountClosingPayment" type="InitAccountClosingPayment"/>
+                <xsd:element name="IMAPayment" type="InitIMAPayment"/>
+                <xsd:element name="IMAOpeningClaim" type="InitIMAOpeningClaim"/>
+                <xsd:element name="LoanOffer" type="InitLoanOffer"/>
+                <xsd:element name="LoanProduct" type="InitLoanProduct"/>
+                <xsd:element name="LoanCardProduct" type="InitLoanCardProduct"/>
+                <xsd:element name="LoanCardOffer" type="InitLoanCardOffer"/>
+                <xsd:element name="EditAutoPaymentPayment" type="InitEditAutoPaymentPayment"/>
+                <xsd:element name="RefuseAutoPaymentPayment" type="InitRefuseAutoPaymentPayment"/>
+                <xsd:element name="EditAutoSubscriptionPayment" type="InitEditAutoSubscriptionPayment"/>
+                <xsd:element name="DelayAutoSubscriptionPayment" type="AutoSubscriptionPaymentFields"/>
+                <xsd:element name="RecoveryAutoSubscriptionPayment" type="AutoSubscriptionPaymentFields"/>
+                <xsd:element name="CloseAutoSubscriptionPayment" type="AutoSubscriptionPaymentFields"/>
+                <xsd:element name="RefuseLongOffer" type="InitRefuseLongOffer"/>
+                <xsd:element name="ExternalProviderPayment" type="InitExternalProviderPayment"/>
+                <xsd:element name="AirlineReservationPayment" type="InitAirlineReservationPayment"/>
+                <xsd:element name="AccountChangeInterestDestinationClaim" type="InitAccountChangeInterestDestinationClaim"/>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitRurPayJurSB">
+        <xsd:annotation>
+            <xsd:documentation>Оплата услуг</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="operationUID" type="string"/>
+            <xsd:element name="fields">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="field" type="Field" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="availableFromResources" type="Field"/>
+            <xsd:element name="autoPaymentSupported" type="xsd:boolean"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitJurPayment">
+        <xsd:annotation>
+            <xsd:documentation>Перевод организации</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="operationUID" type="string"/>
+            <xsd:element name="receiverAccount" type="Field"/>
+            <xsd:element name="receiverINN" type="Field"/>
+            <xsd:element name="receiverBIC" type="Field"/>
+            <xsd:element name="externalReceiver" type="Field" minOccurs="0"/>
+            <xsd:element name="availableFromResources" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitLoanPayment">
+        <xsd:annotation>
+            <xsd:documentation>Погашение кредита</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="availableFromResources" type="Field"/>
+            <xsd:element name="availableLoanResources" type="Field"/>
+            <xsd:element name="amount" type="Field"/>
+            <xsd:element name="longOfferAllowed" type="xsd:boolean"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitLoanPaymentLongOffer">
+        <xsd:annotation>
+            <xsd:documentation>Погашение кредита: создание автоплатежа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+                <xsd:element name="loan" type="Field"/>
+                <xsd:element name="fromResource" type="Field"/>
+                <xsd:element name="longOfferDetails">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="startDate" type="Field"/>
+                            <xsd:element name="endDate" type="Field"/>
+                            <xsd:element name="eventType" type="Field"/>
+                            <xsd:element name="payDay" type="Field"/>
+                            <xsd:element name="firstPaymentDate" type="Field"/>
+                            <xsd:element name="priority" type="Field"/>
+                            <xsd:element name="isSumModify" type="Field"/>
+                            <xsd:element name="sumType" type="Field"/>
+                            <xsd:element name="fixedSumma">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="amount" type="Field"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitBlockingCardClaim">
+        <xsd:annotation>
+            <xsd:documentation>Блокировка карты</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="card" type="Field"/>
+            <xsd:element name="reason" type="Field"/>
+            <xsd:element name="fullName" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitInternalPayment">
+        <xsd:annotation>
+            <xsd:documentation>Перевод между своими счетами</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="toResource" type="Field"/>
+            <xsd:element name="buyAmount" type="Field"/>
+            <xsd:element name="sellAmount" type="Field"/>
+            <xsd:element name="exactAmount" type="Field"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="longOfferAllowed" type="xsd:boolean"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitInternalPaymentLongOffer">
+        <xsd:annotation>
+            <xsd:documentation>Перевод между своими счетами: создание автоплатежа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fromResource" type="Field"/>
+                        <xsd:element name="toResource" type="Field"/>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                        <xsd:element name="admissionDate" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="longOfferDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="endDate" type="Field"/>
+                        <xsd:element name="firstPaymentDate" type="Field"/>
+                        <xsd:element name="fromAccountFields">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="periodic">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="payDay" type="Field"/>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="byAnyReceipt">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="onRemaind">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="byCapital">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="byPercent">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="fromCardFields">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="periodic">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="payDay" type="Field"/>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="byAnyReceipt">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="onRemaind">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="bySalary">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="byPension">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="sumType" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="priority" type="Field"/>
+                        <xsd:element name="isSumModify" type="Field"/>
+                        <xsd:element name="sellAmountFields">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="sellAmount" type="Field"/>
+                                    <xsd:element name="exactAmount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="buyAmountFields">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="buyAmount" type="Field"/>
+                                    <xsd:element name="exactAmount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="percentFields">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="percent" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitRurPayment">
+        <xsd:annotation>
+            <xsd:documentation>Перевод частному лицу</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="receiverSubType" type="Field"/>
+            <xsd:element name="cardFields" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fromResource" type="Field"/>
+                        <xsd:element name="ourCard" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="externalCardNumber" type="Field"/>
+                                    <xsd:element name="messageToReceiver" minOccurs="0" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="ourPhone" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="externalPhoneNumber" type="Field"/>
+                                    <xsd:element name="messageToReceiver" minOccurs="0" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="masterCardExternalCard" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="externalCardNumber" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="visaExternalCard" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="externalCardNumber" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="accountFields" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fromResource" type="Field"/>
+                        <xsd:element name="ourAccount" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="receiverAccountInternal" type="Field" minOccurs="0"/>
+                                    <xsd:element name="receiverSurname" type="Field" minOccurs="0"/>
+                                    <xsd:element name="receiverFirstName" type="Field" minOccurs="0"/>
+                                    <xsd:element name="receiverPatrName" type="Field" minOccurs="0"/>
+                                    <xsd:element name="bankInfo" minOccurs="0">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="bank" type="Field" minOccurs="0"/>
+                                                <xsd:element name="receiverBIC" type="Field" minOccurs="0"/>
+                                                <xsd:element name="receiverCorAccount" type="Field" minOccurs="0"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="externalAccount" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="receiverAccountExternal" type="Field" minOccurs="0"/>
+                                    <xsd:element name="receiverSurname" type="Field" minOccurs="0"/>
+                                    <xsd:element name="receiverFirstName" type="Field" minOccurs="0"/>
+                                    <xsd:element name="receiverPatrName" type="Field" minOccurs="0"/>
+                                    <xsd:element name="bankInfo" minOccurs="0">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="bank" type="Field" minOccurs="0"/>
+                                                <xsd:element name="receiverBIC" type="Field" minOccurs="0"/>
+                                                <xsd:element name="receiverCorAccount" type="Field" minOccurs="0"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="receiverINN" type="Field" minOccurs="0"/>
+                        <xsd:element name="receiverAddress" type="Field" minOccurs="0"/>
+                        <xsd:element name="ground" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="buyAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="isCardTransfer" type="Field" minOccurs="0"/>
+            <xsd:element name="isErrorCurrency" type="Field" minOccurs="0"/>
+            <xsd:element name="buyAmountCurrency" type="Field" minOccurs="0"/>
+            <xsd:element name="sellAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="exactAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+            <xsd:element name="longOfferAllowed" type="xsd:boolean"/>
+            <xsd:element name="dictField" type="Field" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitRurPaymentLongOffer">
+        <xsd:annotation>
+            <xsd:documentation>Перевод частному лицу: создание автоплатежа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="receiverSubType" type="Field"/>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="account" type="Field"/>
+                        <xsd:element name="accountCurrency" type="Field"/>
+                        <xsd:element name="surname" type="Field"/>
+                        <xsd:element name="firstName" type="Field"/>
+                        <xsd:element name="patrName" type="Field"/>
+                        <xsd:element name="inn" type="Field"/>
+                        <xsd:element name="address" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="bank">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="Field"/>
+                        <xsd:element name="bic" type="Field"/>
+                        <xsd:element name="corAccount" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="ground" type="Field"/>
+                        <xsd:element name="fromResource" type="Field"/>
+                        <xsd:element name="admissionDate" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="longOfferDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="endDate" type="Field"/>
+                        <xsd:element name="firstPaymentDate" type="Field"/>
+                        <xsd:element name="ourAccount">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="fromAccountFields">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="eventType" type="Field"/>
+                                                <xsd:element name="periodic">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="payDay" type="Field"/>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byAnyReceipt">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="onRemaind">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="onOverDraft">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byCapital">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byPercent">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="fromCardFields">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="eventType" type="Field"/>
+                                                <xsd:element name="periodic">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="payDay" type="Field"/>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byAnyReceipt">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="onRemaind">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="onOverDraft">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="bySalary">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byPension">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="externalAccount">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="fromAccountFields">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="eventType" type="Field"/>
+                                                <xsd:element name="periodic">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="payDay" type="Field"/>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byAnyReceipt">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="onRemaind">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byCapital">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byPercent">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="fromCardFields">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="eventType" type="Field"/>
+                                                <xsd:element name="periodic">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="payDay" type="Field"/>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byAnyReceipt">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="onRemaind">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="bySalary">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                                <xsd:element name="byPension">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="sumType" type="Field"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="priority" type="Field"/>
+                        <xsd:element name="isSumModify" type="Field"/>
+                        <xsd:element name="sellAmountFields">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="sellAmount" type="Field"/>
+                                    <xsd:element name="exactAmount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="buyAmountFields">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="buyAmount" type="Field"/>
+                                    <xsd:element name="exactAmount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="percentFields">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="percent" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitAccountOpeningClaim">
+        <xsd:annotation>
+            <xsd:documentation>Открытие вклада</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="depositName" type="Field"/>
+            <xsd:element name="openDate" type="Field"/>
+            <xsd:element name="toResourceCurrency" type="Field"/>
+            <xsd:element name="needInitialFee" type="Field"/>
+            <xsd:element name="withMinimumBalance" type="Field"/>
+            <xsd:element name="isPension" type="Field"/>
+            <xsd:element name="buyAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="exactAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="minDepositBalance" type="Field" minOccurs="0"/>
+            <xsd:element name="fromResource" type="Field" minOccurs="0"/>
+            <xsd:element name="course" type="Field" minOccurs="0"/>
+            <xsd:element name="standartCourse" type="Field" minOccurs="0"/>
+            <xsd:element name="gain" type="Field" minOccurs="0"/>
+            <xsd:element name="sellAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+            <xsd:element name="period" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="termType" type="Field"/>
+                        <xsd:element name="periodDays" type="Field"/>
+                        <xsd:element name="periodMonths" type="Field"/>
+                        <xsd:element name="periodYears" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="closingDate" type="Field" minOccurs="0"/>
+            <xsd:element name="interestRate" type="Field" minOccurs="0"/>
+            <xsd:element name="depositId" type="Field"/>
+            <xsd:element name="depositType" type="Field"/>
+            <xsd:element name="depositSubType" type="Field"/>
+            <xsd:element name="minAdditionalFee" type="Field" minOccurs="0"/>
+            <xsd:element name="percentTransferSource" type="Field" minOccurs="0"/>
+            <xsd:element name="percentTransferCardSource" type="Field" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitAccountClosingPayment">
+        <xsd:annotation>
+            <xsd:documentation>Закрытие вкладов</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="closingDate" type="Field"/>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="toResource" type="Field"/>
+            <xsd:element name="chargeOffAmount" type="Field"/>
+            <xsd:element name="destinationAmount" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="course" type="Field" minOccurs="0"/>
+            <xsd:element name="standartCourse" type="Field" minOccurs="0"/>
+            <xsd:element name="gain" type="Field" minOccurs="0"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="targetMap" minOccurs="0" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                        <xsd:element name="target">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="name"         type="Field"/>
+                                    <xsd:element name="comment"      type="Field" minOccurs="0" maxOccurs="1"/>
+                                    <xsd:element name="date"         type="Field"/>
+                                    <xsd:element name="amount"       type="Field"/>
+                                    <xsd:element name="fromResource" type="Resource"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitIMAPayment">
+        <xsd:annotation>
+            <xsd:documentation>Покупка/продажа OMC</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="toResource" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="buyAmount" type="Field"/>
+            <xsd:element name="sellAmount" type="Field"/>
+            <xsd:element name="exactAmount" type="Field"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+       </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitIMAOpeningClaim">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на открытие ОМС</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="imaId" type="Field"/>
+            <xsd:element name="imaName" type="Field"/>
+            <xsd:element name="imaType" type="Field"/>
+            <xsd:element name="imaSubType" type="Field"/>
+            <xsd:element name="openingDate" type="Field"/>
+            <xsd:element name="buyCurrency" type="Field"/>
+            <xsd:element name="buyAmount" type="Field"/>
+            <xsd:element name="course" type="Field"/>
+            <xsd:element name="standartCourse" type="Field" minOccurs="0"/>
+            <xsd:element name="gain" type="Field" minOccurs="0"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="sellCurrency" type="Field"/>
+            <xsd:element name="sellAmount" type="Field"/>
+            <xsd:element name="exactAmount" type="Field"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+            <xsd:element name="offices" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="office" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="code" type="Resource"/>
+                                    <xsd:element name="name" type="string"/>
+                                    <xsd:element name="address" type="string"/>
+                                    <xsd:element name="tb" type="string"/>
+                                    <xsd:element name="osb" type="string"/>
+                                    <xsd:element name="vsp" type="string"/>
+                                    <xsd:element name="isIma" type="xsd:boolean"/>
+                                    <xsd:element name="parentSynchKey" type="string"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="officeName" type="Field"/>
+            <xsd:element name="officeAddress" type="Field"/>
+            <xsd:element name="tb" type="Field"/>
+            <xsd:element name="osb" type="Field"/>
+            <xsd:element name="vsp" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitLoanProduct">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на кредит</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="loan" type="Field"/>
+            <xsd:element name="changeDate" type="Field"/>
+            <xsd:element name="creditKind" type="Field"/>
+            <xsd:element name="productId" type="Field"/>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="creditType" type="Field"/>
+            <xsd:element name="sum">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="amount" type="Field"/>
+                        <xsd:element name="currency" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="duration" type="Field"/>
+            <xsd:element name="surName" type="Field"/>
+            <xsd:element name="firstName" type="Field"/>
+            <xsd:element name="patrName" type="Field"/>
+            <xsd:element name="mobilePhone" type="Field"/>
+            <xsd:element name="hirer" type="Field"/>
+            <xsd:element name="averageIncomePerMonth" type="Field"/>
+            <xsd:element name="getPaidOnAccount" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitLoanOffer">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на предодобренный кредит</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="loan" type="Field"/>
+            <xsd:element name="passportNumber" type="Field"/>
+            <xsd:element name="passportSeries" type="Field"/>
+            <xsd:element name="tb" type="Field"/>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="creditType" type="Field"/>
+            <xsd:element name="duration" type="Field"/>
+            <xsd:element name="sum">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="amount" type="Field"/>
+                        <xsd:element name="currency" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="surName" type="Field"/>
+            <xsd:element name="firstName" type="Field"/>
+            <xsd:element name="patrName" type="Field"/>
+            <xsd:element name="mobilePhone" type="Field"/>
+            <xsd:element name="hirer" type="Field"/>
+            <xsd:element name="averageIncomePerMonth" type="Field"/>
+            <xsd:element name="getPaidOnAccount" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitLoanCardProduct">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на кредитную карту</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="income" type="Field" minOccurs="0"/>
+            <xsd:element name="loan" type="Field"/>
+            <xsd:element name="changeDate" type="Field"/>
+            <xsd:element name="minLimit" type="Field"/>
+            <xsd:element name="maxLimit" type="Field"/>
+            <xsd:element name="maxLimitInclude" type="Field"/>
+            <xsd:element name="additionalTerms" type="Field" minOccurs="0"/>
+            <xsd:element name="gracePeriodDuration" type="Field"/>
+            <xsd:element name="gracePeriodInterestRate" type="Field"/>
+            <xsd:element name="cardProductId" type="Field"/>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="creditCard" type="Field"/>
+            <xsd:element name="interestRate" type="Field"/>
+            <xsd:element name="firstYearPayment" type="Field"/>
+            <xsd:element name="firstYearPaymentCurrency" type="Field"/>
+            <xsd:element name="nextYearPayment" type="Field"/>
+            <xsd:element name="nextYearPaymentCurrency" type="Field"/>
+            <xsd:element name="amount" type="Field"/>
+            <xsd:element name="currency" type="Field"/>
+            <xsd:element name="surName" type="Field"/>
+            <xsd:element name="firstName" type="Field"/>
+            <xsd:element name="patrName" type="Field"/>
+            <xsd:element name="homePhone" type="Field"/>
+            <xsd:element name="workPhone" type="Field"/>
+            <xsd:element name="mobilePhone" type="Field"/>
+            <xsd:element name="email" type="Field"/>
+            <xsd:element name="freeTime" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitLoanCardOffer">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на предодобренную кредитную карту</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="loan" type="Field"/>
+            <xsd:element name="offerId" type="Field"/>
+            <xsd:element name="changeLimit" type="Field" minOccurs="0"/>
+            <xsd:element name="idWay" type="Field"/>
+            <xsd:element name="tb" type="Field"/>
+            <xsd:element name="osb" type="Field"/>
+            <xsd:element name="vsp" type="Field"/>
+            <xsd:element name="passportNumber" type="Field"/>
+            <xsd:element name="offerType" type="Field"/>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="creditCard" type="Field"/>
+            <xsd:element name="interestRate" type="Field" minOccurs="0"/>
+            <xsd:element name="firstYearPayment" type="Field" minOccurs="0"/>
+            <xsd:element name="firstYearPaymentCurrency" type="Field" minOccurs="0"/>
+            <xsd:element name="nextYearPayment" type="Field" minOccurs="0"/>
+            <xsd:element name="nextYearPaymentCurrency" type="Field" minOccurs="0"/>
+            <xsd:element name="amount" type="Field"/>
+            <xsd:element name="currency" type="Field"/>
+            <xsd:element name="surName" type="Field"/>
+            <xsd:element name="firstName" type="Field"/>
+            <xsd:element name="patrName" type="Field"/>
+            <xsd:element name="place" type="Field" minOccurs="0"/>
+            <xsd:element name="duration" type="Field" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitEditAutoPaymentPayment">
+        <xsd:annotation>
+            <xsd:documentation>Редактирование автоплатежа iqwave</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="recipient" type="Field"/>
+            <xsd:element name="receiverName" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="requisiteName" type="Field"/>
+            <xsd:element name="requisite" type="Field"/>
+            <xsd:element name="amount" type="Field" minOccurs="0"/>
+            <xsd:element name="autoPaymentParameters">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="executionEventType" type="Field"/>
+                        <xsd:element name="periodic" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="autoPaymentStartDate" type="Field"/>
+                                    <xsd:element name="firstPaymentDate" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="reduseOfBalance" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="autoPaymentFloorLimit" type="Field"/>
+                                    <xsd:element name="autoPaymentTotalAmountLimit" type="Field" minOccurs="0" maxOccurs="1"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="byInvoice" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="autoPaymentFloorLimit" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="autoPaymentName" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitRefuseAutoPaymentPayment">
+        <xsd:annotation>
+            <xsd:documentation>Отмена автоплатежа iqwave</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="cardId" type="Field"/>
+            <xsd:element name="card" type="Field"/>
+            <xsd:element name="receiverName" type="Field"/>
+            <xsd:element name="requisite" type="Field"/>
+            <xsd:element name="amount" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="executionEventType" type="Field"/>
+            <xsd:element name="autoPaymentFloorLimit" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentFloorCurrency" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentTotalAmountLimit" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentTotalAmountCurrency" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentStartDate" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentName" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitEditAutoSubscriptionPayment">
+        <xsd:annotation>
+            <xsd:documentation>Редактирование автоплатежа (шина)</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="number" type="Field"/>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="Field" minOccurs="0"/>
+                        <xsd:element name="service" type="Field" minOccurs="0"/>
+                        <xsd:element name="inn" type="Field" minOccurs="0"/>
+                        <xsd:element name="account" type="Field" minOccurs="0"/>
+                        <xsd:element name="bank" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="name" type="Field"/>
+                                    <xsd:element name="bic" type="Field"/>
+                                    <xsd:element name="corAccount" type="Field" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalFields">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="field" type="Field" minOccurs="1" maxOccurs="unbounded"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                         </xsd:element>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                        <xsd:element name="promoCode" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="autoSubDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="updateDate" type="Field" minOccurs="0"/>
+                        <xsd:element name="name" type="Field"/>
+                        <xsd:element name="type" type="Field"/>
+                        <xsd:element name="always" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="nextPayDate" type="Field"/>
+                                    <xsd:element name="amount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="invoice" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="startDate" type="Field"/>
+                                    <xsd:element name="amount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AutoSubscriptionPaymentFields">
+        <xsd:annotation>
+            <xsd:documentation>Отмена автоплатежа (шина)</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="Field" minOccurs="0"/>
+                        <xsd:element name="service" type="Field" minOccurs="0"/>
+                        <xsd:element name="inn" type="Field" minOccurs="0"/>
+                        <xsd:element name="account" type="Field" minOccurs="0"/>
+                        <xsd:element name="bank" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="name" type="Field"/>
+                                    <xsd:element name="bic" type="Field"/>
+                                    <xsd:element name="corAccount" type="Field" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalFields" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="field" type="Field" maxOccurs="unbounded"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                         </xsd:element>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                        <xsd:element name="promoCode" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="autoSubDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="updateDate" type="Field" minOccurs="0"/>
+                        <xsd:element name="name" type="Field"/>
+                        <xsd:element name="type" type="Field"/>
+                        <xsd:element name="always" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="nextPayDate" type="Field"/>
+                                    <xsd:element name="amount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="invoice" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="startDate" type="Field"/>
+                                    <xsd:element name="amount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitRefuseLongOffer">
+        <xsd:annotation>
+            <xsd:documentation>Отмена длительного поручения</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="longOfferType" type="Field"/>
+            <xsd:element name="longOfferId" type="Field"/>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="card" type="Field" minOccurs="0"/>
+                        <xsd:element name="account" type="Field" minOccurs="0"/>
+                        <xsd:element name="loan" type="Field" minOccurs="0"/>
+                        <xsd:element name="loanName" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="payment">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="payResource" type="Field"/>
+                        <xsd:element name="payResourceName" type="Field"/>
+                        <xsd:element name="amount" type="Field"/>
+                        <xsd:element name="currency" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="longOfferDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="endDate" type="Field"/>
+                        <xsd:element name="executionEventDescription" type="Field"/>
+                        <xsd:element name="office" type="Field"/>
+                        <xsd:element name="name" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitExternalProviderPayment">
+        <xsd:annotation>
+            <xsd:documentation>Оплата заказа интернет-магазина</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="receiverName" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="amount" type="Field"/>
+            <xsd:element name="currency" type="Field"/>
+            <xsd:element name="recIdentifier" type="Field"/>
+            <xsd:element name="itemList" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="item" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="name" type="string" minOccurs="0"/>
+                                    <xsd:element name="description" type="string" minOccurs="0"/>
+                                    <xsd:element name="count" type="xsd:integer" minOccurs="0"/>
+                                    <xsd:element name="price" type="Money" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitAirlineReservationPayment">
+        <xsd:annotation>
+            <xsd:documentation>Оплата брони авиабилетов</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="receiverName" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="amount" type="Field"/>
+                        <xsd:element name="currency" type="Field"/>
+                        <xsd:element name="recIdentifier" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="reservationInfo">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="reservationId" type="Field"/>
+                        <xsd:element name="reservExpirationDate" type="Field" minOccurs="0"/>
+                        <xsd:element name="countPassengers" type="Field"/>
+                        <xsd:element name="countRoutes" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="passengersInfo">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="passenger" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="firstName" type="Field"/>
+                                    <xsd:element name="lastName" type="Field"/>
+                                    <xsd:element name="type" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="routesInfo">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="route" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="departure">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="flight" type="Field"/>
+                                                <xsd:element name="dateTime" type="Field"/>
+                                                <xsd:element name="location" type="Field" minOccurs="0"/>
+                                                <xsd:element name="airport" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="arrival">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="flight" type="Field" minOccurs="0"/>
+                                                <xsd:element name="dateTime" type="Field"/>
+                                                <xsd:element name="location" type="Field" minOccurs="0"/>
+                                                <xsd:element name="airport" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="InitAccountChangeInterestDestinationClaim">
+        <xsd:annotation>
+            <xsd:documentation>Изменение порядка уплаты процентов по вкладу</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="accountId" type="Field"/>
+            <xsd:element name="percentTransferSource" type="Field"/>
+            <xsd:element name="percentTransferCardSource" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Document">
+        <xsd:sequence>
+            <xsd:element name="form">
+                <xsd:simpleType>
+                    <xsd:restriction base="string">
+                        <xsd:enumeration value="RurPayJurSB"/>
+                        <xsd:enumeration value="JurPayment"/>
+                        <xsd:enumeration value="LoanPayment"/>
+                        <xsd:enumeration value="LoanPaymentLongOffer"/>
+                        <xsd:enumeration value="InternalPayment"/>
+						<xsd:enumeration value="InternalPaymentLongOffer"/>
+                        <xsd:enumeration value="IMAPayment"/>
+                        <xsd:enumeration value="AccountClosingPayment"/>
+                        <xsd:enumeration value="BlockingCardClaim"/>
+                        <xsd:enumeration value="AccountOpeningClaim"/>
+                        <xsd:enumeration value="RurPayment"/>
+                        <xsd:enumeration value="RurPaymentLongOffer"/>
+                        <xsd:enumeration value="LoanCardProduct"/>
+                        <xsd:enumeration value="LoanCardOffer"/>
+                        <xsd:enumeration value="LoanProduct"/>
+                        <xsd:enumeration value="LoanOffer"/>
+                        <xsd:enumeration value="IMAOpeningClaim"/>
+                        <xsd:enumeration value="CreateAutoPaymentPayment"/>
+                        <xsd:enumeration value="EditAutoPaymentPayment"/>
+                        <xsd:enumeration value="RefuseAutoPaymentPayment"/>
+                        <xsd:enumeration value="CreateAutoSubscriptionPayment"/>
+                        <xsd:enumeration value="EditAutoSubscriptionPayment"/>
+                        <xsd:enumeration value="DelayAutoSubscriptionPayment"/>
+                        <xsd:enumeration value="RecoveryAutoSubscriptionPayment"/>
+                        <xsd:enumeration value="CloseAutoSubscriptionPayment"/>
+                        <xsd:enumeration value="RefuseLongOffer"/>
+                        <xsd:enumeration value="ExternalProviderPayment"/>
+                        <xsd:enumeration value="AirlineReservationPayment"/>
+                        <xsd:enumeration value="AccountChangeInterestDestinationClaim"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="status" type="PaymentState"/>
+            <xsd:element name="id" type="xsd:integer" minOccurs="0"/>
+            <xsd:choice>
+                <xsd:element name="RurPayJurSBDocument" type="DocRurPayJurSB"/>
+                <xsd:element name="JurPaymentDocument" type="DocJurPayment"/>
+                <xsd:element name="LoanPaymentDocument" type="DocLoanPayment"/>
+                <xsd:element name="LoanPaymentLongOfferDocument" type="DocLoanPaymentLongOffer"/>
+                <xsd:element name="BlockingCardClaimDocument" type="DocBlockingCardClaim"/>
+                <xsd:element name="InternalPaymentDocument" type="DocInternalPayment"/>
+				<xsd:element name="InternalPaymentLongOfferDocument" type="DocInternalPaymentLongOffer"/>
+                <xsd:element name="RurPaymentDocument" type="DocRurPayment"/>
+                <xsd:element name="RurPaymentLongOfferDocument" type="DocRurPaymentLongOffer"/>
+                <xsd:element name="AccountOpeningClaimDocument" type="DocAccountOpeningClaim"/>
+                <xsd:element name="AccountClosingPaymentDocument" type="DocAccountClosingPayment"/>
+                <xsd:element name="IMAPaymentDocument" type="DocIMAPayment"/>
+                <xsd:element name="IMAOpeningClaimDocument" type="DocIMAOpeningClaim"/>
+                <xsd:element name="LoanCardProductDocument" type="DocLoanCardProduct"/>
+                <xsd:element name="LoanCardOfferDocument" type="DocLoanCardOffer"/>
+                <xsd:element name="LoanProductDocument" type="DocLoanProduct"/>
+                <xsd:element name="LoanOfferDocument" type="DocLoanOffer"/>
+                <xsd:element name="CreateAutoPaymentDocument" type="DocCreateAutoPaymentPayment"/>
+                <xsd:element name="EditAutoPaymentDocument" type="DocEditAutoPaymentPayment"/>
+                <xsd:element name="RefuseAutoPaymentDocument" type="DocRefuseAutoPaymentPayment"/>
+                <xsd:element name="CreateAutoSubscriptionDocument" type="DocCreateAutoSubscriptionPayment"/>
+                <xsd:element name="EditAutoSubscriptionDocument" type="DocEditAutoSubscriptionPayment"/>
+                <xsd:element name="DelayAutoSubscriptionDocument" type="AutoSubscriptionPaymentFields"/>
+                <xsd:element name="RecoveryAutoSubscriptionDocument" type="AutoSubscriptionPaymentFields"/>
+                <xsd:element name="CloseAutoSubscriptionDocument" type="AutoSubscriptionPaymentFields"/>
+                <xsd:element name="RefuseLongOfferDocument" type="DocRefuseLongOffer"/>
+                <xsd:element name="ExternalProviderPaymentDocument" type="DocExternalProviderPayment"/>
+                <xsd:element name="AirlineReservationPaymentDocument" type="DocAirlineReservationPayment"/>
+                <xsd:element name="AccountChangeInterestDestinationClaimDocument" type="DocAccountChangeInterestDestinationClaim"/>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocRurPayJurSB">
+        <xsd:annotation>
+            <xsd:documentation>Оплата услуг</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="description" type="Field" minOccurs="0"/>
+                        <xsd:element name="name" type="Field" minOccurs="0"/>
+                        <xsd:element name="serviceName" type="Field" minOccurs="0"/>
+                        <xsd:element name="bankDetails" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="INN" type="Field"/>
+                                    <xsd:element name="account" type="Field"/>
+                                    <xsd:element name="bank">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="name" type="Field"/>
+                                                <xsd:element name="BIC" type="Field"/>
+                                                <xsd:element name="corAccount" type="Field" minOccurs="0"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalFields" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="field" type="Field" maxOccurs="unbounded"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                        <xsd:element name="commission" type="Money" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="additionData" type="xsd:string" maxOccurs="1" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocJurPayment">
+        <xsd:annotation>
+            <xsd:documentation>Перевод организации</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="receiverName" type="Field"/>
+                        <xsd:element name="bankDetails">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="account" type="Field"/>
+                                    <xsd:element name="accountCurrency" type="Field"/>
+                                    <xsd:element name="INN" type="Field"/>
+                                    <xsd:element name="KPP" type="Field"/>
+                                    <xsd:element name="bank">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="name" type="Field"/>
+                                                <xsd:element name="BIC" type="Field"/>
+                                                <xsd:element name="corAccount" type="Field" minOccurs="0"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="buyAmount" type="Field"/>
+                        <xsd:element name="commission" type="Money" minOccurs="0"/>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                        <xsd:element name="ground" type="Field"/>
+                        <xsd:element name="taxPayment" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocLoanPayment">
+        <xsd:annotation>
+            <xsd:documentation>Погашение кредита</xsd:documentation>
+        </xsd:annotation>
+         <xsd:sequence>
+            <xsd:element name="loan" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="amount" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocLoanPaymentLongOffer">
+        <xsd:annotation>
+            <xsd:documentation>Погашение кредита: создание автоплатежа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="loan" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="amount" type="Field"/>
+            <xsd:element name="longOfferDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="endDate" type="Field"/>
+                        <xsd:element name="eventType" type="Field"/>
+                        <xsd:element name="firstPaymentDate" type="Field"/>
+                        <xsd:element name="priority" type="Field"/>
+                        <xsd:element name="sumType" type="Field"/>
+                        <xsd:element name="isSumModify" type="Field"/>
+                        <xsd:element name="payDayDescription" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocBlockingCardClaim">
+        <xsd:annotation>
+            <xsd:documentation>Блокировка карты</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="card" type="Field"/>
+            <xsd:element name="reason" type="Field"/>
+            <xsd:element name="fullName" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocInternalPayment">
+        <xsd:annotation>
+            <xsd:documentation>Перевод между своими счетами</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="toResource" type="Field"/>
+            <xsd:element name="course" type="Field" minOccurs="0"/>
+            <xsd:element name="standartCourse" type="Field" minOccurs="0"/>
+            <xsd:element name="gain" type="Field" minOccurs="0"/>
+            <xsd:element name="buyAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="sellAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="commission" type="Money" minOccurs="0"/>
+            <xsd:element name="writeDownOperations" type="WriteDownOperations" minOccurs="0"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocInternalPaymentLongOffer">
+        <xsd:annotation>
+            <xsd:documentation>Перевод между своими счетами: создание автоплатежа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fromResource" type="Field"/>
+                        <xsd:element name="toResource" type="Field"/>
+                        <xsd:element name="sellAmount" type="Field" minOccurs="0"/>
+                        <xsd:element name="buyAmount" type="Field" minOccurs="0"/>
+                        <xsd:element name="percent" type="Field" minOccurs="0"/>
+                        <xsd:element name="course" type="Field" minOccurs="0"/>
+                        <xsd:element name="standartCourse" type="Field" minOccurs="0"/>
+                        <xsd:element name="gain" type="Field" minOccurs="0"/>
+                        <xsd:element name="commission" type="Money" minOccurs="0"/>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="longOfferDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="endDate" type="Field"/>
+                        <xsd:element name="eventType" type="Field"/>
+                        <xsd:element name="firstPaymentDate" type="Field"/>
+                        <xsd:element name="priority" type="Field"/>
+                        <xsd:element name="sumType" type="Field"/>
+                        <xsd:element name="isSumModify" type="Field"/>
+                        <xsd:element name="payDayDescription" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocRurPayment">
+        <xsd:annotation>
+            <xsd:documentation>Перевод частному лицу</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="receiverAccount" type="Field" minOccurs="0"/>
+            <xsd:element name="receiverPhone" type="Field" minOccurs="0"/>
+            <xsd:element name="receiverName" type="Field" minOccurs="0"/>
+            <xsd:element name="receiverINN" type="Field" minOccurs="0"/>
+            <xsd:element name="receiverAddress" type="Field" minOccurs="0"/>
+            <xsd:element name="bankInfo" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="bank" type="Field"/>
+                        <xsd:element name="receiverBIC" type="Field"/>
+                        <xsd:element name="receiverCorAccount" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="ground" type="Field" minOccurs="0"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="sellAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="sellCurrency" type="Field" minOccurs="0"/>
+            <xsd:element name="buyAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="commission" type="Money" minOccurs="0"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+            <xsd:element name="admissionDate" type="Field" minOccurs="0"/>
+            <xsd:element name="messageToReceiver" type="Field" minOccurs="0"/>
+            <xsd:element name="messageToReceiverStatus" type="Field" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="WriteDownOperations">
+        <xsd:annotation>
+            <xsd:documentation>Микрооперации списания</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="writeDownOperation" type="WriteDownOperation" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="WriteDownOperation">
+        <xsd:annotation>
+            <xsd:documentation>Микрооперация списания</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="operationName" type="string"/>
+            <xsd:element name="curAmnt" type="Amount"/>
+            <xsd:element name="turnOver">
+                <xsd:simpleType>
+                    <xsd:restriction base="string">
+                        <xsd:enumeration value="CHARGE"/>
+                        <xsd:enumeration value="RECEIPT"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocRurPaymentLongOffer">
+        <xsd:annotation>
+            <xsd:documentation>Перевод частному лицу: создание автоплатежа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="account" type="Field"/>
+                        <xsd:element name="fio" type="Field"/>
+                        <xsd:element name="inn" type="Field"/>
+                        <xsd:element name="address" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="bank">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="Field"/>
+                        <xsd:element name="bic" type="Field"/>
+                        <xsd:element name="corAccount" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="ground" type="Field"/>
+                        <xsd:element name="fromResource" type="Field"/>
+                        <xsd:element name="sellAmount" type="Field" minOccurs="0"/>
+                        <xsd:element name="percent" type="Field" minOccurs="0"/>
+                        <xsd:element name="buyAmount" type="Field" minOccurs="0"/>
+                        <xsd:element name="buyAmountCurrency" type="Field" minOccurs="0"/>
+                        <xsd:element name="commission" type="Field" minOccurs="0"/>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="longOfferDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="endDate" type="Field"/>
+                        <xsd:element name="eventType" type="Field"/>
+                        <xsd:element name="firstPaymentDate" type="Field"/>
+                        <xsd:element name="priority" type="Field"/>
+                        <xsd:element name="sumType" type="Field"/>
+                        <xsd:element name="isSumModify" type="Field"/>
+                        <xsd:element name="payDayDescription" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocAccountOpeningClaim">
+        <xsd:annotation>
+            <xsd:documentation>Открытие вклада</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="depositSubType" type="Field"/>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="depositName" type="Field"/>
+            <xsd:element name="openDate" type="Field"/>
+            <xsd:element name="closingDate" type="Field"/>
+            <xsd:element name="toResourceCurrency" type="Field"/>
+            <xsd:element name="needInitialFee" type="Field"/>
+            <xsd:element name="withMinimumBalance" type="Field"/>
+            <xsd:element name="minDepositBalance" type="Field" minOccurs="0"/>
+            <xsd:element name="fromResource" type="Field" minOccurs="0"/>
+            <xsd:element name="buyAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="course" type="Field" minOccurs="0"/>
+            <xsd:element name="standartCourse" type="Field" minOccurs="0"/>
+            <xsd:element name="gain" type="Field" minOccurs="0"/>
+            <xsd:element name="sellAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="writeDownOperations" type="WriteDownOperations" minOccurs="0"/>
+            <xsd:element name="exactAmount" type="Field" minOccurs="0"/>
+            <xsd:element name="interestRate" type="Field" minOccurs="0"/>
+            <xsd:element name="minAdditionalFee" type="Field" minOccurs="0"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+            <xsd:element name="percentTransferSource" type="Field" minOccurs="0"/>
+            <xsd:element name="percentTransferCardSource" type="Field" minOccurs="0"/>
+            <xsd:element name="needTariffAgreement" type="Field" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocAccountChangeInterestDestinationClaim">
+        <xsd:annotation>
+            <xsd:documentation>Изменение порядка уплаты процентов по вкладу</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="percentTransferSource" type="Field"/>
+            <xsd:element name="percentTransferCardSource" type="Field" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocAccountClosingPayment">
+        <xsd:annotation>
+            <xsd:documentation>Закрытие вкладов</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="toResource" type="Field"/>
+            <xsd:element name="course" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="standartCourse" type="Field" minOccurs="0"/>
+            <xsd:element name="gain" type="Field" minOccurs="0"/>
+            <xsd:element name="closingDate" type="Field"/>
+            <xsd:element name="chargeOffAmount" type="Field"/>
+            <xsd:element name="destinationAmount" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="writeDownOperations" type="WriteDownOperations" minOccurs="0"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="target" minOccurs="0" maxOccurs="1">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name"    type="Field"/>
+                        <xsd:element name="comment" type="Field" minOccurs="0" maxOccurs="1"/>
+                        <xsd:element name="date"    type="Field"/>
+                        <xsd:element name="amount"  type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocIMAPayment">
+        <xsd:annotation>
+            <xsd:documentation>Покупка/продажа OMC</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="toResource" type="Field"/>
+            <xsd:element name="buyAmount" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="sellAmount" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="exactAmount" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="writeDownOperations" type="WriteDownOperations" minOccurs="0"/>
+            <xsd:element name="course" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="standartCourse" type="Field" minOccurs="0"/>
+            <xsd:element name="gain" type="Field" minOccurs="0"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocIMAOpeningClaim">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на открытие ОМС</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="toAccount" type="Field" minOccurs="0"/>
+            <xsd:element name="openingDate" type="Field"/>
+            <xsd:element name="buyCurrency" type="Field"/>
+            <xsd:element name="buyAmount" type="Field"/>
+            <xsd:element name="course" type="Field"/>
+            <xsd:element name="standartCourse" type="Field" minOccurs="0"/>
+            <xsd:element name="gain" type="Field" minOccurs="0"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="sellAmount" type="Field"/>
+            <xsd:element name="writeDownOperations" type="WriteDownOperations" minOccurs="0"/>
+            <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+            <xsd:element name="officeName" type="Field"/>
+            <xsd:element name="officeAddress" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocLoanProduct">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на кредит</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="creditType" type="Field"/>
+            <xsd:element name="sum">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="amount" type="Field"/>
+                        <xsd:element name="currency" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="duration" type="Field"/>
+            <xsd:element name="surName" type="Field"/>
+            <xsd:element name="firstName" type="Field"/>
+            <xsd:element name="patrName" type="Field"/>
+            <xsd:element name="mobilePhone" type="Field"/>
+            <xsd:element name="hirer" type="Field"/>
+            <xsd:element name="averageIncomePerMonth" type="Field"/>
+            <xsd:element name="getPaidOnAccount" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocLoanOffer">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на предодобренный кредит</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="creditType" type="Field"/>
+            <xsd:element name="duration" type="Field"/>
+            <xsd:element name="sum">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="amount" type="Field"/>
+                        <xsd:element name="currency" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="surName" type="Field"/>
+            <xsd:element name="firstName" type="Field"/>
+            <xsd:element name="patrName" type="Field"/>
+            <xsd:element name="mobilePhone" type="Field"/>
+            <xsd:element name="hirer" type="Field"/>
+            <xsd:element name="averageIncomePerMonth" type="Field"/>
+            <xsd:element name="getPaidOnAccount" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocLoanCardProduct">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на кредитную карту</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="creditCard" type="Field"/>
+            <xsd:element name="interestRate" type="Field"/>
+            <xsd:element name="firstYearPayment" type="Field"/>
+            <xsd:element name="firstYearPaymentCurrency" type="Field"/>
+            <xsd:element name="nextYearPayment" type="Field"/>
+            <xsd:element name="nextYearPaymentCurrency" type="Field"/>
+            <xsd:element name="amount" type="Field"/>
+            <xsd:element name="currency" type="Field"/>
+            <xsd:element name="surName" type="Field"/>
+            <xsd:element name="firstName" type="Field"/>
+            <xsd:element name="patrName" type="Field"/>
+            <xsd:element name="homePhone" type="Field"/>
+            <xsd:element name="workPhone" type="Field"/>
+            <xsd:element name="mobilePhone" type="Field"/>
+            <xsd:element name="email" type="Field"/>
+            <xsd:element name="freeTime" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocLoanCardOffer">
+        <xsd:annotation>
+            <xsd:documentation>Заявка на предодобренную кредитную карту</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="offerType" type="Field"/>
+            <xsd:element name="creditCard" type="Field"/>
+            <xsd:element name="interestRate" type="Field" minOccurs="0"/>
+            <xsd:element name="firstYearPayment" type="Field" minOccurs="0"/>
+            <xsd:element name="firstYearPaymentCurrency" type="Field" minOccurs="0"/>
+            <xsd:element name="nextYearPayment" type="Field" minOccurs="0"/>
+            <xsd:element name="nextYearPaymentCurrency" type="Field" minOccurs="0"/>
+            <xsd:element name="amount" type="Field"/>
+            <xsd:element name="currency" type="Field"/>
+            <xsd:element name="surName" type="Field"/>
+            <xsd:element name="firstName" type="Field"/>
+            <xsd:element name="patrName" type="Field"/>
+            <xsd:element name="place" type="Field" minOccurs="0"/>
+            <xsd:element name="duration" type="Field" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocCreateAutoPaymentPayment">
+        <xsd:annotation>
+            <xsd:documentation>Создание автоплатежа iqwave</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="description" type="Field" minOccurs="0"/>
+                        <xsd:element name="name" type="Field" minOccurs="0"/>
+                        <xsd:element name="serviceName" type="Field" minOccurs="0"/>
+                        <xsd:element name="bankDetails" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="account" type="Field"/>
+                                    <xsd:element name="accountCurrency" type="Field"/>
+                                    <xsd:element name="INN" type="Field"/>
+                                    <xsd:element name="KPP" type="Field"/>
+                                    <xsd:element name="bank">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="name" type="Field"/>
+                                                <xsd:element name="BIC" type="Field"/>
+                                                <xsd:element name="corAccount" type="Field" minOccurs="0"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalFields" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="field" type="Field" maxOccurs="unbounded"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                        <xsd:element name="commission" type="Money" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="autoPaymentParameters">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="autoPaymentType" type="Field"/>
+                        <xsd:element name="onceInYear" minOccurs="0" maxOccurs="1">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="autoPaymentStartDate" type="Field"/>
+                                    <xsd:element name="month" type="Field"/>
+                                    <xsd:element name="firstPaymentDate" type="Field" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="onceInQuarter" minOccurs="0" maxOccurs="1">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="autoPaymentStartDate" type="Field"/>
+                                    <xsd:element name="months" type="Field"/>
+                                    <xsd:element name="firstPaymentDate" type="Field" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="onceInMonth" minOccurs="0" maxOccurs="1">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="autoPaymentStartDate" type="Field"/>
+                                    <xsd:element name="firstPaymentDate" type="Field" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="reduseOfBalance" minOccurs="0" maxOccurs="1">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="floorLimit" type="Field"/>
+                                    <xsd:element name="autoPaymentTotalAmountLimit" type="Field" minOccurs="0" maxOccurs="1"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="byInvoice" minOccurs="0" maxOccurs="1">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="maxSum" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="autoPaymentName" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocEditAutoPaymentPayment">
+        <xsd:annotation>
+            <xsd:documentation>Редактирование автоплатежа iqwave</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="receiverName" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="requisiteName" type="Field"/>
+            <xsd:element name="requisite" type="Field"/>
+            <xsd:element name="amount" type="Field" minOccurs="0"/>
+            <xsd:element name="autoPaymentParameters">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="executionEventType" type="Field"/>
+                        <xsd:element name="periodic" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="autoPaymentStartDate" type="Field"/>
+                                    <xsd:element name="firstPaymentDate" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="reduseOfBalance" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="autoPaymentFloorLimit" type="Field"/>
+                                    <xsd:element name="autoPaymentTotalAmountLimit" type="Field" minOccurs="0" maxOccurs="1"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="byInvoice" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="autoPaymentFloorLimit" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="autoPaymentName" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocRefuseAutoPaymentPayment">
+        <xsd:annotation>
+            <xsd:documentation>Отмена автоплатежа iqwave</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="card" type="Field"/>
+            <xsd:element name="receiverName" type="Field"/>
+            <xsd:element name="requisite" type="Field"/>
+            <xsd:element name="amount" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="executionEventType" type="Field"/>
+            <xsd:element name="autoPaymentFloorLimit" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentFloorCurrency" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentTotalAmountLimit" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentTotalAmountCurrency" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentStartDate" type="Field" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="autoPaymentName" type="Field"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocCreateAutoSubscriptionPayment">
+        <xsd:annotation>
+            <xsd:documentation>Создание автоплатежа (шина)</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="description" type="Field" minOccurs="0"/>
+                        <xsd:element name="name" type="Field" minOccurs="0"/>
+                        <xsd:element name="serviceName" type="Field" minOccurs="0"/>
+                        <xsd:element name="bankDetails" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="INN" type="Field"/>
+                                    <xsd:element name="account" type="Field"/>
+                                    <xsd:element name="bank">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="name" type="Field"/>
+                                                <xsd:element name="BIC" type="Field"/>
+                                                <xsd:element name="corAccount" type="Field" minOccurs="0"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalFields" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="field" type="Field" maxOccurs="unbounded"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                        <xsd:element name="commission" type="Money" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="autoSubParameters">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="Field"/>
+                        <xsd:element name="type" type="Field"/>
+                        <xsd:element name="always" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="nextPayDate" type="Field" minOccurs="0"/>
+                                    <xsd:element name="amount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="invoice" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="startDate" type="Field"/>
+                                    <xsd:element name="amount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="commission" type="Field" minOccurs="0"/>
+                        <xsd:element name="commissionCurrency" type="Field" minOccurs="0"/>
+                        <xsd:element name="isWithCommission" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocEditAutoSubscriptionPayment">
+        <xsd:annotation>
+            <xsd:documentation>Редактирование автоплатежа (шина)</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="Field" minOccurs="0"/>
+                        <xsd:element name="service" type="Field" minOccurs="0"/>
+                        <xsd:element name="inn" type="Field" minOccurs="0"/>
+                        <xsd:element name="account" type="Field" minOccurs="0"/>
+                        <xsd:element name="bank" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="name" type="Field"/>
+                                    <xsd:element name="bic" type="Field"/>
+                                    <xsd:element name="corAccount" type="Field" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="externalFields" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="field" type="Field" maxOccurs="unbounded"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="operationCode" type="Field" minOccurs="0"/>
+                        <xsd:element name="promoCode" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+               </xsd:element>
+            <xsd:element name="autoSubDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="updateDate" type="Field" minOccurs="0"/>
+                        <xsd:element name="name" type="Field"/>
+                        <xsd:element name="type" type="Field"/>
+                        <xsd:element name="always" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="nextPayDate" type="Field"/>
+                                    <xsd:element name="amount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="invoice" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="eventType" type="Field"/>
+                                    <xsd:element name="startDate" type="Field"/>
+                                    <xsd:element name="amount" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocRefuseLongOffer">
+        <xsd:annotation>
+            <xsd:documentation>Отмена длительного поручения</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="longOfferType" type="Field"/>
+            <xsd:element name="longOfferId" type="Field"/>
+            <xsd:element name="receiver">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="card" type="Field" minOccurs="0"/>
+                        <xsd:element name="account" type="Field" minOccurs="0"/>
+                        <xsd:element name="loan" type="Field" minOccurs="0"/>
+                        <xsd:element name="loanName" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="payment">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="payResource" type="Field"/>
+                        <xsd:element name="payResourceName" type="Field"/>
+                        <xsd:element name="amount" type="Field"/>
+                        <xsd:element name="currency" type="Field" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="longOfferDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="startDate" type="Field"/>
+                        <xsd:element name="endDate" type="Field"/>
+                        <xsd:element name="executionEventDescription" type="Field"/>
+                        <xsd:element name="office" type="Field"/>
+                        <xsd:element name="name" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocExternalProviderPayment">
+        <xsd:annotation>
+            <xsd:documentation>Оплата заказа интернет-магазина</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="receiverName" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="amount" type="Field"/>
+            <xsd:element name="currency" type="Field"/>
+            <xsd:element name="recIdentifier" type="Field"/>
+            <xsd:element name="itemList" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="item" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="name" type="string" minOccurs="0"/>
+                                    <xsd:element name="description" type="string" minOccurs="0"/>
+                                    <xsd:element name="count" type="xsd:integer" minOccurs="0"/>
+                                    <xsd:element name="price" type="Money" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="refundList" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="refund" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="itemList" minOccurs="0">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="item" maxOccurs="unbounded">
+                                                    <xsd:complexType>
+                                                        <xsd:sequence>
+                                                            <xsd:element name="name" type="string" minOccurs="0"/>
+                                                            <xsd:element name="description" type="string" minOccurs="0"/>
+                                                            <xsd:element name="count" type="xsd:integer" minOccurs="0"/>
+                                                            <xsd:element name="price" type="Money" minOccurs="0"/>
+                                                        </xsd:sequence>
+                                                    </xsd:complexType>
+                                                </xsd:element>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="total" type="Money"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="promoCode" type="Field" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocAirlineReservationPayment">
+        <xsd:annotation>
+            <xsd:documentation>Оплата брони авиабилетов</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="documentNumber" type="Field"/>
+            <xsd:element name="documentDate" type="Field"/>
+            <xsd:element name="receiverName" type="Field"/>
+            <xsd:element name="fromResource" type="Field"/>
+            <xsd:element name="paymentDetails">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="amount" type="Field"/>
+                        <xsd:element name="currency" type="Field"/>
+                        <xsd:element name="recIdentifier" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="reservationInfo">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="reservationId" type="Field"/>
+                        <xsd:element name="reservExpirationDate" type="Field" minOccurs="0"/>
+                        <xsd:element name="countPassengers" type="Field"/>
+                        <xsd:element name="countRoutes" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="passengersInfo">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="passenger" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="firstName" type="Field"/>
+                                    <xsd:element name="lastName" type="Field"/>
+                                    <xsd:element name="type" type="Field"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="routesInfo">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="route" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="departure">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="flight" type="Field"/>
+                                                <xsd:element name="dateTime" type="Field"/>
+                                                <xsd:element name="location" type="Field" minOccurs="0"/>
+                                                <xsd:element name="airport" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                    <xsd:element name="arrival">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="flight" type="Field" minOccurs="0"/>
+                                                <xsd:element name="dateTime" type="Field"/>
+                                                <xsd:element name="location" type="Field" minOccurs="0"/>
+                                                <xsd:element name="airport" type="Field"/>
+                                            </xsd:sequence>
+                                        </xsd:complexType>
+                                    </xsd:element>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="ticketsInfo" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="ticketsStatus" type="Field"/>
+                        <xsd:element name="ticketsStatusDescription" type="Field"/>
+                        <xsd:element name="issueInfo" minOccurs="0">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="ticketNumber" type="Field" maxOccurs="unbounded"/>
+                                    <xsd:element name="itineraryUrl" type="Field" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                        <xsd:element name="interval" type="Field"/>
+                        <xsd:element name="timeout" type="Field"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="Field">
+        <xsd:sequence>
+            <xsd:element name="name" type="string"/>
+            <xsd:element name="title" type="string" minOccurs="0"/>
+            <xsd:element name="description" type="string" minOccurs="0"/>
+            <xsd:element name="hint" type="string" minOccurs="0"/>
+            <xsd:element name="type">
+                <xsd:simpleType>
+                    <xsd:restriction base="string">
+                        <xsd:enumeration value="list"/>
+                        <xsd:enumeration value="set"/>
+                        <xsd:enumeration value="date"/>
+                        <xsd:enumeration value="number"/>
+                        <xsd:enumeration value="string"/>
+                        <xsd:enumeration value="money"/>
+                        <xsd:enumeration value="calendar"/>
+                        <xsd:enumeration value="integer"/>
+                        <xsd:enumeration value="resource"/>
+                        <xsd:enumeration value="boolean"/>
+                        <xsd:enumeration value="agreement"/>
+                        <xsd:enumeration value="link"/>
+                        <xsd:enumeration value="places"/>
+                        <xsd:enumeration value="dict"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="subType" type="string" minOccurs="0"/>
+            <xsd:element name="maxLength" type="xsd:positiveInteger" minOccurs="0"/>
+            <xsd:element name="minLength" type="xsd:positiveInteger" minOccurs="0"/>
+            <xsd:element name="required" type="xsd:boolean"/>
+            <xsd:element name="editable" type="xsd:boolean"/>
+            <xsd:element name="visible" type="xsd:boolean"/>
+            <xsd:element name="isSum" type="xsd:boolean" minOccurs="0"/>
+            <xsd:choice>
+                <xsd:element name="listType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="availableValues" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="valueItem" maxOccurs="unbounded">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <xsd:element name="value" type="string"/>
+                                                    <xsd:element name="title" type="string"/>
+                                                    <xsd:element name="selected" type="xsd:boolean"/>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="setType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="availableValues" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="valueItem" maxOccurs="unbounded">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <xsd:element name="value" type="string"/>
+                                                    <xsd:element name="title" type="string"/>
+                                                    <xsd:element name="selected" type="xsd:boolean"/>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="dateType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="value" type="string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="numberType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="value" type="xsd:decimal" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="stringType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="value" minOccurs="0">
+                                <xsd:simpleType>
+                                    <xsd:restriction base="string"/>
+                                </xsd:simpleType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="moneyType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="value" type="string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="calendarType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="value" type="string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="integerType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="value" minOccurs="0">
+                                <xsd:simpleType>
+                                    <xsd:restriction base="string">
+                                        <xsd:pattern value="[\-+]?[0-9]+"/>
+                                    </xsd:restriction>
+                                </xsd:simpleType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="resourceType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="availableValues" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="valueItem" maxOccurs="unbounded">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <xsd:element name="value" type="Resource"/>
+                                                    <xsd:element name="selected" type="xsd:boolean"/>
+                                                    <xsd:element name="displayedValue" type="xsd:string" minOccurs="0"/>
+                                                    <xsd:element name="currency" type="xsd:string" minOccurs="0"/>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="booleanType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="value" type="string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="agreementType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="value" type="string" minOccurs="0"/>
+                            <xsd:element name="agreementId" type="string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="linkType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="text" type="string" minOccurs="0"/>
+                            <xsd:element name="url" type="string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="placesType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="maxCount" type="string" minOccurs="0"/>
+                            <xsd:element name="places" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="place" minOccurs="0" maxOccurs="unbounded">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <xsd:element name="number" type="string"/>
+                                                    <xsd:element name="state" type="string"/>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="value" type="string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="dictType">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:choice>
+            <xsd:element name="changed" type="xsd:boolean"/>
+            <xsd:element name="dictFields" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="fieldDictType">
+                            <xsd:simpleType>
+                                <xsd:restriction base="string">
+                                    <xsd:enumeration value="phone"/>
+                                    <xsd:enumeration value="wallet"/>
+                                    <xsd:enumeration value="ourCard"/>
+                                    <xsd:enumeration value="ourAccount"/>
+                                    <xsd:enumeration value="externalAccount"/>
+                                    <xsd:enumeration value="masterCardExternalCard"/>
+                                    <xsd:enumeration value="visaExternalCard"/>
+                                </xsd:restriction>
+                            </xsd:simpleType>
+                        </xsd:element>
+                        <xsd:element name="fieldInfoType">
+                            <xsd:simpleType>
+                                <xsd:restriction base="string">
+                                    <xsd:enumeration value="phone"/>
+                                    <xsd:enumeration value="wallet"/>
+                                    <xsd:enumeration value="ourCard"/>
+                                    <xsd:enumeration value="ourAccount"/>
+                                    <xsd:enumeration value="externalAccount"/>
+                                    <xsd:enumeration value="masterCardExternalCard"/>
+                                    <xsd:enumeration value="visaExternalCard"/>
+                                    <xsd:enumeration value="provider"/>
+                                    <xsd:enumeration value="service"/>
+                                    <xsd:enumeration value="billing"/>
+                                    <xsd:enumeration value="surName"/>
+                                    <xsd:enumeration value="firstName"/>
+                                    <xsd:enumeration value="patrName"/>
+                                    <xsd:enumeration value="BIC"/>
+                                    <xsd:enumeration value="BankName"/>
+                                    <xsd:enumeration value="selfPhone"/>
+                                </xsd:restriction>
+                            </xsd:simpleType>
+                        </xsd:element>
+                        <xsd:element name="dictTypeFieldName" type="string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="Resource">
+        <xsd:restriction base="string">
+            <xsd:pattern value="(card|account|loan|im-account)\:(\d{1,})"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="CardState">
+        <xsd:restriction base="string">
+            <xsd:enumeration value="active"/>
+            <xsd:enumeration value="closed"/>
+            <xsd:enumeration value="replenishment"/>
+            <xsd:enumeration value="ordered"/>
+            <xsd:enumeration value="delivery"/>
+            <xsd:enumeration value="blocked"/>
+            <xsd:enumeration value="changing"/>
+            <xsd:enumeration value="unknown"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="TempStatus">
+        <xsd:restriction base="string">
+            <xsd:enumeration value="active"/>
+            <xsd:enumeration value="inactive"/>
+            <xsd:enumeration value="error"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ConfirmType">
+        <xsd:sequence>
+            <xsd:element name="strategy" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="type">
+                            <xsd:simpleType>
+                                <xsd:restriction base="string">
+                                    <xsd:enumeration value="cardp"/>
+                                    <xsd:enumeration value="smsp"/>
+                                    <xsd:enumeration value="none"/>
+                                    <xsd:enumeration value="deny"/>
+                                    <xsd:enumeration value="pushp"/>
+                                </xsd:restriction>
+                            </xsd:simpleType>
+                        </xsd:element>
+                        <xsd:element name="order" type="xsd:int"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConfirmInfo">
+        <xsd:sequence>
+            <xsd:element name="type">
+                <xsd:simpleType>
+                    <xsd:restriction base="string">
+                        <xsd:enumeration value="cardp"/>
+                        <xsd:enumeration value="smsp"/>
+                        <xsd:enumeration value="pushp"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="cardp" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="passwordNumber" type="string"/>
+                        <xsd:element name="cardNumber" type="string"/>
+                        <xsd:element name="passwordsLeft" type="xsd:unsignedShort" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="smsp" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="lifeTime" type="xsd:unsignedShort"/>
+                        <xsd:element name="attemptsRemain" type="xsd:unsignedByte"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="pushp" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="lifeTime" type="xsd:unsignedShort"/>
+                        <xsd:element name="attemptsRemain" type="xsd:unsignedByte"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConfirmStage">
+        <xsd:sequence>
+            <xsd:element name="confirmType" type="ConfirmType"/>
+            <xsd:element name="confirmInfo" type="ConfirmInfo" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="PaymentState">
+        <xsd:restriction base="string">
+            <xsd:enumeration value="INITIAL"/>
+            <xsd:enumeration value="DRAFT"/>
+            <xsd:enumeration value="SAVED"/>
+            <xsd:enumeration value="EXECUTED"/>
+            <xsd:enumeration value="REFUSED"/>
+            <xsd:enumeration value="RECALLED"/>
+            <xsd:enumeration value="ERROR"/>
+            <xsd:enumeration value="DELAYED_DISPATCH"/>
+            <xsd:enumeration value="DISPATCHED"/>
+            <xsd:enumeration value="INITIAL"/>
+            <xsd:enumeration value="WAIT_CONFIRM"/>
+            <xsd:enumeration value="UNKNOW"/>
+            <xsd:enumeration value="SUCCESSED"/>
+            <xsd:enumeration value="PARTLY_EXECUTED"/>
+            <xsd:enumeration value="DRAFTTEMPLATE"/>
+            <xsd:enumeration value="SAVED_TEMPLATE"/>
+            <xsd:enumeration value="TEMPLATE"/>
+            <xsd:enumeration value="WAIT_CONFIRM_TEMPLATE"/>
+            <xsd:enumeration value="DELETED"/>
+            <xsd:enumeration value="STATEMENT_READY"/>
+            <xsd:enumeration value="ADOPTED"/>
+            <xsd:enumeration value="INITIAL_LONG_OFFER"/>
+            <xsd:enumeration value="OFFLINE_SAVED"/>
+            <xsd:enumeration value="OFFLINE_DELAYED"/>
+            <xsd:enumeration value="BILLING_CONFIRM_TIMEOUT"/>
+            <xsd:enumeration value="BILLING_GATE_CONFIRM_TIMEOUT"/>
+            <xsd:enumeration value="ABS_RECALL_TIMEOUT"/>
+            <xsd:enumeration value="ABS_GATE_RECALL_TIMEOUT"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="Status">
+        <xsd:sequence>
+            <xsd:element name="code">
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:int">
+                        <xsd:pattern value="0|1|2|3|4|8"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="errors" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="error" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="text" type="string"/>
+                                    <xsd:element name="elementId" type="string" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="warnings" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="warning" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence>
+                                    <xsd:element name="text" type="string"/>
+                                    <xsd:element name="elementId" type="string" minOccurs="0"/>
+                                </xsd:sequence>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="TransactionToken">
+        <xsd:restriction base="xsd:normalizedString"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="string">
+        <xsd:restriction base="xsd:string">
+            <xsd:minLength value="1"/>
+            <xsd:whiteSpace value="collapse"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="Money">
+        <xsd:sequence>
+            <xsd:element name="amount">
+                <xsd:simpleType>
+                    <xsd:restriction base="string">
+                        <xsd:pattern value="(\+|-|)(\d{1,})(\.\d{1,}|)"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="currency">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="code" type="string"/>
+                        <xsd:element name="name" type="string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="Amount">
+        <xsd:restriction base="string">
+            <xsd:pattern value="(\d{1,})(\.\d{1,}|)"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>

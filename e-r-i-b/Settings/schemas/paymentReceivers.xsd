@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="com.rssl.phizic.business.dictionaries.receivers.generated"/>
+				<jxb:nameXmlTransform>
+					<jxb:elementName suffix="Element"/>
+					<jxb:typeName suffix="Descriptor"/>
+				</jxb:nameXmlTransform>
+			</jxb:schemaBindings>
+		</xsd:appinfo>
+	</xsd:annotation>
+
+	<xsd:element name="payment-receiver-list">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="payment" type="Payment" maxOccurs="unbounded" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+							<jxb:property name="paymentDescriptors"/>
+						</xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="Payment">
+        <xsd:annotation>
+            <xsd:documentation>Описание платежа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="receiver" type="Receiver" maxOccurs="unbounded" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+						<jxb:property name="receiverDescriptors"/>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="appointment" use="required" type="xsd:string"/>
+	    <xsd:attribute name="description" use="required" type="xsd:string"/>
+	    <xsd:attribute name="detailedDescription" use="optional" type="xsd:string"/>
+    </xsd:complexType>
+    <xsd:complexType name="Receiver">
+        <xsd:annotation>
+            <xsd:documentation>Описание получателя</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="description" type="xsd:string"/>
+            <xsd:choice>
+                <xsd:sequence>
+                	<xsd:element name="contact-code" type="xsd:string"/>
+	                <xsd:element name="account" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+                <xsd:sequence maxOccurs="1">
+                    <xsd:element name="account" type="xsd:string"/>
+                    <xsd:element name="bic" type="xsd:string"/>
+                    <xsd:element name="cor-account" type="xsd:string"/>
+                    <xsd:element name="inn" type="xsd:string"/>
+                    <xsd:element name="kpp" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:choice>
+            <xsd:element name="ground-expression" type="xsd:string"/>
+            <xsd:element name="field" type="Field" maxOccurs="unbounded" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+						<jxb:property name="fieldDescriptors"/>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+	        <xsd:element name="form-validators" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Валидаторы формы</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="form-validator" maxOccurs="unbounded" type="Form-validator"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="key" use="required" type="xsd:string"/>
+        <xsd:attribute name="type" type="xsd:string" use="required"/>
+    </xsd:complexType>
+    <xsd:complexType name="Field">
+        <xsd:annotation>
+            <xsd:documentation>Описание поля формы</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="validators" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="validator" type="Validator" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <jxb:property name="validatorDescriptor"/>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="formater" minOccurs="0" type="JavaClass">
+            </xsd:element>
+            <xsd:element name="parser" minOccurs="0" type="JavaClass">
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="name" use="required"/>
+        <xsd:attribute name="source" use="required"/>
+        <xsd:attribute name="description" use="required"/>
+        <xsd:attribute name="type" use="optional"/>
+        <xsd:attribute name="length" type="xsd:string" use="optional"/>
+		<xsd:attribute name="signable" type="xsd:boolean" use="optional"/>
+	    <xsd:attribute name="message" type="xsd:string" use="optional"/>
+		<xsd:attribute name="code" type="xsd:string" use="optional"/>
+	    <xsd:attribute name="mandatory" type="xsd:string" use="optional"/>
+	    <xsd:attribute name="inital" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+    <xsd:complexType name="Validator">
+        <xsd:annotation>
+            <xsd:documentation>Описание валидатора отдельного поля формы</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="class" type="JavaClass">
+                <xsd:annotation>
+                    <xsd:appinfo>
+						<jxb:property name="className"/>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="message" type="Message"/>
+            <xsd:element minOccurs="0" maxOccurs="unbounded" name="parameter" type="Parameter">
+                <xsd:annotation>
+                    <xsd:appinfo>
+						<jxb:property name="parameterDescriptors"/>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+		<xsd:attribute name="template" type="xsd:boolean" use="optional" default="true"/>
+    </xsd:complexType>
+	<xsd:complexType name="Form-validator">
+        <xsd:annotation>
+            <xsd:documentation>Описание валидатора формы</xsd:documentation>
+        </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="class" type="JavaClass">
+                <xsd:annotation>
+                    <xsd:appinfo>
+						<jxb:property name="className"/>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+			<xsd:element minOccurs="0" name="field-ref" maxOccurs="unbounded">
+				<xsd:complexType mixed="true">
+					<xsd:attribute name="name" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation>Ссылка на field-&gt;name</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element minOccurs="0" name="message" type="Message"/>
+			<xsd:element minOccurs="0" name="parameter" maxOccurs="unbounded" type="Parameter">
+				<xsd:annotation>
+                   <xsd:appinfo>
+						<jxb:property name="parameterDescriptors"/>
+					</xsd:appinfo>
+               </xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="template" type="xsd:boolean" default="true">
+			<xsd:annotation>
+				<xsd:documentation>Используется ли данный валидатор при проверке шаблонов</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="enabled" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>Javascript выражение булевого типа. Если результат true, то валидатор включен.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+    <xsd:complexType name="Parameter">
+        <xsd:annotation>
+            <xsd:documentation>Параметр валидатора</xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="value" use="required" type="xsd:string"/>
+    </xsd:complexType>
+    <xsd:simpleType name="JavaClass">
+        <xsd:annotation>
+            <xsd:documentation>FQN java класса</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="Message">
+        <xsd:annotation>
+            <xsd:documentation>Сообщение</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+</xsd:schema>

@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<typedef name="BlockingReasonType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.auth.BlockingReasonType</param>
+	</typedef>
+
+	<class name="com.rssl.phizic.auth.LoginBlock" table="LOGIN_BLOCK">
+
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_LOGIN_BLOCK</param>
+			</generator>
+		</id>
+
+		<many-to-one name="login" class="com.rssl.phizic.auth.CommonLogin" column="LOGIN_ID" lazy="false" not-null="true" update="false"/>
+
+		<property name="blockedFrom" type="timestamp" column="DATE_FROM" not-null="false"/>
+		<property name="blockedUntil" type="timestamp" column="DATE_UNTIL" not-null="false"/>			
+		<property name="reasonType" type="BlockingReasonType" column="REASON_TYPE"/>
+		<property name="reasonDescription" type="string" column="REASON_DESCRIPTION"/>
+
+		<property name="employee" type="long" column="BLOCKER_ID" not-null="false"/>
+
+	</class>
+
+	<!--активные блокировки пользователя-->
+	<query name="com.rssl.phizic.security.auth.getBlocksByLogin">
+		select block
+		from com.rssl.phizic.auth.LoginBlock block
+		where block.login = :login
+			and (block.blockedFrom &lt; :blockedUntil)
+			and (block.blockedUntil is null or block.blockedUntil &gt; :blockedUntil)
+			and ((:reasonType is null) or (:reasonType = '') or (block.reasonType like :reasonType))
+	</query>
+
+    <!--пользователь заблокирован или нет-->
+    <query name="com.rssl.phizic.security.auth.isLoginBlocked">
+        select 1
+        from com.rssl.phizic.auth.LoginBlock block
+        where block.login = :login
+            and (block.blockedFrom &lt; :blockedUntil)
+            and (block.blockedUntil is null or block.blockedUntil &gt; :blockedUntil)
+    </query>
+    
+	<!--возвращает просроченные блокировки-->
+	<query name="com.rssl.phizic.security.auth.getDelayBlocks">
+		select block
+		from com.rssl.phizic.auth.LoginBlock block
+		where ( :blockedUntil is not null and block.blockedUntil &lt;= :blockedUntil)
+	</query>
+
+	<!--чтобы узнать можно ли удалять логин блокирующего или есть еще блокировки, которые им установлены-->
+	<query name="com.rssl.phizic.security.auth.getBlocksByBlockerId">
+		select block
+		from com.rssl.phizic.auth.LoginBlock block
+		where block.employee = :blockerLogin
+			and (block.blockedUntil is null or block.blockedUntil &gt; :blockedUntil)
+	</query>
+
+</hibernate-mapping>

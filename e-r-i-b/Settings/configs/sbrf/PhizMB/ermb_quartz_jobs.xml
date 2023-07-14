@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<quartz xmlns="http://www.opensymphony.com/quartz/JobSchedulingData"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.opensymphony.com/quartz/JobSchedulingData http://www.quartz-scheduler.org/xml/job_scheduling_data_1_5.xsd"
+		version="1.5">
+
+    <job>
+		<job-detail>
+			<name>ErmbProfilesUpdateJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.ermb.ErmbProfilesUpdateJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>ErmbProfilesUpdateTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ErmbProfilesUpdateJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--Повторяем обновление данных раз в минуту-->
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+    <!--Отложенное выполнение команд -->
+    <job>
+		<job-detail>
+			<name>DelayedCommandExecuteJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.ermb.DelayedCommandExecuteJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>DelayedCommandExecuteTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>DelayedCommandExecuteJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--Повторяем обновление данных раз в минуту-->
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!-- Регистрация новых клиентов ЕРМБ -->
+    <job>
+		<job-detail>
+			<name>ErmbNewClientsRegistrationJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.ermb.ErmbNewClientsRegistrationJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>ErmbNewClientsRegistrationTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ErmbNewClientsRegistrationJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--Повторяем обновление данных раз в минуту-->
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!-- Отключение телефонов от клиентов ЕРМБ -->
+    <job>
+		<job-detail>
+			<name>ErmbDisconnectorPhoneJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.ermb.ErmbDisconnectorPhoneJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>ErmbDisconnectorPhoneTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ErmbDisconnectorPhoneJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--Повторяем обновление данных раз в минуту-->
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!-- Запуск списковой миграции клиентов-->
+    <job>
+		<job-detail>
+			<name>ListMigrationJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.business.ermb.migration.list.ListMigrationJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>ListMigrationTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ListMigrationJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--Попытка миграции раз в 1 минуту-->
+                <repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!--Активация ЕРМБ в ЦОД/Way-->
+    <job>
+		<job-detail>
+			<name>ErmbActivationJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.ermb.ErmbActivationJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			  <cron>
+				<name>ErmbActivationTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ErmbActivationJob</job-name>
+				<job-group>DEFAULT</job-group>
+                <!--вызов ежедневно в 02:00-->
+				<cron-expression>0 0 2 * * ?</cron-expression>
+			  </cron>
+		</trigger>
+	</job>
+
+    <!--Удаление просроченных бинов подтверждения-->
+    <job>
+		<job-detail>
+			<name>OverdueConfirmBeanRemoverJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.ermb.OverdueConfirmBeanRemoverJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>OverdueConfirmBeanRemoverTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>OverdueConfirmBeanRemoverJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--Повторяем обновление данных раз в час-->
+                <repeat-interval>3600000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!--Удаление просроченных смс-->
+    <job>
+		<job-detail>
+			<name>ExpiredSmsRemoverJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.ermb.ExpiredSmsRemoverJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>ExpiredSmsRemoverTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ExpiredSmsRemoverJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--Повторяем обновление данных раз час-->
+                <repeat-interval>3600000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+</quartz>

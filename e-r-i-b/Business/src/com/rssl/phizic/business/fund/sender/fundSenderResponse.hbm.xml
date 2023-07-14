@@ -1,0 +1,171 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="FundRequestState">
+        <param name="enumClass">com.rssl.phizic.common.types.fund.FundRequestState</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="FundClosedReason">
+        <param name="enumClass">com.rssl.phizic.common.types.fund.ClosedReasonType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.fund.sender.FundSenderResponse" table="FUND_SENDER_RESPONSES">
+
+        <id name="externalId" type="string" column="EXTERNAL_RESPONSE_ID"/>
+
+        <property name="firstName"                      type="string"                   column="FIRST_NAME"                     not-null="true"/>
+        <property name="surName"                        type="string"                   column="SUR_NAME"                       not-null="true"/>
+        <property name="patrName"                       type="string"                   column="PATR_NAME"                      not-null="false"/>
+        <property name="birthDate"                      type="calendar"                 column="BIRTH_DATE"                     not-null="true"/>
+        <property name="tb"                             type="string"                   column="TB"                             not-null="true"/>
+        <property name="passport"                       type="string"                   column="PASSPORT"                       not-null="true"/>
+        <property name="externalRequestId"              type="string"                   column="EXTERNAL_REQUEST_ID"            not-null="true"/>
+        <property name="state"                          type="FundResponseState"        column="STATE"                          not-null="true"/>
+        <property name="sum"                            type="big_decimal"              column="SUM"                            not-null="false"/>
+        <property name="message"                        type="string"                   column="MESSAGE"                        not-null="false"/>
+        <property name="paymentId"                      type="long"                     column="PAYMENT_ID"                     not-null="false"/>
+        <property name="initiatorFirstName"             type="string"                   column="INITIATOR_FIRST_NAME"           not-null="true"/>
+        <property name="initiatorSurName"               type="string"                   column="INITIATOR_SUR_NAME"             not-null="true"/>
+        <property name="initiatorPatrName"              type="string"                   column="INITIATOR_PATR_NAME"            not-null="false"/>
+        <property name="initiatorPassport"              type="string"                   column="INITIATOR_PASSPORT"             not-null="true"/>
+        <property name="initiatorBirthDate"             type="calendar"                 column="INITIATOR_BIRTH_DATE"           not-null="true"/>
+        <property name="initiatorTb"                    type="string"                   column="INITIATOR_TB"                   not-null="true"/>
+        <property name="initiatorPhones"                type="string"                   column="INITIATOR_PHONES"               not-null="true"/>
+        <property name="requestMessage"                 type="string"                   column="REQUEST_MESSAGE"                not-null="true"/>
+        <property name="requestState"                   type="FundRequestState"         column="REQUEST_STATE"                  not-null="true"/>
+        <property name="viewRequestState"               type="FundRequestState"         insert="false"                          update="false">
+            <formula>
+                case
+                    when REQUEST_STATE = 'CLOSED'
+                        then 'CLOSED'
+                    else
+                        case
+                            when current_date >= EXPECTED_CLOSED_DATE
+                                then 'CLOSED'
+                            else 'OPEN'
+                        end
+                end
+            </formula>
+        </property>
+        <property name="requiredSum"                    type="big_decimal"              column="REQUIRED_SUM"                   not-null="false"/>
+        <property name="reccomendSum"                   type="big_decimal"              column="RECCOMEND_SUM"                  not-null="false"/>
+        <property name="toResource"                     type="string"                   column="TO_RESOURCE"                    not-null="true"/>
+        <property name="closedDate"                     type="calendar"                 column="CLOSED_DATE"                    not-null="false"/>
+        <property name="viewClosedDate"                 type="calendar"                 insert="false"                          update="false">
+            <formula>
+                case
+                    when REQUEST_STATE = 'CLOSED'
+                        then CLOSED_DATE
+                    else
+                        case
+                            when current_date >= EXPECTED_CLOSED_DATE
+                                then EXPECTED_CLOSED_DATE
+                            else CLOSED_DATE
+                        end
+                end
+            </formula>
+        </property>
+        <property name="expectedClosedDate"             type="calendar"                 column="EXPECTED_CLOSED_DATE"           not-null="true"/>
+        <property name="createdDate"                    type="calendar"                 column="CREATED_DATE"                   not-null="true"/>
+    </class>
+
+    <!--Получить список входящих запросов за период по ФИО ДУЛ ДР ТБ
+        Опорный элемент: I_FUND_S_RESP_UNIVERSAL
+        Предикаты доступа: access(UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'()+',' ')))=UPPER(TRIM(
+                       REGEXP_REPLACE (:SUR_NAME||' '||:FIRST_NAME||' '||:PATR_NAME,'()+',' '))) AND
+                       "RESPONSE"."BIRTH_DATE"=TO_TIMESTAMP(:BIRTH_DATE) AND "RESPONSE"."TB"=:TB AND REPLACE("PASSPORT",'
+                       ','')=REPLACE(:PASSPORT,' ','') AND "CREATED_DATE">=TO_TIMESTAMP(:FROM_DATE))
+        Кардинальность: 0 - количество запросов по данным ФИО ДУЛ ДР ТБ за период (по умолчанию месяц)
+    -->
+    <sql-query name="com.rssl.phizic.business.fund.sender.FundSenderResponse.getByUniversalIdAndDate">
+        <return alias="response" class="com.rssl.phizic.business.fund.sender.FundSenderResponse"/>
+        <![CDATA[
+            select {response.*}
+            from FUND_SENDER_RESPONSES response
+            where
+                UPPER(TRIM(REGEXP_REPLACE(response.SUR_NAME||' '||response.FIRST_NAME||' '||response.PATR_NAME,'()+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:sur_name||' '||:first_name||' '||:patr_name,'()+',' '))) and
+                response.BIRTH_DATE = :birth_date and
+                response.TB = :tb and
+                REPLACE(response.PASSPORT,' ','') = REPLACE(:passport,' ','') and
+                CREATED_DATE >= :from_date
+        ]]>
+    </sql-query>
+
+    <!--Получить входящий запрос по его внешнему идентификатору
+        Опорный элемент I_FUND_S_RES_EXT_ID
+        Предикаты доступа: 2 - access("EXTERNAL_RESPONSE_ID"=:EXTERNALID)
+        Кардинальность:  1 - индекс уникален.
+    -->
+    <sql-query name="com.rssl.phizic.business.fund.sender.FundSenderResponse.getByExternalId">
+        <return alias="response" class="com.rssl.phizic.business.fund.sender.FundSenderResponse"/>
+        <![CDATA[
+            select {response.*}
+            from FUND_SENDER_RESPONSES response
+            where
+                EXTERNAL_RESPONSE_ID = :externalId
+        ]]>
+    </sql-query>
+
+    <!--Получить количество неотвеченных входящих запросов
+        Опорный элемент: I_FUND_S_RESP_UNIVERSAL
+        Предикаты доступа: access(UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'()+',' ')))=UPPER(TRIM(
+                       REGEXP_REPLACE (:SUR_NAME||' '||:FIRST_NAME||' '||:PATR_NAME,'()+',' '))) AND
+                       "RESPONSE"."BIRTH_DATE"=TO_TIMESTAMP(:BIRTH_DATE) AND "RESPONSE"."TB"=:TB AND REPLACE("PASSPORT",'
+                       ','')=REPLACE(:PASSPORT,' ','') AND "CREATED_DATE">=TO_TIMESTAMP(:FROM_DATE))
+        Кардинальность: 0 - количество запросов по данным ФИО ДУЛ ДР ТБ за месяц
+    -->
+    <sql-query name="com.rssl.phizic.business.fund.sender.FundSenderResponse.getNotAnsweredCount">
+        <return-scalar column="count" type="int"/>
+        <![CDATA[
+            select count(response.EXTERNAL_RESPONSE_ID) as count
+            from FUND_SENDER_RESPONSES response
+            where
+                UPPER(TRIM(REGEXP_REPLACE(response.SUR_NAME||' '||response.FIRST_NAME||' '||response.PATR_NAME,'()+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:sur_name||' '||:first_name||' '||:patr_name,'()+',' '))) and
+                response.BIRTH_DATE = :birth_date and
+                response.TB = :tb and
+                REPLACE(response.PASSPORT,' ','') = REPLACE(:passport,' ','') and
+                CREATED_DATE >= :from_date and
+                STATE = 'NOT_READ' and
+                REQUEST_STATE = 'OPEN'
+        ]]>
+    </sql-query>
+
+    <!--Закрыть входящий запрос
+        Опорный элемент: I_FUND_S_REQ_EXT_ID
+        Предикаты доступа: access("EXTERNAL_REQUEST_ID"=:EXTERNAL_ID AND "CREATED_DATE"=TO_TIMESTAMP(:CREATED_DATE))
+        Кардинальность: 1 (стоп-условие - за один коммит обновляем только одну запись)
+    -->
+    <sql-query name="com.rssl.phizic.business.fund.sender.FundSenderResponse.closeRequest">
+        <![CDATA[
+            update FUND_SENDER_RESPONSES
+            set REQUEST_STATE = 'CLOSED',
+                CLOSED_DATE = :extra_closed_date
+            where
+                EXTERNAL_REQUEST_ID = :extra_external_id and
+                CREATED_DATE = :extra_created_date and
+                REQUEST_STATE = 'OPEN' and
+                rownum <= :extra_pack_size
+        ]]>
+    </sql-query>
+
+    <!--обновить статус обработки запроса
+        Опорный элемент: I_FUND_S_RES_EXT_ID
+        Предикаты доступа: access("EXTERNAL_RESPONSE_ID"=:EXTERNAL_ID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.fund.sender.FundSenderResponse.updateState">
+        <![CDATA[
+            update FUND_SENDER_RESPONSES
+            set
+                STATE = :extra_new_state,
+                SUM = :extra_sum,
+                MESSAGE = :extra_message,
+                PAYMENT_ID = :extra_payment_id
+            where
+                EXTERNAL_RESPONSE_ID = :extra_external_id and
+                STATE = :extra_valid_state
+        ]]>
+    </sql-query>
+</hibernate-mapping>

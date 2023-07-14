@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    *********************************** group ****************************************************************
+
+    Данный элемент является корневым для элементов определяющих каким будет содержание и структура указанных
+    для формирования ear`ников. Данный элемент имеет единственный атрибут name, служащий для идентификации группы.
+    Данный атрибут должен принимать уникальное значение, в противном случае получится феерическая сборка
+    приложения.
+    
+    *********************************** contexts *************************************************************
+
+    Блок contexts описывает сколько и какие ear нужно собрать. Для добавления к сборке нового ear необходимо
+    в данный блок внести еще однин элемент <context/> с соответствующими атрибутами.
+    
+    Атрибутами элемента <context/> задается следующее:
+    - name.
+    Задает имя ear. Должно быть уникально, иначе каждый следующий создаваемый ear будет перетирать уже существующий;
+
+    - application-instance.
+    Задает значение ключа com.rssl.iccs.application.instance.prefix в
+    файле настроек iccs.properties. Каждый ear должен иметь уникальное значение для данного
+    атрибута.
+
+    *********************************** web-modules **********************************************************
+
+    В данном блоке описывается набор war которые необходимо сформировать для каждого ear группы.
+    Атрибуты элемента <module/> определяют следующее:
+
+    - uri.
+    Определяет название для war.
+
+    - postfix.
+    Используется при генерации application.xml. Описание каким образом задействован данный атрибут см. ниже.
+
+    *********************************** jar-modules **********************************************************
+
+    Имеет следующую структуру:
+    <jar-modules>
+        <module name="One"/>
+        <module name="Two"/>
+        <module name="..."/>
+    </jar-modules>
+
+    Данный тэг необязателен.
+    Служит для указания того, какие уникальные для группы jar должны быть сформированны и скопированны в
+    папку с библиотеками ear. Атрибут name указывает название модуля из которого будет сформирована библиотека.
+
+    *********************************** gate-modules *********************************************************
+
+    <gate-modules/> имеет структуру аналогичную jar-modules. Непонятно почему в старой версии сборки их разделили.
+    В целях "обратной совместимости" работает также :)
+
+    *********************************** ejb-modules, rar-modules *********************************************
+
+    Фактически не применяется при формировании ear для гейтов (используется большей частью только для
+    формирования основного приложения), реализовано для случая если вдруг такую сборку нужно будет реализовать
+    для всего приложения.
+
+    *********************************** global-[ejb, jar, gate, rar]-modules *********************************
+
+    Все указанное с приставкой global является общим для всех групп, т.е к тому что определенно в
+    группе в <rar-modules/> будет добавлено то что объявленно в <global-rar-modules/>. Сделано для того, чтобы
+    не указывать стопятьсотмиллионов раз одно и то же.
+
+    **********************************************************************************************************
+    *********************************** Генерация application.xml ********************************************
+    **********************************************************************************************************
+
+    При генерации application.xml используются следующие элементы и атрибуты данного конфигурационного файла:
+
+    1. Атрибут name элемента <group/> задает <display-name/> файла application.xml;
+
+    2. Атрибут uri элемента  <module/> входящих в состав <web-modules/> задает имя war`a в тэге <web-uri/>;
+
+    3. При формировании <context-root/> производятся следующие проверки:
+
+       - если атрибут postfix элемента <module/> входящего в состав <web-modules/> пустой, то при заполнении
+       <context-root/> берется атрибут name из тэга <context/>. 
+       Т.е. для
+       <context name="PhizGateGorod" application-instance="phiz-gate-gorod"/>
+
+       модуля
+       <module uri="WebGate" postfix=""/>
+
+       будет сформировано следующее
+       <module>
+         <web>
+             <web-uri>WebGate.war</web-uri>
+             <context-root>PhizGateGorod</context-root>
+         </web>
+       </module>;
+
+       - если атрибут postfix элемента <module/> входящего в состав <web-modules/> не пустой, то при заполнении
+       <context-root/> берется атрибут name из тэга <context/> + значение указанное в postfix через дефис.
+
+       Для
+       <context name="PhizGateGorod" application-instance="phiz-gate-gorod"/>
+
+       модуля
+       <module uri="WebResources"    postfix="res"/>
+
+       будет сформировано следующее
+       <module>
+           <web>
+               <web-uri>WebResources.war</web-uri>
+               <context-root>PhizGateGorod-res</context-root>
+           </web>
+       </module>
+
+       - !!ВАЖНО!! При формировании <module/> в application.xml для какого-либо Listener`a значение <context-root/>
+       берется из атрибута uri, поскольку после реализации ENH023484 названия для них определены в коде, а не через
+       файлы настроек.
+
+       4. Атрибут name элемента <rar-module/> при заполнении элемента <connector/> файла application.xml.
+
+       Т.е. для
+       <rar-modules>
+           <rar-module name="PhizicConnectorInstanceName"/>
+       </rar-modules>
+
+       на выходе получается следующее
+       <module>
+        <connector>PhizicConnectorInstanceName.rar</connector>
+       </module>
+
+       однако в реальности данный тэг в формировании ear для гейтов не используется.
+
+       5. Аналогично предыдущему пункту обстоит ситуация с элементом <ejb-modules/>, только на выходе получается
+       следующее
+
+       для
+       <ejb-modules>
+            <module name="MessagingJobs"/>
+       </ejb-modules>
+
+       будет сформированно
+       <module>
+	        <ejb>MessagingJobs.jar</ejb>
+	   </module>
+-->
+<groups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <group name="PhizGateGorod">
+        <contexts>
+            <context name="PhizGateGorod"       application-instance="phiz-gate-gorod"/>
+        </contexts>
+
+        <web-modules>
+            <module uri="WebGate"         postfix=""/>
+            <module uri="WebResources"    postfix="res"/>
+        </web-modules>
+
+        <gate-modules>
+            <module name="GorodSystem"/>
+        </gate-modules>
+
+        <jar-modules/>
+        <ejb-modules>
+            <module name="EventListener"/>
+        </ejb-modules>
+        <rar-modules/>
+    </group>
+
+    <group name="PhizGateCOD">
+        <contexts>
+            <context name="PhizGateCOD"       application-instance="phiz-gate-cod"/>
+        </contexts>
+
+        <web-modules>
+            <module uri="WebGate" postfix=""/>
+            <module uri="WebResources" postfix="res"/>
+            <module uri="Scheduler" postfix="Scheduler"/>
+            <module uri="Listener" postfix=""/>
+        </web-modules>
+
+        <gate-modules/>
+
+        <jar-modules>
+            <module name="SBRFCODGate"/>
+        </jar-modules>
+
+        <ejb-modules>
+            <module name="EventListener"/>
+        </ejb-modules>
+        <rar-modules/>
+    </group>
+
+    <group name="PhizGateASBC">
+        <contexts>
+            <context name="PhizGateASBC" application-instance="phiz-gate-asbc"/>
+        </contexts>
+
+        <web-modules>
+            <module uri="WebGate" postfix=""/>
+            <module uri="WebResources" postfix="res"/>
+        </web-modules>
+
+        <gate-modules>
+            <module name="ASBCGate"/>
+            <module name="Gate"/>
+        </gate-modules>
+
+        <jar-modules/>
+        <ejb-modules/>
+        <rar-modules/>
+    </group>
+
+    <group name="PhizGateSofiaBilling">
+        <contexts>
+            <context name="PhizGateSofiaBilling" application-instance="phiz-gate-sofia"/>
+        </contexts>
+
+        <web-modules>
+            <module uri="WebGate" postfix=""/>
+            <module uri="WebResources" postfix="res"/>
+        </web-modules>
+
+        <gate-modules>
+            <module name="SofiaBillingGate"/>
+        </gate-modules>
+
+        <jar-modules/>
+        <ejb-modules>
+            <module name="EventListener"/>
+        </ejb-modules>
+        <rar-modules/>
+    </group>
+
+    <group name="PhizGateRyazanBilling">
+        <contexts>
+            <context name="PhizGateRyazanBilling" application-instance="phiz-gate-ryazan"/>
+        </contexts>
+
+        <web-modules>
+            <module uri="WebGate" postfix=""/>
+            <module uri="WebResources" postfix="res"/>
+        </web-modules>
+
+        <gate-modules>
+            <module name="SofiaBillingGate"/>
+        </gate-modules>
+
+        <jar-modules/>
+        <ejb-modules>
+            <module name="EventListener"/>
+        </ejb-modules>
+        <rar-modules/>
+    </group>
+
+    <group name="PhizGateIQWave">
+        <contexts>
+            <context name="PhizGateIQWave" application-instance="phiz-gate-iqwave"/>
+        </contexts>
+
+        <web-modules>
+            <module uri="WebGate" postfix=""/>
+            <module uri="WebResources" postfix="res"/>
+            <module uri="IQWaveListener" postfix=""/>
+        </web-modules>
+
+        <gate-modules>
+            <module name="IQWaveGate"/>
+        </gate-modules>
+
+        <jar-modules/>
+        <ejb-modules>
+            <module name="EventListener"/>
+        </ejb-modules>
+        <rar-modules/>
+    </group>
+
+    <group name="PhizGateEnisey">
+        <contexts>
+            <context name="PhizGateEnisey" application-instance="phiz-gate-enisey"/>
+        </contexts>
+
+        <web-modules>
+            <module uri="WebGate" postfix=""/>
+            <module uri="WebResources" postfix="res"/>
+        </web-modules>
+
+        <gate-modules>
+            <module name="EniseyGate"/>
+        </gate-modules>
+
+        <jar-modules/>
+        <ejb-modules>
+            <module name="EventListener"/>
+        </ejb-modules>
+        <rar-modules/>
+    </group>
+
+    <group name="PhizGateCPFL">
+        <contexts>
+            <context name="PhizGateCPFL" application-instance="phiz-gate-cpfl"/>
+        </contexts>
+
+        <web-modules>
+            <module uri="WebGate" postfix=""/>
+            <module uri="WebResources" postfix="res"/>
+        </web-modules>
+
+        <gate-modules>
+            <module name="CPFLGate"/>
+        </gate-modules>
+
+        <jar-modules/>
+        <ejb-modules>
+            <module name="EventListener"/>
+        </ejb-modules>
+        <rar-modules/>
+    </group>
+
+    <group name="PhizGateXBank">
+        <contexts>
+            <context name="PhizGateXBank" application-instance="phiz-gate-xbank"/>
+        </contexts>
+
+        <web-modules>
+            <module uri="WebGate" postfix=""/>
+            <module uri="WebResources" postfix="res"/>
+        </web-modules>
+
+        <gate-modules>
+            <module name="SBRFXBankGate"/>
+        </gate-modules>
+
+        <jar-modules/>
+        <ejb-modules>
+            <module name="EventListener"/>
+        </ejb-modules>
+        <rar-modules/>
+    </group>
+
+    <global-jar-modules>
+        <module name="CommonTypes"/>
+        <module name="Utilities"/>
+        <module name="DataAccess"/>
+        <module name="Configuration"/>
+        <module name="Logging"/>
+        <module name="Notifications"/>
+        <module name="Forms"/>
+        <module name="WebCommon"/>
+        <module name="GateCommon"/>
+        <module name="Gate"/>
+        <module name="Modulus"/>
+        <module name="ModulusCommon"/>
+    </global-jar-modules>
+
+    <global-gate-modules>
+        <module name="GateManager"/>
+        <module name="WSGateClient"/>
+        <module name="MockGate"/>
+    </global-gate-modules>
+
+    <global-ejb-modules/>
+    <global-rar-modules/>
+</groups>

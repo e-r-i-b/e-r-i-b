@@ -1,0 +1,34 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.rssl.phizic.business.resources.own.SchemeOwn" table="SCHEMEOWNS">
+
+		<id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_SCHEMEOWNS</param>
+            </generator>
+		</id>
+
+		<property name="accessType" column="ACCESS_TYPE" not-null="true"/>
+        <property name="loginId" type="long" column="LOGIN_ID" not-null="true"/>
+
+		<many-to-one name="accessScheme"
+		             class="com.rssl.phizic.business.schemes.AccessScheme"
+		             column="SCHEME_ID"
+		             not-null="true"
+		             lazy="false"/>
+	</class>
+
+    <!--
+       Опорный объект: DXFK_SCHEMEOW_REFERENCE_LOGINS
+       Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+       Кардинальность: максимально - 7
+    -->
+    <query name="com.rssl.phizic.business.resources.own.SchemeOwn.findTypes">
+		select scheme.accessType from com.rssl.phizic.business.resources.own.SchemeOwn scheme
+        where scheme.loginId = :loginId and scheme.accessType in (:accessTypes)
+	</query>
+
+</hibernate-mapping>

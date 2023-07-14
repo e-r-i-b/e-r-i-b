@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <!--Верхний уровень иерархии
+      Опорный объект: PAYMENT_SERVICES
+      Предикаты доступа: фулскан
+      Кардинальность: несколько десятков
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.toplist.payments">
+        <return-scalar column="category_id" type="long"/>
+        <return-scalar column="category_name" type="string"/>
+        <return-scalar column="category_Image" type="string"/>
+        <return-scalar column="category_ImageName" type="string"/>
+        <return-scalar column="service_ID" type="long"/>
+        <return-scalar column="service_name" type="string"/>
+        SELECT
+            category.id category_id,
+            category.name category_name,
+            category.image_id category_Image,
+            category.image_name category_ImageName,
+            childServ.id service_ID,
+            childServ.name service_name
+        FROM PAYMENT_SERV_PARENTS parents
+        join PAYMENT_SERVICES childServ on parents.SERVICE_ID = childServ.id and childServ.SHOW_IN_SYSTEM='1'
+        right join PAYMENT_SERVICES category on category.ID = parents.PARENT_ID
+
+        WHERE category.IS_CATEGORY='1' and category.SHOW_IN_SYSTEM = '1'
+        ORDER BY category.PRIORITY, category.id, childServ.PRIORITY
+    </sql-query>
+
+
+    <!--Верхний уровень иерархии для апи
+      Опорный объект: PAYMENT_SERVICES
+      Предикаты доступа: фулскан
+      Кардинальность: несколько десятков
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.toplist.payments.api">
+        <return-scalar column="category_id" type="long"/>
+        <return-scalar column="category_name" type="string"/>
+        <return-scalar column="category_Image" type="string"/>
+        <return-scalar column="category_ImageName" type="string"/>
+        <return-scalar column="category_guid" type="string"/>
+            select
+                category.ID category_id,
+                category.NAME category_name,
+                category.IMAGE_ID category_Image,
+                category.IMAGE_NAME category_ImageName,
+                category.CODE category_guid
+            from
+                PAYMENT_SERVICES category
+            where
+                category.IS_CATEGORY = 1
+                and(
+                      (:extra_chanel = 'ATMAPI' and category.SHOW_IN_ATM = 1) or
+                      (:extra_chanel = 'MAPI' and category.SHOW_IN_API = 1)
+                )
+            order by PRIORITY, category_id
+    </sql-query>
+
+    <!--Верхний уровень иерархии для апи
+  Опорный объект: PAYMENT_SERVICES
+  Предикаты доступа: фулскан
+  Кардинальность: несколько десятков
+-->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.toplist.payments.api.multilocale">
+        <return-scalar column="category_id" type="long"/>
+        <return-scalar column="category_name" type="string"/>
+        <return-scalar column="category_Image" type="string"/>
+        <return-scalar column="category_ImageName" type="string"/>
+        <return-scalar column="category_guid" type="string"/>
+            select
+                category.ID category_id,
+                NVL(category_res.NAME, category.NAME) category_name,
+                category.IMAGE_ID category_Image,
+                category.IMAGE_NAME category_ImageName,
+                category.CODE category_guid
+            from
+                PAYMENT_SERVICES category left join PAYMENT_SERVICES_RES category_res on category.code = category_res.uuid and category_res.LOCALE_ID=:extra_localeId
+            where
+                category.IS_CATEGORY = 1
+                and(
+                      (:extra_chanel = 'ATMAPI' and category.SHOW_IN_ATM = 1) or
+                      (:extra_chanel = 'MAPI' and category.SHOW_IN_API = 1)
+                )
+            order by PRIORITY, category_id
+    </sql-query>
+
+
+    <!--Список категорий верхнего уровня, доступных для заданной функциональности
+      Опорный объект: IDX_PSA
+      Предикаты доступа: access("CATEGORY"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND
+               "CATEGORY"."CHANEL"=:EXTRA_CHANEL AND "CATEGORY"."AVAILABLE"=:EXTRA_FUNCTIONALITY AND
+               "CATEGORY"."PARENT_SERVICE_ID"=(-1))
+      Кардинальность: в районе 10.
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.toplist.available">
+        <return-scalar column="category_id" type="long"/>
+        <return-scalar column="category_name" type="string"/>
+        <return-scalar column="category_Image" type="string"/>
+        <return-scalar column="category_ImageName" type="string"/>
+        <return-scalar column="service_ID" type="long"/>
+        <return-scalar column="service_name" type="string"/>
+            select
+                category.SERVICE_ID category_id,
+                category.SERVICE_NAME category_name,
+                category.image_id category_Image,
+                category.image_name category_ImageName,
+
+                childServ.SERVICE_ID  service_ID,
+                childServ.SERVICE_NAME service_name
+            from PAYMENT_SERVICES_AGGR category
+            left join PAYMENT_SERVICES_AGGR childServ on
+                childServ.PARENT_SERVICE_ID = category.SERVICE_ID
+                and childServ.CHANEL = category.CHANEL
+                and childServ.REGION_ID = category.REGION_ID
+                and childServ.AVAILABLE in (:extra_functionality)
+                and childServ.P_KEY = :extra_pkey
+            where
+                category.PARENT_SERVICE_ID = -1
+
+                and category.P_KEY = :extra_pkey
+                and category.CHANEL = :extra_chanel
+                and category.REGION_ID =  :extra_region_id
+                and category.AVAILABLE in (:extra_functionality)
+
+            order by category.PRIORITY, category.SERVICE_ID, childServ.PRIORITY
+    </sql-query>
+
+    <!--Список категорий верхнего уровня, доступных для автоплатежей
+      Опорный объект: IDX_PSA
+      Предикаты доступа: access("CATEGORY"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND
+               "CATEGORY"."CHANEL"=:EXTRA_CHANEL AND "CATEGORY"."AVAILABLE"=:EXTRA_FUNCTIONALITY AND
+               "CATEGORY"."PARENT_SERVICE_ID"=(-1))
+      Кардинальность: в районе 20.
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.toplist.autopayments">
+        <return-scalar column="category_id" type="long"/>
+        <return-scalar column="category_name" type="string"/>
+        <return-scalar column="category_Image" type="string"/>
+        <return-scalar column="category_ImageName" type="string"/>
+        <return-scalar column="service_ID" type="long"/>
+        <return-scalar column="service_name" type="string"/>
+            select
+                d.category_id category_id,
+                d.category_name category_name,
+                d.category_Image category_Image,
+                d.category_ImageName category_ImageName,
+
+                d.service_ID service_ID,
+                d.service_name service_name
+            from(
+                    select distinct
+                        category.SERVICE_ID category_id,
+                        category.SERVICE_NAME category_name,
+                        category.image_id category_Image,
+                        category.image_name category_ImageName,
+                        category.PRIORITY category_PRIORITY,
+
+                        childServ.SERVICE_ID  service_ID,
+                        childServ.SERVICE_NAME service_name,
+                        childServ.PRIORITY service_PRIORITY
+                    from PAYMENT_SERVICES_AGGR category
+                    left join PAYMENT_SERVICES_AGGR childServ on
+                        childServ.PARENT_SERVICE_ID = category.SERVICE_ID
+                        and childServ.CHANEL = category.CHANEL
+                        and childServ.REGION_ID = category.REGION_ID
+                        and childServ.AVAILABLE in (:extra_functionality)
+                        and childServ.P_KEY = :extra_pkey
+                    where
+                        category.PARENT_SERVICE_ID = -1
+
+                        and category.P_KEY = :extra_pkey
+                        and category.CHANEL = :extra_chanel
+                        and category.REGION_ID =  :extra_region_id
+                        and category.AVAILABLE in (:extra_functionality)
+                 ) d
+            order by  d.category_PRIORITY, d.category_ID, d.service_PRIORITY
+    </sql-query>
+
+
+    <!--Список категорий верхнего уровня, доступных для автоплатежей в апи
+      Опорный объект: IDX_PSA
+      Предикаты доступа: access("CATEGORY"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND
+               "CATEGORY"."CHANEL"=:EXTRA_CHANEL AND "CATEGORY"."AVAILABLE"=:EXTRA_FUNCTIONALITY AND
+               "CATEGORY"."PARENT_SERVICE_ID"=(-1))
+      Кардинальность: в районе 20.
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.toplist.autopayments.api">
+        <return-scalar column="category_id" type="long"/>
+        <return-scalar column="category_name" type="string"/>
+        <return-scalar column="category_Image" type="string"/>
+        <return-scalar column="category_ImageName" type="string"/>
+        <return-scalar column="category_guid" type="string"/>
+            select
+                d.category_id category_id,
+                d.category_name category_name,
+                d.category_Image category_Image,
+                d.category_ImageName category_ImageName,
+                d.category_GUID category_guid
+            from(
+                select distinct
+                    category.SERVICE_ID category_id,
+                    category.SERVICE_NAME category_name,
+                    category.image_id category_Image,
+                    category.image_name category_ImageName,
+                    category.PRIORITY category_PRIORITY,
+                    category.GUID category_GUID
+                from PAYMENT_SERVICES_AGGR category
+                where
+                    category.PARENT_SERVICE_ID = -1
+
+                    and category.P_KEY = :extra_pkey
+                    and category.CHANEL = :extra_chanel
+                    and category.REGION_ID =  :extra_region_id
+                    and category.AVAILABLE in (:extra_functionality)
+                ) d
+            order by  d.category_PRIORITY, d.category_ID
+    </sql-query>
+
+
+<!--Второй уровень иерархии, доступный для заданной функциональности
+      Опорный объект: IDX_PSA
+      Предикаты доступа: access("CATEGORY"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND
+               "CATEGORY"."CHANEL"=:EXTRA_CHANEL AND "CATEGORY"."AVAILABLE"=:EXTRA_FUNCTIONALITY AND
+               "CATEGORY"."PARENT_SERVICE_ID"=TO_NUMBER(:EXTRA_PARENT_ID))
+      Кардинальность: в районе 10.
+-->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.services.available">
+        <return-scalar column="category_id" type="long"/>
+        <return-scalar column="category_name" type="string"/>
+        <return-scalar column="category_Image" type="string"/>
+        <return-scalar column="category_ImageName" type="string"/>
+            select
+                category.SERVICE_ID category_id,
+                category.SERVICE_NAME category_name,
+                category.image_id category_Image,
+                category.image_name category_ImageName
+            from PAYMENT_SERVICES_AGGR category
+            where
+                category.PARENT_SERVICE_ID = :extra_parent_id
+
+                and category.P_KEY = :extra_pkey
+                and category.CHANEL = :extra_chanel
+                and category.REGION_ID =  :extra_region_id
+                and category.AVAILABLE in (:extra_functionality)
+
+            order by category.PRIORITY, category.SERVICE_ID
+    </sql-query>
+
+    <!--Второй уровень иерархии, доступный для заданной функциональности мультиязычный
+      Опорный объект: IDX_PSA
+      Предикаты доступа: access("CATEGORY"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND
+               "CATEGORY"."CHANEL"=:EXTRA_CHANEL AND "CATEGORY"."AVAILABLE"=:EXTRA_FUNCTIONALITY AND
+               "CATEGORY"."PARENT_SERVICE_ID"=TO_NUMBER(:EXTRA_PARENT_ID))
+      Кардинальность: в районе 10.
+-->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.services.available.multilocale">
+        <return-scalar column="category_id" type="long"/>
+        <return-scalar column="category_name" type="string"/>
+        <return-scalar column="category_Image" type="string"/>
+        <return-scalar column="category_ImageName" type="string"/>
+            select
+                category.SERVICE_ID category_id,
+                NVL(res.SERVICE_NAME, category.SERVICE_NAME) category_name,
+                category.image_id category_Image,
+                category.image_name category_ImageName
+            from PAYMENT_SERVICES_AGGR category
+            left join PAYMENT_SERVICES_RES res on category.GUID = res.UUID and res.LOCALE_ID = :extra_localeId
+            where
+                category.PARENT_SERVICE_ID = :extra_parent_id
+
+                and category.P_KEY = :extra_pkey
+                and category.CHANEL = :extra_chanel
+                and category.REGION_ID =  :extra_region_id
+                and category.AVAILABLE in (:extra_functionality)
+
+            order by category.PRIORITY, category.SERVICE_ID
+    </sql-query>
+
+    <!--Второй уровень иерархии, доступный для автоплатежей
+      Опорный объект: IDX_PSA
+      Предикаты доступа: access("CATEGORY"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND
+               "CATEGORY"."CHANEL"=:EXTRA_CHANEL AND "CATEGORY"."AVAILABLE"=:EXTRA_FUNCTIONALITY AND
+               "CATEGORY"."PARENT_SERVICE_ID"=TO_NUMBER(:EXTRA_PARENT_ID))
+      Кардинальность: в районе 20.
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.services.autopayments">
+        <return-scalar column="category_id" type="long"/>
+        <return-scalar column="category_name" type="string"/>
+        <return-scalar column="category_Image" type="string"/>
+        <return-scalar column="category_ImageName" type="string"/>
+            select
+                d.category_id category_id,
+                d.category_name category_name,
+                d.category_Image category_Image,
+                d.category_ImageName category_ImageName
+            from(
+                    select distinct
+                        category.SERVICE_ID category_id,
+                        category.SERVICE_NAME category_name,
+                        category.image_id category_Image,
+                        category.image_name category_ImageName,
+                        category.PRIORITY category_PRIORITY
+                    from PAYMENT_SERVICES_AGGR category
+                    where
+                        category.PARENT_SERVICE_ID = :extra_parent_id
+
+                        and category.P_KEY = :extra_pkey
+                        and category.CHANEL = :extra_chanel
+                        and category.REGION_ID =  :extra_region_id
+                        and category.AVAILABLE in (:extra_functionality)
+                 ) d
+            order by  d.category_PRIORITY, d.category_ID
+    </sql-query>
+
+    <!--Доступные поставщики в заданной услуге
+      Опорный объект: SP_AGRR_PK
+      Предикаты доступа: access("PROVIDERS"."P_KEY"=:EXTRA_PKEY AND "PROVIDERS"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND "PROVIDERS"."CHANEL"=:EXTRA_CHANEL AND "PROVIDERS"."SERVICE_ID"=TO_NUMBER(:EXTRA_SERVICE_ID))
+      Кардинальность: для всех регионов примерно 20к, для выбранного региона - пара тысяч.
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.providers.available">
+        <return-scalar column="PROVIDER_ID" type="long"/>       <!--0-->
+        <return-scalar column="PROVIDER_NAME" type="string"/>   <!--1-->
+        <return-scalar column="PROVIDER_IMAGE" type="string"/>  <!--2-->
+        <return-scalar column="TIP_OF_PROVIDER" type="string"/> <!--3-->
+        <return-scalar column="CODE_RECIPIENT_SBOL" type="string"/> <!--4-->
+        <return-scalar column="BILLING_ID" type="long"/>        <!--5-->
+        <return-scalar column="SORT_PRIORITY" type="long"/>     <!--6-->
+        <return-scalar column="IS_AUTOPAYMENT_SUPPORTED" type="boolean"/> <!--7-->
+        <return-scalar column="GUID" type="string"/>            <!--8-->
+        select
+                min(providers.ID) PROVIDER_ID ,
+                providers.PROVIDER_NAME PROVIDER_NAME,
+                max(providers.IMAGE_ID) PROVIDER_IMAGE,
+                '' TIP_OF_PROVIDER,
+                providers.CODE_RECIPIENT_SBOL CODE_RECIPIENT_SBOL,
+                providers.BILLING_ID BILLING_ID,
+                max(providers.SORT_PRIORITY) SORT_PRIORITY,
+                max(case when providers.AVAILABLE_IQW_AUTOP is not null or providers.AVAILABLE_ESB_AUTOP is not null then '1' else '0' end) IS_AUTOPAYMENT_SUPPORTED,
+                max(providers.UUID) GUID
+            from SERVICE_PROVIDERS_AGGR providers
+            where
+                providers.SERVICE_ID = :extra_service_id
+                and providers.P_KEY = :extra_pkey
+
+                and providers.CHANEL = :extra_chanel
+                and providers.REGION_ID = :extra_region_id
+                and
+                    (
+                       ('PAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_PAYMENTS='A') or
+                       ('ESB_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_ESB_AUTOP='A') or
+                       ('IQW_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_IQW_AUTOP='A') or
+                       ('TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_TEMPLATES='A') or
+                       ('MB_TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_MB_TEMPLATES='A') or
+                       ('BASKET' in (:extra_functionality) and  providers.AVAILABLE_BASKET='A')
+                    )
+            group by providers.PROVIDER_NAME, providers.IMAGE_MD5, providers.CODE_RECIPIENT_SBOL, providers.BILLING_ID
+            order by SORT_PRIORITY desc, PROVIDER_NAME
+    </sql-query>
+
+
+    <!--Доступные поставщики в заданной услуге
+      Опорный объект: SP_AGRR_PK
+      Предикаты доступа: access("PROVIDERS"."P_KEY"=:EXTRA_PKEY AND "PROVIDERS"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND "PROVIDERS"."CHANEL"=:EXTRA_CHANEL AND "PROVIDERS"."SERVICE_ID"=TO_NUMBER(:EXTRA_SERVICE_ID))
+      Кардинальность: для всех регионов примерно 20к, для выбранного региона - пара тысяч.
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.providers.available.multilocale">
+        <return-scalar column="PROVIDER_ID" type="long"/>       <!--0-->
+        <return-scalar column="PROVIDER_NAME" type="string"/>   <!--1-->
+        <return-scalar column="PROVIDER_IMAGE" type="string"/>  <!--2-->
+        <return-scalar column="TIP_OF_PROVIDER" type="string"/> <!--3-->
+        <return-scalar column="CODE_RECIPIENT_SBOL" type="string"/> <!--4-->
+        <return-scalar column="BILLING_ID" type="long"/>        <!--5-->
+        <return-scalar column="SORT_PRIORITY" type="long"/>     <!--6-->
+        <return-scalar column="IS_AUTOPAYMENT_SUPPORTED" type="boolean"/> <!--7-->
+        <return-scalar column="GUID" type="string"/>            <!--8-->
+        select
+                min(providers.ID) PROVIDER_ID ,
+                nvl(res.NAME, providers.PROVIDER_NAME) PROVIDER_NAME,
+                max(providers.IMAGE_ID) PROVIDER_IMAGE,
+                '' TIP_OF_PROVIDER,
+                providers.CODE_RECIPIENT_SBOL CODE_RECIPIENT_SBOL,
+                providers.BILLING_ID BILLING_ID,
+                max(providers.SORT_PRIORITY) SORT_PRIORITY,
+                max(case when providers.AVAILABLE_IQW_AUTOP is not null or providers.AVAILABLE_ESB_AUTOP is not null then '1' else '0' end) IS_AUTOPAYMENT_SUPPORTED,
+                max(providers.UUID) GUID
+            from SERVICE_PROVIDERS_AGGR providers
+            left join SERVICE_PROVIDERS_RES res on providers.UUID = res.UUID and res.LOCALE_ID = :extra_localeId
+            where
+                providers.SERVICE_ID = :extra_service_id
+                and providers.P_KEY = :extra_pkey
+
+                and providers.CHANEL = :extra_chanel
+                and providers.REGION_ID = :extra_region_id
+                and
+                    (
+                       ('PAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_PAYMENTS='A') or
+                       ('ESB_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_ESB_AUTOP='A') or
+                       ('IQW_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_IQW_AUTOP='A') or
+                       ('TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_TEMPLATES='A') or
+                       ('MB_TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_MB_TEMPLATES='A') or
+                       ('BASKET' in (:extra_functionality) and  providers.AVAILABLE_BASKET='A')
+                    )
+            group by res.NAME, providers.PROVIDER_NAME, providers.IMAGE_MD5, providers.CODE_RECIPIENT_SBOL, providers.BILLING_ID
+            order by SORT_PRIORITY desc, PROVIDER_NAME
+    </sql-query>
+
+    <!--Доступные постащики по услуге со спуском вниз по подуслугам
+1)
+      Опорный объект: PAYMENT_SERVICES
+      Предикаты доступа: фулскан
+      Кардинальность: несколько десятков
+2)
+      Опорный объект: SP_AGRR_PK
+      Предикаты доступа: access("PROVIDERS"."P_KEY"=:EXTRA_PKEY AND "PROVIDERS"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND "PROVIDERS"."CHANEL"=:EXTRA_CHANEL AND "PROVIDERS"."SERVICE_ID"=TO_NUMBER(:EXTRA_SERVICE_ID))
+      Кардинальность: может быть десятки тысяч.
+
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.providers.available.descendants">
+        <return-scalar column="PROVIDER_ID" type="long"/>       <!--0-->
+        <return-scalar column="PROVIDER_NAME" type="string"/>   <!--1-->
+        <return-scalar column="PROVIDER_IMAGE" type="string"/>  <!--2-->
+        <return-scalar column="TIP_OF_PROVIDER" type="string"/> <!--3-->
+        <return-scalar column="CODE_RECIPIENT_SBOL" type="string"/> <!--4-->
+        <return-scalar column="BILLING_ID" type="long"/>        <!--5-->
+        <return-scalar column="SORT_PRIORITY" type="long"/>     <!--6-->
+        <return-scalar column="IS_AUTOPAYMENT_SUPPORTED" type="boolean"/> <!--7-->
+        <return-scalar column="GUID" type="string"/>            <!--8-->
+            select
+                min(providers.ID) PROVIDER_ID ,
+                providers.PROVIDER_NAME PROVIDER_NAME,
+                max(providers.IMAGE_ID) PROVIDER_IMAGE,
+                '' TIP_OF_PROVIDER,
+                providers.CODE_RECIPIENT_SBOL CODE_RECIPIENT_SBOL,
+                providers.BILLING_ID BILLING_ID,
+                max(providers.SORT_PRIORITY) SORT_PRIORITY,
+                max(case when providers.AVAILABLE_IQW_AUTOP is not null or providers.AVAILABLE_ESB_AUTOP is not null then '1' else '0' end) IS_AUTOPAYMENT_SUPPORTED,
+                max(providers.UUID) GUID
+            from SERVICE_PROVIDERS_AGGR providers
+            where
+                (
+                    providers.SERVICE_ID in (
+                        select SERVICE_ID
+                        from PAYMENT_SERV_PARENTS
+                        join PAYMENT_SERVICES ON PAYMENT_SERV_PARENTS.PARENT_ID = PAYMENT_SERVICES.ID
+                        and (
+                                (:extra_chanel = 'WEB' and PAYMENT_SERVICES.SHOW_IN_SYSTEM = 1) or
+                                (:extra_chanel = 'ATMAPI' and PAYMENT_SERVICES.SHOW_IN_ATM = 1) or
+                                (:extra_chanel = 'MAPI' and PAYMENT_SERVICES.SHOW_IN_API = 1)
+                            )
+                        start with PAYMENT_SERV_PARENTS.PARENT_ID = :extra_service_id
+                        connect by nocycle prior PAYMENT_SERV_PARENTS.SERVICE_ID = PAYMENT_SERV_PARENTS.PARENT_ID
+                        union all
+                        select :extra_service_id from dual
+                    )
+                )
+
+                and providers.CHANEL = :extra_chanel
+                and providers.P_KEY = :extra_pkey
+                and providers.REGION_ID = :extra_region_id
+                and
+                    (
+                       ('PAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_PAYMENTS='A') or
+                       ('ESB_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_ESB_AUTOP='A') or
+                       ('IQW_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_IQW_AUTOP='A') or
+                       ('TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_TEMPLATES='A') or
+                       ('MB_TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_MB_TEMPLATES='A') or
+                       ('BASKET' in (:extra_functionality) and  providers.AVAILABLE_BASKET='A')
+                    )
+
+            group by providers.PROVIDER_NAME, providers.IMAGE_MD5, providers.CODE_RECIPIENT_SBOL, providers.BILLING_ID
+            order by SORT_PRIORITY desc, PROVIDER_NAME
+    </sql-query>
+
+    <!--Доступные постащики по услуге со спуском вниз по подуслугам
+1)
+  Опорный объект: PAYMENT_SERVICES
+  Предикаты доступа: фулскан
+  Кардинальность: несколько десятков
+2)
+  Опорный объект: SP_AGRR_PK
+  Предикаты доступа: access("PROVIDERS"."P_KEY"=:EXTRA_PKEY AND "PROVIDERS"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND "PROVIDERS"."CHANEL"=:EXTRA_CHANEL AND "PROVIDERS"."SERVICE_ID"=TO_NUMBER(:EXTRA_SERVICE_ID))
+  Кардинальность: может быть десятки тысяч.
+
+-->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListCategoryOperation.providers.available.descendants.multilocale">
+        <return-scalar column="PROVIDER_ID" type="long"/>       <!--0-->
+        <return-scalar column="PROVIDER_NAME" type="string"/>   <!--1-->
+        <return-scalar column="PROVIDER_IMAGE" type="string"/>  <!--2-->
+        <return-scalar column="TIP_OF_PROVIDER" type="string"/> <!--3-->
+        <return-scalar column="CODE_RECIPIENT_SBOL" type="string"/> <!--4-->
+        <return-scalar column="BILLING_ID" type="long"/>        <!--5-->
+        <return-scalar column="SORT_PRIORITY" type="long"/>     <!--6-->
+        <return-scalar column="IS_AUTOPAYMENT_SUPPORTED" type="boolean"/> <!--7-->
+        <return-scalar column="GUID" type="string"/>            <!--8-->
+        select
+                min(providers.ID) PROVIDER_ID ,
+                nvl(res.NAME, providers.PROVIDER_NAME) PROVIDER_NAME,
+                max(providers.IMAGE_ID) PROVIDER_IMAGE,
+                '' TIP_OF_PROVIDER,
+                providers.CODE_RECIPIENT_SBOL CODE_RECIPIENT_SBOL,
+                providers.BILLING_ID BILLING_ID,
+                max(providers.SORT_PRIORITY) SORT_PRIORITY,
+                max(case when providers.AVAILABLE_IQW_AUTOP is not null or providers.AVAILABLE_ESB_AUTOP is not null then '1' else '0' end) IS_AUTOPAYMENT_SUPPORTED,
+                max(providers.UUID) GUID
+            from SERVICE_PROVIDERS_AGGR providers
+            left join SERVICE_PROVIDERS_RES res on providers.UUID = res.UUID and res.LOCALE_ID = :extra_localeId
+            where
+                (
+                    providers.SERVICE_ID in (
+                        select SERVICE_ID
+                        from PAYMENT_SERV_PARENTS
+                        join PAYMENT_SERVICES ON PAYMENT_SERV_PARENTS.PARENT_ID = PAYMENT_SERVICES.ID
+                        and (
+                                (:extra_chanel = 'WEB' and PAYMENT_SERVICES.SHOW_IN_SYSTEM = 1) or
+                                (:extra_chanel = 'ATMAPI' and PAYMENT_SERVICES.SHOW_IN_ATM = 1) or
+                                (:extra_chanel = 'MAPI' and PAYMENT_SERVICES.SHOW_IN_API = 1)
+                            )
+                        start with PAYMENT_SERV_PARENTS.PARENT_ID = :extra_service_id
+                        connect by nocycle prior PAYMENT_SERV_PARENTS.SERVICE_ID = PAYMENT_SERV_PARENTS.PARENT_ID
+                        union all
+                        select :extra_service_id from dual
+                    )
+                )
+
+                and providers.CHANEL = :extra_chanel
+                and providers.P_KEY = :extra_pkey
+                and providers.REGION_ID = :extra_region_id
+                and
+                    (
+                       ('PAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_PAYMENTS='A') or
+                       ('ESB_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_ESB_AUTOP='A') or
+                       ('IQW_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_IQW_AUTOP='A') or
+                       ('TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_TEMPLATES='A') or
+                       ('MB_TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_MB_TEMPLATES='A') or
+                       ('BASKET' in (:extra_functionality) and  providers.AVAILABLE_BASKET='A')
+                    )
+
+            group by res.NAME, providers.PROVIDER_NAME, providers.IMAGE_MD5, providers.CODE_RECIPIENT_SBOL, providers.BILLING_ID
+            order by SORT_PRIORITY desc, PROVIDER_NAME
+    </sql-query>
+</hibernate-mapping>

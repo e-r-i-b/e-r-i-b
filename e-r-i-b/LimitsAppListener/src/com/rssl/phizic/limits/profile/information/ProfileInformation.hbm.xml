@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.limits.profile.information.ProfileInformation" table="PROFILE_INFORMATION">
+        <composite-id>
+            <key-property name="profileId"        type="long"    column="PROFILE_ID"/>
+            <key-property name="informationType"  type="string"  column="INFORMATION_TYPE"/>
+        </composite-id>
+        <property name="data" type="string" column="DATA"/>
+    </class>
+
+   <!--
+       Опорный объект: PK_PROFILE_INFORMATION
+       Предикаты доступа:
+           access("PROFILE_ID"=TO_NUMBER(:EXTRA_PROFILEID) AND "INFORMATION_TYPE"=:EXTRA_INFORMATIONTYPE)
+       Кардинальность: 1
+   -->
+    <sql-query name="com.rssl.phizic.limits.profile.information.ProfileInformation.addOrUpdate">
+        merge into PROFILE_INFORMATION using dual on (PROFILE_ID = :extra_profileId and INFORMATION_TYPE = :extra_informationType)
+        when not matched then insert (PROFILE_ID, INFORMATION_TYPE, DATA) values (:extra_profileId, :extra_informationType, :extra_data)
+        when matched then update set DATA = :extra_data
+    </sql-query>
+
+</hibernate-mapping>

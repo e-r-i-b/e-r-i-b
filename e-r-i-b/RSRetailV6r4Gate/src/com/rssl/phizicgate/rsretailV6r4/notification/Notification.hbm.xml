@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+<!-- Типы оповещений
+	1 - Изменение остатка(AccountRestChangeNotification)
+	2 - Изменение лимита
+	3 - Изменение овердрафта
+	4 - Остаток меньше неснижаемого(AccountRestChangeLowNotification)
+	5 - Изменение статуса платежа или заявки(StatusDocumentChangeNotification)
+-->
+	<class name="com.rssl.phizicgate.rsretailV6r4.notification.NotificationBase" table="ntfntfy_dbt">
+        <id name="id" type="long" column="Referenc"/>
+
+		<discriminator column="NotifyType"/>
+
+		<property name="dateCreated" type="calendar" column="NotifyTime"/>
+
+		<property name="objectNumber" column="ObjectID"/>
+		<property name="objectType"   column="ObjectType"/>
+    </class>
+
+	<subclass name="com.rssl.phizicgate.rsretailV6r4.notification.AccountNotificationBase"
+	          extends="com.rssl.phizicgate.rsretailV6r4.notification.NotificationBase">
+		<property name="accountNumber">
+			<formula>substr(ObjectID,3)</formula>
+		</property>
+	</subclass>
+
+	<subclass name="com.rssl.phizicgate.rsretailV6r4.notification.AccountRestChangeNotificationImpl"
+			extends="com.rssl.phizicgate.rsretailV6r4.notification.AccountNotificationBase"
+			discriminator-value="1">
+
+		<property name="oldRest" column="OldRest"/>
+		<property name="currentRest"  column="NewRest"/>
+		<property name="transactionSum"  column="Summa"/>
+	</subclass>
+
+	<subclass name="com.rssl.phizicgate.rsretailV6r4.notification.AccountRestChangeLowNotificationImpl"
+			extends="com.rssl.phizicgate.rsretailV6r4.notification.AccountNotificationBase"
+			discriminator-value="4">
+
+		<property name="minRest"  column="MinRest"/>
+		<property name="rest" column="NewRest"/>
+	</subclass>
+
+	<subclass name="com.rssl.phizicgate.rsretailV6r4.notification.StatusDocumentChangeNotificationImpl"
+			extends="com.rssl.phizicgate.rsretailV6r4.notification.NotificationBase"
+			discriminator-value="5">
+		<property name="applicationKind" type="long" column="iApplicationKind"/>
+		<property name="applicationKey" type="string" column="ApplicationKey"/>
+		<property name="status" type="string" column="Status"/>
+		<property name="error" type="string" column="Error"/>
+	</subclass>
+
+
+	<query name="com.rssl.phizic.gate.notification.AccountRestChangeNotification.list">
+        SELECT notify from com.rssl.phizicgate.rsretailV6r4.notification.AccountRestChangeNotificationImpl notify
+		WHERE notify.accountNumber = :accountNumber AND
+			  notify.objectType = 202 AND
+			  notify.currentRest - notify.oldRest > 0
+	</query>
+
+	<query name="com.rssl.phizic.gate.notification.AccountRestChangeLowNotification.list">
+        SELECT notify from com.rssl.phizicgate.rsretailV6r4.notification.AccountRestChangeLowNotificationImpl notify
+		WHERE notify.accountNumber = :accountNumber AND
+			  notify.objectType = 202
+	</query>
+
+	<query name="com.rssl.phizic.gate.notification.StatusDocumentChangeNotification.list">
+        SELECT notify from com.rssl.phizicgate.rsretailV6r4.notification.StatusDocumentChangeNotificationImpl notify
+		WHERE notify.objectType = 202
+	</query>
+
+	<query name="com.rssl.phizic.notifications.Notification.list">
+        SELECT notify from com.rssl.phizicgate.rsretailV6r4.notification.NotificationBase notify
+	</query>
+
+	<query name="com.rssl.phizicgate.rsretailV6r4.notification.GetGarbageNotifications">
+        SELECT notify from com.rssl.phizicgate.rsretailV6r4.notification.NotificationBase notify
+		WHERE :cutDate > notify.dateCreated
+	</query>
+</hibernate-mapping>

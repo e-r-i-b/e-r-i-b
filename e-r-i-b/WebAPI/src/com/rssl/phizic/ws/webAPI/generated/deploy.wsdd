@@ -1,0 +1,29 @@
+<!-- Use this file to deploy some handlers/chains and services      -->
+<!-- Two ways to do this:                                           -->
+<!--   java org.apache.axis.client.AdminClient deploy.wsdd          -->
+<!--      after the axis server is running                          -->
+<!-- or                                                             -->
+<!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   -->
+<!--      from the same directory that the Axis engine runs         -->
+
+<deployment
+    xmlns="http://xml.apache.org/axis/wsdd/"
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from ERIBClientService WSDL service -->
+
+  <service name="ERIBClientServicePort" provider="java:RPC" style="document" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://erib.web.services.org/"/>
+      <parameter name="wsdlServiceElement" value="ERIBClientService"/>
+      <parameter name="schemaUnqualified" value="http://erib.web.services.org/"/>
+      <parameter name="wsdlServicePort" value="ERIBClientServicePort"/>
+      <parameter name="className" value="com.rssl.phizic.ws.webAPI.generated.ERIBClientServiceSoapBindingImpl"/>
+      <parameter name="wsdlPortType" value="ERIBClientServicePortType"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="process" qname="process" returnQName="retNS:XmlOutputString" xmlns:retNS="http://erib.web.services.org/" returnType="rtns:string" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="http://erib.web.services.org/ERIBClientService/process" >
+        <parameter qname="pns:XmlInputString" xmlns:pns="http://erib.web.services.org/" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <parameter name="allowedMethods" value="process"/>
+
+  </service>
+</deployment>

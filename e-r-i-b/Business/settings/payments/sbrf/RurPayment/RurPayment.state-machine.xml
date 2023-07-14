@@ -1,0 +1,1416 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/state-machine.xsd">
+    <states inital-state="INITIAL"
+            description="МС документа, не требующего подтверждения сотрудником банка и направленного прямо в ритейл" saveNodeInfo="true">
+
+        <sequences-handlers>
+            <sequence name="confirm">
+
+                <handler class="com.rssl.phizic.business.documents.payments.handlers.OutsidePaymentFromTemplateHandler"/>
+
+                <handler class="com.rssl.phizic.business.payments.forms.meta.DisallowExternalAccountPaymentHandler"/>
+
+
+                <handler class="com.rssl.phizic.business.payments.ValidatePaymentAccountHandler">
+                    <parameter name="checkType" value="payer"/>
+                </handler>
+
+
+
+                <handler class="com.rssl.phizic.business.payments.ValidatePaymentAmountAction"/>
+                <!-- проверка по стоп-листу -->
+                <handler class="com.rssl.phizic.business.payments.CheckRecipientOnStopListHandler">
+                    <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                        <parameter name="className" value="com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank"/>
+                    </enabled>
+                </handler>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+                    <parameter name="datePropertyName" value="admissionDate"/>
+                    <parameter name="datePropertyType" value="java.util.Calendar"/>
+                    <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                        <parameter name="whiteList" value="RurPayment"/>
+                        <parameter name="deniedTypes" value="com.rssl.phizic.gate.payments.InternalCardsTransfer;
+                                                             com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank;
+                                                             com.rssl.phizic.gate.payments.ExternalCardsTransferToOtherBank"/>
+                    </enabled>
+                </handler>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.SimpleBusinessDocumentDateAction">
+                    <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                        <parameter name="className" value="com.rssl.phizic.gate.payments.InternalCardsTransfer;
+                                                           com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank;
+                                                           com.rssl.phizic.gate.payments.ExternalCardsTransferToOtherBank"/>
+                    </enabled>
+                </handler>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.CheckImmediatePaymentDateHandler"/>
+
+                <handler class="com.rssl.phizic.business.payments.forms.meta.CheckLongOfferStartDateHandler"/>
+
+                <handler class="com.rssl.phizic.business.payments.forms.meta.CheckDebtsSplittingHandler">
+                    <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                        <parameter name="className" value="com.rssl.phizic.gate.payments.LoanTransfer"/>
+                    </enabled>
+                </handler>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.DocumentSumValidationHandler">
+                    <parameter name="useInTemplate" value="false"/>
+                    <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                        <parameter name="whiteList" value="RurPayment"/>
+                    </enabled>
+                </handler>
+
+                <handler class="com.rssl.phizic.business.payments.CalcAndCheckCommisionChangedHandler">
+                    <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                        <parameter name="className" value="com.rssl.phizic.gate.payments.CardIntraBankPayment;
+                                                           com.rssl.phizic.gate.payments.CardRUSPayment"/>
+                    </enabled>
+                </handler>
+
+                <!--хэндлер для  очищения поля infoAvailableCardWasShow-->
+                <handler class="com.rssl.phizic.business.payments.forms.meta.InfoAvailableCardClearHandler"/>
+
+            </sequence>
+            <sequence name="executed_handlers">
+                <!-- сброс текстовки -->
+                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+            </sequence>
+        </sequences-handlers>
+
+        <sequences-next-states>
+            <sequence name="confirm">
+                <!-- Отлавливаем измененные поля, остаемся в том же состоянии при их наличии -->
+                <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.FieldsAreChangedStateObjectCondition" state="SAVED"/>
+                <!--карточный перевод - онлайн операция-->
+                <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.CardsTransferCondition" state="EXECUTED">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                <parameter name="whiteList" value="sms"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CacheClearHandler"/>
+                        <handler class="com.rssl.phizic.messaging.payments.handlers.MessageToReceiverHandler"/>
+                        <handler class="com.rssl.phizic.messaging.payments.handlers.SetExecutedFundHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.filters.fund.FundPaymentFilter"/>
+                        </handler>
+                        <!-- установка сообщения о сроках исполнения платежа -->
+                        <!-- в Сбербанке -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                            <parameter name="key" value="operation.completed.message"/>
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                                <parameter name="className" value="com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank;
+                                                                   com.rssl.phizic.gate.payments.InternalCardsTransfer;
+                                                                   com.rssl.phizic.gate.payments.CardToIMATransfer;
+                                                                   com.rssl.phizic.gate.payments.IMAToCardTransfer"/>
+                            </enabled>
+                        </handler>
+                        <!-- в другой банк -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                            <parameter name="key" value="operation.tomorrow.message"/>
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                                <parameter name="className" value="com.rssl.phizic.gate.payments.ExternalCardsTransferToOtherBank"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                            <parameter name="state" value="EXECUTED"/>
+                        </handler>
+                     </handlers>
+                </next-state>
+                <!--блокировка карты - онлайн операция-->
+                <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.BlockingCardClaimCondition" state="EXECUTED">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CacheClearHandler"/>
+                     </handlers>
+                </next-state>
+
+                <!--перевыпуск карты - онлайн операция-->
+                <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.ReIssueCardClaimCondition" state="EXECUTED">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                     </handlers>
+                </next-state>
+
+                <!--сообщения IQW не должны учитывать время приема документов-->
+                <next-state condition="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.IQWaveBillingPaymentCondition" state="DISPATCHED">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                        <!-- установка сообщения о сроках исполнения платежа -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                            <parameter name="key" value="operation.transfer.message"/>
+                        </handler>
+                     </handlers>
+                </next-state>
+
+                <!-- Длительные поручения нельзя подтвержадать в внеоперационное время. -->
+                <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.LongOfferRefusedStateCondition" state="REFUSED" description="Плановая дата исполнения не может быть больше даты начала действия">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                <parameter name="whiteList" value="sms"/>
+                            </enabled>
+                        </handler>
+                    </handlers>
+                </next-state>
+
+                <!--Остальные документы отсылаются только в операционное время-->
+                <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.DelayedStateCondition" state="DELAYED_DISPATCH">
+                    <handlers>
+                        <!-- сброс текстовки -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                    </handlers>
+                </next-state>
+
+                <!--сообщения через шину - онлайн-->
+                <!--Для отправки заявки об утере сберкнижки делается дополнительная проверка на доступность функционала на КСШ для данного ТБ-->
+                <!--todo заменить на ESBERIBPaymentsCondition после того как во всех ТБ на КСШ будет реализован фукционал подачи заявки об утере сберкнижки (CHG039252)-->
+                <!--<next-state condition="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.ESBERIBPaymentsCondition" state="EXECUTED">-->
+                <next-state condition="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.ESBERIBLossPassbookApplicationCondition" state="EXECUTED">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="blackList" value="AccountChangeInterestDestinationClaim"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="blackList" value="AccountChangeInterestDestinationClaim"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                <parameter name="whiteList" value="sms"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CacheClearHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.UpdateLongOfferLinksHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.LongOfferClaimFilter"/>
+                        </handler>
+
+                        <!-- установка сообщения о сроках исполнения платежа -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                            <parameter name="key" value="operation.completed.message"/>
+                        </handler>
+                     </handlers>
+                </next-state>
+            </sequence>
+        </sequences-next-states>
+
+		<state id="INITIAL" description="Вы создали, но еще не сохранили документ"
+               client-form="/private/payments/payment.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+			<events>
+                <event name="INITIAL" description="Редактирование документа клиентом" type="client">
+                    <next-states default="INITIAL"/>
+                </event>
+				<event name="SAVE" description="Сохранение документа клиентом"  type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.RurPaymentExternalCardHandler"/>
+                    </handlers>
+                    <next-states default="SAVED">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.InfoAvailableCardCondition" state="INITIAL">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.InfoAvailableCardHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.IsESBSupportedHandler">
+                            <parameter name="needSpecialKeyForTextError" value="com.rssl.phizic.gate.payments.CardRUSPayment;com.rssl.phizic.gate.payments.CardJurTransfer;com.rssl.phizic.gate.payments.CardJurIntraBankTransfer;com.rssl.phizic.gate.payments.CardIntraBankPayment"/>
+                            <enabled class="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.PersonCreationTypeCompositeHandlerFilter">
+                                <parameter name="className" value="com.rssl.phizic.gate.payments.CardRUSPayment;com.rssl.phizic.gate.payments.CardJurTransfer;com.rssl.phizic.gate.payments.CardJurIntraBankTransfer;com.rssl.phizic.gate.payments.CardIntraBankPayment;
+                                com.rssl.phizic.gate.claims.AccountOpeningFromCardClaim;com.rssl.phizic.gate.claims.AccountOpeningClaim;com.rssl.phizic.gate.payments.LoanTransfer;com.rssl.phizic.gate.payments.IMAToAccountTransfer;com.rssl.phizic.gate.payments.AccountToIMATransfer;
+                                com.rssl.phizic.gate.payments.IMAToCardTransfer;com.rssl.phizic.gate.payments.CardToIMATransfer;
+                                com.rssl.phizic.gate.claims.DemandAccountOpeningClaim"/>
+                            </enabled>
+                        </handler>
+
+                                <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.AccountToCardConvertionSRBDenyHandler">
+                            <parameter name="error-message" value="Вы не можете перевести валюту со счета на карту. Пожалуйста, выберите счет для зачисления"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.ValidateWayCardHandler">
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OfflineDelayedRurPaymentHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultCommissionSaveHandler">
+							<parameter name="useInTemplate" value="false"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+							</enabled>
+						</handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DocumentSumValidationHandler">
+							<parameter name="useInTemplate" value="false"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+							</enabled>
+						</handler>
+
+
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetConversionOperationHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.ConversionOperationFilter"/>
+                        </handler>
+
+                        <handler  class="com.rssl.phizic.business.payments.forms.meta.DefaultGateValidationHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="deniedTypes" value="com.rssl.phizic.gate.payments.CardRUSPayment;com.rssl.phizic.gate.payments.CardIntraBankPayment"/>
+                            </enabled>
+                        </handler>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.BarsReceiverNameHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.BarsReceiverNameHandlerFilter">
+                                <parameter name="className1" value="com.rssl.phizic.gate.payments.AccountJurTransfer"/>
+                                <parameter name="className2" value="com.rssl.phizic.gate.payments.CardJurTransfer"/>
+                                <parameter name="className3" value="com.rssl.phizic.gate.payments.longoffer.CardJurTransferLongOffer"/>
+                                <parameter name="className4" value="com.rssl.phizic.gate.payments.CardJurIntraBankTransfer"/>
+                                <parameter name="className5" value="com.rssl.phizic.gate.payments.longoffer.CardJurIntraBankTransferLongOffer"/>
+                            </enabled>
+                        </handler>
+
+                        <!--если перевод на карту по номеру телефона, решаем заполнять ли инфу по получате CHG041044 -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.UpdateReceiverInfoByPhoneHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="allowedTypes" value="com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank"/>
+                            </enabled>
+                        </handler>
+
+                        <!--после заполнения инфы о получателе проверяем, совпадает ли ФИО клиента из справочника доверенных получателей с ФИО, которое пришло из  МБ (при оплате по номеру телефона)-->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckReceiverClientName">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="allowedTypes" value="com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank"/>
+                            </enabled>
+                        </handler>
+					</handlers>
+
+                        </next-state>
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.OurCardCondition" state="WAIT_CLIENT_MESSAGE">
+
+                        </next-state>
+                        <handlers>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.IsESBSupportedHandler">
+                            <parameter name="needSpecialKeyForTextError" value="com.rssl.phizic.gate.payments.CardRUSPayment;com.rssl.phizic.gate.payments.CardJurTransfer;com.rssl.phizic.gate.payments.CardJurIntraBankTransfer;com.rssl.phizic.gate.payments.CardIntraBankPayment"/>
+                            <enabled class="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.PersonCreationTypeCompositeHandlerFilter">
+                                <parameter name="className" value="com.rssl.phizic.gate.payments.CardRUSPayment;com.rssl.phizic.gate.payments.CardJurTransfer;com.rssl.phizic.gate.payments.CardJurIntraBankTransfer;com.rssl.phizic.gate.payments.CardIntraBankPayment;
+                                com.rssl.phizic.gate.claims.AccountOpeningFromCardClaim;com.rssl.phizic.gate.claims.AccountOpeningClaim;com.rssl.phizic.gate.payments.LoanTransfer;com.rssl.phizic.gate.payments.IMAToAccountTransfer;com.rssl.phizic.gate.payments.AccountToIMATransfer;
+                                com.rssl.phizic.gate.payments.IMAToCardTransfer;com.rssl.phizic.gate.payments.CardToIMATransfer;
+                                com.rssl.phizic.gate.claims.DemandAccountOpeningClaim"/>
+                            </enabled>
+                        </handler>
+
+                            <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.AccountToCardConvertionSRBDenyHandler">
+                            <parameter name="error-message" value="Вы не можете перевести валюту со счета на карту. Пожалуйста, выберите счет для зачисления"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.ValidateWayCardHandler">
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OfflineDelayedRurPaymentHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultCommissionSaveHandler">
+							<parameter name="useInTemplate" value="false"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+							</enabled>
+						</handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DocumentSumValidationHandler">
+							<parameter name="useInTemplate" value="false"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+							</enabled>
+						</handler>
+
+
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetConversionOperationHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.ConversionOperationFilter"/>
+                        </handler>
+
+                        <handler  class="com.rssl.phizic.business.payments.forms.meta.DefaultGateValidationHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="deniedTypes" value="com.rssl.phizic.gate.payments.CardRUSPayment;com.rssl.phizic.gate.payments.CardIntraBankPayment"/>
+                            </enabled>
+                        </handler>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.BarsReceiverNameHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.BarsReceiverNameHandlerFilter">
+                                <parameter name="className1" value="com.rssl.phizic.gate.payments.AccountJurTransfer"/>
+                                <parameter name="className2" value="com.rssl.phizic.gate.payments.CardJurTransfer"/>
+                                <parameter name="className3" value="com.rssl.phizic.gate.payments.longoffer.CardJurTransferLongOffer"/>
+                                <parameter name="className4" value="com.rssl.phizic.gate.payments.CardJurIntraBankTransfer"/>
+                                <parameter name="className5" value="com.rssl.phizic.gate.payments.longoffer.CardJurIntraBankTransferLongOffer"/>
+                            </enabled>
+                        </handler>
+
+                        <!--если перевод на карту по номеру телефона, решаем заполнять ли инфу по получате CHG041044 -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.UpdateReceiverInfoByPhoneHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="allowedTypes" value="com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank"/>
+                            </enabled>
+                        </handler>
+
+                        <!--после заполнения инфы о получателе проверяем, совпадает ли ФИО клиента из справочника доверенных получателей с ФИО, которое пришло из  МБ (при оплате по номеру телефона)-->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckReceiverClientName">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="allowedTypes" value="com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank"/>
+                            </enabled>
+                        </handler>
+					</handlers>
+                    </next-states>
+				</event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="client">
+
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="system">
+                    <next-states default="DELETED"/>
+                </event>
+			</events>
+		</state>
+
+        <state  id="WAIT_CLIENT_MESSAGE" description="Вы сохранили, но еще не подтвердили документ." client-form="/private/payments/payment.do"
+                system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="EDIT" description="Редактирование документа клиентом" type="client">
+                    <next-states default="INITIAL"/>
+                </event>
+                <event name="SAVE" description="Сохранение документа клиентом"  type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.RurPaymentExternalCardHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.IsESBSupportedHandler">
+                            <parameter name="needSpecialKeyForTextError" value="com.rssl.phizic.gate.payments.CardRUSPayment;com.rssl.phizic.gate.payments.CardJurTransfer;com.rssl.phizic.gate.payments.CardJurIntraBankTransfer;com.rssl.phizic.gate.payments.CardIntraBankPayment"/>
+                            <enabled class="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.PersonCreationTypeCompositeHandlerFilter">
+                                <parameter name="className" value="com.rssl.phizic.gate.payments.CardRUSPayment;com.rssl.phizic.gate.payments.CardJurTransfer;com.rssl.phizic.gate.payments.CardJurIntraBankTransfer;com.rssl.phizic.gate.payments.CardIntraBankPayment;
+                                com.rssl.phizic.gate.claims.AccountOpeningFromCardClaim;com.rssl.phizic.gate.claims.AccountOpeningClaim;com.rssl.phizic.gate.payments.LoanTransfer;com.rssl.phizic.gate.payments.IMAToAccountTransfer;com.rssl.phizic.gate.payments.AccountToIMATransfer;
+                                com.rssl.phizic.gate.payments.IMAToCardTransfer;com.rssl.phizic.gate.payments.CardToIMATransfer;
+                                com.rssl.phizic.gate.claims.DemandAccountOpeningClaim"/>
+                            </enabled>
+                        </handler>
+                        <!-- Сюда намеренно не добавлены операции Погашение кредита с карты и аналогичный регулярный платеж, т.к. кредит вообще может быть только у УДБО клиента. -->
+                        <!--<handler class="com.rssl.phizic.business.payments.forms.meta.OwnerCreationTypeHandler">-->
+                        <!--<parameter name="creationType" value="UDBO"/>-->
+                        <!--<parameter name="needSpecialKeyForTextError" value="com.rssl.phizic.gate.claims.AccountOpeningFromCardClaim;-->
+                        <!--com.rssl.phizic.gate.claims.AccountOpeningClaim;-->
+                        <!--com.rssl.phizic.gate.claims.IMAOpeningClaim;-->
+                        <!--com.rssl.phizic.gate.claims.DemandAccountOpeningClaim"/>-->
+                        <!--<enabled class="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.PersonCreationTypeCompositeHandlerFilter">-->
+                        <!--<parameter name="className" value="com.rssl.phizic.gate.claims.AccountOpeningFromCardClaim;-->
+                        <!--com.rssl.phizic.gate.claims.AccountOpeningClaim;-->
+                        <!--com.rssl.phizic.gate.claims.IMAOpeningClaim;-->
+                        <!--com.rssl.phizic.gate.claims.DemandAccountOpeningClaim"/>-->
+                        <!--</enabled>-->
+                        <!--</handler>-->
+                        <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.AccountToCardConvertionSRBDenyHandler">
+                            <parameter name="error-message" value="Вы не можете перевести валюту со счета на карту. Пожалуйста, выберите счет для зачисления"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.ValidateWayCardHandler">
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OfflineDelayedRurPaymentHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultCommissionSaveHandler">
+							<parameter name="useInTemplate" value="false"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+							</enabled>
+						</handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DocumentSumValidationHandler">
+							<parameter name="useInTemplate" value="false"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+							</enabled>
+						</handler>
+
+
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetConversionOperationHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.ConversionOperationFilter"/>
+                        </handler>
+
+                        <handler  class="com.rssl.phizic.business.payments.forms.meta.DefaultGateValidationHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="deniedTypes" value="com.rssl.phizic.gate.payments.CardRUSPayment;com.rssl.phizic.gate.payments.CardIntraBankPayment"/>
+                            </enabled>
+                        </handler>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.BarsReceiverNameHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.BarsReceiverNameHandlerFilter">
+                                <parameter name="className1" value="com.rssl.phizic.gate.payments.AccountJurTransfer"/>
+                                <parameter name="className2" value="com.rssl.phizic.gate.payments.CardJurTransfer"/>
+                                <parameter name="className3" value="com.rssl.phizic.gate.payments.longoffer.CardJurTransferLongOffer"/>
+                                <parameter name="className4" value="com.rssl.phizic.gate.payments.CardJurIntraBankTransfer"/>
+                                <parameter name="className5" value="com.rssl.phizic.gate.payments.longoffer.CardJurIntraBankTransferLongOffer"/>
+                            </enabled>
+                        </handler>
+
+                        <!--если перевод на карту по номеру телефона, решаем заполнять ли инфу по получате CHG041044 -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.UpdateReceiverInfoByPhoneHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="allowedTypes" value="com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank"/>
+                            </enabled>
+                        </handler>
+
+                        <!--после заполнения инфы о получателе проверяем, совпадает ли ФИО клиента из справочника доверенных получателей с ФИО, которое пришло из  МБ (при оплате по номеру телефона)-->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckReceiverClientName">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="allowedTypes" value="com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank"/>
+                            </enabled>
+                        </handler>
+					</handlers>
+                    <next-states default="SAVED"/>
+                </event>
+            </events>
+
+        </state>
+
+        <state id="WAIT_CONFIRM" description="Документ, ожидающий дополнительного подтверждения"  client-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="DOUNKNOW" description="таймаут" type="employee">
+                    <next-states default="UNKNOW"/>
+                </event>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+                <event name="CONFIRM" type="employee" lock="true">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.CalcAndCheckCommisionChangedHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                                <parameter name="className" value="com.rssl.phizic.gate.payments.CardIntraBankPayment;
+                                                                   com.rssl.phizic.gate.payments.CardRUSPayment"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OfflineDelayedRurPaymentHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DenyOfflineStateByCommissionSettingHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                               <parameter name="whiteList" value="RurPayment"/>
+                           </enabled>
+                        </handler>
+                    </handlers>
+                    <next-states default="DISPATCHED">
+                        <sequence-next-states-ref name="confirm"/>
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.AccountPaymentPrepareHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                                    <parameter name="className" value="com.rssl.phizic.gate.payments.AccountToCardTransfer;
+                                                                       com.rssl.phizic.gate.payments.ClientAccountsTransfer;
+                                                                       com.rssl.phizic.gate.payments.AccountIntraBankPayment;
+                                                                       com.rssl.phizic.gate.payments.AccountRUSPayment"/>
+                                </enabled>
+                            </handler>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender">
+                                <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                    <parameter name="blackList" value="ConvertCurrencyLongOfferPayment"/>
+                                </enabled>
+                            </handler>
+                            <!-- установка сообщения о сроках исполнения платежа -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                <parameter name="key" value="operation.transfer.message"/>
+                            </handler>
+                         </handlers>
+                    </next-states>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                    </handlers>
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                    </handlers>
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="REFUSE" description="Отклонить заявку" type="employee">
+                    <next-states default="REFUSED"/>
+                </event>
+            </events>
+        </state>
+
+		<state id="SAVED" description="Вы сохранили, но еще не подтвердили документ."
+               client-form="/private/payments/confirm.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <handlers>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.ClearOfflineDelayedRowHandler"/>
+
+                <handler class="com.rssl.phizic.business.payments.WriteStateToMonitoringLogHandler">
+                    <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                        <parameter name="whiteList" value="RurPayment"/>
+                    </enabled>
+                </handler>
+            </handlers>
+			<events>
+                <event name="DOUNKNOW" description="таймаут" type="client">
+                    <next-states default="UNKNOW"/>
+                </event>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+                <event name="DOWAITCONFIRM" description="Перевод документа в ожидание дополнительной обработки" type="client">
+                    <handlers>
+                        <sequence-handlers-ref name="confirm"/>
+					</handlers>
+                    <next-states default="WAIT_CONFIRM">
+                       <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+                                <parameter name="datePropertyName" value="admissionDate"/>
+                                <parameter name="datePropertyType" value="java.util.Calendar"/>
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                    <parameter name="deniedTypes" value="com.rssl.phizic.gate.payments.InternalCardsTransfer;
+                                                                         com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank;
+                                                                         com.rssl.phizic.gate.payments.ExternalCardsTransferToOtherBank"/>
+                                </enabled>
+                            </handler>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SimpleBusinessDocumentDateAction">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                                    <parameter name="className" value="com.rssl.phizic.gate.payments.InternalCardsTransfer;
+                                                                       com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank;
+                                                                       com.rssl.phizic.gate.payments.ExternalCardsTransferToOtherBank"/>
+                                </enabled>
+                            </handler>
+                           <!-- сброс текстовки -->
+                           <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                           <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                       </handlers>
+                    </next-states>
+                </event>
+				<event name="CONFIRM" description="Отправка документа клиентом" type="client" lock="true">
+					<handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OfflineDelayedRurPaymentHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                            </enabled>
+                        </handler>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DenyOfflineStateByCommissionSettingHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.WriteConfirmChannelToMonitoringLogHandler"/>
+
+                        <sequence-handlers-ref name="confirm"/>
+					</handlers>
+                    <next-states default="DISPATCHED">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.OfflineDelayedCondition" state="OFFLINE_DELAYED">
+                            <handlers>
+                                <!-- сброс текстовки -->
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            </handlers>
+                        </next-state>
+                        <sequence-next-states-ref name="confirm"/>
+
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.AccountPaymentPrepareHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                                    <parameter name="className" value="com.rssl.phizic.gate.payments.AccountToCardTransfer;
+                                                                       com.rssl.phizic.gate.payments.ClientAccountsTransfer;
+                                                                       com.rssl.phizic.gate.payments.AccountIntraBankPayment;
+                                                                       com.rssl.phizic.gate.payments.AccountRUSPayment"/>
+                                </enabled>
+                            </handler>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                            <!-- установка сообщения о сроках исполнения платежа -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                <parameter name="key" value="operation.transfer.message"/>
+                            </handler>
+                         </handlers>
+                    </next-states>
+                    <post-next-states>
+                        <post-next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.UnknowNextStateCondition" state="UNKNOW"/>
+                        <post-next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.ExecutedNextStateCondition" state="EXECUTED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                                <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                    <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                        <parameter name="whiteList" value="sms"/>
+                                    </enabled>
+                                </handler>
+                                <sequence-handlers-ref name="executed_handlers"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                    <parameter name="state" value="EXECUTED"/>
+                                </handler>
+                            </handlers>
+                        </post-next-state>
+                    </post-next-states>
+                </event>
+				<event name="EDIT" description="Редактирование документа" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PrepareEditDocumentHandler"/>
+                    </handlers>
+                    <next-states default="INITIAL">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.OurCardCondition"
+                                    state="WAIT_CLIENT_MESSAGE">
+                        </next-state>
+                    </next-states>
+				</event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="client">
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="system">
+                    <next-states default="DELETED"/>
+                </event>
+			</events>
+		</state>
+
+        <state id="UNKNOW" description="Документ подтвержден и передан на обработку в банк."
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/private/payments/view.do">
+            <events>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+                <event name="ERROR" description="Ошибка исполнения документа" type="system">
+                    <next-states default="ERROR"/>
+                </event>
+                 <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REPEAT_SEND" description="Подтверждение документа системой" type="system">
+                    <next-states default="DISPATCHED">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.AccountIMATypeOperationCondition"
+                                    state="EXECUTED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.BusinessDocumentRepeatSendHandler"/>
+                                <!-- сброс текстовки -->
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                    <parameter name="state" value="EXECUTED"/>
+                                </handler>
+                            </handlers>
+                        </next-state>
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.BusinessDocumentRepeatSendHandler"/>
+                            <!-- установка сообщения о сроках исполнения платежа -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                <parameter name="key" value="operation.transfer.message"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="EXECUTE" description="Подтверждение документа сотрудником" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                            <sequence-handlers-ref name="executed_handlers"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                <parameter name="state" value="EXECUTED"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="EXECUTE" description="Подтверждение документа системой" type="system">
+                     <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                            <sequence-handlers-ref name="executed_handlers"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                <parameter name="state" value="EXECUTED"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+            </events>
+		</state>
+
+        <state id="DELAYED_DISPATCH" description="Ожидается обработка документа в банке."
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <handlers>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.ClearOfflineDelayedRowHandler"/>
+
+                <handler class="com.rssl.phizic.business.payments.WriteStateToMonitoringLogHandler"/>
+            </handlers>
+			<events>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+
+                <event name="DISPATCH" description="Отправка документа клиентом" type="system" >
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OfflineDelayedRurPaymentHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckOfflineDelayedHandler"/>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+
+					</handlers>
+                    <next-states default="DISPATCHED">
+                        <next-state condition="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.ESBERIBPaymentsCondition" state="EXECUTED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                                <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                    <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                        <parameter name="whiteList" value="sms"/>
+                                    </enabled>
+                                </handler>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                    <parameter name="state" value="EXECUTED"/>
+                                </handler>
+                             </handlers>
+                        </next-state>
+                        <handlers>
+                            <!-- установка сообщения о сроках исполнения платежа -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                <parameter name="key" value="operation.transfer.message"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                    <post-next-states>
+                        <post-next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.UnknowNextStateCondition" state="UNKNOW"/>
+                        <post-next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.ExecutedNextStateCondition" state="EXECUTED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                                <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                    <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                        <parameter name="whiteList" value="sms"/>
+                                    </enabled>
+                                </handler>
+                                <sequence-handlers-ref name="executed_handlers"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                    <parameter name="state" value="EXECUTED"/>
+                                </handler>
+                            </handlers>
+                        </post-next-state>
+                    </post-next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="ERROR" description="Ошибка исполнения документа" type="system">
+                    <next-states default="ERROR"/>
+                </event>
+                <event name="EXECUTE" description="Исполнение документа сотрудником банка" type="employee">
+                    <handlers>
+                         <!-- BUG039919: Сообщение клиенту при оплате со вклада через шаблон 40 ТБ -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckAccountTemplateForSomeTBHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="JurPayment"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                            <parameter name="state" value="EXECUTED"/>
+                        </handler>
+       				</handlers>
+                    <next-states default="EXECUTED"/>
+                </event>
+                <event name="REFUSE" description="Отказ исполнения документа сотрудником банка" type="employee">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+            </events>
+		</state>
+
+        <state id="OFFLINE_DELAYED" description="Ожидается обработка документа в банке."
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <handlers>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.ClearOfflineDelayedRowHandler"/>
+            </handlers>
+			<events>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+
+                <event name="DISPATCH" description="Отправка документа клиентом" type="system" >
+                    <handlers>
+
+                        <!-- проверка на операционное время -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.JobDelayedStateHandler" />
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OfflineDelayedRurPaymentHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.ValidatePaymentAccountHandler">
+                            <parameter name="checkType" value="payer"/>
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                            </enabled>
+                        </handler>
+
+                        <handler class="com.rssl.phizic.business.payments.ValidatePaymentAmountAction"/>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+                            <parameter name="datePropertyName" value="admissionDate"/>
+                            <parameter name="datePropertyType" value="java.util.Calendar"/>
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocTypeAndFormNameFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                                <parameter name="deniedTypes" value="com.rssl.phizic.gate.payments.InternalCardsTransfer;
+                                                                     com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank;
+                                                                     com.rssl.phizic.gate.payments.ExternalCardsTransferToOtherBank"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SimpleBusinessDocumentDateAction">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                                <parameter name="className" value="com.rssl.phizic.gate.payments.InternalCardsTransfer;
+                                                                   com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank;
+                                                                   com.rssl.phizic.gate.payments.ExternalCardsTransferToOtherBank"/>
+                            </enabled>
+                        </handler>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckImmediatePaymentDateHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckLongOfferStartDateHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DocumentSumValidationHandler">
+                            <parameter name="useInTemplate" value="false"/>
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                            </enabled>
+                        </handler>
+					</handlers>
+                    <next-states default="DISPATCHED">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.OfflineDelayedCondition" state="OFFLINE_DELAYED">
+                            <handlers>
+                                <!-- сброс текстовки -->
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            </handlers>
+                        </next-state>
+                        <next-state condition="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.ESBERIBPaymentsCondition" state="EXECUTED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                                <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                    <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                        <parameter name="whiteList" value="sms"/>
+                                    </enabled>
+                                </handler>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                    <parameter name="state" value="EXECUTED"/>
+                                </handler>
+                             </handlers>
+                        </next-state>
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.BlockingCardClaimCondition" state="EXECUTED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.CacheClearHandler"/>
+                             </handlers>
+                        </next-state>
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.CardsTransferCondition" state="EXECUTED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                                <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                    <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                        <parameter name="whiteList" value="sms"/>
+                                    </enabled>
+                                </handler>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.CacheClearHandler"/>
+                                <handler class="com.rssl.phizic.messaging.payments.handlers.MessageToReceiverHandler">
+                                    <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                        <parameter name="whiteList" value="RurPayment"/>
+                                    </enabled>
+                                </handler>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                    <parameter name="state" value="EXECUTED"/>
+                                </handler>
+                             </handlers>
+                        </next-state>
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.DelayedStateCondition" state="DELAYED_DISPATCH">
+                            <handlers>
+                                <!-- сброс текстовки -->
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            </handlers>
+                        </next-state>
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                            <!-- установка сообщения о сроках исполнения платежа -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                <parameter name="key" value="operation.transfer.message"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                    <post-next-states>
+                        <post-next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.UnknowNextStateCondition" state="UNKNOW"/>
+                        <post-next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.ExecutedNextStateCondition" state="EXECUTED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                                <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                    <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                        <parameter name="whiteList" value="sms"/>
+                                    </enabled>
+                                </handler>
+                                <sequence-handlers-ref name="executed_handlers"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                    <parameter name="state" value="EXECUTED"/>
+                                </handler>
+                            </handlers>
+                        </post-next-state>
+                    </post-next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                         <handler class="com.rssl.phizic.messaging.payments.handlers.SmsOfRefuseOperationHandler"/>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="RurPayment"/>
+                            </enabled>
+                         </handler>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="ERROR" description="Ошибка исполнения документа" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.messaging.payments.handlers.SmsOfRefuseOperationHandler"/>
+                    </handlers>
+                    <next-states default="ERROR"/>
+                </event>
+                <event name="EXECUTE" description="Исполнение документа сотрудником банка" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                <parameter name="whiteList" value="sms"/>
+                            </enabled>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                            <parameter name="state" value="EXECUTED"/>
+                        </handler>
+       				</handlers>
+                    <next-states default="EXECUTED"/>
+                </event>
+                <event name="REFUSE" description="Отказ исполнения документа сотрудником банка" type="employee">
+                    <handlers>
+                         <handler class="com.rssl.phizic.messaging.payments.handlers.SmsOfRefuseOperationHandler"/>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="RECALL" description="Отзыв документа" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+                    </handlers>
+                    <next-states default="RECALLED"/>
+                </event>
+            </events>
+		</state>
+
+		<state id="DISPATCHED" description="Документ подтвержден и передан на обработку в банк."
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ABSSystemNameResolver">
+
+            <handlers>
+                <handler class="com.rssl.phizic.business.payments.WriteStateToMonitoringLogHandler"/>
+            </handlers>
+			<events>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+
+                <event name="REPEAT_SEND" description="Подтверждение документа системой" type="system">
+                    <next-states default="DISPATCHED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.BusinessDocumentRepeatSendHandler"/>
+                            <!-- установка сообщения о сроках исполнения платежа -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                <parameter name="key" value="operation.transfer.message"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+				<event name="SUCCESS" description="Выдан" type="system">
+                    <next-states default="SUCCESSED">
+                        <handlers>
+                            <!-- сброс текстовки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                        </handlers>
+                    </next-states>
+				</event>
+				<event name="EXECUTE" description="Подтверждение документа системой" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="blackList" value="BlockingCardClaim"/>
+                            </enabled>
+                        </handler>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                            <sequence-handlers-ref name="executed_handlers"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                <parameter name="state" value="EXECUTED"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+				</event>
+                <event name="EXECUTE" description="Подтверждение документа сотрудником" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="blackList" value="BlockingCardClaim"/>
+                            </enabled>
+                        </handler>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                            <sequence-handlers-ref name="executed_handlers"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                <parameter name="state" value="EXECUTED"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+				<event name="PARTLY_EXECUTED" description="Подтверждение документа системой ЦОД" type="system">
+                    <next-states default="PARTLY_EXECUTED"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                          <!-- откатываем лимит -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+				</event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+				</event>
+				<event name="ERROR" description="При работе с документом произошла ошибка" type="system">
+                    <handlers>
+                        <!-- откатываем лимит -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                    </handlers>
+                    <next-states default="ERROR"/>
+				</event>
+			</events>
+		</state>
+
+		<state id="SUCCESSED" description="Платеж успешно исполнен банком: денежные средства переведены на счет получателя платежа."
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"/>
+
+		<state id="PARTLY_EXECUTED" description="Документ подтвержден и передан на обработку в банк."
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="EXECUTE" description="Подтверждение документа системой" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="blackList" value="BlockingCardClaim"/>
+                            </enabled>
+                        </handler>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                            <sequence-handlers-ref name="executed_handlers"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                <parameter name="state" value="EXECUTED"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+	            <event name="ERROR" description="Ошибка исполнения документа" type="system">
+		            <next-states default="ERROR"/>
+	            </event>
+            </events>
+        </state>
+
+        <state id="EXECUTED" description="Операция успешно исполнена банком."
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <handlers>
+                <handler class="com.rssl.phizic.business.payments.WriteStateToMonitoringLogHandler"/>
+            </handlers>
+            <events>
+                <event name="RECALL" description="Отзыв документа" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+                    </handlers>
+                    <next-states default="RECALLED"/>
+                </event>
+            </events>
+        </state>
+
+		<state id="REFUSED" description="Вам отказано в исполнении операции по какой-либо причине."
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <handlers>
+                <handler class="com.rssl.phizic.business.payments.WriteStateToMonitoringLogHandler"/>
+            </handlers>
+        </state>
+
+		<state id="ERROR" description="Платеж не может быть исполнен, Вам необходимо обратиться в банк."
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <handlers>
+                <handler class="com.rssl.phizic.business.payments.WriteStateToMonitoringLogHandler"/>
+            </handlers>
+            <events>
+                <event name="EXECUTE" description="Подтверждение документа сотрудником" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="blackList" value="BlockingCardClaim"/>
+                            </enabled>
+                        </handler>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbExecuteDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                            <sequence-handlers-ref name="executed_handlers"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                <parameter name="state" value="EXECUTED"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                                <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                                    <parameter name="whiteList" value="sms"/>
+                                </enabled>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+		    </events>
+        </state>
+
+        <state id="RECALLED" description="Документ отозван Вами по какой-либо причине."
+               client-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"/>
+
+        <state id="DELETED" description="Документ удален."
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"/>
+	</states>
+</config>

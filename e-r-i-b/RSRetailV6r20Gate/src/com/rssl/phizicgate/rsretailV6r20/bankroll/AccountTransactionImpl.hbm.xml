@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+		
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsretailV6r20.bankroll.AccountTransactionImpl">
+        <id name="operationId"/>
+
+	    <property name="accountId"/>
+        <property name="date"/>
+	    <property name="creditSum" type="com.rssl.phizicgate.rsretailV6r20.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalCreditSum"/>
+		    <column name="currencyId" />
+	    </property>
+	    <property name="debitSum" type="com.rssl.phizicgate.rsretailV6r20.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalDebitSum"/>
+		    <column name="currencyId"/>
+	    </property>                                       
+	    <property name="balance" type="com.rssl.phizicgate.rsretailV6r20.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalBalance"/>
+		    <column name="currencyId"/>
+	    </property>
+	    <property name="counteragent"/>
+        <property name="description"/>
+        <property name="dayNumber"/>
+        <property name="counteragentAccount"/>
+	    <property name="counteragentCorAccount"/>
+        <property name="counteragentBank"/>
+	    <property name="documentNumber"/>
+    </class>
+
+    
+
+    <sql-query name="GetAccountTransactions">
+        <return alias="trans" class="com.rssl.phizicgate.rsretailV6r20.bankroll.AccountTransactionImpl">
+            <return-property name="operationId"     column="operationId"/>
+	        <return-property name="accountId"       column="accountId"/>
+            <return-property name="date"            column="tdate"/>
+	        <return-property name="creditSum">
+		        <return-column name="decimalCreditSum"/>
+		        <return-column name="currencyId"/>
+	        </return-property>
+	        <return-property name="debitSum">
+		        <return-column name="decimalDebitSum"/>
+		        <return-column name="currencyId"/>
+	        </return-property>
+	        <return-property name="balance">
+		        <return-column name="decimalBalance"/>
+		        <return-column name="currencyId"/>
+	        </return-property>
+	        <return-property name="counteragent"    column="counteragent"/>
+            <return-property name="description"     column="description"/>
+            <return-property name="dayNumber"       column="dayNumber"/>
+	        <return-property name="counteragentAccount" column="counteragentAccount"/>
+	        <return-property name="counteragentCorAccount" column="counteragentCorAccount"/>
+	        <return-property name="counteragentBank"    column="counteragentBank"/>
+	        <return-property name="documentNumber"  column="documentNumber"/>
+        </return>
+	    <![CDATA[
+			SELECT to_char(to_date(opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS')
+						|| opers.t_NumDayDoc                   AS operationId
+				  ,opers.t_Referenc                            AS accountId
+				  ,to_char(to_date(opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS tdate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				  ,opers.t_InSum                               AS decimalCreditSum
+				  ,opers.t_OutSum                              AS decimalDebitSum
+				  ,opers.t_Rest                                AS decimalBalance
+				  ,contr.t_RecivFIO                            AS counteragent
+                  ,REPLACE( rsb_struct.getString('t_accnt',T_FMTBLOBDATA_XXXX,0), CHR(0), '' )      AS counteragentAccount
+                  ,REPLACE( rsb_struct.getString('t_coraccnt'  ,T_FMTBLOBDATA_XXXX,0), CHR(0), '' ) AS counteragentCorAccount
+                  ,REPLACE( rsb_struct.getString('t_bank'  ,T_FMTBLOBDATA_XXXX,0), CHR(0), '' )     AS counteragentBank
+				  ,opers.t_Ground                              AS description
+				  ,opers.t_Code_Currency                       AS currencyId
+				  ,opers.t_NumDayDoc                           AS dayNumber
+				  ,opers.t_ordernum                            AS documentNumber
+			FROM dsbdepdoc_dbt opers left join drt_paym_dbt contr on opers.t_ApplicationKey = contr.t_ApplicationKey AND opers.t_iapplicationkind = contr.t_iapplicationkind
+			     left join dpcestim_dbt pcestim on opers.t_applicationkey = pcestim.t_docapplicationkey and pcestim.t_Action not IN (2, 11)
+			WHERE
+				  opers.t_Referenc = :id
+			  AND opers.t_Date_Document >= :fromDate
+			  AND opers.t_Date_Document <= :toDate
+   			  AND opers.t_KindOp NOT IN (8, 9, 14, 15, 16)
+              AND opers.t_Action NOT IN (2, 11)
+              AND opers.t_TypeOper NOT IN (38, 39, 94)
+			  AND opers.t_mode  <> 2
+			  AND bitand(opers.t_Flags, 131072) = 0
+			  AND bitand(opers.t_Flags, 17) = 0
+			  AND opers.t_FlagStorn = CHR(0)
+			  AND ( opers.t_InSum <> 0 OR opers.t_OutSum <> 0 )
+			  --AND (MOD(opers.t_Flags, 262144) - MOD(opers.t_Flags, 131072)) = 0
+			ORDER BY opers.t_Date_Document, opers.t_NumDayDoc
+        ]]>
+    </sql-query>
+<!--
+	Запрос для получения данных о контрагенте
+	select top 1000
+		RecivFIO as counteragent,
+		Accnt    as counteragentAccount,
+		BIC      as counteragentBIC
+		+ Bank + CorAccnt
+	from rt_paym_1
+	where
+		ApplicationKey = oper.ApplicationKey and AttrID='РЕКВ_ПОЛ'
+-->
+
+	<!-- Запросы для отладки, проверка получения из Pervasive zstring-ов -->
+    <sql-query name="GetZStrings">
+        <return-scalar type="string" column="unionPart"/>
+	    <![CDATA[
+			SELECT opers.UnionPart AS unionPart
+			FROM sbdepdoc_dbt opers
+		]]>
+    </sql-query>
+
+</hibernate-mapping>

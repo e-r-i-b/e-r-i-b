@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+		
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsV51.bankroll.AccountTransactionImpl">
+        <id name="operationId"/>
+
+	    <property name="accountId"/>
+        <property name="date"/>
+	    <property name="creditSum" type="com.rssl.phizicgate.rsV51.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalCreditSum"/>
+		    <column name="currencyId" />
+	    </property>
+	    <property name="debitSum" type="com.rssl.phizicgate.rsV51.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalDebitSum"/>
+		    <column name="currencyId"/>
+	    </property>                                       
+	    <property name="balance" type="com.rssl.phizicgate.rsV51.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalBalance"/>
+		    <column name="currencyId"/>
+	    </property>
+	    <property name="counteragent"/>
+        <property name="description"/>
+        <property name="dayNumber"/>
+        <property name="counteragentAccount"/>
+        <property name="counteragentBank"/>
+
+    </class>
+
+    
+
+    <sql-query name="GetAccountTransactions">
+        <return alias="trans" class="com.rssl.phizicgate.rsV51.bankroll.AccountTransactionImpl">
+            <return-property name="operationId"     column="operationId"/>
+	        <return-property name="accountId"       column="accountId"/>
+            <return-property name="date"            column="date"/>
+	        <return-property name="creditSum">
+		        <return-column name="decimalCreditSum"/>
+		        <return-column name="currencyId"/>
+	        </return-property>
+	        <return-property name="debitSum">
+		        <return-column name="decimalDebitSum"/>
+		        <return-column name="currencyId"/>
+	        </return-property>
+	        <return-property name="balance">
+		        <return-column name="decimalBalance"/>
+		        <return-column name="currencyId"/>
+	        </return-property>
+	        <return-property name="counteragent"    column="counteragent"/>
+            <return-property name="description"     column="description"/>
+            <return-property name="dayNumber"       column="dayNumber"/>
+	        <return-property name="counteragentAccount" column="counteragentAccount"/>
+	        <return-property name="counteragentBank"    column="counteragentBank"/>
+        </return>
+	    <![CDATA[
+			SELECT CONVERT(opers.Date_Document, SQL_CHAR)
+						+ CONVERT(opers.NumDayDoc, SQL_CHAR) AS operationId
+				  ,opers.Referenc                            AS accountId
+				  ,opers.Date_Document                       AS date
+				  ,opers.InSum                               AS decimalCreditSum
+				  ,opers.OutSum                              AS decimalDebitSum
+				  ,opers.Rest                                AS decimalBalance
+				  ,contr.RecivFIO                            AS counteragent
+				  ,contr.Accnt                               AS counteragentAccount
+				  ,contr.BIC                                 AS counteragentBank
+				  ,opers.Ground                              AS description
+				  ,opers.Code_Currency                       AS currencyId
+				  ,opers.NumDayDoc                           AS dayNumber
+			FROM sbdepdoc_dbt opers left join rt_paym_1 contr on opers.ApplicationKey = contr.ApplicationKey
+			AND opers.iApplicationKind = contr.iApplicationKind
+			  AND contr.AttrID='РЕКВ_ПОЛ'
+			WHERE
+				  opers.Referenc = :id
+			  AND opers.Date_Document >= :fromDate
+			  AND opers.Date_Document <= :toDate
+			      -- Ф-я IsServDocWithEst из Mac\DEPOSITR\issrvdoc.mac
+   			  AND opers.KindOp NOT IN (8, 9, 14, 15, 16)
+			  AND opers.Action  <> 2
+			      -- Получение 17-го бита
+			  AND (MOD(opers.Flags, 262144) - MOD(opers.Flags, 131072)) = 0
+			      -- Проверка FlagStorn = "" для получения остатка и даты последней операции
+			  AND opers.FlagStorn = ''
+			ORDER BY opers.Date_Document, opers.NumDayDoc
+        ]]>
+    </sql-query>
+<!--
+	Запрос для получения данных о контрагенте
+	select top 1000
+		RecivFIO as counteragent,
+		Accnt    as counteragentAccount,
+		BIC      as counteragentBIC
+		+ Bank + CorAccnt
+	from rt_paym_1
+	where
+		ApplicationKey = oper.ApplicationKey and AttrID='РЕКВ_ПОЛ'
+-->
+
+	<!-- Запросы для отладки, проверка получения из Pervasive zstring-ов -->
+    <sql-query name="GetZStrings">
+        <return-scalar type="string" column="unionPart"/>
+	    <![CDATA[
+			SELECT opers.UnionPart AS unionPart
+			FROM sbdepdoc_dbt opers
+		]]>
+    </sql-query>
+
+</hibernate-mapping>

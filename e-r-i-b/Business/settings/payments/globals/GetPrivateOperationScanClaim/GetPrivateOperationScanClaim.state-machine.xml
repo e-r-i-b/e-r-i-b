@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/state-machine.xsd">
+    <states inital-state="INITIAL"
+            description="МС заявки на получение копии  документа на  электронную почту" saveNodeInfo="true">
+
+        <state id="INITIAL" description="Ожидается обработка документа в банке."
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="SAVE" description="Исполняется банком" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                    </handlers>
+                    <next-states default="SENDED"/>
+                </event>
+            </events>
+        </state>
+        <state id="SENDED" system-resolver="com.rssl.phizic.business.payments.ESBSystemNameResolver"
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do" description="Исполняется банком.">
+            <events>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <next-states default="REFUSED"/>
+                </event>
+                <event name="EXECUTE" description="Исполнение документа" type="system">
+                    <next-states default="EXECUTED"/>
+                </event>
+            </events>
+        </state>
+        <state id="REFUSED" system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               description="Отказано"/>
+        <state id="EXECUTED" system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/private/payments/view.do"
+               employee-form="/claims/claim.do"
+               description="Заявка отправлена"/>
+
+    </states>
+</config>

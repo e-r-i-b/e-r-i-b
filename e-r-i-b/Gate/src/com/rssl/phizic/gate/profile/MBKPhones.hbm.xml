@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.gate.profile.MBKPhone" table="MBK_PHONE_JURNAL">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                    <param name="sequence">S_MBK_PHONE_JURNAL</param>
+                </generator>
+        </id>
+        <property name="phone" type="string" column="PHONE"/>
+        <property name="added" type="boolean" column="ADDED"/>
+        <property name="lastUpdateTime" type="java.util.Calendar" column="LAST_UPDATE_TIME"/>
+    </class>
+
+    <!--
+        получение номеров телефонов по делта.
+        Опорный объект: IDX_PH_JUR_LAST_DATE
+        Предикат доступа: "PHONE"."ID">TO_NUMBER(:BEFOREID) AND "PHONE"."ID"<=TO_NUMBER(:PHONEID)
+        Кардинальность: 10000
+    -->
+    <sql-query name="com.rssl.phizic.gate.profile.MBKPhone.getDelta">
+        <return alias="phone" class="com.rssl.phizic.gate.profile.MBKPhone"/>
+        <![CDATA[
+            select {phone.*} from MBK_PHONE_JURNAL phone
+            where :beforeId < phone.ID and phone.ID <= :phoneId
+            order by phone.ID
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

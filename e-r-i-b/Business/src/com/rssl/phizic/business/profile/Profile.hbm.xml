@@ -1,0 +1,55 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.profile.Profile" table="PROFILE">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PROFILE</param>
+            </generator>
+        </id>
+
+        <property name="loginId" type="long" column="LOGIN_ID" not-null="true"/>
+        <property name="regionCode" type="string" column="REGION_CODE" lazy="false"/>
+        <many-to-one name="skin" class="com.rssl.phizic.business.skins.Skin" column="SKIN_ID" lazy="false" not-null="false"/>
+        <property name="showPersonalFinance" type="boolean"  not-null="false"   column="SHOW_PERSONAL_FINANCE"/>
+        <property name="startUsePersonalFinance" type="calendar"  not-null="false"   column="START_USING_PERSONAL_FINANCE"/>
+        <property name="regionSelected" type="boolean" column="REGION_SELECTED" not-null="true"/>
+        <property name="mobileWallet" type="money">
+            <column name="MOBILE_WALLET_AMOUNT"/>
+            <column name="MOBILE_WALLET_CURRENCY"/>
+        </property>
+        <property name="tariffPlanCode" type="string" column="TARIF_PLAN_CODE" not-null="false"/>
+        <property name="stash" type="string" column="STASH" not-null="false"/>
+        <property name="registrationWindowShowCount" type="integer" column="REG_WINDOW_SHOW_COUNT" not-null="false"/>
+        <property name="lastUsingFinancesDate" type="calendar" column="LAST_USING_FINANCES_DATE" not-null="false"/>
+        <property name="usingFinancesCount" type="integer" column="USING_FINANCES_COUNT" not-null="false"/>
+        <property name="usingFinancesEveryThreeDaysCount" type="integer" column="USING_ALF_EVERY_THREE_DAYS_NUM" not-null="false"/>
+        <property name="lastUpdateCardOperationClaimsDate" type="calendar" column="LAST_UPDATE_OPER_CLAIMS_DATE" not-null="false"/>
+        <property name="avatarImageId" type="java.lang.Long" column="AVATAR_IMAGE_ID" not-null="false"/>
+    </class>
+
+    <!--
+        Опорный объект: IDX_PROFILE_LOGIN
+        Предикаты доступа: access("PROFILE"."LOGIN_ID"=TO_NUMBER(:loginId))
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.profile.findByLoginId">
+		select profile
+		from com.rssl.phizic.business.profile.Profile profile
+		where profile.loginId = :loginId
+	</query>
+
+    <!-- Удаление идентификатора аватара по идентификатору логина
+        Опорный объект: IDX_PROFILE_LOGIN
+        Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+        Кардинальность: 1 (для каждого логина возможно существование только одного профиля, у которого удаляется значение столбца AVATAR_IMAGE_ID)
+    -->
+    <sql-query name="com.rssl.phizic.business.profile.deleteAvatarInfoByLoginId">
+        update PROFILE set AVATAR_IMAGE_ID = null
+        where LOGIN_ID = :extra_loginId
+    </sql-query>
+
+</hibernate-mapping>

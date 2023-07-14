@@ -1,0 +1,306 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="Status" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.ermb.migration.list.MigrationStatus</param>
+    </typedef>
+    <typedef name="Source" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.ermb.migration.list.entity.migrator.PhoneSource</param>
+    </typedef>
+
+	<class name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client" table="CLIENT">
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_CLIENT</param>
+			</generator>
+        </id>
+        <property name="lastName"       type="string"   column="SUR_NAME"       not-null="true"/>
+        <property name="firstName"      type="string"   column="FIRST_NAME"     not-null="true"/>
+        <property name="middleName"     type="string"   column="PATR_NAME"      not-null="false"/>
+        <property name="document"       type="string"   column="DOCUMENT"       not-null="true"/>
+        <property name="birthday"       type="calendar" column="BIRTH_DATE"     not-null="true"/>
+        <property name="tb"             type="string"   column="TER_BANK"       not-null="true"/>
+        <property name="osb"            type="string"   column="OSB"            not-null="false"/>
+        <property name="vsp"            type="string"   column="VSP"            not-null="false"/>
+        <property name="segment_1"      type="boolean"  column="SEGMENT_1"      not-null="true"/>
+        <property name="segment_1_1"    type="boolean"  column="SEGMENT_1_1"    not-null="true"/>
+        <property name="segment_1_2"    type="boolean"  column="SEGMENT_1_2"    not-null="true"/>
+        <property name="segment_2_1"    type="boolean"  column="SEGMENT_2_1"    not-null="true"/>
+        <property name="segment_2_2"    type="boolean"  column="SEGMENT_2_2"    not-null="true"/>
+        <property name="segment_2_2_1"  type="boolean"  column="SEGMENT_2_2_1"  not-null="true"/>
+        <property name="segment_3_1"    type="boolean"  column="SEGMENT_3_1"    not-null="true"/>
+        <property name="segment_3_2_1"  type="boolean"  column="SEGMENT_3_2_1"  not-null="true"/>
+        <property name="segment_3_2_2"  type="boolean"  column="SEGMENT_3_2_2"  not-null="true"/>
+        <property name="segment_3_2_3"  type="boolean"  column="SEGMENT_3_2_3"  not-null="true"/>
+        <property name="segment_4"      type="boolean"  column="SEGMENT_4"      not-null="true"/>
+        <property name="segment_5_1"    type="boolean"  column="SEGMENT_5_1"    not-null="true"/>
+        <property name="segment_5_2"    type="boolean"  column="SEGMENT_5_2"    not-null="true"/>
+        <property name="segment_5_3"    type="boolean"  column="SEGMENT_5_3"    not-null="true"/>
+        <property name="segment_5_4"    type="boolean"  column="SEGMENT_5_4"    not-null="true"/>
+        <property name="segment_5_5"    type="boolean"  column="SEGMENT_5_5"    not-null="true"/>
+        <property name="status"         type="Status"   column="STATUS"         not-null="true"/>
+        <property name="UDBO"           type="boolean"  column="UDBO"           not-null="true"/>
+        <property name="vipOrMvs"       type="boolean"  column="VIP_OR_MBC"     not-null="true"/>
+        <property name="migrationBlock" type="long"     column="MIGRATION_BLOCK" not-null="false"/>
+        <property name="migrationError" type="boolean"  column="MIGRATION_ERROR" not-null="true"/>
+
+        <set name="phones" table="PHONES" cascade="all-delete-orphan,save-update" lazy="false" fetch="join">
+            <key column="CLIENT_ID" not-null="true"/>
+			<one-to-many class="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Phone"/>
+        </set>
+   </class>
+
+	<class name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Phone" table="PHONES">
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_PHONES</param>
+			</generator>
+        </id>
+        <property name="phoneNumber"              type="string"   column="PHONE"                      not-null="true"/>
+        <property name="source"                   type="Source"   column="SOURCE"                     not-null="true"/>
+        <property name="smsCount"                 type="int"      column="SMS_COUNT"                  not-null="true"/>
+        <property name="registrationDate"         type="calendar" column="REGISTRATION_DATE"          not-null="false"/>
+        <property name="vipOrMbc"                 type="boolean"  column="VIP_OR_MVS"                 not-null="true"/>
+        <property name="hasAdditional"            type="boolean"  column="HAS_ADDITIONAL"             not-null="true"/>
+        <property name="additionalCardOwner"      type="boolean"  column="ADDITIONAL_CARD_OWNER"      not-null="true"/>
+        <property name="hasMain"                  type="boolean"  column="HAS_MAIN"                   not-null="true"/>
+        <property name="sultan"                   type="boolean"  column="IS_SULTAN"                  not-null="true"/>
+        <property name="belongClientRegistration" type="boolean"  column="BELONG_CLIENT_REGISTRATION" not-null="true"/>
+        <property name="cardActivity"             type="boolean"  column="CARD_ACTIVITY"              not-null="true"/>
+        <property name="lastSmsActivity"          type="boolean"  column="LAST_SMS_ACTIVITY"          not-null="true"/>
+   </class>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.client.findClientByStatus">
+        select client
+        from com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client client
+        where client.status = :status
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client.updateStatusByClientId">
+        update com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client client
+        set
+            client.status = :status
+        where
+            client.id = :clientId
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.Client.markNonMigratedClientsBlockBySegments">
+        update com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client client
+        set client.migrationBlock = :block
+        where
+            client.migrationBlock = null and
+            (
+                client.segment_1 = true and ('1' in (:segments)) or
+                client.segment_1_1 = true and ('1_1' in (:segments)) or
+                client.segment_1_2 = true and ('1_2' in (:segments)) or
+                client.segment_2_1 = true and ('2_1' in (:segments)) or
+                client.segment_2_2 = true and ('2_2' in (:segments)) or
+                client.segment_2_2_1 = true and ('2_2_1' in (:segments)) or
+                client.segment_3_1 = true and ('3_1' in (:segments)) or
+                client.segment_3_2_1 = true and ('3_2_1' in (:segments)) or
+                client.segment_3_2_2 = true and ('3_2_2' in (:segments)) or
+                client.segment_3_2_3 = true and ('3_2_3' in (:segments)) or
+                client.segment_4 = true and ('4' in (:segments)) or
+                client.segment_5_1 = true and ('5_1' in (:segments)) or
+                client.segment_5_2 = true and ('5_2' in (:segments)) or
+                client.segment_5_3 = true and ('5_3' in (:segments)) or
+                client.segment_5_4 = true and ('5_4' in (:segments)) or
+                client.segment_5_5 = true and ('5_5' in (:segments))
+            )
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.Client.findClientsBySegments">
+        select client
+        from com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client client
+        where
+            (
+                client.segment_1 = true and ('1' in (:segments)) or
+                client.segment_1_1 = true and ('1_1' in (:segments)) or
+                client.segment_1_2 = true and ('1_2' in (:segments)) or
+                client.segment_2_1 = true and ('2_1' in (:segments)) or
+                client.segment_2_2 = true and ('2_2' in (:segments)) or
+                client.segment_2_2_1 = true and ('2_2_1' in (:segments)) or
+                client.segment_3_1 = true and ('3_1' in (:segments)) or
+                client.segment_3_2_1 = true and ('3_2_1' in (:segments)) or
+                client.segment_3_2_2 = true and ('3_2_2' in (:segments)) or
+                client.segment_3_2_3 = true and ('3_2_3' in (:segments)) or
+                client.segment_4 = true and ('4' in (:segments)) or
+                client.segment_5_1 = true and ('5_1' in (:segments)) or
+                client.segment_5_2 = true and ('5_2' in (:segments)) or
+                client.segment_5_3 = true and ('5_3' in (:segments)) or
+                client.segment_5_4 = true and ('5_4' in (:segments)) or
+                client.segment_5_5 = true and ('5_5' in (:segments))
+            )
+            and
+            (
+                client.tb || '|' || client.osb || '|' || client.vsp in (:departmentCodeList)
+            )
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.Client.markClientBlockById">
+        update com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client client
+        set client.migrationBlock = :nextBlock
+        where
+            client.id = :id
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.Client.findReadyForMigration">
+        select client
+        from com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client client
+        where
+            client.migrationBlock = :block
+            and client.migrationError = false
+            and client.status = 'NOT_MIGRATED'
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.Client.findByFioDulDrTb">
+        from com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client
+        where
+            upper(replace(replace(concat(concat(firstName, middleName), lastName), ' ', ''), '-', '')) = :fio and
+            replace(document, ' ', '') = :document and
+            birthday = :birthDay and
+            tb = :tb
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client.setMigrationErrorByClientId">
+        update com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client client
+        set
+            client.migrationError = true
+        where
+            client.id = :clientId
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.Client.findClientsBySegmentsForSMS">
+        select client
+        from com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client client
+        where  (
+                client.segment_1 = true and ('1' in (:toSend)) or
+                client.segment_1_1 = true and ('1_1' in (:toSend)) or
+                client.segment_1_2 = true and ('1_2' in (:toSend)) or
+                client.segment_2_1 = true and ('2_1' in (:toSend)) or
+                client.segment_2_2 = true and ('2_2' in (:toSend)) or
+                client.segment_2_2_1 = true and ('2_2_1' in (:toSend)) or
+                client.segment_3_1 = true and ('3_1' in (:toSend)) or
+                client.segment_3_2_1 = true and ('3_2_1' in (:toSend)) or
+                client.segment_3_2_2 = true and ('3_2_2' in (:toSend)) or
+                client.segment_3_2_3 = true and ('3_2_3' in (:toSend)) or
+                client.segment_4 = true and ('4' in (:toSend)) or
+                client.segment_5_1 = true and ('5_1' in (:toSend)) or
+                client.segment_5_2 = true and ('5_2' in (:toSend)) or
+                client.segment_5_3 = true and ('5_3' in (:toSend)) or
+                client.segment_5_4 = true and ('5_4' in (:toSend)) or
+                client.segment_5_5 = true and ('5_5' in (:toSend))
+               )
+            and not
+               (
+                client.segment_1 = true and ('1' in (:notSend)) or
+                client.segment_1_1 = true and ('1_1' in (:notSend)) or
+                client.segment_1_2 = true and ('1_2' in (:notSend)) or
+                client.segment_2_1 = true and ('2_1' in (:notSend)) or
+                client.segment_2_2 = true and ('2_2' in (:notSend)) or
+                client.segment_2_2_1 = true and ('2_2_1' in (:notSend)) or
+                client.segment_3_1 = true and ('3_1' in (:notSend)) or
+                client.segment_3_2_1 = true and ('3_2_1' in (:notSend)) or
+                client.segment_3_2_2 = true and ('3_2_2' in (:notSend)) or
+                client.segment_3_2_3 = true and ('3_2_3' in (:notSend)) or
+                client.segment_4 = true and ('4' in (:notSend)) or
+                client.segment_5_1 = true and ('5_1' in (:notSend)) or
+                client.segment_5_2 = true and ('5_2' in (:notSend)) or
+                client.segment_5_3 = true and ('5_3' in (:notSend)) or
+                client.segment_5_4 = true and ('5_4' in (:notSend)) or
+                client.segment_5_5 = true and ('5_5' in (:notSend))
+               )
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.Client.countClientsBySegmentsForSMS">
+        select count(client)
+        from com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client client
+        where  (
+                client.segment_1 = true and ('1' in (:toSend)) or
+                client.segment_1_1 = true and ('1_1' in (:toSend)) or
+                client.segment_1_2 = true and ('1_2' in (:toSend)) or
+                client.segment_2_1 = true and ('2_1' in (:toSend)) or
+                client.segment_2_2 = true and ('2_2' in (:toSend)) or
+                client.segment_2_2_1 = true and ('2_2_1' in (:toSend)) or
+                client.segment_3_1 = true and ('3_1' in (:toSend)) or
+                client.segment_3_2_1 = true and ('3_2_1' in (:toSend)) or
+                client.segment_3_2_2 = true and ('3_2_2' in (:toSend)) or
+                client.segment_3_2_3 = true and ('3_2_3' in (:toSend)) or
+                client.segment_4 = true and ('4' in (:toSend)) or
+                client.segment_5_1 = true and ('5_1' in (:toSend)) or
+                client.segment_5_2 = true and ('5_2' in (:toSend)) or
+                client.segment_5_3 = true and ('5_3' in (:toSend)) or
+                client.segment_5_4 = true and ('5_4' in (:toSend)) or
+                client.segment_5_5 = true and ('5_5' in (:toSend))
+               )
+            and not
+               (
+                client.segment_1 = true and ('1' in (:notSend)) or
+                client.segment_1_1 = true and ('1_1' in (:notSend)) or
+                client.segment_1_2 = true and ('1_2' in (:notSend)) or
+                client.segment_2_1 = true and ('2_1' in (:notSend)) or
+                client.segment_2_2 = true and ('2_2' in (:notSend)) or
+                client.segment_2_2_1 = true and ('2_2_1' in (:notSend)) or
+                client.segment_3_1 = true and ('3_1' in (:notSend)) or
+                client.segment_3_2_1 = true and ('3_2_1' in (:notSend)) or
+                client.segment_3_2_2 = true and ('3_2_2' in (:notSend)) or
+                client.segment_3_2_3 = true and ('3_2_3' in (:notSend)) or
+                client.segment_4 = true and ('4' in (:notSend)) or
+                client.segment_5_1 = true and ('5_1' in (:notSend)) or
+                client.segment_5_2 = true and ('5_2' in (:notSend)) or
+                client.segment_5_3 = true and ('5_3' in (:notSend)) or
+                client.segment_5_4 = true and ('5_4' in (:notSend)) or
+                client.segment_5_5 = true and ('5_5' in (:notSend))
+               )
+    </query>
+
+    <!--запрос для отчета сотрудников call центра-->
+    <sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.findCallCentreData">
+        <return-scalar column="sur_name" type="string"/>
+        <return-scalar column="first_name" type="string"/>
+        <return-scalar column="patr_name" type="string"/>
+        <return-scalar column="document" type="string"/>
+        <return-scalar column="birth_date" type="calendar"/>
+        <return-scalar column="phone" type="string"/>
+        <return-scalar column="conflict_sur_name" type="string"/>
+        <return-scalar column="conflict_first_name" type="string"/>
+        <return-scalar column="conflict_patr_name" type="string"/>
+        <return-scalar column="conflict_document" type="string"/>
+        <return-scalar column="conflict_birth_date" type="calendar"/>
+        <![CDATA[
+            select client.sur_name, client.first_name, client.patr_name,
+                client.document, client.birth_date,
+                phones.phone,
+                conflicted_clients.sur_name conflict_sur_name,
+                conflicted_clients.first_name conflict_first_name,
+                conflicted_clients.patr_name conflict_patr_name,
+                conflicted_clients.document conflict_document,
+                conflicted_clients.birth_date conflict_birth_date
+            from client
+                join phones on client.id = phones.client_id
+                left join phones_to_conflicted_clients on phones.phone = phones_to_conflicted_clients.phone
+                left join conflicted_clients on phones_to_conflicted_clients.conflicted_client_id = conflicted_clients.id
+            where
+                client.segment_1 = '1' and ('1' in (:segments)) or
+                client.segment_1_1 = '1' and ('1_1' in (:segments)) or
+                client.segment_1_2 = '1' and ('1_2' in (:segments)) or
+                client.segment_2_1 = '1' and ('2_1' in (:segments)) or
+                client.segment_2_2 = '1' and ('2_2' in (:segments)) or
+                client.segment_2_2_1 = '1' and ('2_2_1' in (:segments)) or
+                client.segment_3_1 = '1' and ('3_1' in (:segments)) or
+                client.segment_3_2_1 = '1' and ('3_2_1' in (:segments)) or
+                client.segment_3_2_2 = '1' and ('3_2_2' in (:segments)) or
+                client.segment_3_2_3 = '1' and ('3_2_3' in (:segments)) or
+                client.segment_4 = '1' and ('4' in (:segments)) or
+                client.segment_5_1 = '1' and ('5_1' in (:segments)) or
+                client.segment_5_2 = '1' and ('5_2' in (:segments)) or
+                client.segment_5_3 = '1' and ('5_3' in (:segments)) or
+                client.segment_5_4 = '1' and ('5_4' in (:segments)) or
+                client.segment_5_5 = '1' and ('5_5' in (:segments))
+            order by sur_name, first_name, patr_name, document, birth_date, phone
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

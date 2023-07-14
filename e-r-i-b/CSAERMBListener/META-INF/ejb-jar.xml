@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ejb-jar
+        PUBLIC "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 2.0//EN"
+        "http://java.sun.com/dtd/ejb-jar_2_0.dtd">
+
+<ejb-jar id="EJBJar_CSAERMBListener">
+    <enterprise-beans>
+        <!-- смс канал -->
+        <message-driven id="MessageDriver_CSASMSListener">
+            <!-- логическое имя MDB -->
+            <ejb-name>CSASmsListener</ejb-name>
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.csa.ejb.CSASmsEjbListener</ejb-class>
+            <transaction-type>Bean</transaction-type>
+            <!-- MDB слушает очередь (а не топик) -->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+            <resource-ref id="ResourceRef_CSASmsQCF">
+                <res-ref-name>jms/csa/sms/SmsQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+            <resource-ref id="ResourceRef_CSASmsQueue">
+                <res-ref-name>jms/csa/sms/SmsQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+        </message-driven>
+        <!-- / -->
+        <!-- транспортный канал. смс с проверкой IMSI -->
+        <message-driven id="MessageDriver_CSASMSWithIMSIListener">
+            <!-- логическое имя MDB -->
+            <ejb-name>CSASmsWithIMSIListener</ejb-name>
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.csa.ejb.CSASmsWithIMSIEjbListener</ejb-class>
+            <transaction-type>Bean</transaction-type>
+            <!-- MDB слушает очередь (а не топик) -->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+            <resource-ref id="ResourceRef_CSASmsWithIMSIQCF">
+                <res-ref-name>jms/csa/sms/SmsWithIMSIQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+            <resource-ref id="ResourceRef_CSASmsWithIMSIQueue">
+                <res-ref-name>jms/csa/sms/SmsWithIMSIQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+        </message-driven>
+        <!-- транспортный канал. Результат списания абонентской платы -->
+        <message-driven id="MessageDriver_CSAServiceFeeListener">
+            <!-- логическое имя MDB -->
+            <ejb-name>CSAServiceFeeEjbListener</ejb-name>
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.csa.ejb.CSAServiceFeeEjbListener</ejb-class>
+            <transaction-type>Bean</transaction-type>
+            <!-- MDB слушает очередь (а не топик) -->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+            <resource-ref id="ResourceRef_CSAServiceFeeResultRqQCF">
+                <res-ref-name>jms/csa/service/FeeResultRqQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+            <resource-ref id="ResourceRef_CSAServiceFeeResultRqQueue">
+                <res-ref-name>jms/csa/service/FeeResultRqQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+        </message-driven>
+        <!-- / -->
+        <!-- Служебный канал -->
+        <message-driven id="MessageDriven_CSAConfirmProfileListener">
+            <!-- Логическое имя MDB -->
+            <ejb-name>CSAConfirmProfileListener</ejb-name>
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.csa.ejb.CSAServiceProfileEjbListener</ejb-class>
+            <transaction-type>Bean</transaction-type>
+            <!-- MDB слушает очередь (а не топик) -->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+            <resource-ref id="ResourceRef_CSAConfirmProfileQCF">
+                <res-ref-name>jms/csa/service/ConfirmProfileQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+            <resource-ref id="ResourceRef_CSAConfirmProfileQueue">
+                <res-ref-name>jms/csa/service/ConfirmProfileQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+        </message-driven>
+        <message-driven id="MessageDriven_CSAUpdateClientListener">
+            <!-- Логическое имя MDB -->
+            <ejb-name>CSAUpdateClientListener</ejb-name>
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.csa.ejb.CSAServiceClientEjbListener</ejb-class>
+            <transaction-type>Bean</transaction-type>
+            <!-- MDB слушает очередь (а не топик) -->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+            <resource-ref id="ResourceRef_CSAUpdateClientQCF">
+                <res-ref-name>jms/csa/service/UpdateClientQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+            <resource-ref id="ResourceRef_CSAUpdateClientQueue">
+                <res-ref-name>jms/csa/service/UpdateClientQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+        </message-driven>
+        <message-driven id="MessageDriven_CSAUpdateResourceListener">
+            <!-- Логическое имя MDB -->
+            <ejb-name>CSAUpdateResourceListener</ejb-name>
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.csa.ejb.CSAServiceResourceEjbListener</ejb-class>
+            <transaction-type>Bean</transaction-type>
+            <!-- MDB слушает очередь (а не топик) -->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+            <resource-ref id="ResourceRef_CSAUpdateResourceQCF">
+                <res-ref-name>jms/csa/service/UpdateResourceQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+           <resource-ref id="ResourceRef_CSAUpdateResourceQueue">
+                <res-ref-name>jms/csa/service/UpdateResourceQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+          </resource-ref>
+        </message-driven>
+        <!-- / -->
+    </enterprise-beans>
+</ejb-jar>

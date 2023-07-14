@@ -1,0 +1,89 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="MigrationState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.migration.MigrationState</param>
+    </typedef>
+
+    <class abstract="true" name="com.rssl.phizic.business.migration.MigrationTask" table="MIGRATION_INFO">
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_MIGRATION_INFO</param>
+			</generator>
+		</id>
+        <property name="totalCount" type="long"    column="TOTAL_COUNT" not-null="false"/>
+		<property name="batchSize"  type="long"    column="BATCH_SIZE"  not-null="false"/>
+		<property name="needStop"   type="boolean" column="NEED_STOP"   not-null="true"/>
+        <bag name="threadTasks" table="MIGRATION_THREAD_INFO" lazy="false" cascade="all-delete-orphan">
+            <key column="PARENT_ID"/>
+            <one-to-many class="com.rssl.phizic.business.migration.MigrationThreadTask"/>
+        </bag>
+    </class>
+
+    <class name="com.rssl.phizic.business.migration.MigrationThreadTask" table="MIGRATION_THREAD_INFO">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_MIGRATION_THREAD_INFO</param>
+            </generator>
+        </id>
+        <property name="state"     type="MigrationState" column="STATE"      not-null="true"/>
+        <property name="startDate" type="calendar"       column="START_DATE" not-null="false"/>
+        <property name="endDate"   type="calendar"       column="END_DATE"   not-null="false"/>
+        <property name="goodCount" type="long"           column="GOOD_COUNT" not-null="true"/>
+        <property name="badCount"  type="long"           column="BAD_COUNT"  not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.migration.ThreadMigrationInfo">
+        <id name="id"              type="long"    access="field"/>
+        <property name="needStop"  type="boolean" access="field"/>
+        <property name="batchSize" type="long"    access="field"/>
+    </class>
+
+    <!--
+    Остановка процесса миграции
+    Опорный объект: PK_MIGRATION_INFO
+    Предикаты доступа: access("ID"=TO_NUMBER(:id))
+    Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.migration.MigrationTask.stop">
+        update com.rssl.phizic.business.migration.MigrationTask set needStop = true where id = :id
+    </query>
+
+    <!--
+    Получение свободной задачи на миграцию
+    Опорный объект: I_MIGRATION_THREAD_INFO_STATE
+    Предикаты доступа: access(DECODE("STATE",'WAIT','1',NULL)='1')
+    Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.migration.MigrationThreadTask.getWaiting">
+        select migrationThreadTask
+        from com.rssl.phizic.business.migration.MigrationThreadTask migrationThreadTask
+        where decode(migrationThreadTask.state, 'WAIT', '1', null) = '1'
+            and rownum = 1
+    </query>
+
+    <!--
+    Получение информации о задаче на миграцию
+    Опорный объект: PK_MIGRATION_THREAD_INFO
+    Предикаты доступа: access("THREADMIGRATIONINFO"."ID"=TO_NUMBER(:ID))
+    Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.migration.ThreadMigrationInfo.getInfo">
+        <return class="com.rssl.phizic.business.migration.ThreadMigrationInfo">
+            <return-property name="id"          column="ID"/>
+            <return-property name="needStop"    column="NEED_STOP"/>
+            <return-property name="batchSize"   column="BATCH_SIZE"/>
+        </return>
+        SELECT
+            threadMigrationInfo.ID ID,
+            totalInfo.NEED_STOP NEED_STOP,
+            totalInfo.BATCH_SIZE BATCH_SIZE
+        FROM
+            MIGRATION_INFO totalInfo
+            JOIN MIGRATION_THREAD_INFO threadMigrationInfo on totalInfo.ID = threadMigrationInfo.PARENT_ID
+        WHERE
+            threadMigrationInfo.ID = :id
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+
+<struts-config>
+	<!-- ======== Form Bean Definitions =================================== -->
+	<form-beans>
+		<!-- список офисов СБРФ -->
+		<form-bean name="ShowSBRFOfficesForm" type="com.rssl.phizic.web.common.ext.sevb.dictionaries.ShowSBRFOfficesForm"/>
+		<form-bean name="CheckPaymentSignatureForm" type="com.rssl.phizic.web.ext.sevb.documents.CheckPaymentSignatureForm"/>
+		<form-bean name="EditDepartmentForm" type="com.rssl.phizic.web.departments.EditMultiDepartmentForm"/>
+
+		<form-bean name="LoginForm"
+		           type="com.rssl.phizic.web.ext.sevb.security.LoginClosePasswordStageForm"/>
+	</form-beans>
+	<action-mappings>
+
+ 	<!-- список офисов -->
+		<action path="/private/dictionary/offices"
+		        type="com.rssl.phizic.web.common.ext.sevb.dictionaries.ShowSBRFOfficesAction"
+		        name="ShowSBRFOfficesForm" scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sevb/dictionaries/offices.jsp"/>
+		</action>
+
+
+		<!-- Справочник сообщений об ошибках -->
+		<action path="/errors/list"
+					type="com.rssl.phizic.web.errors.ListErrorMessageAction"
+					name="ListErrorMessageForm"
+					scope="request" validate="false">
+			   <forward name="Start" path="/WEB-INF/jsp-sevb/errors/list.jsp"/>
+		</action>
+
+		<action path="/errors/edit"
+					type="com.rssl.phizic.web.errors.EditErrorMessageAction"
+					name="EditErrorMessageForm"
+					scope="request" validate="false">
+			   <forward name="Start" path="/WEB-INF/jsp-sevb/errors/edit.jsp"/>
+               <forward name="Success" path="/errors/list.do" redirect="true"/>
+			   <forward name="Close" path="/errors/list.do" redirect="true"/>
+		</action>		
+
+		<!--редактирование сотрудника-->
+		<action path="/employees/edit"
+		        type="com.rssl.phizic.web.employees.EmployeeEditAction"
+		        name="EmployeeEditForm" scope="request" validate="false">
+		 <forward name="Start" path="/WEB-INF/jsp/employees/edit.jsp"/>
+		 <forward name="Success" path="/employees/list.do" redirect="true"/>
+		 <forward name="Failure" path="/WEB-INF/jsp/employees/edit.jsp"/>
+		 <forward name="Access" path="/employees/access.do" redirect="true"/>
+		</action>
+		<!-- список пользователей, которые  расторгли договор -->
+		<action path="/persons/archiveList"
+		        type="com.rssl.phizic.web.persons.ListArchivePersonsAction"
+		        name="ListPersonsForm" scope="request" validate="false">
+		 <forward name="ShowList" path="/WEB-INF/jsp-sevb/persons/archiveList.jsp"/>
+		</action>
+
+		<!--Печать анкеты клиента-->
+		<action path="/persons/print" type="com.rssl.phizic.web.persons.PrintPersonAction" name="PrintPersonForm" scope="request" validate="false">
+			<forward name="Start" path="/WEB-INF/jsp-sevb/persons/print.jsp"/>
+		</action>
+		<!-- проверка АСП:сбербанк -->
+	    <action path="/documents/checkSignature"
+		        type="com.rssl.phizic.web.ext.sevb.documents.CheckPaymentSignatureAction"
+		        name="CheckPaymentSignatureForm"
+		        scope="request"
+		        validate="false">
+		    <forward name="Start" path="/WEB-INF/jsp-sevb/documents/checkSignature.jsp"/>
+		</action>
+		<!-- форма логина -->
+		<action path="/login"
+		        type="com.rssl.phizic.web.ext.sevb.security.LoginClosePasswordStageAction"
+		        name="LoginForm" scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sevb/login.jsp"/>
+		</action>
+		<!-- редактирование представителя -->
+		<action path="/persons/empowered/edit"
+		        type="com.rssl.phizic.web.ext.sevb.persons.SBRFEditEmpoweredPersonAction"
+		        name="EditEmpoweredPersonForm" scope="request" validate="false">
+		 <forward name="Start" path="/WEB-INF/jsp-sevb/persons/empowered/editEmpoweredPerson.jsp"/>
+		 <forward name="Success" path="/persons/empowered/edit.do" redirect="true"/>
+		 <forward name="Save" path="/persons/empowered/list.do" redirect="true"/>
+		</action>
+		<!-- просмотр списка представителей (введен из-за логина вместо пин-конверта) -->
+		<action path="/persons/empowered/list"
+		        type="com.rssl.phizic.web.persons.EmpoweredPersonsListAction"
+		        name="EmpoweredPersonsListForm" scope="request" validate="false">
+		 <forward name="Start" path="/WEB-INF/jsp-sevb/persons/empowered/empoweredPersons.jsp"/>
+		</action>
+		<!-- печать расторжения договора -->
+		<action path="/persons/printRecession"
+		        type="com.rssl.phizic.web.persons.PrintRecessionAction"
+		        name="PrintRecessionForm" scope="request" validate="false">
+		   <forward name="Start" path="/WEB-INF/jsp-sevb/persons/recessionContract.jsp"/>
+		</action>
+
+		<!-- редактирование клиента: добавлены новые кнопки для новых статусов-->
+		<action path="/persons/edit"
+		        type="com.rssl.phizic.web.ext.sevb.persons.SBRFEditPersonAction"
+		        name="EditPersonForm" scope="request" validate="false">
+			 <forward name="Start" path="/WEB-INF/jsp-sevb/persons/edit.jsp"/>
+			 <forward name="Failure" path="/WEB-INF/jsp-sevb/persons/edit.jsp"/>
+			 <forward name="Print" path="/WEB-INF/jsp-sevb/persons/print.jsp"/>
+			 <forward name="PrintContract" path="/persons/printContract.do" redirect="true"/>
+			 <forward name="PrintContract2" path="/persons/printContract2.do" redirect="true"/>
+			 <forward name="PrintContract7" path="/persons/printContract7.do" redirect="true"/>
+			 <forward name="PrintContract8_pr5" path="/persons/printContract8_pr5.do" redirect="true"/>
+			 <forward name="PrintContract3" path="/persons/printContract3.do" redirect="true"/>
+			 <forward name="PrintContract9" path="/persons/printContract9.do" redirect="true"/>
+			 <forward name="Success" path="/WEB-INF/jsp-sevb/persons/edit.jsp"/>
+			 <forward name="Close" path="/persons/list.do" redirect="true"/>
+			 <forward name="Resources" path="/persons/resources.do" redirect="true"/>
+			 <forward name="Operations" path="/persons/useroperations.do" redirect="true"/>
+			 <forward name="Cards" path="/cardspersons/cards.do" redirect="true"/>
+			 <forward name="EmpoweredPersons" path="/persons/empowered/list.do" redirect="true"/>
+		</action>
+
+		<action path="/persons/clients/list"
+		        type="com.rssl.phizic.web.persons.ListClientsAction"
+		        name="ListClientsForm" scope="request" validate="false"
+		        input="/WEB-INF/jsp-sevb/persons/clients.jsp">
+		 <forward name="ShowList" path="/WEB-INF/jsp-sevb/persons/clients.jsp"/>
+		 <forward name="Add" path="/persons/add.do"/>
+		</action>		
+
+		<!--редактирование получателей-->
+		<action path="/persons/receivers/edit" type="com.rssl.phizic.web.dictionaries.EditPaymentReceiverAdminAction" name="EditPaymentReceiverForm" scope="request" validate="false">
+			<forward name="StartS" path="/WEB-INF/jsp/persons/editPaymentReceiverS.jsp"/>
+			<forward name="StartG" path="/WEB-INF/jsp/persons/editPaymentReceiverG.jsp"/>
+			<forward name="StartJ" path="/WEB-INF/jsp-sevb/persons/editPaymentReceiverJ.jsp"/>
+			<forward name="StartP" path="/WEB-INF/jsp-sevb/persons/editPaymentReceiverP.jsp"/>
+			<forward name="Success" path="/persons/receivers/list.do" redirect="true"/>
+		</action>
+
+        <!--Печать заявления-->
+        <action path="/persons/printContract" type="com.rssl.phizic.web.persons.PrintContractAction" name="PrintPersonForm" scope="request" validate="false">
+            <forward name="Start" path="/WEB-INF/jsp/persons/application/application.jsp"/>
+        </action>
+
+        <action path="/persons/printContract8_pr5" type="com.rssl.phizic.web.persons.PrintContractAction" name="PrintPersonForm" scope="request" validate="false">
+            <forward name="Start" path="/WEB-INF/jsp/persons/application/application_pr2.jsp"/>
+        </action>
+
+        <action path="/persons/printContract2" type="com.rssl.phizic.web.persons.PrintContractAction" name="PrintPersonForm" scope="request" validate="false">
+            <forward name="Start" path="/WEB-INF/jsp/persons/application/dop.jsp"/>
+        </action>
+
+        <action path="/persons/printRecession" type="com.rssl.phizic.web.persons.PrintRecessionAction" name="PrintRecessionForm" scope="request" validate="false">
+            <forward name="Start" path="/WEB-INF/jsp/persons/application/receissionApplication.jsp"/>
+        </action>
+
+		<!-- печать ПД-4-->
+		<action path="/private/PD4" type="com.rssl.phizic.web.PD4Action" name="PD4Form" scope="request" validate="false">
+			<forward name="Start" path="/WEB-INF/jsp-sevb/common/PD4Form.jsp"/>
+			<forward name="Print" path="/WEB-INF/jsp/common/PD4PrintTemplate.jsp"/>
+			<forward name="PrintNalog" path="/WEB-INF/jsp/common/PD4PrintTemplateNalog.jsp"/>
+			<forward name="PrintLetterOffer" path="/WEB-INF/jsp/common/offerTemplate.jsp"/>
+			<forward name="PrintPayOffer" path="/WEB-INF/jsp/common/offerTemplate.jsp"/>
+			<!-- заполнение полей -->
+			<forward name="StatusFill" path="/WEB-INF/jsp/common/PD4StatusFill.jsp"/>
+			<forward name="TypeFill" path="/WEB-INF/jsp/common/PD4TypeFill.jsp"/>
+			<forward name="FundFill" path="/WEB-INF/jsp/common/PD4FundFill.jsp"/>
+			<forward name="PeriodFill" path="/WEB-INF/jsp/common/PD4PeriodFill.jsp"/>
+		</action>
+
+		<!-- Формы платежей -->
+		<action path="/forms/payment-forms" type="com.rssl.phizic.web.forms.GetPaymentFormListAction" name="GetPaymentFormListForm" scope="request">
+			<forward name="Start" path="/WEB-INF/jsp-sevb/forms/list.jsp"/>
+			<forward name="Add" path="/forms/upload.do" redirect="true"/>
+			<forward name="Download" path="/forms/download.do" redirect="true"/>
+		</action>
+
+        <!-- Контекстная справка -->
+        <action path="/help" type="com.rssl.phizic.web.help.HelpActionA" name="HelpForm" scope="request" validate="false">
+            <forward name="Show" path="/WEB-INF/jsp-sevb/common/helpPage.jsp"/>
+        </action>
+
+        <!-- Схемы прав сотрудника -->
+        <action path="/employees/access" type="com.rssl.phizic.web.access.AssignEmployeeAccessAction" name="AssignEmployeeAccessForm" scope="request" validate="false" attribute="AssignEmployeeAccessForm">
+            <forward name="Start" path="/WEB-INF/jsp-sevb/employees/useroperations.jsp"/>
+            <forward name="Close" path="/employees/list.do" redirect="true"/>
+            <forward name="Employees" path="/employees/edit.do" redirect="true"/>
+        </action>
+
+        <action path="/employees/list" type="com.rssl.phizic.web.employees.EmployeeListAction" name="EmployeeListForm" scope="request" validate="false">
+            <forward name="Start" path="/WEB-INF/jsp/employees/list.jsp"/>
+        </action>
+
+        <action path="/persons/list" type="com.rssl.phizic.web.ext.sevb.persons.ListPersonsAction" name="ListPersonsForm" scope="request" validate="false">
+            <forward name="Start" path="/WEB-INF/jsp/persons/list.jsp"/>
+        </action>
+
+	</action-mappings>
+
+	<message-resources
+		factory="com.rssl.phizic.web.struts.MultiPropertyMessageResourcesFactory"
+		parameter="com.rssl.phizic.web.ext.sevb.documents.resources;
+				   com.rssl.phizic.operations.validators.messages;
+				   com.rssl.phizic.business.documents.payments.forms.validator"
+		key="documentsBundle"/>
+
+	<plug-in className="org.apache.struts.tiles.TilesPlugin">
+		<set-property property="definitions-config"
+		              value="
+		                /WEB-INF/tiles/tiles-components.xml,
+		                /WEB-INF/tiles/tiles-global-templates.xml,
+		                /WEB-INF/tiles-definitions.xml"
+				/>
+	</plug-in>
+</struts-config>

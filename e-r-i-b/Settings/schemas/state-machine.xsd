@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+	<xs:element name="config">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="unbounded" ref="states"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="states">
+		<xs:complexType>
+			<xs:sequence>
+                <xs:element maxOccurs="1" minOccurs="0" ref="sequences-handlers"/>
+                <xs:element maxOccurs="1" minOccurs="0" ref="sequences-next-states"/>
+				<xs:element maxOccurs="unbounded" ref="state"/>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string"/>
+			<xs:attribute name="description" type="xs:string"/>
+			<xs:attribute name="inital-state" type="xs:string"/>
+			<xs:attribute name="saveNodeInfo" type="xs:boolean" default="false"/>
+		</xs:complexType>
+	</xs:element>
+
+
+    <xs:element name="sequence-handlers-ref">
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Ссылка на цепочку хэндлеров</xs:documentation>
+            </xs:annotation>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="sequences-handlers">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="unbounded" name="sequence">
+                    <xs:complexType>
+						<xs:sequence>
+                            <xs:choice maxOccurs="unbounded">
+							    <xs:element ref="handler" />
+                                <xs:element ref="sequence-handlers-ref"/>
+                            </xs:choice>
+						</xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    Идентификатор цепочки хэндлеров
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+					</xs:complexType>
+                </xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+    <xs:element name="sequence-next-states-ref">
+        <xs:complexType>
+            <xs:annotation>
+                <xs:documentation>Ссылка на цепочку next-state'ов</xs:documentation>
+            </xs:annotation>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="sequences-next-states">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="unbounded" name="sequence">
+                    <xs:complexType>
+						<xs:sequence>
+                            <xs:choice maxOccurs="unbounded">
+							    <xs:element ref="next-state" />
+                                <xs:element ref="sequence-next-states-ref"/>
+                            </xs:choice>
+						</xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required">
+                            <xs:annotation>
+                                <xs:documentation>
+                                    Идентификатор цепочки хэндлеров
+                                </xs:documentation>
+                            </xs:annotation>
+                        </xs:attribute>
+					</xs:complexType>
+                </xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+
+	<xs:element name="state">
+		<xs:complexType>
+			<xs:sequence>
+                <xs:element maxOccurs="1" minOccurs="0" name="forms">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element  maxOccurs="unbounded" minOccurs="1" ref="form"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element maxOccurs="1" minOccurs="0" name="handlers">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element  maxOccurs="unbounded" minOccurs="1" ref="handler"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element maxOccurs="1" minOccurs="0" name="events">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element maxOccurs="unbounded" minOccurs="1" ref="event"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="id" type="xs:string">
+				<xs:annotation>
+                    <xs:documentation>
+	                    Идентификатор состояния (статуса)
+	                </xs:documentation>
+			    </xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="description" type="xs:string">
+				<xs:annotation>
+                    <xs:documentation>
+	                    Описание состояния (статуса)
+	                </xs:documentation>
+			    </xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="client-form" type="xs:string">
+				<xs:annotation>
+                    <xs:documentation>
+	                    Форма отображения клиенту
+	                </xs:documentation>
+			    </xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="employee-form" type="xs:string">
+				<xs:annotation>
+                    <xs:documentation>
+	                    Форма отодражения сотруднику банка
+	                </xs:documentation>
+			    </xs:annotation>
+			</xs:attribute>
+            <xs:attribute name="system-resolver" type="xs:string" use="required">
+				<xs:annotation>
+                    <xs:documentation>
+	                    резолвер, определяющий в какой системе находится документ
+	                </xs:documentation>
+			    </xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+
+	</xs:element>
+
+	<xs:element name="event">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="1" minOccurs="0" name="handlers">
+					<xs:complexType>
+						<xs:sequence>
+                            <xs:choice maxOccurs="unbounded" minOccurs="1">
+							    <xs:element ref="handler" />
+                                <xs:element ref="sequence-handlers-ref"/>
+                            </xs:choice>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="next-states" minOccurs="1" maxOccurs="1">
+				    <xs:annotation>
+				        <xs:documentation>
+							Набор следующих статусов
+						</xs:documentation>
+				    </xs:annotation>
+				    <xs:complexType>
+				        <xs:sequence>
+                            <xs:choice maxOccurs="unbounded" minOccurs="0">
+							   <xs:element ref="next-state">
+                                    <xs:annotation>
+                                        <xs:documentation>
+                                            Статус, проставляемый если выполнено условие
+                                        </xs:documentation>
+                                    </xs:annotation>
+                                </xs:element>
+                                <xs:element ref="sequence-next-states-ref"/>
+                            </xs:choice>
+				            <xs:element maxOccurs="1" minOccurs="0" name="handlers">
+								<xs:annotation>
+								    <xs:documentation>
+										Набор действий, выполняемый перед установкой дефолтового статуса
+									</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+                                        <xs:choice maxOccurs="unbounded" minOccurs="1">
+                                            <xs:element ref="handler" />
+                                            <xs:element ref="sequence-handlers-ref"/>
+                                        </xs:choice>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+				        </xs:sequence>
+				        <xs:attribute name="default" use="required" type="xs:string">
+				            <xs:annotation>
+								<xs:documentation>
+									Статус, проставляемый если ни одно из условий не выполнено
+								</xs:documentation>
+							</xs:annotation>
+				        </xs:attribute>
+				    </xs:complexType>
+				</xs:element>
+                <xs:element name="post-next-states" minOccurs="0" maxOccurs="1">
+                    <xs:annotation>
+				        <xs:documentation>
+							Следующий статус документа
+						</xs:documentation>
+				    </xs:annotation>
+				    <xs:complexType>
+				        <xs:sequence>
+                            <xs:element name="post-next-state" minOccurs="0" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element maxOccurs="1" minOccurs="0" name="handlers">
+                                            <xs:annotation>
+                                                <xs:documentation>
+                                                    Набор действий, выполняемый перед установкой статуса
+                                                </xs:documentation>
+                                            </xs:annotation>
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:choice maxOccurs="unbounded" minOccurs="1">
+                                                        <xs:element ref="handler" />
+                                                        <xs:element ref="sequence-handlers-ref"/>
+                                                    </xs:choice>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                    <xs:attribute name="condition" use="required" type="xs:string">
+                                        <xs:annotation>
+                                            <xs:documentation>
+                                                условие, по которому ставится статус. Должно реализовывать интерфейс StateObjectCondition
+                                            </xs:documentation>
+                                        </xs:annotation>
+                                    </xs:attribute>
+                                    <xs:attribute name="state" use="required" type="xs:string"/>
+                                </xs:complexType>
+                            </xs:element>
+				        </xs:sequence>
+				    </xs:complexType>
+                </xs:element>
+		    </xs:sequence>
+			<xs:attribute name="name" type="eventName">
+				<xs:annotation>
+                    <xs:documentation>
+	                    Имя события
+	                </xs:documentation>
+			    </xs:annotation>
+			</xs:attribute>
+            <xs:attribute name="lock" type="lockType">
+				<xs:annotation>
+                    <xs:documentation>
+                        Флажок для блокировки при обработки события. Запись с документом блокируется в бд на период обработки.
+                        Попытка заблокировать заблокированный документ завершится сообщением об ошибке
+	                </xs:documentation>
+			    </xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="description" type="xs:string">
+				<xs:annotation>
+                    <xs:documentation>
+	                    Описание состояния
+	                </xs:documentation>
+			    </xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="type" type="eventType">
+				<xs:annotation>
+                    <xs:documentation>
+	                    Тип события состояния (системное, клиентское, сотрудника банка)
+	                </xs:documentation>
+			    </xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="handler">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="unbounded" minOccurs="0" ref="parameter"/>
+				<xs:element maxOccurs="unbounded" minOccurs="0" ref="property"/>
+				<xs:element maxOccurs="1" minOccurs="0" ref="enabled"/>
+			</xs:sequence>
+			<xs:attribute name="class" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="parameter">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string"/>
+			<xs:attribute name="value" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="property">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string"/>
+			<xs:attribute name="value" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="enabled">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="unbounded" minOccurs="0" ref="parameter"/>
+			</xs:sequence>
+			<xs:attribute name="class" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:simpleType name="eventName">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="INITIAL"/>
+			<xs:enumeration value="SAVE"/>
+			<xs:enumeration value="SEND"/>
+			<xs:enumeration value="SAVEASDRAFT"/>
+			<xs:enumeration value="SAVEASTEMPLATE"/>
+			<xs:enumeration value="DELETE"/>
+			<xs:enumeration value="EDIT"/>
+			<xs:enumeration value="EDIT_TEMPLATE"/>
+            <xs:enumeration value="DELAY_DISPATCH"/>
+			<xs:enumeration value="DISPATCH"/>
+			<xs:enumeration value="RETURN"/>
+			<xs:enumeration value="SUCCESS"/>
+			<xs:enumeration value="RECEIVE"/>
+			<xs:enumeration value="APPROVE"/>
+			<xs:enumeration value="ACCEPT"/>
+			<xs:enumeration value="COMPLETION"/>
+			<xs:enumeration value="CANCELATION"/>
+			<xs:enumeration value="MODIFICATION"/>
+			<xs:enumeration value="EXECUTE"/>
+            <xs:enumeration value="PARTLY_EXECUTED"/>
+			<xs:enumeration value="REFUSE"/>
+			<xs:enumeration value="RECALL"/>
+			<xs:enumeration value="ERROR"/>
+            <xs:enumeration value="CALCDEBT"/>
+            <xs:enumeration value="CONFIRM"/>
+            <xs:enumeration value="CONFIRM_TEMPLATE"/>
+            <xs:enumeration value="SPECIFY"/>
+            <xs:enumeration value="DOUNKNOW"/>
+            <xs:enumeration value="STATEMENT_READY"/>
+            <xs:enumeration value="DOWAITCONFIRM"/>
+            <xs:enumeration value="ADOPT"/>
+            <xs:enumeration value="SAVE_PERSONAL_DATA"/>
+            <xs:enumeration value="EDIT_RISK_PROFILE"/>
+            <xs:enumeration value="CHOOSE_CARD"/>
+            <xs:enumeration value="SAVE_RISK_PROFILE"/>
+            <xs:enumeration value="INIT_PERSON_PORTFOLIOS"/>
+            <xs:enumeration value="COMPLETE_PORTFOLIOS"/>
+            <xs:enumeration value="COMPLETE"/>
+            <xs:enumeration value="BACK"/>            
+            <xs:enumeration value="REPEAT_SEND"/>            
+            <xs:enumeration value="BILLING_CONFIRM_TIMEOUT"/>            
+            <xs:enumeration value="BILLING_GATE_CONFIRM_TIMEOUT"/>            
+            <xs:enumeration value="ABS_RECALL_TIMEOUT"/>
+            <xs:enumeration value="ABS_GATE_RECALL_TIMEOUT"/>
+            <xs:enumeration value="RECOVERDELETED"/>
+            <xs:enumeration value="DOWAITTM"/>
+            <xs:enumeration value="UPGRADE"/>
+            <xs:enumeration value="NEED_VISIT_OFFICE"/>
+            <xs:enumeration value="ETSM_SEND"/>
+            <xs:enumeration value="TRANSFERT_IMPOSSIBLE"/>
+            <xs:enumeration value="APPROVE_MUST_CONFIRM"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="eventType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="system"/>
+			<xs:enumeration value="client"/>
+			<xs:enumeration value="employee"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+    <xs:simpleType name="lockType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="true"/>
+			<xs:enumeration value="false"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:element name="next-state">
+	    <xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="1" minOccurs="0" name="handlers">
+					<xs:annotation>
+					    <xs:documentation>
+							Набор действий, выполняемых перед установкой нового статуса
+						</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+                            <xs:choice maxOccurs="unbounded">
+							    <xs:element ref="handler"/>
+                                <xs:element ref="sequence-handlers-ref"/>
+                            </xs:choice>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element maxOccurs="1" minOccurs="0" ref="enabled"/>
+			</xs:sequence>
+	        <xs:attribute name="condition" use="required" type="xs:string">
+	            <xs:annotation>
+				<xs:documentation>
+					условие, по которому ставится статус. Должно реализовывать интерфейс StateObjectCondition
+				</xs:documentation>
+				</xs:annotation>
+	        </xs:attribute>
+	        <xs:attribute name="state" use="required" type="xs:string"/>
+            <xs:attribute name="client-message" use="optional" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        Сообщение для клиента о состоявшемся переходе документа в новое состояние
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="description" use="optional" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        Текстовое описание статуса документа
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+	    </xs:complexType>
+	</xs:element>
+
+    <xs:element name="form">
+    	<xs:annotation>
+            <xs:documentation>
+                Форма.
+                В некоторых случаях stateObject должен иметь возможность для одного статуса иметь несколько форм отображения.
+                В зависимости от состояния stateObject'а при помощи фильтров форм прооисходит выбор текущей формы отображения.
+                По умолчанию используется форма, прописанная в тегах client-form, employee-form.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+			<xs:sequence>
+                <xs:element maxOccurs="1" minOccurs="0" name="filters">
+					<xs:complexType>
+                        <xs:annotation>
+                            <xs:documentation>
+                                Список фильтров
+                            </xs:documentation>
+                        </xs:annotation>
+						<xs:sequence>
+							<xs:element  maxOccurs="unbounded" minOccurs="1" ref="filter"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="application">
+                <xs:annotation>
+                    <xs:documentation>
+                        Приложение, в котором открывается форма (клиентское/админское/...)
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="PhizIC"/>
+                        <xs:enumeration value="PhizIA"/>
+                    </xs:restriction>
+                </xs:simpleType>
+			</xs:attribute>
+   			<xs:attribute name="url" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        Ссылка на форму (url)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+   			<xs:attribute name="description" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        Описание назначения формы
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:complexType>
+	</xs:element>
+
+    <xs:element name="filter">
+		<xs:annotation>
+            <xs:documentation>
+                Фильтр, который определяет возможность использования данной формы
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+			<xs:sequence>
+                <xs:element maxOccurs="1" minOccurs="0" name="parameters">
+					<xs:complexType>
+                        <xs:annotation>
+                            <xs:documentation>
+                                Список параметров фильтра
+                            </xs:documentation>
+                        </xs:annotation>
+						<xs:sequence>
+							<xs:element maxOccurs="unbounded" minOccurs="0" ref="parameter"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+            <xs:attribute name="class">
+                <xs:annotation>
+                    <xs:documentation>
+                        Класс фильтра
+                    </xs:documentation>
+                </xs:annotation>
+			</xs:attribute>
+        </xs:complexType>
+	</xs:element>
+
+</xs:schema>

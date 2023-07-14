@@ -1,0 +1,74 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <typedef name="AvatarType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.profile.images.AvatarType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.profile.images.ImageInfo" table="USER_IMAGES"
+           discriminator-value="S">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_USER_IMAGES</param>
+            </generator>
+        </id>
+
+        <property name="path"       column="PATH"        type="string"  not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.profile.images.AvatarLink" table="PHONES_TO_AVATAR">
+        <id name="phone" type="string" column="PHONE"/>
+        <property name="avatarPath"  column="AVATAR_PATH"       type="string" not-null="true"/>
+        <property name="loginId" column="LOGIN_ID" type="long" not-null="true"/>
+    </class>
+
+    <!-- Получение инфорации об изображении по идентифткатору логина клиента
+        Опорный объект: IDX_PROFILE_LOGIN
+        Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+        Кардинальность: 1 (для каждого логина возможно существование только одного профиля, у которого выбирается значение столбца AVATAR_IMAGE_ID, а ему уже соответствует единственная запись в таблице USER_IMAGES)
+    -->
+    <sql-query name="com.rssl.phizic.business.profile.images.getImageInfoByLoginId">
+        <return alias="imageInfo" class="com.rssl.phizic.business.profile.images.ImageInfo"/>
+        <![CDATA[
+            select {imageInfo.*}
+            from PROFILE join USER_IMAGES imageInfo on PROFILE.AVATAR_IMAGE_ID = imageInfo.ID
+                and PROFILE.LOGIN_ID = :loginId
+        ]]>
+    </sql-query>
+
+    <!--
+        Получение информации об аватарах по логин ид.
+        Опорный объект: IDX_PH_TO_AV_LID
+        Предикаты доступа: "LOGIN_ID"=:LOGINID
+        Кардинальность: 10
+     -->
+    <query name="com.rssl.phizic.business.profile.images.AvatarLink.getByLoginId">
+        select pta from com.rssl.phizic.business.profile.images.AvatarLink pta where pta.loginId = :loginId
+    </query>
+
+    <!--
+        Удаление аватара по номеру телефона.
+        Опорный объект: IDX_PH_TO_AV_PH
+        Предикаты доступа: "PHONE"=:phone
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.profile.images.AvatarLink.deletePyPhone">
+        delete from PHONES_TO_AVATAR where PHONE = :extra_phone
+    </sql-query>
+
+    <!--
+        Получение аватара по номеру телефона.
+        Опорный объект: IDX_PH_TO_AV_PH
+        Предикаты доступа: "PHONE"=:phone
+        Кардинальность: 1
+     -->
+    <sql-query name="com.rssl.phizic.business.profile.images.AvatarLink.getAvatarByPhone">
+        <return-scalar column="AVATAR_PATH" type="string"/>
+        <![CDATA[
+            select AVATAR_PATH from PHONES_TO_AVATAR
+             where PHONE = :phone and ROWNUM < 2
+        ]]>
+    </sql-query>
+</hibernate-mapping>

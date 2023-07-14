@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.rssl.phizicgate.rsretailV6r20.bankroll">
+    <class name="CardImpl">
+        <id name="longId"/>
+
+        <property name="description"/>
+        <property name="number"/>
+        <property name="issueDate"/>
+        <property name="expireDate"/>
+	    <property name="main"/>
+	    <property name="fnCash"/>
+    </class>
+
+	<sql-query name="GetCard">
+        <return alias="cards" class="CardImpl">
+	        <return-property name="longId"          column="id"/>
+            <return-property name="description"     column="description"/>
+            <return-property name="number"          column="tnumber"/>
+            <return-property name="issueDate"       column="issueDate"/>
+            <return-property name="expireDate"      column="expireDate"/>
+	        <return-property name="main"            column="main"/>
+	        <return-property name="fnCash"          column="fnCash"/>
+        </return>
+<!--
+        select cards.t_cardref             AS id
+             , codes.t_codname
+                          AS description
+             , cards.t_cardnumber          AS tnumber
+             , cards.t_embossingname1      AS ownerLastName
+             , cards.t_embossingname2      AS ownerFirstName
+             , cards.t_cardembossingdate   AS issueDate
+             , cards.t_cardmaturitydate    AS expireDate
+             , case when links.t_mainCard='X'
+                then 1 else 0 end          AS main
+             , deposits.t_svodaccount      AS agreementNumber
+             , deposits.t_open_date        AS agreementDate
+             , cards.t_clientpassword      AS codeWord
+        from  dsccard_dbt   cards
+            , dsccodif_dbt  codes
+            , ddepositr_dbt deposits
+            , dsclink_dbt   links
+        where cards.t_cardref = :cardId
+          and codes.t_codcode  = cards.t_cardtypecode
+          and codes.t_codtype = 7
+          and links.t_cardref = cards.t_cardref
+          and links.t_cardaccref = deposits.t_referenc
+-->
+	    <![CDATA[
+			select cards.t_cardref             AS id
+				 , codes.t_codname
+				              AS description
+				 , cards.t_cardnumber          AS tnumber
+				 , cards.t_codclient           AS ownerId
+				 ,to_char(to_date(cards.t_cardembossingdate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS issueDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				 ,to_char(to_date(cards.t_cardmaturitydate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS expireDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				 , case when links.t_mainCard='X'
+				    then 1 else 0 end          AS main
+                 , cards.t_fncash              AS fnCash
+			from  dsccard_dbt   cards
+				, dsccodif_dbt  codes
+				, ddepositr_dbt deposits
+				, dsclink_dbt   links
+			where cards.t_cardref = :cardId
+			  and cards.t_fncash = :fnCash
+			  and codes.t_codcode  = cards.t_cardtypecode
+			  and codes.t_codtype = 7
+			  and cards.t_fncash = links.t_fncash
+			  and links.t_cardref = cards.t_cardref
+			  and links.t_cardaccref = deposits.t_referenc
+	    ]]>
+    </sql-query>
+
+
+	<sql-query name="GetClientCards">
+        <return alias="cards" class="CardImpl">
+            <return-property name="longId"          column="id"/>
+            <return-property name="number"          column="cardNumber"/>
+	        <return-property name="main"            column="main"/>
+			<return-property name="description"     column="description"/>
+			<return-property name="issueDate"       column="issueDate"/>
+			<return-property name="expireDate"      column="expireDate"/>
+	        <return-property name="fnCash"          column="fnCash"/>
+        </return>
+<!--
+			select cards.t_cardRef             AS id
+				  ,cards.t_cardNumber          AS cardNumber
+				  ,case when links.t_mainCard='X'
+					then 1 else 0 end          AS main
+				  ,codes.t_codname             AS description
+				  ,cards.t_embossingname1      AS ownerLastName
+				  ,cards.t_embossingname2      AS ownerFirstName
+				  ,cards.t_cardembossingdate   AS issueDate
+				  ,cards.t_cardmaturitydate    AS expireDate
+				  ,accounts.t_svodaccount      AS agreementNumber
+				  ,accounts.t_open_date        AS agreementDate
+                  ,cards.t_clientpassword      AS codeWord
+			from  dparty_dbt    party
+				, dsccard_dbt   cards
+				, dsclink_dbt   links
+				, ddepositr_dbt accounts
+				, dsccodif_dbt  codes
+			where party.t_partyid = :clientId
+			and cards.t_codclient = party.t_partyid
+			and accounts.t_referenc = links.t_cardaccref
+			and cards.t_cardref = links.t_cardref
+			and codes.t_codtype = 7
+			and codes.t_codcode = cards.t_cardtypecode
+			and cards.t_psRef = codes.t_psRef
+-->
+	    <![CDATA[
+			select concat(concat(cards.t_cardRef,'*'),cards.t_fncash) AS id
+				  ,cards.t_cardNumber          AS cardNumber
+				  ,case when links.t_mainCard='X'
+					then 1 else 0 end          AS main
+				  ,codes.t_codname             AS description
+				  ,cards.t_codclient           AS ownerId
+				  ,to_char(to_date(cards.t_cardembossingdate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS issueDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,to_char(to_date(cards.t_cardmaturitydate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS expireDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,cards.t_fncash              AS fnCash
+			from  dparty_dbt    party
+				, dsccard_dbt   cards
+				, dsclink_dbt   links
+				, ddepositr_dbt accounts
+				, dsccodif_dbt  codes
+			where party.t_partyid = :clientId
+            and cards.t_codclient = party.t_partyid
+            and accounts.t_referenc = links.t_cardaccref
+            and cards.t_cardref = links.t_cardref
+            and cards.t_fncash = links.t_fncash
+            and codes.t_codtype = 7
+            and codes.t_codcode = cards.t_cardtypecode
+		    and ((cards.t_psRef = codes.t_psRef) or (codes.t_psRef = 0))
+	    ]]>
+    </sql-query>
+
+	<sql-query name="GetCardOwnerId">
+        <return-scalar column="CodClient" type="long"/>
+	    <![CDATA[
+	        SELECT * FROM(
+                SELECT dscCard_dbt.t_CodClient AS CodClient
+                FROM dscCard_dbt
+                WHERE t_CardRef = :cardId
+                AND t_fncash = :fnCash
+			)WHERE ROWNUM<2
+        ]]>
+    </sql-query>
+
+	<sql-query name="GetAdditionalCards">
+        <return alias="cards" class="CardImpl">
+	        <return-property name="longId"          column="id"/>
+            <return-property name="description"     column="cardType"/>
+            <return-property name="number"          column="tnumber"/>
+            <return-property name="issueDate"       column="issueDate"/>
+            <return-property name="expireDate"      column="expireDate"/>
+	        <return-property name="main"            column="main"/>
+	        <return-property name="fnCash"          column="fnCash"/>
+        </return>
+<!--
+			SELECT cards.t_cardRef             AS id
+				  ,cards.t_cardNumber          AS tnumber
+				  ,cards.t_embossingName1      AS ownerLastName
+				  ,cards.t_embossingName2      AS ownerFirstName
+				  ,cards.t_cardRecDate         AS issueDate
+				  ,cards.t_cardMaturityDate    AS expireDate
+				  ,types.t_codName             AS cardType
+				  ,0                           AS main
+				  ,null                        AS agreementNumber
+				  ,null                        AS agreementDate
+                  ,cards.t_clientpassword      AS codeWord
+			FROM  dscCard_dbt   cards
+				, dscLink_dbt   links
+				, dscCodif_dbt  types
+			WHERE cards.t_cardRef = links.t_cardRef
+			  AND links.t_mainCard  = CHR(0)
+			  AND links.t_cardAccRef = :accId
+			  AND types.t_codType = 7
+			  AND types.t_codCode = cards.t_cardTypeCode
+			  AND cards.t_psRef = types.t_psRef
+-->
+	    <![CDATA[
+			SELECT cards.t_cardRef             AS id
+				  ,cards.t_cardNumber          AS tnumber
+				  ,cards.t_codclient           AS ownerId
+				  ,to_char(to_date(cards.t_cardRecDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS issueDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,to_char(to_date(cards.t_cardMaturityDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS expireDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				  ,types.t_codName             AS cardType
+				  ,0                           AS main
+                  ,cards.t_fncash              AS fnCash
+			FROM  dscCard_dbt   cards
+				, dscLink_dbt   links
+				, dscCodif_dbt  types
+			WHERE cards.t_cardRef = links.t_cardRef
+		      AND cards.t_fncash = links.t_fncash
+			  AND links.t_mainCard  = CHR(0)
+			  AND links.t_cardAccRef = :accId
+			  AND types.t_codType = 7
+			  AND types.t_codCode = cards.t_cardTypeCode
+			  AND ((cards.t_psRef = types.t_psRef) or (types.t_psRef = 0))
+	    ]]>
+    </sql-query>
+
+	<sql-query name="GetCardType">
+	    <return-scalar column="cardType" type="string" />
+	    <![CDATA[
+	        select * from(
+				select
+					case when types.t_identchar like '%CC%'
+					then 'c'
+					else case when deposits.t_limit = 0
+						then 'd' else 'o' end
+					end as cardType
+				from dsccard_dbt   cards
+					,ddepositr_dbt deposits
+					,dsb_dtyp_dbt  types
+					,dsclink_dbt   links
+				where cards.t_cardnumber = :cardNumber
+				and types.t_kind = deposits.t_type_account
+				and links.t_cardaccref = deposits.t_referenc
+				and links.t_cardref = cards.t_cardref
+			)WHERE ROWNUM<2
+	    ]]>
+	</sql-query>
+
+    <sql-query name="GetCardType620">
+        <return-scalar column="cardType" type="string" />
+        <![CDATA[
+            select * from(
+                select
+                    case when types.t_identchar like '%CC%'
+                    then 'c'
+                    else
+                        case
+                            when limhis.t_rest IS NOT NULL
+                            then 'o'
+                            else
+                                case when deposits.t_limit = 0
+                                then 'd' else 'o'
+                                end
+                            end
+                    end as cardType
+                from dsccard_dbt   cards
+                    ,dsb_dtyp_dbt  types
+                    ,dsclink_dbt   links
+                    ,ddepositr_dbt deposits
+                    LEFT JOIN DCREDIT_C_DBT credit ON deposits.t_account = credit.T_ACCOUNTKARTA
+                    LEFT JOIN DCHLIMHIS_DBT limhis ON credit.t_creditnumber = limhis.t_creditnumber_ref
+                where cards.t_cardnumber = :cardNumber
+                and types.t_kind = deposits.t_type_account
+                and links.t_cardaccref = deposits.t_referenc
+                and links.t_cardref = cards.t_cardref
+                and cards.t_fncash = links.t_fncash
+            )WHERE ROWNUM<2
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

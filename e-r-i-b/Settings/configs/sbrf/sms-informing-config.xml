@@ -1,0 +1,1912 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!--
+  - Для сообщений(!!!НЕ default-message!!!) можно задать шаблоны разных каналов для этого используется атрибут
+  - channel в тэге <text>, который может принимать следующие значения:
+  -
+  - MOBILE_API данное значение используется если текст шаблона используется для канала мобильного приложения
+  - INTERNET_CLIENT данное значение используется если текст шаблона используется для канала интернет клиента
+  - SELF_SERVICE_DEVICE данное значение используется если текст шаблона используется для канала устройств самообслуживания
+  - SOCIAL_API данное значение используется если текст шаблона используется для канала социальных приложений
+  -
+  - Атрибут channel необязателен для случаев:
+  - 1. Для всех каналов определен единый шаблон;
+  - 2. Для каждого канала шаблон описан самостоятельно и для шаблона с каналом INTERNET_CLIENT можно не задавать
+  - атрибут channel;
+  - 3. Для какого то одного канала(за исключением INTERNET_CLIENT) шаблон задан самостоятельно.
+  -
+  - Если используется единый шаблон для всех каналов атрибут channel можно не указывать и в таком случае запись
+  - сообщения будет выглядеть следующим образом:
+
+  <message>
+    <text>
+        some template
+    </text>
+    <key>
+        some key
+    </key>
+    <variables>
+        some variables
+    </variables>
+    <description>some description</description>
+  </message>
+
+  - Если для канала MOBILE_API или SELF_SERVICE_DEVICE используется какой-то свой шаблон, запись сообщения
+  - примет вид:
+
+  <message>
+    <text>
+        some template for INTERNET_CLIENT and SELF_SERVICE_DEVICE
+    </text>
+
+    <text channel="MOBILE_API">
+        some template for MOBILE_API
+    </text>
+    <key>
+        some key
+    </key>
+    <variables>
+        some variables
+    </variables>
+    <description>some description</description>
+  </message>
+
+  - в такой записи для каналов INTERNET_CLIENT и SELF_SERVICE_DEVICE будет определен шаблон без атрибута
+  - channel, а для MOBILE_API будет определен шаблон со значением 'some template for MOBILE_API'.
+  -
+  - Если для каждого канала указывается свой шаблон то запись примет вид:
+
+  <message>
+    <text [channel="INTERNET_CLIENT"]>
+        some template for INTERNET_CLIENT
+    </text>
+
+    <text channel="MOBILE_API">
+        some template for MOBILE_API
+    </text>
+
+    <text channel="SELF_SERVICE_DEVICE">
+        some template for SELF_SERVICE_DEVICE
+    </text>
+    <key>
+        some key
+    </key>
+    <variables>
+        some variables
+    </variables>
+    <description>some description</description>
+  </message>
+  -
+  - запись [channel="INTERNET_CLIENT"] означает что атрибут необязателен
+  -->
+<sms-password-config>
+	<message>
+		<text>Вход в Сбербанк Онлайн %s. Не вводите пароль для отмены или подтверждения операций, которые не совершали.</text>
+        <text channel="MOBILE_API">
+            Вход в Сбербанк Онлайн для ${applicationName} %s.
+        </text>
+		<text channel="SOCIAL_API">
+            Вход в Сбербанк Онлайн для ${applicationName} %s.
+        </text>
+		<key>com.rssl.iccs.user.logon.text</key>
+	    <description>Оповещение о входе в "Сбербанк Онлайн"</description>
+        <variables>%s, applicationName</variables>
+        <priority>0</priority>
+    </message>
+
+    <message>
+		<text>
+			Сбербанк Онлайн. %s Регистрация выполнена успешно. Спасибо!
+		</text>
+		<key>com.rssl.iccs.user.registration.text.sms</key>
+	    <description>Оповещение о регистрации в Сбербанк Онлайн</description>
+        <variables>%s</variables>
+        <priority>3</priority>
+    </message>
+
+	<message>
+		<text>
+            Сбербанк Онлайн. %s Вам отправлено письмо из службы помощи.
+        </text>
+		<key>com.rssl.iccs.user.mail.text</key>
+	    <description>Оповещение о получении письма из службы помощи</description>
+        <variables>%s</variables>
+        <priority>3</priority>
+    </message>
+
+	<message>
+		<text>
+            Сбербанк Онлайн. Новый пароль для входа в систему - {0}.
+        </text>
+		<key>com.rssl.iccs.user.sms.password</key>
+        <variables>0</variables>
+	    <description>Сообщение об успешной смене постоянного пароля</description>
+        <priority>1</priority>
+    </message>
+
+	<message>
+		<text>
+            Сбербанк Онлайн. Настройка видимости продуктов выполнена успешно.
+        </text>
+		<key>com.rssl.iccs.user.sms.systemview</key>
+	    <description>Сообщение об успешной смене системной видимости продуктов</description>
+        <priority>1</priority>
+    </message>
+
+    <message>
+   		<text>
+               Сбербанк Онлайн. Настройка SMS-оповещений по продуктам выполнена успешно.
+           </text>
+   		<key>com.rssl.iccs.user.sms.ermbProductsSmsNotification</key>
+   	    <description>Сообщение об успешной смене смс-оповещений по продуктам</description>
+           <priority>1</priority>
+       </message>
+
+	<message>
+		<text>
+            Сбербанк Онлайн. В системе были успешно сохранены изменения следующих персональных данных:
+        </text>
+		<key>com.rssl.iccs.user.sms.change-user-settings</key>
+	    <description>Сообщение об успешном изменении персональной информации</description>
+        <priority>1</priority>
+    </message>
+
+	<message>
+		<text>
+            {0} - одноразовый пароль для подтверждения входа в систему Сбербанк Онлайн.
+        </text>
+		<text channel="SOCIAL_API">
+            Сбербанк Онлайн. Приложение {applicationName}. Пароль для подтверждения входа в систему - {0}.
+        </text>
+		<key>com.rssl.iccs.user.sms.password.confirm</key>
+        <variables>0, applicationName</variables>
+	    <description>SMS-подтверждение о входе в систему по одноразовому паролю</description>
+        <priority>1</priority>
+    </message>
+
+	<message>
+		<text>
+            Сбербанк Онлайн. Остерегайтесь мошенничества! Никому не сообщайте свой пароль и не подтверждайте
+            операции, которые Вы не совершали. Не используйте пароль для отмены/аннулирования операций и шаблонов!
+        </text>
+		<key>com.rssl.iccs.user.sms.confirm.warning.second</key>
+	    <description>SMS-подтверждение операций одноразовым паролем. Продолжение</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+		<text>
+            Для подтверждения номера телефона при подключении к услуге Мобильный банк Сбербанка сообщите сотруднику следующий код: ${password}. Если Вы не подключаете данную услугу, проигнорируйте это сообщение.
+        </text>
+		<key>com.rssl.iccs.asfilial.confirm.holder.sms</key>
+        <variables>password</variables>
+	    <description>Сообщение при смене держателя номера телефона</description>
+        <priority>3</priority>
+    </message>
+    
+    <message>
+        <text>
+            В целях безопасности Сбербанк приостановил отправку SMS-паролей в связи с заменой SIM-карты до момента Вашего обращения в Контактный Центр Сбербанка по телефону 8-800-555-5550
+        </text>
+        <key>com.rssl.phizic.messaging.ext.sbrf.SendSmsByPhoneMethodBase.stubText</key>
+        <description>SMS, отправляемое клиенту в случае замены сим-карты (IMSI)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Сбербанк Онлайн. В связи с заменой SIM-карты SMS-пароль не может быть отправлен на этот номер. Пожалуйста, обратитесь в Контактный Центр Сбербанка по телефону 8-800-555-5550. При обращении Вам потребуется паспорт.
+        </text>
+        <key>com.rssl.phizic.messaging.ext.sbrf.SendSmsByPhoneMethodBase.stubTextTemplateMessage</key>
+        <description>SMS, отправляемое клиенту, создающему шаблон, в случае замены SIM-карты</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Сбербанк Онлайн. В связи с заменой SIM-карты SMS-пароль не может быть отправлен на этот номер. Пожалуйста, обратитесь в Контактный Центр Сбербанка по телефону 8-800-555-5550. При обращении Вам потребуется паспорт.
+        </text>
+        <key>com.rssl.phizic.messaging.ext.sbrf.SendSmsByPhoneMethodBase.stubTextUserProfileMessage</key>
+        <description>SMS, отправляемое клиенту, изменяющему настройки личного кабиента, в случае замены SIM-карты</description>
+        <priority>3</priority>
+    </message>
+	
+	<message>
+        <text>
+            Сбербанк Онлайн. В связи с заменой SIM-карты SMS-пароль не может быть отправлен на этот номер. Пожалуйста, обратитесь в Контактный Центр Сбербанка по телефону 8-800-555-5550. При обращении Вам потребуется паспорт.
+        </text>
+        <key>com.rssl.phizic.messaging.ext.sbrf.SendSmsByPhoneMethodBase.stubTextRegistrationMessage</key>
+        <description>SMS, отправляемое клиенту, при регистрации, в случае замены SIM-карты</description>
+        <priority>3</priority>
+    </message>
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    <#list entries as info>
+                        Сбербанк Онлайн.
+                        <#if info.documentType == "CardReportDeliveryClaim">
+                            <#if info.documentState == 'EXECUTED'>
+                                <#if info.nameOrType?has_content>
+                                    Параметры подписки по карте ${getCutCardNumber(info.accountNumber)} изменены успешно. Новый адрес подписки – ${info.nameOrType}.
+                                <#else>
+                                    Подписка на рассылку выписки по карте ${getCutCardNumber(info.accountNumber)} отменена успешно.
+                                </#if>
+                            <#elseif info.documentState == 'REFUSED'>
+                                Сбербанк Онлайн. Параметры подписки не были применены. Повторите попытку позже.
+                            </#if>
+                        <#elseif info.documentType == "LoanTransfer">
+                            <#if translit == "false">
+                                <#if isCard(info.accountType) >
+                                    ${getCutCardNumber(info.accountNumber)}:
+                                <#else>
+                                    ${info.accountNumber}:
+                                </#if>
+                                ${reportTime.time?string("dd.MM.yyyy HH:mm:ss")}
+                                <#if info.documentState == 'WAIT_CONFIRM'>
+                                    operaciju
+                                <#else>
+                                    operacija
+                                </#if>
+                                pogashenija kredita na summu ${info.transactionSum} ${info.currency}
+                                <#if info.documentState == 'WAIT_CONFIRM'>
+                                    neobhodimo podtverdit' v Kontaktnom centre banka po telefonam, ukazannym na bankovskoj karte ili sajte Sberbanka.
+                                <#elseif info.documentState == 'REFUSED'>
+                                    otklonena bankom.
+                                <#else>
+                                    vypolnena uspeshno.
+                                </#if>
+                            <#else>
+                                <#if isCard(info.accountType) >
+                                    ${getCutCardNumber(info.accountNumber)}:
+                                <#else>
+                                    ${info.accountNumber}:
+                                </#if>
+                                ${reportTime.time?string("dd.MM.yyyy HH:mm:ss")}
+                                <#if info.documentState == 'WAIT_CONFIRM'>
+                                    операцию
+                                <#else>
+                                    операция
+                                </#if>
+                                погашения кредита на сумму ${info.transactionSum} ${info.currency}
+                                <#if info.documentState == 'WAIT_CONFIRM'>
+                                    необходимо подтвердить в Контактном центре банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                                <#elseif info.documentState == 'REFUSED'>
+                                    отклонена банком.
+                                <#else>
+                                    выполнена успешно.
+                                </#if>
+                            </#if>
+                        <#elseif info.documentType != "LossPassbookApplicationClaim">
+                            <#if info.isLongOffer == "true">
+                                <#if translit == "false">
+                                    <#if info.documentState == 'WAIT_CONFIRM'>
+                                        <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer" || info.documentType == "CloseCardToCardLongOffer" || info.documentType == "DelayCardToCardLongOffer">
+                                            Otmenu
+                                        <#else>
+                                            Sozdanie
+                                        </#if>
+                                        <#if info.documentType == "InternalCardsTransferLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOurBankLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOtherBankLongOffer"
+                                          || info.documentType == "CloseCardToCardLongOffer"
+                                          || info.documentType == "DelayCardToCardLongOffer"
+                                          || info.documentType == "EditInternalP2PAutoTransfer"
+                                          || info.documentType == "EditExternalP2PAutoTransfer"
+                                          || info.documentType == "RecoveryCardToCardLongOffer">
+                                            avtoperevoda po
+                                        <#else>
+                                            regularnogo platega po
+                                        </#if>
+                                    <#elseif info.documentState == 'REFUSED'>
+                                        <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer" || info.documentType == "CloseCardToCardLongOffer" || info.documentType == "DelayCardToCardLongOffer">
+                                            V otmene
+                                        <#else>
+                                            V sozdanii
+                                        </#if>
+                                        <#if info.documentType == "InternalCardsTransferLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOurBankLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOtherBankLongOffer"
+                                          || info.documentType == "CloseCardToCardLongOffer"
+                                          || info.documentType == "DelayCardToCardLongOffer"
+                                          || info.documentType == "EditInternalP2PAutoTransfer"
+                                          || info.documentType == "EditExternalP2PAutoTransfer"
+                                          || info.documentType == "RecoveryCardToCardLongOffer">
+                                            avtoperevoda po
+                                        <#else>
+                                            regularnogo platega po
+                                        </#if>
+                                    <#else>
+                                    <#if info.documentType == "InternalCardsTransferLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOurBankLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOtherBankLongOffer"
+                                          || info.documentType == "CloseCardToCardLongOffer"
+                                          || info.documentType == "DelayCardToCardLongOffer"
+                                          || info.documentType == "EditInternalP2PAutoTransfer"
+                                          || info.documentType == "EditExternalP2PAutoTransfer"
+                                          || info.documentType == "RecoveryCardToCardLongOffer">
+                                            Avtoperevod po
+                                        <#else>
+                                            Regularniy plateg po
+                                        </#if>
+                                    </#if>
+
+                                    <#if isCard(info.accountType) >
+                                        karte ${getCutCardNumber(info.accountNumber)}
+                                    <#else>
+                                        scetu ${info.accountNumber}
+                                    </#if>
+
+                                    <#if info.documentState == 'WAIT_CONFIRM'>
+                                        neobhodimo podtverdit' v kontaktnom centre Banka po telefonam, ukazannym na bankovskoj karte ili sajte Sberbanka.
+                                    <#elseif info.documentState == 'REFUSED'>
+                                        otkazano bankom.
+                                    <#else>
+                                         <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer" || info.documentType == "CloseCardToCardLongOffer" || info.documentType == "DelayCardToCardLongOffer">
+                                             otmenen.
+                                         <#else>
+                                             sozdan.
+                                         </#if>
+                                    </#if>
+                                <#else>
+                                    <#if info.documentState == 'WAIT_CONFIRM'>
+                                        <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" || info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer" || info.documentType == "CloseCardToCardLongOffer" || info.documentType == "DelayCardToCardLongOffer">
+                                            Отмену
+                                        <#else>
+                                            Создание
+                                        </#if>
+                                        <#if info.documentType == "InternalCardsTransferLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOurBankLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOtherBankLongOffer"
+                                          || info.documentType == "CloseCardToCardLongOffer"
+                                          || info.documentType == "DelayCardToCardLongOffer"
+                                          || info.documentType == "EditInternalP2PAutoTransfer"
+                                          || info.documentType == "EditExternalP2PAutoTransfer"
+                                          || info.documentType == "RecoveryCardToCardLongOffer">
+                                            автоперевода по
+                                        <#else>
+                                            регулярного платежа по
+                                        </#if>
+                                    <#elseif info.documentState == 'REFUSED'>
+                                        <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer" || info.documentType == "CloseCardToCardLongOffer" || info.documentType == "DelayCardToCardLongOffer">
+                                            В отмене
+                                        <#else>
+                                            В создании
+                                        </#if>
+                                        <#if info.documentType == "InternalCardsTransferLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOurBankLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOtherBankLongOffer"
+                                          || info.documentType == "CloseCardToCardLongOffer"
+                                          || info.documentType == "DelayCardToCardLongOffer"
+                                          || info.documentType == "EditInternalP2PAutoTransfer"
+                                          || info.documentType == "EditExternalP2PAutoTransfer"
+                                          || info.documentType == "RecoveryCardToCardLongOffer">
+                                            автоперевода по
+                                        <#else>
+                                            регулярного платежа по
+                                        </#if>
+                                    <#else>
+                                        <#if info.documentType == "InternalCardsTransferLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOurBankLongOffer"
+                                          || info.documentType == "ExternalCardsTransferToOtherBankLongOffer"
+                                          || info.documentType == "CloseCardToCardLongOffer"
+                                          || info.documentType == "DelayCardToCardLongOffer"
+                                          || info.documentType == "EditInternalP2PAutoTransfer"
+                                          || info.documentType == "EditExternalP2PAutoTransfer"
+                                          || info.documentType == "RecoveryCardToCardLongOffer">
+                                            Автоперевод по
+                                        <#else>
+                                            Регулярный платеж по
+                                        </#if>
+                                    </#if>
+
+                                    <#if isCard(info.accountType) >
+                                        карте ${getCutCardNumber(info.accountNumber)}
+                                    <#else>
+                                        счету ${info.accountNumber}
+                                    </#if>
+
+                                    <#if info.documentState == 'WAIT_CONFIRM'>
+                                        необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                                    <#elseif info.documentState == 'REFUSED'>
+                                        отказано банком.
+                                    <#else>
+                                         <#if info.documentType == "RefuseAutoPayment"
+                                            || info.documentType == "RefuseLongOffer"
+                                            || info.documentType == "CloseCardPaymentSystemPaymentLongOffer"
+                                            || info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer"
+                                            || info.documentType == "DelayCardPaymentSystemPaymentLongOffer"
+                                            || info.documentType == "CloseCardToCardLongOffer"
+                                            || info.documentType == "DelayCardToCardLongOffer">
+                                             отменен.
+                                         <#else>
+                                             создан.
+                                         </#if>
+                                    </#if>
+                                </#if>
+                            <#else>
+                                <#if translit == "false">
+
+                                    <#if info.documentState == 'WAIT_CONFIRM'>
+                                        Platezh s
+                                    <#elseif info.documentState == 'REFUSED'>
+                                        V ispolnenii platezha s
+                                    <#else>
+                                        S
+                                    </#if>
+
+                                    <#if isCard(info.accountType) >
+                                        Vashej karty ${getCutCardNumber(info.accountNumber)}
+                                    <#else>
+                                        Vashego scheta ${info.accountNumber}
+                                    </#if>
+                                    <#if info.documentState != 'WAIT_CONFIRM' && info.documentState != 'REFUSED'>
+                                        <#if info.recipientAccountType?if_exists != "" && (isCard(info.recipientAccountType)|| isAccount(info.recipientAccountType))>
+                                            proizveden perevod
+                                        <#else>
+                                            proizveden platezh
+                                        </#if>
+                                    </#if>
+                                    <#if info.recipientAccountNumber?if_exists != "">
+                                        <#if isCard(info.recipientAccountType) >
+                                            na kartu № ${getCutCardNumber(info.recipientAccountNumber)}
+                                        <#else>
+                                            na schet № ${info.recipientAccountNumber}
+                                        </#if>
+                                    </#if>
+
+                                    <#if info.documentState == 'WAIT_CONFIRM'>
+                                        na summu ${info.transactionSum} ${info.currency} neobhodimo podtverdit' v kontaktnom centre Banka po telefonam, ukazannym na bankovskoj karte ili sajte Sberbanka.
+                                    <#elseif info.documentState == 'REFUSED'>
+                                        na summu ${info.transactionSum} ${info.currency} otkazano bankom.
+                                    <#else>
+                                        na summu ${info.transactionSum} ${info.currency}.
+                                    </#if>
+                                <#else>
+                                    <#if info.documentState == 'WAIT_CONFIRM'>
+                                        Платеж с
+                                    <#elseif info.documentState == 'REFUSED'>
+                                        В исполнении платежа с
+                                    <#else>
+                                        С
+                                    </#if>
+
+                                    <#if isCard(info.accountType) >
+                                        Вашей карты ${getCutCardNumber(info.accountNumber)}
+                                    <#else>
+                                        Вашего счета ${info.accountNumber}
+                                    </#if>
+                                    <#if info.documentState != 'WAIT_CONFIRM' && info.documentState != 'REFUSED' && !(info.recipientAccountType?if_exists != "" && isIMAccount(info.recipientAccountType) || isIMAccount(info.accountType))>
+                                        <#if info.recipientAccountType?if_exists != "" && (isCard(info.recipientAccountType)|| isAccount(info.recipientAccountType))>
+                                            произведен перевод
+                                        <#else>
+                                            произведен платеж
+                                        </#if>
+                                    </#if>
+                                    <#if info.recipientAccountNumber?if_exists != "">
+                                        <#if isCard(info.recipientAccountType) >
+                                            на карту № ${getCutCardNumber(info.recipientAccountNumber)}
+                                        <#else>
+                                            на счет № ${info.recipientAccountNumber}
+                                        </#if>
+                                    </#if>
+
+                                    <#if info.documentState == 'WAIT_CONFIRM'>
+                                        на сумму ${info.transactionSum} ${info.currency} необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                                    <#elseif info.documentState == 'REFUSED'>
+                                        на сумму ${info.transactionSum} ${info.currency} отказано банком.
+                                    <#elseif info.recipientAccountType?if_exists != "" && isIMAccount(info.recipientAccountType) || isIMAccount(info.accountType)>
+                                        выполнена покупка/продажа металла в количестве ${info.transactionSum} г (${info.currency}).
+                                    <#else>
+                                        на сумму ${info.transactionSum} ${info.currency}.
+                                    </#if>
+                                </#if>
+                            </#if>
+                        <#else>
+                            <#if translit == "false">
+                                <#if info.documentState == 'REFUSED'>
+                                    Zajavlenie ob utere sberknizhki ${info.accountNumber} otkloneno bankom.
+                                <#else>
+                                    Vashe zajavlenie ob utere sberknizhki ${info.accountNumber} obrabotano. Ostatok poluchite nalichnymi v banke.
+                                </#if>
+                            <#else>
+                                <#if info.documentState == 'REFUSED'>
+                                    Заявление об утере сберкнижки ${info.accountNumber} отклонено банком.
+                                <#else>
+                                    Ваше заявление об утере сберкнижки ${info.accountNumber} обработано. Остаток получите наличными в банке.
+                                </#if>
+                            </#if>
+                        </#if>
+                    </#list>
+                </@compress>
+            ]]>
+        </text>
+        <key>PaymentExecute</key>
+        <description>SMS, отправляемое клиенту при исполнении операций</description>
+        <variables>info.recipientAccountType?if_exists,isIMAccount(info.recipientAccountType),isIMAccount(info.accountType),bankContext.bankPhone,bankContext.bankAddress,bankContext.bankName,reportTime.time?string("dd.MM.yyyy HH:mm:ss"),
+            bankContext.systemName,info.accountNumber,info.currency,info.transactionSum,getCutCardNumber(info.accountNumber),
+            isCard(info.accountType),info.recipientAccountNumber?if_exists,isCard(info.recipientAccountType),getCutCardNumber(info.recipientAccountNumber), info.recipientAccountNumber, info.documentState,info.documentType,info.isLongOffer,fullName,entries,
+            info.nameOrType?has_content,isAccount(info.recipientAccountType),isCard(info.recipientAccountType)
+        </variables>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                Вам доступен обновленный Мобильный банк. Теперь Вы можете переводить деньги между своими вкладами и картами через смс, а также получать смс об операциях по вкладам. Списание платы за Мобильный банк будет происходить  с  одной из Ваших карт. Узнайте больше о новых возможностях Мобильного банка на сайте Сбербанка или по телефонам Контактного центра.
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.migration.segment1.connect</key>
+        <description>СМС-рассылка об успешном подключении нового МБ</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                Вам доступен обновленный Мобильный банк. Подпишите договор банковского обслуживания в любом отделении Сбербанка и Вы сможете переводить деньги между своими вкладами и картами через смс, а также получать смс об операциях по вкладам. Списание платы за Мобильный банк будет происходить с  одной из Ваших карт. Узнайте больше на сайте Сбербанка или по телефонам Контактного центра.
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.migration.segment2_1.connect</key>
+        <description>СМС-рассылка об успешном подключении нового МБ</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                Вам доступен обновленный Мобильный банк. Подпишите договор банковского обслуживания в любом отделении Сбербанка и Вы сможете переводить деньги между своими вкладами и картами через смс, а также получать смс об операциях по вкладам. Списание платы за Мобильный банк будет происходить с  одной из Ваших карт. Узнайте больше на сайте Сбербанка или по телефонам Контактного центра.
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.migration.segment2_2.connect</key>
+        <description>СМС-рассылка об успешном подключении нового МБ</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                Вам доступен обновленный Мобильный банк. Теперь Вы можете переводить деньги между своими вкладами и картами через смс, а также получать смс об операциях по вкладам.  Если ранее Вы заключали договор банковского обслуживания, пользуйтесь новым сервисом уже сейчас. Если договор еще не заключен, Вы можете подписать его в любом отделении Сбербанка. Cписание платы будет происходить с  одной из Ваших карт.  Узнайте больше о новых возможностях Мобильного банка на сайте Сбербанка или по телефонам Контактного центра.
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.migration.segment3.connect</key>
+        <description>СМС-рассылка об успешном подключении нового МБ</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                Вам доступен обновленный Мобильный банк. Теперь Вы можете переводить деньги между своими вкладами и картами через смс, а также получать смс об операциях по вкладам. Списание платы за Мобильный банк будет происходить  с  одной из Ваших карт. Узнайте больше о новых возможностях Мобильного банка на сайте Сбербанка или по телефонам Контактного центра.
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.migration.segment3_2_1.connect</key>
+        <description>СМС-рассылка об успешном подключении нового МБ</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                Уважаемый клиент. Данный номер телефона подключен к услуге Мобильный банк без возможности получения услуг СМС-информирования и СМС-запросов. Настроить использование номера телефона для получения услуг Мобильного банка можно в Вашем личном кабинете в Сбербанк Онлайн. Подробнее об услуге Мобильный банк можно узнать на сайте Банке.
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.migration.segment4.notActive</key>
+        <description>персонализированные приветственные СМС-сообщения с особым текстом</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} выполнена успешно.
+            <#if requisites?length != 0>
+                Параметры платежа:
+                ${requisites}
+            </#if>
+            <#if commission??>
+                Комиссия: ${formatMoney(commission)}
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>ServicePaymentSuccess</key>
+        <description>SMS для смс-команды "ОПЛАТА УСЛУГ" при успешном выполнении оплаты.(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${document.mobileOperatorName} (${document.rechargePhoneNumber}) с карты ${document.chargeOffResourceLink.smsResponseAlias} выполнена успешно.
+            </@compress>
+            ]]>
+        </text>
+        <key>RechargePhoneSuccess</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" при успешном выполнении оплаты(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция погашения кредита ${document.agreementNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} выполнена успешно.
+            </@compress>
+            ]]>
+        </text>
+        <key>LoanPaymentSuccess</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита" при успешном выполнении оплаты(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#assign amount=document.exactAmount>
+
+                <#if document.ourBank>
+                    Перевод на сумму ${formatMoney(amount)}
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                       со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    <#if document.receiverCardExternal>
+                        на карту
+                    <#else>
+                        на счет
+                    </#if>
+                    получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)} выполнен успешно.
+                <#else>
+                    Перевод на сумму ${formatMoney(amount)}
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                       со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    на карту ${getCutCardNumber(document.receiverCard)} выполнен успешно.
+                </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>CardTransferSuccess</key>
+        <variables>document</variables>
+        <description>SMS "Успешное выполнение операции перевода по номеру карты/счета"(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                <#assign amount=document.exactAmount>
+                Перевод на сумму ${formatMoney(amount)}
+                <#if document.chargeOffResourceType == 'CARD'>
+                    с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                <#else>
+                   со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                </#if>
+                <#if document.receiverCardExternal>
+                    на карту
+                <#else>
+                    на счет
+                </#if>
+                ${document.destinationResourceLink.smsResponseAlias}
+                выполнен успешно.
+                </@compress>
+            ]]>
+        </text>
+        <key>InternalTransferSuccess</key>
+        <variables>document</variables>
+        <description>SMS для смс-команды "Перевод между своими счетами" в случае успешного выполнения(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+           <#assign amount=document.exactAmount>
+           Перевод на сумму ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} на карту получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)} выполнен успешно.
+            </@compress>
+            ]]>
+        </text>
+        <key>PhoneTransferSuccess</key>
+        <variables>document</variables>
+        <description>SMS для смс-команды "Перевод по номеру телефона" в случае успешного перевода(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция погашения кредита ${document.agreementNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+            <#if document.refusingReason?has_content>
+                ${document.refusingReason}
+            </#if>
+            <#if isRecharge>
+                Попробуйте указать оператора связи в формате ОПЕРАТОР ТЕЛЕФОН СУММА или ОПЕРАТОР ТЕЛЕФОН СУММА КАРТА.
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>LoanPaymentRefuse</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита" в случае отказа платежа(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+            <#if document.refusingReason?has_content>
+                ${document.refusingReason}
+            </#if>
+            <#if isRecharge>
+                Попробуйте указать оператора связи в формате ОПЕРАТОР ТЕЛЕФОН СУММА или ОПЕРАТОР ТЕЛЕФОН СУММА КАРТА.s
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>ServicePaymentRefuse</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА УСЛУГ" в случае отказа платежа(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${document.mobileOperatorName} (${document.rechargePhoneNumber}) с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+             <#if document.refusingReason?has_content>
+                ${document.refusingReason}
+            </#if>
+            <#if isRecharge>
+                Попробуйте указать оператора связи в формате ОПЕРАТОР ТЕЛЕФОН СУММА или ОПЕРАТОР ТЕЛЕФОН СУММА КАРТА.
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>RechargePhoneRefuse</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" в случае отказа платежа(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Услуга Мобильный банк предоставляется в ограниченном режиме(приостановлена отправка уведомлений по операциям по счетам и картам). Для возобновления услуги в полном объеме, пожалуйста, пополните счет карты ${cardAlias}
+        </text>
+        <key>com.rssl.phizic.business.ermb.writedown.NonPayedBlockInfo</key>
+        <variables>cardAlias</variables>
+        <description>SMS при блокировке Мобильного банка по неоплате</description>
+        <priority>3</priority>
+    </message>
+
+    <!--
+       ***********************************************************************
+           Текстовка для отключения мобильного банка
+       ***********************************************************************
+    -->
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            Отправьте код: «#${confirmCode}» на номер 900 для отключения услуги Мобильный банк по вашей заявке в Контактном центре.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.ermbDeletePhone</key>
+        <variables>confirmCode,confirmableTask</variables>
+        <description>SMS с кодом подтверждения для смс-команды "удаление номера телефона"(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Услуга Автоплатеж на оплату телефона ${formatPhone(phone)} успешно подключена.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayCreateSuccess</key>
+        <variables>document</variables>
+        <description>Успешное подключение автоплатежа(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги Автоплатеж на оплату телефона  ${formatPhone(phone)} выполнено успешно. Услуга прекратит действовать в ближайшее время.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayRefuseSuccess</key>
+        <variables>document</variables>
+        <description>Успешное Отключение автоплатежа(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Для создания автоплатежа воспользуйтесь системой Сбербанк Онлайн
+                </@compress>
+            ]]>
+        </text>
+        <key>CreateAutoPaymentRefuse</key>
+        <variables>phone</variables>
+        <description>подключение автоплатежа не выполнено(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Услуга автоплатеж на оплату телефона ${formatPhone(phone)} подключена ранее.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayAlreadyExist</key>
+        <variables>phone</variables>
+        <description>Автоплатеж на оплату телефона уже подключен ранее(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги услуги Автоплатеж на оплату телефона  ${formatPhone(phone)} не выполнено. Повторите запрос на проведение операции позже.
+                </@compress>
+            ]]>
+        </text>
+        <key>RefuseAutoPaymentRefuse</key>
+        <variables>phone</variables>
+        <description>Отключение автоплатежа не выполнено(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата по шаблону ${document.templateName} на ${formatMoney(amount)}
+            <#if document.chargeOffResourceType == 'CARD'>
+                с карты ${document.chargeOffResourceLink.smsResponseAlias}
+            <#else>
+               со счета ${document.chargeOffResourceLink.smsResponseAlias}
+            </#if>
+            не выполнена.
+            <#if document.refusingReason?has_content>
+                ${document.refusingReason}
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>TemplatePaymentRefuse</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ПО ШАБЛОНУ" в случае отказа платежа(если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата по шаблону ${document.templateName} на ${formatMoney(amount)}
+            <#if document.chargeOffResourceType == 'CARD'>
+                с карты ${document.chargeOffResourceLink.smsResponseAlias}
+            <#else>
+               со счета ${document.chargeOffResourceLink.smsResponseAlias}
+            </#if>
+            выполнена успешно.
+            </@compress>
+            ]]>
+        </text>
+        <key>TemplatePaymentSuccess</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА по шаблону" при успешном выполнении оплаты (если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Ваш счет  ${accountLink.smsResponseAlias} не заблокирован. Повторите запрос на блокировку.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.accountNotBlocked</key>
+        <variables>accountLink.smsResponseAlias</variables>
+        <description>SMS, отправляемое клиенту в случае неизвестной ошибки при блокировке счета (если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Наличные операции по счету ${accountLink.smsResponseAlias} заблокированы. Для получения дубликата сберкнижки или для закрытия счета Вам нужно явиться в течение трех рабочих дней в подразделение Сбербанка, где открыт счет.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.accountBlocked</key>
+        <variables>accountLink.smsResponseAlias</variables>
+        <description>SMS об успешной блокировке счета (если меняете здесь, необходимо поменять соответствующую текстовку для смс-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Сбербанк Онлайн. Вы вошли в систему с нестандартного IP-адреса! Для исключения мошенничества Вам уменьшены лимиты на совершение платежей и переводов. Лимиты будут восстановлены через 24 часа.
+        </text>
+        <key>com.rssl.phizic.business.notification.ip.unusual.UnusualIPNotification</key>
+        <variables></variables>
+        <description>Оповещение о входе в "Сбербанк Онлайн" с нестандартного IP адреса</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Сбербанк ОнЛайн. Канал доставки одноразовых паролей подтверждения, оповещений изменен на Push.
+        </text>
+        <key>changeConfirmOperationAndNotification.push</key>
+        <variables></variables>
+        <description>Оповещение о смене настройки предпочтительного способа подтверждений и всех оповещений на push</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Сбербанк ОнЛайн. Канал доставки оповещений изменен на SMS.
+        </text>
+        <key>changeChannelNotification.sms</key>
+        <variables></variables>
+        <description>Оповещение о смене настройки канала оповещений на sms</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Сбербанк ОнЛайн. Канал доставки оповещений изменен на Push.
+        </text>
+        <key>changeChannelNotification.push</key>
+        <variables></variables>
+        <description>Оповещение о смене настройки канала на push</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Сбербанк ОнЛайн. Канал доставки одноразовых паролей подтверждения изменен на Push.
+        </text>
+        <key>changeChannelConfirmOperation.push</key>
+        <variables></variables>
+        <description>Оповещение о смене настройки предпочтительного способа подтверждений на push</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Сбербанк ОнЛайн. Канал доставки одноразовых паролей подтверждения изменен на SMS.
+        </text>
+        <key>changeChannelConfirmOperation.sms</key>
+        <variables></variables>
+        <description>Оповещение о смене настройки предпочтительного способа подтверждений на sms</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                Вам поступил запрос от клиента ${fullName} на перевод
+                <#if reccomendSum?has_content>
+                    ${reccomendSum} руб.
+                <#else>
+                    денег.
+                </#if>
+                Для просмотра деталей запроса войдите в Мобильное приложение Сбербанк Онлайн.
+            ]]>
+        </text>
+        <key>fundCreateRequest</key>
+        <variables>fullName,reccomendSum</variables>
+        <description>SMS-уведомление, отправляемое клиенту-отправителю при создании запроса клиентом-инициатором</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                По Вашему запросу на перевод денег "${message}" собрано ${accumulatedSum} руб. Для просмотра деталей войдите в Мобильное приложение Сбербанк Онлайн.
+            ]]>
+        </text>
+        <key>fundAccumulatedRequest</key>
+        <description>SMS-уведомление, отправляемое клиенту-инициатору, когда необходимая сумма собрана</description>
+        <variables>accumulatedSum,message</variables>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                ${name} перевел(а) Вам ${sum}руб.
+                <#if message != "">
+                    Сообщение: "${message}".
+                </#if>
+                Для просмотра деталей войдите в Мобильное приложение Сбербанк Онлайн.
+            ]]>
+        </text>
+        <key>fundPayRequest</key>
+        <description>SMS-уведомление, отправляемое клиенту-инициатору, если отправитель средств удовлетворил запрос</description>
+        <variables>name,message,sum</variables>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                ${name} отклонил(а) Ваш запрос на перевод денег. Сообщение: "${message}". Для просмотра деталей войдите в Мобильное приложение Сбербанк Онлайн.
+            ]]>
+        </text>
+        <key>fundRejectRequest</key>
+        <description>SMS-уведомление, отправляемое клиенту-инициатору, если отправитель средств отклонил запрос</description>
+        <variables>name,message</variables>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text channel="INTERNET_CLIENT">
+           Сбербанк Онлайн. Ваша заявка на кредитную карту принята и находится в обработке.
+        </text>
+        <key>loan.card.claim.adopted</key>
+        <description>Сообщение при принятии в обработку поданной заявки на кредитный карточный продукт</description>
+        <priority>3</priority>
+    </message>
+
+    <!--
+       ***********************************************************************
+           Текстовки сообщений фрод монитогинга
+       ***********************************************************************
+    -->
+    <message>
+        <description>SMS-уведомление о блокировке профиля, отправляемое клиенту в результате активтости Фрод Мониторинга</description>
+        <key>BLOCK.FM.client.profile</key>
+        <text>
+            <![CDATA[
+                Ваш профиль в системе Сбербанк Онлайн заблокирован с целью пресечения мошеннических действий. Для снятия блокировки обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты либо в любое подразделение банка.
+            ]]>
+        </text>
+        <variables/>
+        <priority>3</priority>
+    </message>
+
+	<message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по операциям: перевод между моими счетами/картами, обмен валют, покупка/продажа металла, отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.InternalTransfer</key>
+        <text>
+			<![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#assign separator=''/>
+                    <#if isCard(document.chargeOffResourceType) >
+                        ${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+                    <#else>
+                        <#if document.chargeOffAccount??>
+                           ${separator}<#assign separator=','/> счет списания ${document.chargeOffAccount}
+                        </#if>
+                    </#if>
+                    <#if isCard(document.destinationResourceType) >
+                       ${separator}<#assign separator=','/> карта зачисления ${getCutCardNumber(document.receiverAccount)}
+                    <#else>
+                        <#if document.receiverAccount??>
+                           ${separator}<#assign separator=','/> счет зачисления ${document.receiverAccount}
+                        </#if>
+                    </#if>
+                    <#if document.inputSumType??>
+                        <#if document.exactAmount??>
+                            ${separator}<#assign separator=','/> сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                        </#if>
+                    </#if>
+                    <#if document.longOffer>
+                        ${separator}<#assign separator=','/> повторяется ${document.executionEventType.description},
+                        дата начала ${document.startDate.time?date?string("dd.MM.yyyy")},
+                        дата окончания ${document.endDate.time?date?string("dd.MM.yyyy")}
+                    </#if>
+                    признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+			]]>
+		</text>
+        <variables>
+            document.chargeOffAccount, document.startDate.time, date, string("dd.MM.yyyy"), isCard(document.chargeOffResourceType), document.exactAmount,
+            document.receiverAccount, getCutCardNumber(document.chargeOffAccount), getCutCardNumber(document.receiverAccount),
+            document.longOffer, document.exactAmount.decimal, separator, document.exactAmount.currency.code, isCard(document.destinationResourceType),
+            document.executionEventType.description, document.endDate.time, document.inputSumType
+        </variables>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по операциям: перевод между моими счетами/картами, обмен валют, покупка/продажа металла, отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.InternalTransfer</key>
+        <text>
+			<![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#assign separator=''/>
+                    <#if isCard(document.chargeOffResourceType) >
+                        ${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+                    <#else>
+                        <#if document.chargeOffAccount??>
+                           ${separator}<#assign separator=','/> счет списания ${document.chargeOffAccount}
+                        </#if>
+                    </#if>
+                    <#if isCard(document.destinationResourceType) >
+                       ${separator}<#assign separator=','/> карта зачисления ${getCutCardNumber(document.receiverAccount)}
+                    <#else>
+                        <#if document.receiverAccount??>
+                           ${separator}<#assign separator=','/> счет зачисления ${document.receiverAccount}
+                        </#if>
+                    </#if>
+                    <#if document.inputSumType??>
+                        <#if document.exactAmount??>
+                            ${separator}<#assign separator=','/> сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                        </#if>
+                    </#if>
+                    <#if document.longOffer>
+                        ${separator}<#assign separator=','/> повторяется ${document.executionEventType.description},
+                        дата начала ${document.startDate.time?date?string("dd.MM.yyyy")},
+                        дата окончания ${document.endDate.time?date?string("dd.MM.yyyy")}
+                    </#if>
+                    отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты, либо в любое подразделение банка.
+                </@compress>
+			]]>
+		</text>
+        <variables>
+            document.chargeOffAccount, document.startDate.time, date, string("dd.MM.yyyy"), isCard(document.chargeOffResourceType), document.exactAmount,
+            document.receiverAccount, getCutCardNumber(document.chargeOffAccount), getCutCardNumber(document.receiverAccount),
+            document.longOffer, document.exactAmount.decimal, separator, document.exactAmount.currency.code, isCard(document.destinationResourceType),
+            document.executionEventType.description, document.endDate.time, document.inputSumType
+        </variables>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по операциям перевода ЧЛ, отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.RurPayment</key>
+        <text>
+		    <![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#assign separator=''/>
+                    <#if isCard(document.chargeOffResourceType) >
+                        ${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+                    <#else>
+                        <#if document.chargeOffAccount??>
+                            ${separator}<#assign separator=','/> счет списания ${document.chargeOffAccount}
+                        </#if>
+                    </#if>
+
+                    <#if document.receiverAccount??>
+                        <#if document.receiverAccount != "">
+                            <#if isCard(document.destinationResourceType) >
+                                ${separator}<#assign separator=','/> карта зачисления ${getCutCardNumber(document.receiverAccount)}
+                            <#else>
+                                ${separator}<#assign separator=','/> счет зачисления ${document.receiverAccount}
+                            </#if>
+                        </#if>
+                    </#if>
+
+                    <#if document.receiverBIC??>
+                        <#if document.receiverBIC !="">
+                            ${separator}<#assign separator=','/> БИК ${document.receiverBIC}
+                        </#if>
+                    </#if>
+
+                    <#if document.inputSumType??>
+                        <#if document.exactAmount??>
+                           ${separator}<#assign separator=','/> сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                        </#if>
+                    </#if>
+                    <#if document.longOffer>
+                        <#if document.executionEventType??>
+                            ${separator}<#assign separator=','/> повторяется ${document.executionEventType.description},
+                        дата начала ${document.startDate.time?date?string("dd.MM.yyyy")},
+                        дата окончания ${document.endDate.time?date?string("dd.MM.yyyy")}
+                        </#if>
+                    </#if>
+                    признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+		</text>
+        <variables>
+            document.chargeOffAccount, document.startDate.time, date, string("dd.MM.yyyy"), isCard(document.chargeOffResourceType),
+            document.exactAmount, document.receiverAccount, getCutCardNumber(document.chargeOffAccount),
+            getCutCardNumber(document.receiverAccount), document.longOffer, document.receiverBIC, document.exactAmount.decimal,
+            separator, document.exactAmount.currency.code, isCard(document.destinationResourceType), document.executionEventType.description,
+            document.executionEventType, document.endDate.time, document.inputSumType
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по операциям перевода ЧЛ, отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.RurPayment</key>
+        <text>
+		    <![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#assign separator=''/>
+                    <#if isCard(document.chargeOffResourceType) >
+                        ${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+                    <#else>
+                        <#if document.chargeOffAccount??>
+                            ${separator}<#assign separator=','/> счет списания ${document.chargeOffAccount}
+                        </#if>
+                    </#if>
+
+                    <#if document.receiverAccount??>
+                        <#if document.receiverAccount != "">
+                            <#if isCard(document.destinationResourceType) >
+                                ${separator}<#assign separator=','/> карта зачисления ${getCutCardNumber(document.receiverAccount)}
+                            <#else>
+                                ${separator}<#assign separator=','/> счет зачисления ${document.receiverAccount}
+                            </#if>
+                        </#if>
+                    </#if>
+
+                    <#if document.receiverBIC??>
+                        <#if document.receiverBIC !="">
+                            ${separator}<#assign separator=','/> БИК ${document.receiverBIC}
+                        </#if>
+                    </#if>
+
+                    <#if document.inputSumType??>
+                        <#if document.exactAmount??>
+                           ${separator}<#assign separator=','/> сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                        </#if>
+                    </#if>
+                    <#if document.longOffer>
+                        <#if document.executionEventType??>
+                            ${separator}<#assign separator=','/> повторяется ${document.executionEventType.description},
+                        дата начала ${document.startDate.time?date?string("dd.MM.yyyy")},
+                        дата окончания ${document.endDate.time?date?string("dd.MM.yyyy")}
+                        </#if>
+                    </#if>
+                    отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты, либо в любое подразделение банка.
+                </@compress>
+            ]]>
+		</text>
+        <variables>
+            document.chargeOffAccount, document.startDate.time, date, string("dd.MM.yyyy"), isCard(document.chargeOffResourceType),
+            document.exactAmount, document.receiverAccount, getCutCardNumber(document.chargeOffAccount),
+            getCutCardNumber(document.receiverAccount), document.longOffer, document.receiverBIC, document.exactAmount.decimal,
+            separator, document.exactAmount.currency.code, isCard(document.destinationResourceType), document.executionEventType.description,
+            document.executionEventType, document.endDate.time, document.inputSumType
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по операциям бил. оплаты, отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.JurPayment</key>
+        <text>
+			<![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#assign separator=''/>
+                    <#if isCard(document.chargeOffResourceType) >
+                        ${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+                    <#else>
+                        <#if document.chargeOffAccount??>
+                            ${separator}<#assign separator=','/> счет списания ${document.chargeOffAccount}
+                        </#if>
+                    </#if>
+                    <#if document.receiverAccount??>
+                        <#if document.receiverAccount != "">
+                            <#if isCard(document.destinationResourceType) >
+                                ${separator}<#assign separator=','/> карта зачисления ${getCutCardNumber(document.receiverAccount)}
+                            <#else>
+                                ${separator}<#assign separator=','/> счет зачисления ${document.receiverAccount}
+                            </#if>
+                        </#if>
+                    </#if>
+                    <#if document.receiverBIC??>
+                        <#if document.receiverBIC !="">
+                            ${separator}<#assign separator=','/> БИК ${document.receiverBIC}
+                        </#if>
+                    </#if>
+                    <#if document.inputSumType??>
+                        <#if document.exactAmount??>
+                            ${separator}<#assign separator=','/> сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                        </#if>
+                    </#if>
+                    <#if document.recipientInfo??>
+                        <#if document.recipientInfo.payerAccount??>
+                            ${separator}<#assign separator=','/> лицевой счет ${document.recipientInfo.payerAccount}
+                        </#if>
+                    </#if>
+                    <#if document.receiverName??>
+                        ${separator}<#assign separator=','/> ${document.receiverName}
+                    </#if>
+                    <#list document.extendedFields as field>
+                        <#if (field.key || field.requiredForConformation) && field.value??>
+                           ${separator}<#assign separator=','/> ${field.name}
+                            <#if field.type == "list">
+                                <#list field.values as val>
+                                    <#if val.id == field.value>
+                                       ${val.value}
+                                    </#if>
+                                </#list>
+                            <#else>
+                                ${field.value}
+                                <#if field.type == "money">
+                                    ${document.destinationAmount.currency.code}
+                                </#if>
+                            </#if>
+                        </#if>
+                    </#list>
+                    <#if document.longOffer>
+                        <#if document.executionEventType??>
+                            ${separator}<#assign separator=','/> повторяется ${document.executionEventType.description},
+                        дата начала ${document.startDate.time?date?string("dd.MM.yyyy")},
+                        дата окончания ${document.endDate.time?date?string("dd.MM.yyyy")}
+                        </#if>
+                    </#if>
+                    признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+			    </@compress>
+            ]]>
+		</text>
+        <variables>
+            document.longOffer, getCutCardNumber(document.chargeOffAccount),
+            document.chargeOffAccount,	document.exactAmount.decimal, document.exactAmount.currency.code,
+            getCutCardNumber(document.chargeOffAccount), document.startDate.time, date, string("dd.MM.yyyy"),
+            isCard(document.chargeOffResourceType), separator, document.chargeOffAccount, document.receiverAccount,
+            isCard(document.destinationResourceType),  getCutCardNumber(document.receiverAccount), document.receiverBIC,
+            document.inputSumType, document.exactAmount, document.recipientInfo, document.recipientInfo.payerAccount,
+            document.receiverName, document.extendedFields, field, field.key, field.requiredForConformation, field.value, field.type,
+            field.values, val, val.id, val.value, document.destinationAmount.currency.code, document.executionEventType.description,
+            document.executionEventType, document.endDate.time, password
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по операциям бил. оплаты, отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.JurPayment</key>
+        <text>
+			<![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#assign separator=''/>
+                    <#if isCard(document.chargeOffResourceType) >
+                        ${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+                    <#else>
+                        <#if document.chargeOffAccount??>
+                            ${separator}<#assign separator=','/> счет списания ${document.chargeOffAccount}
+                        </#if>
+                    </#if>
+                    <#if document.receiverAccount??>
+                        <#if document.receiverAccount != "">
+                            <#if isCard(document.destinationResourceType) >
+                                ${separator}<#assign separator=','/> карта зачисления ${getCutCardNumber(document.receiverAccount)}
+                            <#else>
+                                ${separator}<#assign separator=','/> счет зачисления ${document.receiverAccount}
+                            </#if>
+                        </#if>
+                    </#if>
+                    <#if document.receiverBIC??>
+                        <#if document.receiverBIC !="">
+                            ${separator}<#assign separator=','/> БИК ${document.receiverBIC}
+                        </#if>
+                    </#if>
+                    <#if document.inputSumType??>
+                        <#if document.exactAmount??>
+                            ${separator}<#assign separator=','/> сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                        </#if>
+                    </#if>
+                    <#if document.recipientInfo??>
+                        <#if document.recipientInfo.payerAccount??>
+                            ${separator}<#assign separator=','/> лицевой счет ${document.recipientInfo.payerAccount}
+                        </#if>
+                    </#if>
+                    <#if document.receiverName??>
+                        ${separator}<#assign separator=','/> ${document.receiverName}
+                    </#if>
+                    <#list document.extendedFields as field>
+                        <#if (field.key || field.requiredForConformation) && field.value??>
+                           ${separator}<#assign separator=','/> ${field.name}
+                            <#if field.type == "list">
+                                <#list field.values as val>
+                                    <#if val.id == field.value>
+                                       ${val.value}
+                                    </#if>
+                                </#list>
+                            <#else>
+                                ${field.value}
+                                <#if field.type == "money">
+                                    ${document.destinationAmount.currency.code}
+                                </#if>
+                            </#if>
+                        </#if>
+                    </#list>
+                    <#if document.longOffer>
+                        <#if document.executionEventType??>
+                            ${separator}<#assign separator=','/> повторяется ${document.executionEventType.description},
+                        дата начала ${document.startDate.time?date?string("dd.MM.yyyy")},
+                        дата окончания ${document.endDate.time?date?string("dd.MM.yyyy")}
+                        </#if>
+                    </#if>
+                    отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты, либо в любое подразделение банка.
+			    </@compress>
+            ]]>
+		</text>
+        <variables>
+            document.longOffer, getCutCardNumber(document.chargeOffAccount),
+            document.chargeOffAccount,	document.exactAmount.decimal, document.exactAmount.currency.code,
+            getCutCardNumber(document.chargeOffAccount), document.startDate.time, date, string("dd.MM.yyyy"),
+            isCard(document.chargeOffResourceType), separator, document.chargeOffAccount, document.receiverAccount,
+            isCard(document.destinationResourceType),  getCutCardNumber(document.receiverAccount), document.receiverBIC,
+            document.inputSumType, document.exactAmount, document.recipientInfo, document.recipientInfo.payerAccount,
+            document.receiverName, document.extendedFields, field, field.key, field.requiredForConformation, field.value, field.type,
+            field.values, val, val.id, val.value, document.destinationAmount.currency.code, document.executionEventType.description,
+            document.executionEventType, document.endDate.time, password
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) операции закрытия счета, отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.AccountClosingPayment</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#if (document.inputSumType)??>
+                        <#if document.exactAmount??>
+                           остаток средств  ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                        </#if>
+                    </#if>
+                    <#if document.receiverAccount??>
+                        <#if document.receiverAccount != "">
+                            <#if isCard(document.destinationResourceType) >
+                                перевести на карту ${getCutCardNumber(document.receiverAccount)},
+                            <#else>
+                                перевести на счет ${document.receiverAccount},
+                            </#if>
+                        </#if>
+                    </#if>
+                    признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+        </text>
+        <variables>
+            document.payerName, document.receiverAccount, isCard(document.destinationResourceType),
+            getCutCardNumber(document.receiverAccount), document.receiverAccount, document.inputSumType, document.exactAmount,
+            document.exactAmount.decimal, document.exactAmount.currency.code
+        </variables>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) операции закрытия счета, отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.AccountClosingPayment</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#if (document.inputSumType)??>
+                        <#if document.exactAmount??>
+                           остаток средств  ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                        </#if>
+                    </#if>
+                    <#if document.receiverAccount??>
+                        <#if document.receiverAccount != "">
+                            <#if isCard(document.destinationResourceType) >
+                                перевести на карту ${getCutCardNumber(document.receiverAccount)},
+                            <#else>
+                                перевести на счет ${document.receiverAccount},
+                            </#if>
+                        </#if>
+                    </#if>
+                    отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты, либо в любое подразделение банка.
+                </@compress>
+            ]]>
+        </text>
+        <variables>
+            document.payerName, document.receiverAccount, isCard(document.destinationResourceType),
+            getCutCardNumber(document.receiverAccount), document.receiverAccount, document.inputSumType, document.exactAmount,
+            document.exactAmount.decimal, document.exactAmount.currency.code
+        </variables>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке создания P2P автоперевода, отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.CreateP2PAutoTransferClaim</key>
+        <text>
+		    <![CDATA[
+                <@compress single_line=true>
+                    Операция «${document.friendlyName}» с карты ${document.fromAccountName} ${getCutCardNumber(document.chargeOffAccount)} на карту получателя ${document.receiverName} ${document.chargeOffAmount.decimal} ${document.chargeOffAmount.currency.code} ${document.startExecutionDetail} <#if document.commission??> комиссия ${document.commission.decimal} ${document.commission.currency.code}</#if> признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+		</text>
+        <variables>
+           document.friendlyName, document.fromAccountName, getCutCardNumber(document.chargeOffAccount), document.receiverName,
+           document.chargeOffAmount.decimal, document.chargeOffAmount.currency.code, document.startExecutionDetail,
+           document.commission.decimal, document.commission.currency.code, document.commission
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке создания P2P автоперевода, отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.CreateP2PAutoTransferClaim</key>
+        <text>
+		    <![CDATA[
+                <@compress single_line=true>
+                    Операция «${document.friendlyName}» с карты ${document.fromAccountName} ${getCutCardNumber(document.chargeOffAccount)} на карту получателя ${document.receiverName} ${document.chargeOffAmount.decimal} ${document.chargeOffAmount.currency.code} ${document.startExecutionDetail} <#if document.commission??> комиссия ${document.commission.decimal} ${document.commission.currency.code}</#if> отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты, либо в любое подразделение банка.
+                </@compress>
+            ]]>
+		</text>
+        <variables>
+           document.friendlyName, document.fromAccountName, getCutCardNumber(document.chargeOffAccount), document.receiverName,
+           document.chargeOffAmount.decimal, document.chargeOffAmount.currency.code, document.startExecutionDetail,
+           document.commission.decimal, document.commission.currency.code, document.commission
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке редактирования P2P автоперевода, отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.EditP2PAutoTransferClaim</key>
+        <text>
+		    <![CDATA[
+                <@compress single_line=true>
+                    Операция «${document.friendlyName}» с карты ${document.fromAccountName} ${getCutCardNumber(document.chargeOffAccount)} на карту получателя ${document.receiverName} ${document.chargeOffAmount.decimal} ${document.chargeOffAmount.currency.code} ${document.startExecutionDetail} <#if document.commission??> комиссия ${document.commission.decimal} ${document.commission.currency.code}</#if> признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+		</text>
+        <variables>
+           document.friendlyName, document.fromAccountName, getCutCardNumber(document.chargeOffAccount), document.receiverName,
+           document.chargeOffAmount.decimal, document.chargeOffAmount.currency.code, document.startExecutionDetail,
+           document.commission.decimal, document.commission.currency.code, document.commission
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке редактирования P2P автоперевода, отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.EditP2PAutoTransferClaim</key>
+        <text>
+		    <![CDATA[
+                <@compress single_line=true>
+                    Операция «${document.friendlyName}» с карты ${document.fromAccountName} ${getCutCardNumber(document.chargeOffAccount)} на карту получателя ${document.receiverName} ${document.chargeOffAmount.decimal} ${document.chargeOffAmount.currency.code} ${document.startExecutionDetail} <#if document.commission??> комиссия ${document.commission.decimal} ${document.commission.currency.code}</#if> отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты, либо в любое подразделение банка.
+                </@compress>
+            ]]>
+		</text>
+        <variables>
+           document.friendlyName, document.fromAccountName, getCutCardNumber(document.chargeOffAccount), document.receiverName,
+           document.chargeOffAmount.decimal, document.chargeOffAmount.currency.code, document.startExecutionDetail,
+           document.commission.decimal, document.commission.currency.code, document.commission
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке создания IqWave автоплтежа, отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.CreateAutoPaymentImpl</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    карта списания ${getCutCardNumber(document.chargeOffAccount)},
+                    <#if document.chargeOffAmount??>
+                        сумма ${document.chargeOffAmount.decimal} ${document.chargeOffAmount.currency.code},
+                    </#if>
+                    повторяется ${document.executionEventType.description}
+                    <#if document.executionEventType != "REDUSE_OF_BALANCE" && document.executionEventType != "BY_INVOICE" >
+                        , ближайший платеж ${document.startDate.time?date?string("dd.MM.yyyy")}
+                    </#if>
+                    признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+        </text>
+        <variables>
+            document.chargeOffAmount, document.startDate.time document.executionEventType, document.chargeOffAmount.currency.code,
+            document.executionEventType.description, document.chargeOffAmount.decimal, getCutCardNumber(document.chargeOffAccount)
+        </variables>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке создания IqWave автоплтежа, отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.CreateAutoPaymentImpl</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    карта списания ${getCutCardNumber(document.chargeOffAccount)},
+                    <#if document.chargeOffAmount??>
+                        сумма ${document.chargeOffAmount.decimal} ${document.chargeOffAmount.currency.code},
+                    </#if>
+                    повторяется ${document.executionEventType.description}
+                    <#if document.executionEventType != "REDUSE_OF_BALANCE" && document.executionEventType != "BY_INVOICE" >
+                        , ближайший платеж ${document.startDate.time?date?string("dd.MM.yyyy")}
+                    </#if>
+                    отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты, либо в любое подразделение банка.
+                </@compress>
+            ]]>
+        </text>
+        <variables>
+            document.chargeOffAmount, document.startDate.time document.executionEventType, document.chargeOffAmount.currency.code,
+            document.executionEventType.description, document.chargeOffAmount.decimal, getCutCardNumber(document.chargeOffAccount)
+        </variables>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по расширеной заявке на кредит (ExtendedLoanClaim), отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.ExtendedLoanClaim</key>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция: ${document.productName}, на сумму ${document.loanAmount.decimal} ${document.loanAmount.currency.code}, на срок ${document.loanPeriod?string.number} мес.,
+                с процентной ставкой ${formatLoanRate(document.loanRate)} признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+            </@compress>
+            ]]>
+        </text>
+        <variables>
+            document.productName,document.loanAmount.decimal,document.loanAmount.currency.code,document.loanPeriod,document.loanRate
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по расширеной заявке на кредит (ExtendedLoanClaim), отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.ExtendedLoanClaim</key>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция: ${document.productName}, на сумму ${document.loanAmount.decimal} ${document.loanAmount.currency.code}, на срок ${document.loanPeriod?string.number} мес.,
+                с процентной ставкой ${formatLoanRate(document.loanRate)} отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты, либо в любое подразделение банка.
+            </@compress>
+            ]]>
+        </text>
+        <variables>
+            document.productName,document.loanAmount.decimal,document.loanAmount.currency.code,document.loanPeriod,document.loanRate
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке на кредит (LoanPayment), отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.LoanPayment</key>
+        <text>
+		    <![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#assign separator=''/>
+                    <#if document.loanType??>
+                        <#if document.loanType !="">
+                            ${separator}<#assign separator=','/> кредит
+                            <#if document.loanName?? && document.loanName !="">
+                                ${document.loanName}
+                            <#else>
+                                ${document.loanType}
+                            </#if>
+                        </#if>
+                    </#if>
+                    <#if document.chargeOffAccount??>
+                        ${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+                    </#if>
+                    <#if document.chargeOffAmount??>
+                        ${separator}<#assign separator=','/> сумма ${document.chargeOffAmount.decimal} ${document.chargeOffAmount.currency.code}
+                    </#if>
+                    признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+		</text>
+        <variables>
+            document.longOffer, separator, document.loanType, document.loanName, document.chargeOffAccount, document.executionEventType.description,
+            getCutCardNumber(document.chargeOffAccount), document.chargeOffAmount, document.chargeOffAmount.decimal,
+            document.chargeOffAmount.currency.code, document.executionEventType, document.startDate.time, date, string("dd.MM.yyyy"), document.endDate.time
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке на кредит (LoanPayment), отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.LoanPayment</key>
+        <text>
+		    <![CDATA[
+                <@compress single_line=true>
+                    Операция:
+                    <#assign separator=''/>
+                    <#if document.loanType??>
+                        <#if document.loanType !="">
+                            ${separator}<#assign separator=','/> кредит
+                            <#if document.loanName?? && document.loanName !="">
+                                ${document.loanName}
+                            <#else>
+                                ${document.loanType}
+                            </#if>
+                        </#if>
+                    </#if>
+                    <#if document.chargeOffAccount??>
+                        ${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+                    </#if>
+                    <#if document.chargeOffAmount??>
+                        ${separator}<#assign separator=','/> сумма ${document.chargeOffAmount.decimal} ${document.chargeOffAmount.currency.code}
+                    </#if>
+                    отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты, либо в любое подразделение банка.
+                </@compress>
+            ]]>
+		</text>
+        <variables>
+            document.longOffer, separator, document.loanType, document.loanName, document.chargeOffAccount, document.executionEventType.description,
+            getCutCardNumber(document.chargeOffAccount), document.chargeOffAmount, document.chargeOffAmount.decimal,
+            document.chargeOffAmount.currency.code, document.executionEventType, document.startDate.time, date, string("dd.MM.yyyy"), document.endDate.time
+        </variables>
+        <priority>2</priority>
+	</message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке открытия карты (VirtualCardClaim), отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.VirtualCardClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке открытия карты (VirtualCardClaim), отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.VirtualCardClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты либо в любое подразделение банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке открытия карты (LoanCardOfferClaim), отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.LoanCardOfferClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке открытия карты (LoanCardOfferClaim), отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.LoanCardOfferClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты либо в любое подразделение банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке открытия карты (LoanCardProductClaim), отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.LoanCardProductClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке открытия карты (LoanCardProductClaim), отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.LoanCardProductClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты либо в любое подразделение банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке открытия карты (PreapprovedLoanCardClaim), отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.payments.PreapprovedLoanCardClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке открытия карты (PreapprovedLoanCardClaim), отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.payments.PreapprovedLoanCardClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты либо в любое подразделение банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке открытия карты (СБНКД), отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.SberBankForEveryDay</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты либо в любое подразделение банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке подключения всех возможностей, отправляемое клиенту при необходимости подтверждения в КЦ</description>
+        <key>REVIEW.FM.com.rssl.phizic.business.documents.RemoteConnectionUDBOClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция признана подозрительной и требует дополнительного подтверждения в контактном центре банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+
+    <message>
+        <description>SMS (ФРОД МОНИТОРИНГ) по заявке подключения всех возможностей, отправляемое клиенту при запрете операции</description>
+        <key>DENY.FM.com.rssl.phizic.business.documents.RemoteConnectionUDBOClaim</key>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Операция отказана банком по подозрению в мошенничестве. Обратитесь в контактный центр банка по телефонам, приведенным на обратной стороне Вашей карты либо в любое подразделение банка.
+                </@compress>
+            ]]>
+        </text>
+        <priority>2</priority>
+    </message>
+</sms-password-config>

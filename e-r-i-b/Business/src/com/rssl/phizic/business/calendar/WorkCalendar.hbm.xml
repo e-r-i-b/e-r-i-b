@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class
+		    name="com.rssl.phizic.business.calendar.WorkCalendar"
+		    table="CALENDARS"
+		    >
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CALENDARS</param>
+            </generator>
+        </id>
+
+        <property name="name"           type="string"   column="NAME"           not-null="true"/>
+        <property name="tb"             type="string"   column="TB"             not-null="false"/>
+        <property name="uuid"           type="string"   column="UUID"           not-null="true"     update="false"/>
+
+	    <set name="workDays" table="WORK_DAYS" lazy="false" cascade="all-delete-orphan">
+		    <key column="CALENDAR_ID" not-null="true"/>
+			<one-to-many class="com.rssl.phizic.business.calendar.WorkDay"/>
+	    </set>
+
+        <filter name="calendar_filter_by_department"/>
+    </class>
+
+    <filter-def name="calendar_filter_by_department"
+                    condition="(TB is null
+                                OR  exists(SELECT 1 FROM ALLOWED_DEPARTMENTS ad
+                                                             WHERE ad.LOGIN_ID = :employeeLoginId
+                                                             AND ad.TB||'|'||ad.OSB||'|'||ad.VSP in (
+                                                                                                     TB||'|*|*',
+                                                                                                     '*|*|*'
+                                                                                                     )
+                                          )
+                               )"
+               >
+    		<filter-param name="employeeLoginId" type="long"/>
+    	</filter-def>
+
+</hibernate-mapping>

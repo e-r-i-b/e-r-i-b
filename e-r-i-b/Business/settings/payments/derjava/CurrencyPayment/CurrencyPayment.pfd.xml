@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="CurrencyPayment" description="Перевод иностранной валюты" detailedDescription="Перечисление денежных средств с вашего счета на счет получателя в иностранной валюте"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.CurrencyPayment"/>
+	<statemachine name="PaymentStateMachine"/>
+	<withdraw-options>
+	   <form name="RecallPayment"/>
+	   <check class="com.rssl.phizic.business.documents.metadata.checkers.DocumentStateChecker">
+		   <parameter name="state">dispatched</parameter>
+	   </check>
+	</withdraw-options>
+
+	<fields>
+		<field
+				name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"
+				signable="true">
+		</field>
+
+		<field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator  class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="admissionDate"
+		       source="admission-date"
+			   type="date"
+		       description="Дата приема плaтежа банком">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+        <field
+				name="payerName"
+				description="ФИО плательщика"
+				type="string"
+                source="extra-parameters/parameter[@name='payer-name']/@value"
+				signable="true"
+                value="xpath:phiz:document('currentPerson.xml')//field[@name='fullName']"
+                >
+		</field>
+
+        <field
+				name="payerAddress"
+				description="Адрес плательщика"
+				type="string"
+				source="extra-parameters/parameter[@name='payer-address']/@value"
+				signable="true"
+                value="xpath:phiz:document('currentPerson.xml')//field[@name='registrationAddress']"
+                >
+		</field>
+
+		<field
+				name="payerAccountSelect"
+				description="Счет списания"
+				type="account"
+				source="payer-account"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverAccountSelect"
+				description="Счет получателя"
+				type="string"
+				source="receiver-account"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество цифр в поле Счет получателя должно быть от 20 до 30"/>
+					<parameter name="regexp">^\d{20,30}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="amount"
+				description="Сумма"
+				source="amount"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+			   type="string"/>
+		<field
+				name="ground"
+				description="Назначение платежа"
+				source="ground"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Назначение платежа не должно превышать 200 символов"/>
+					<parameter name="regexp">^.{1,200}$</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field
+				name="receiverName"
+				description="Название получателя"
+				type="string"
+				source="receiver-name"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message
+							text="Название получателя не должно превышать 250 символов. Введите более короткое наименование"/>
+					<parameter name="regexp">^.{0,250}$</parameter>
+				</validator>
+			</validators>
+
+		</field>
+		<field
+				name="receiverBankСorrAccount"
+				description="Корсчет банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank-corr-account']/@value"
+				type="string">
+		</field>
+
+		<field
+				name="currency"
+				description="Валюта"
+				source="amount-currency"
+				type="string">
+		</field>
+		<field
+				name="receiverCountryCode"
+				description="Код страны получателя"
+				source="extra-parameters/parameter[@name='receiver-country-code']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="receiverCity"
+				description="Город получателя"
+				source="extra-parameters/parameter[@name='receiver-city']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="receiverAddress"
+				description="Адрес получателя"
+				source="extra-parameters/parameter[@name='receiver-address']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="receiverBankName"
+				description="Наименование банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank-name']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="receiverBankCountryCode"
+				description="Страна банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank-country-code']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="receiverBankCity"
+				description="Город банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank-city']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="receiverBankAddress"
+				description="Адрес банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank-address']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="intermediaryBankName"
+				description="Наименование банка посредника"
+				source="extra-parameters/parameter[@name='intermediary-bank-name']/@value"
+				type="string"
+				signable="true">
+			<!--<validators>-->
+				<!--<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>-->
+			<!--</validators>-->
+		</field>
+		<field
+				name="intermediaryBankSWIFT"
+				description="SWIFT банка посредника"
+				source="extra-parameters/parameter[@name='intermediary-bank-SWIFT']/@value"
+				type="string"
+				signable="true">
+			<!--<validators>-->
+				<!--<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>-->
+			<!--</validators>-->
+		</field>
+		<field
+				name="intermediaryBankCountryCode"
+				description="Страна банка посредника"
+				source="extra-parameters/parameter[@name='intermediary-bank-country-code']/@value"
+				type="string"
+				signable="true">
+			<!--<validators>-->
+				<!--<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>-->
+			<!--</validators>-->
+		</field>
+		<field
+				name="intermediaryBankCity"
+				description="Город банка посредника"
+				source="extra-parameters/parameter[@name='intermediary-bank-city']/@value"
+				type="string"
+				signable="true">
+			<!--<validators>-->
+				<!--<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>-->
+			<!--</validators>-->
+		</field>
+		<field
+				name="intermediaryBankAddress"
+				description="Адрес банка посредника"
+				source="extra-parameters/parameter[@name='intermediary-bank-address']/@value"
+				type="string"
+				signable="true">
+			<!--<validators>-->
+				<!--<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>-->
+			<!--</validators>-->
+		</field>
+		<!--
+				  paymentConditions
+				  tod - текущим днем
+				  tom - следующим днем
+				  spot - через 2 дня
+			  -->
+		<field
+				name="paymentConditions"
+				description="Условия перевода"
+				source="extra-parameters/parameter[@name='payment-conditions']/@value"
+				type="string"
+				signable="true">
+		</field>
+		<!--
+				  commission
+				  0 - С моего счета
+				  1 - Со счета получателя
+			  -->
+		<field
+				name="commission"
+				description="комиссия"
+				source="extra-parameters/parameter[@name='commission']/@value"
+				type="string"
+				signable="true">
+		</field>
+		<field
+				name="commissionAccount"
+				description="Счет списания комиссии"
+				source="extra-parameters/parameter[@name='commission-account']/@value"
+				type="string"
+				signable="true">
+		</field>
+		<field
+				name="commissionAmount"
+				description="Сумма коммисии"
+				source="commission"
+				type="money"
+				signable="true"/>
+
+		<field
+				name="groundAdd"
+				description="дополнение к основанию"
+				source="extra-parameters/parameter[@name='ground-add']/@value"
+				type="string"
+				signable="true">
+		</field>
+		<field
+				name="payerAccountType"
+				description="Тип счета списания"
+				source="extra-parameters/parameter[@name='payer-account-type']/@value"
+				type="string"
+				signable="true">
+		</field>
+		<field
+				name="payerAccountCurrency"
+				description="Валюта счета списания"
+				source="extra-parameters/parameter[@name='payer-account-currency']/@value"
+				type="string"
+				signable="true">
+		</field>
+		<field
+				name="commissionAccountType"
+				description="Тип счета списания комиссии"
+				source="extra-parameters/parameter[@name='commission-account-type']/@value"
+				type="string"
+				signable="true">
+		</field>
+		<field
+				name="commissionAccountCurrency"
+				description="Валюта счета списания комиссии"
+				source="extra-parameters/parameter[@name='commission-account-currency']/@value"
+				type="string"
+				signable="true">
+		</field>
+
+	</fields>
+	<form-validators>
+		<form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">payerAccountSelect</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

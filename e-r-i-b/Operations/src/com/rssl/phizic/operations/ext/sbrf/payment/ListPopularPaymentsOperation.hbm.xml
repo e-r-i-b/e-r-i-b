@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListPopularPaymentsOperation.providerList.resultset">
+        <return class="com.rssl.phizic.business.dictionaries.providers.ServiceProviderShortForATM">
+            <return-property name="id"                      column="PROVIDER_ID"/>
+            <return-property name="name"                    column="PROVIDER_NAME"/>
+            <return-property name="description"             column="DESCRIPTION"/>
+            <return-property name="imageId"                 column="PROVIDER_IMAGE"/>
+            <return-property name="autoPaymentSupported"    column="IS_AUTOPAYMENT_SUPPORTED"/>
+        </return>
+    </resultset>
+
+     <resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListPopularPaymentsOperation.serviceList.resultset">
+        <return class="com.rssl.phizic.business.dictionaries.payment.services.PaymentServiceShort">
+            <return-property name="id"                      column="SERVICE_ID"/>
+            <return-property name="name"                    column="SERVICE_NAME"/>
+            <return-property name="description"             column="SERVICE_DESCRIPTION"/>
+            <return-property name="imageId"                 column="SERVICE_IMAGE"/>
+        </return>
+    </resultset>
+
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListPopularPaymentsOperation.providerList"/>
+
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListPopularPaymentsOperation.serviceList"/>
+
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListPopularPaymentsOperation.executedPayments">
+        <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+            select {document.*}
+            from BUSINESS_DOCUMENTS document
+            where LOGIN_ID = :extra_loginId
+                AND document.KIND in ('P','E','H','T')
+                AND document.STATE_CODE='EXECUTED'
+                AND document.IS_LONG_OFFER = '0'
+                AND document.FORM_ID in (select id from paymentforms where name not in ('ExternalProviderPayment','FNSPayment','AirlineReservationPayment'))
+            order by EXECUTION_DATE DESC
+        ]]>
+    </sql-query>
+</hibernate-mapping>

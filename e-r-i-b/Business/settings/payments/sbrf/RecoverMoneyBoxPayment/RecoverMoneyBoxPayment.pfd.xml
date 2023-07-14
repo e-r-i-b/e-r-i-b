@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RecoverMoneyBoxPayment" description="Заявка на возобновление копилки"
+              detailedDescription="На данной странице Вы можете &lt;b&gt;возобновить выполнение&lt;/b&gt; автоплатежа (регулярной операции)."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.RecoverMoneyBoxPayment"/>
+	<statemachine name="RecoverMoneyBoxPayment"/>
+	<fields>
+
+        <field name="documentNumber"
+            description="Номер документа"
+            type="string"
+            source="document-number"
+            signable="true">
+       	</field>
+
+        <field
+       		name="documentDate"
+       		description="Дата документа"
+       		type="date"
+       		source="document-date"
+       		signable="true">
+        </field>
+
+        <field name="documentTime"
+       		description="Время документа"
+       		source="document-time"
+            type="string"/>
+
+       	<field name="operationDate"
+            source="operation-date-short-year"
+            description="Дата отправки платежа"
+            type="string"/>
+
+        <field name="operationTime"
+       		source="operation-time"
+       		description="Время отправки платежа"
+       		type="string"/>
+
+        <field  name="moneyBoxName"
+            source="extra-parameters/parameter[@name='money-box-name']/@value"
+            description="Название копилки"
+            type="string"
+            signable="true">
+        </field>
+
+        <field
+            name="moneyBoxType"
+            source="extra-parameters/parameter[@name='money-box-type']/@value"
+            description="тип копилки"
+            type="string"
+            signable="true"/>
+
+        <field
+                name="receiverAccountSelect"
+                description="Счет/карта зачисления"
+                type="string"
+                source="receiver-account"
+                signable="true">
+        </field>
+
+        <field  name="receiverAccountName"
+                source="receiver-name"
+                description="Наименование источника зачисления"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="receiverResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='receiver-resource-currency']/@value"
+                type="string"
+                signable="true"/>
+
+        <field
+                name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string">
+        </field>
+
+        <field
+                name="fromAccountSelect"
+                description="Счет/карта списания"
+                type="string"
+                source="payer-account"
+                signable="true">
+        </field>
+
+        <field
+                name="fromAccountName"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                description="Наименование источника списания"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="fromResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='payer-resource-currency']/@value"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+            name="sellAmount"
+            description="Сумма"
+            source="amount"
+            type="money"
+            signable="true"/>
+
+        <field
+            name="sellAmountCurrency"
+            description="валюта суммы перевода"
+            source="amount-currency"
+            type="money"
+            signable="true"
+            value="form.sellAmount==null?null:form.fromResourceCurrency"/>
+
+        <field  name="percent"
+                source="extra-parameters/parameter[@name='long-offer-percent']/@value"
+                description="Процент от суммы"
+                type="string"
+                signable="true">
+        </field>
+
+        <field  name="executionEventType"
+            source="extra-parameters/parameter[@name='long-offer-event-type']/@value"
+            description="Тип события исполнения автоплатежа"
+            type="string"
+            signable="true">
+        </field>
+
+        <field  name="longOfferStartDate"
+                source="extra-parameters/parameter[@name='long-offer-start-date']/@value"
+                description="Дата начала действия регулярного платежа"
+                type="date"
+                signable="true">
+        </field>
+
+        <field name="state"
+           source="state"
+           description="Статус платежа"
+           type="string"/>
+
+    </fields>
+
+</payment-form>

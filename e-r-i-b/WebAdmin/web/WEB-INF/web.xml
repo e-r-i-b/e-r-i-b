@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4"
+	id="WebApp_WebAdmin">
+
+	<context-param>
+		<param-name>styleName</param-name>
+		<param-value>Demo</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>resourcesRealPath</param-name>
+		<param-value>/PhizIC-res@additionl.path@</param-value>
+	</context-param>
+
+    <!-- хранит путь к странице с  сообщением об ошибке в jsp-->
+    <context-param>
+		<param-name>errorRedirect</param-name>
+		<param-value>/error.do</param-value>
+	</context-param>
+
+    <context-param>
+        <param-name>applicationName</param-name>
+        <param-value>PhizIA</param-value>
+    </context-param>
+
+    <listener>
+   		<listener-class>com.rssl.phizic.web.employee.EmployeeInitializerListener</listener-class>
+   	</listener>
+
+	<listener>
+		<listener-class>com.rssl.phizic.web.common.CacheShootDownListener</listener-class>
+	</listener>
+
+    <listener>
+        <listener-class>com.rssl.phizic.web.security.SessionCountListener</listener-class>
+    </listener>
+
+	<listener>
+		<listener-class>com.rssl.phizic.web.actions.RemoveFilterParametersAction</listener-class>
+	</listener>
+
+    <listener>
+        <listener-class>com.rssl.phizic.web.security.CSAAdminSessionListener</listener-class>
+    </listener>
+
+    <filter>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>PhizIA</param-value>
+        </init-param>
+    </filter>
+
+    <!-- Нужен для корректной обработки ajax запросов при протухании сессии.  -->
+    <filter>
+		<filter-name>AjaxFilterPrivate</filter-name>
+		<filter-class>com.rssl.phizic.web.security.AjaxFilter</filter-class>
+        <init-param>
+			<param-name>visitingMode</param-name>
+			<param-value>BASIC</param-value>
+		</init-param>
+        <init-param>
+			<param-name>redirectUrl</param-name>
+			<param-value>/login.do</param-value>
+		</init-param>
+		<init-param>
+			<param-name>addReturnTo</param-name>
+			<param-value>false</param-value>
+		</init-param>
+        <init-param>
+			<param-name>ignoredUrl</param-name>
+			<param-value>/monitoring.do</param-value>
+		</init-param>
+	</filter>
+
+	<filter>
+		<filter-name>SessionIdFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.security.SessionIdFilter</filter-class>
+	</filter>
+
+	<filter>
+		<filter-name>ContextFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.ContextFilter</filter-class>
+	</filter>
+
+    <filter>
+        <filter-name>ExternalLoginUrlFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.security.ExternalLoginUrlFilter</filter-class>
+    </filter>
+
+	<filter>
+		<filter-name>HeaderFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.HeaderFilter</filter-class>
+		<init-param>
+			<param-name>requestEncoding</param-name>
+			<param-value>windows-1251</param-value>
+		</init-param>
+	</filter>
+
+    <!--  фильтр нужен для отлова ошибок в jsp -->
+	<filter>
+		<filter-name>SystemLogFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.log.SystemLogFilter</filter-class>
+        <init-param>
+            <!-- путь к странице об ошибке -->
+			<param-name>redirectUrl</param-name>
+			<param-value>/error.do</param-value>
+		</init-param>
+         <init-param>
+            <!-- путь к странице об ошибке при отключенной внешней системе. -->
+            <param-name>errorExternalSystemRedirect</param-name>
+            <param-value>/PhizIA/error/external/system.do</param-value>
+		</init-param>
+	</filter>
+
+	<filter>
+		<filter-name>SecurityFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.security.EmployeeVersionLoginFilter</filter-class>
+		<init-param>
+			<param-name>redirectUrl</param-name>
+			<param-value>/login.do</param-value>
+		</init-param>
+		<init-param>
+			<param-name>addReturnTo</param-name>
+			<param-value>true</param-value>
+		</init-param>
+        <init-param>
+			<param-name>ignoredUrl</param-name>
+			<param-value>
+                /monitoring.do,/PostCSALogin.do
+            </param-value>
+		</init-param>
+	</filter>
+
+    <filter>
+		<filter-name>FraudMonitoringFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.FraudMonitoringFilter</filter-class>
+	</filter>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+	<filter-mapping>
+		<filter-name>SessionIdFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>SessionIdFilter</filter-name>
+		<servlet-name>imageServlet</servlet-name>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>ContextFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>ContextFilter</filter-name>
+		<servlet-name>imageServlet</servlet-name>
+	</filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ExternalLoginUrlFilter</filter-name>
+        <url-pattern>/PostCSALogin.do</url-pattern>
+    </filter-mapping>
+
+	<filter-mapping>
+		<filter-name>HeaderFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+        <filter-name>AjaxFilterPrivate</filter-name>
+        <url-pattern>/private/async/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>AjaxFilterPrivate</filter-name>
+        <url-pattern>/private/pfp/async/*</url-pattern>
+    </filter-mapping>
+
+	<filter-mapping>
+		<filter-name>SecurityFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+
+     <!-- должен выполняться последним в цепочке фильтров -->
+    <filter-mapping>
+		<filter-name>SystemLogFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+        <filter-name>FraudMonitoringFilter</filter-name>
+        <url-pattern>*.do</url-pattern>
+    </filter-mapping>
+
+	<servlet>
+		<servlet-name>action</servlet-name>
+		<servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+		<init-param>
+			<param-name>config</param-name>
+			<param-value>/WEB-INF/struts-config.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet>
+		<servlet-name>download</servlet-name>
+		<servlet-class>com.rssl.phizic.web.templates.DownloadTemplateServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+	</servlet>
+
+    <servlet>
+        <servlet-name>imageServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.web.common.ImageServlet</servlet-class>
+        <load-on-startup>3</load-on-startup>
+    </servlet>
+
+	<servlet-mapping>
+		<servlet-name>action</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>download</servlet-name>
+		<url-pattern>/documents/dowloadtemplate</url-pattern>
+	</servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>imageServlet</servlet-name>
+        <url-pattern>/images</url-pattern>
+    </servlet-mapping>
+
+    <!--TODO CHG040681: Не все запросы попадающие под маску передаются в модуль WebPfp--> 
+    <servlet-mapping>
+        <servlet-name>imageServlet</servlet-name>
+        <url-pattern>/person/pfp/images</url-pattern>
+    </servlet-mapping>
+
+	<jsp-config>
+
+		<taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-bean</taglib-uri>
+            <taglib-location>/WEB-INF/tld/customized-struts-bean.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-html</taglib-uri>
+			<taglib-location>/WEB-INF/tld/struts-html.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-logic</taglib-uri>
+			<taglib-location>/WEB-INF/tld/struts-logic.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-tiles</taglib-uri>
+			<taglib-location>/WEB-INF/tld/customized-struts-tiles.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/core</taglib-uri>
+			<taglib-location>/WEB-INF/tld/customized-jstl.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/functions</taglib-uri>
+			<taglib-location>/WEB-INF/tld/fn.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://rssl.com/tags</taglib-uri>
+			<taglib-location>/WEB-INF/tld/phizic.tld</taglib-location>
+		</taglib>
+
+	</jsp-config>
+
+	<resource-ref id="WebAdmin_ResourceRef_JDBC_PhizIC">
+		<res-ref-name>jdbc/PhizIC</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
+
+    <resource-ref id="WebAdmin_ResourceRef_JDBC_PhizICLog">
+        <res-ref-name>jdbc/PhizICLog</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+
+    <resource-ref id="WebAdmin_ResourceRef_JDBC_Push">
+        <res-ref-name>jdbc/Push</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+
+</web-app>

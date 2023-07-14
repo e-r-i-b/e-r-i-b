@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <query name="com.rssl.phizic.operations.dictionaries.securities.GetSecuritiesListOperation.list">
+        select security
+        from   com.rssl.phizic.business.dictionaries.security.Security as security
+               where  (:extra_issuer   is null or :extra_issuer =''    or upper(security.issuer) like upper(:extra_like_issuer))
+                  and (:extra_type     is null or :extra_type =''      or security.type like :extra_like_type)
+                  and (:extra_number   is null or :extra_number =''    or upper(security.registrationNumber) like upper(:extra_like_number))
+                  and security.type in (:openSecurityTypes)
+                  and security.isDelete = false
+        order by security.issuer, security.type
+    </query>
+
+</hibernate-mapping>

@@ -1,0 +1,132 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class table="MERCHANT_CATEGORY_CODES" name="com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode">
+	    <id name="code" type="long" column="CODE"/>
+
+        <many-to-one name="incomeOperationCategory" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory" property-ref="externalId"
+                     column="INCOME_OPERATION_CATEGORY_ID" lazy="false" not-null="false"/>
+        <many-to-one name="outcomeOperationCategory" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory" property-ref="externalId"
+                     column="OUTCOME_OPERATION_CATEGORY_ID" lazy="false" not-null="false"/>
+    </class>
+
+    <!-- Поиск MCC по коду -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.findMCCByCode">
+        from com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode
+        where code in (:mccCodes)
+    </query>
+
+    <!--Список всех MCC-кодов-->
+    <query name="com.rssl.phizic.business.dictionaries.finances.getAllMccCodes">
+        from com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode
+        order by code
+    </query>
+
+    <!-- Список mcc-кодов (только код) для категории -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.finances.getCategoryMCCodes">
+        <return-scalar column="mcc" type="long"/>
+            select codes.code mcc
+            from MERCHANT_CATEGORY_CODES codes
+            where (codes.INCOME_OPERATION_CATEGORY_ID = :categoryId) or (codes.OUTCOME_OPERATION_CATEGORY_ID = :categoryId)
+    </sql-query>
+
+    <!-- Список mcc-кодов (полностью сущность) для категории -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.findMCCByCategory">
+        from com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode codes
+        where codes.incomeOperationCategory.id = :categoryId or codes.outcomeOperationCategory.id = :categoryId
+    </query>
+
+    <!-- Поиск МСС по коду
+        Опорный объект: PK_MERCHANT_CATEGORY_CODES
+        Предикаты доступа: "CODES"."CODE"=TO_NUMBER(:CODE)
+        Кардинальность: CODE - первичный ключ, поэтому будет получено не более одного значения.
+    -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.getMCCByCode">
+        from com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode codes
+        where codes.code = :code
+    </query>
+
+    <!-- Возвращает 1, если указанная категория содержит указанный MCC-код -->
+    <query name="com.rssl.phizic.business.finances.CardOperationService.doesCategoryContainsMCC">
+        select 1
+        from com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode as mcc
+        where (mcc.incomeOperationCategory = :category or mcc.outcomeOperationCategory = :category)
+          and mcc.code = :mccCode
+    </query>
+
+    <!-- Удаление доходной категории для МСС-кодов
+        Опорный объект: PK_MERCHANT_CATEGORY_CODES
+        Предикаты доступа: "CODE"=TO_NUMBER(:MCCIDS)
+        Кардинальность: Количество МСС-кодов, для которых переданы коды
+     -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.setNullIncome">
+        update com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode codes
+        set codes.incomeOperationCategory = null
+        where codes.code in (:mccIds)
+    </query>
+
+    <!-- Удаление расходной категории для МСС-кодов
+        Опорный объект: PK_MERCHANT_CATEGORY_CODES
+        Предикаты доступа: "CODE"=TO_NUMBER(:MCCIDS)
+        Кардинальность: Количество МСС-кодов, для которых переданы коды
+     -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.setNullOutcome">
+        update com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode codes
+        set codes.outcomeOperationCategory = null
+        where codes.code in (:mccIds)
+    </query>
+
+    <!-- Удаление пустых МСС-кодов (у которых отсутствуют одновременно и доходная и расходная категории)
+        Опорный объект: MERCHANT_CATEGORY_CODES
+        Предикаты доступа: TABLE ACCESS FULL
+        Кардинальность: На данный момент заведено 1038 МСС-кодов (разрядность МСС-кода позволяет увеличить это число до 10000).
+     -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.deleteNullMCC">
+        delete com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode codes
+        where codes.incomeOperationCategory is null and codes.outcomeOperationCategory is null
+    </query>
+
+    <!-- Удаление доходной категории для МСС-кодов по id категории
+        Опорный объект: I_MCC_INCOME_CATEGORY
+        Предикаты доступа: "INCOME_OPERATION_CATEGORY_ID"=:CATEGORYEXTERNALID
+        Кардинальность: Ограничения на количество МСС-кодов для категории нет. На данный момент заведено 1038 МСС-кодов (разрядность МСС-кода позволяет увеличить это число до 10000).
+     -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.setNullIncomeByCategory">
+        update com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode codes
+        set codes.incomeOperationCategory = null
+        where codes.incomeOperationCategory.externalId = :categoryExternalId
+    </query>
+
+    <!-- Удаление расходной категории для МСС-кодов по id категории
+        Опорный объект: I_MCC_OUTCOME_CATEGORY
+        Предикаты доступа: "OUTCOME_OPERATION_CATEGORY_ID"=:CATEGORYEXTERNALID
+        Кардинальность: Ограничения на количество МСС-кодов для категории нет. На данный момент заведено 1038 МСС-кодов (разрядность МСС-кода позволяет увеличить это число до 10000).
+     -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.setNullOutcomeByCategory">
+        update com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode codes
+        set codes.outcomeOperationCategory = null
+        where codes.outcomeOperationCategory.externalId = :categoryExternalId
+    </query>
+
+    <!-- Удаление МСС-кодов, у которых нет доходной категории и идентификатор расходной категории совпадает с переданным
+        Опорный объект: I_MCC_OUTCOME_CATEGORY
+        Предикаты доступа: "OUTCOME_OPERATION_CATEGORY_ID"=:CATEGORYEXTERNALID
+        Кардинальность: Ограничения на количество МСС-кодов для категории нет. На данный момент заведено 1038 МСС-кодов (разрядность МСС-кода позволяет увеличить это число до 10000).
+    -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.deleteEmptyIncomeMCC">
+        delete com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode codes
+        where codes.incomeOperationCategory is null and codes.outcomeOperationCategory.externalId = :categoryExternalId
+    </query>
+
+    <!-- Удаление МСС-кодов, у которых нет расходной категории и идентификатор дохоодной категории совпадает с переданным
+        Опорный объект: I_MCC_INCOME_CATEGORY
+        Предикаты доступа: "INCOME_OPERATION_CATEGORY_ID"=:CATEGORYEXTERNALID
+        Кардинальность: Ограничения на количество МСС-кодов для категории нет. На данный момент заведено 1038 МСС-кодов (разрядность МСС-кода позволяет увеличить это число до 10000).
+    -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.deleteEmptyOutcomeMCC">
+        delete com.rssl.phizic.business.dictionaries.finances.MerchantCategoryCode codes
+        where codes.outcomeOperationCategory is null and codes.incomeOperationCategory.externalId = :categoryExternalId
+    </query>
+</hibernate-mapping>

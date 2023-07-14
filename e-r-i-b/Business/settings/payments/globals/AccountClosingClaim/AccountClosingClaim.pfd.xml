@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="AccountClosingClaim"
+		description="Заявка на закрытие счета или вклада"
+        detailedDescription="Подача в банк заявки на закрытие счета или досрочное закрытие срочного вклада."
+        confirmDescription="Ваш платеж успешно отправлен в банк! После обработки платежа средства будут списаны с Вашего счета и переведены на счёт получателя платежа. Спасибо, что воспользовались системой «Сбербанк Онлайн»!"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.AccountClosingClaim"/>
+	<statemachine name="PaymentStateMachine"/>
+	<list-form name="DepositClosingClaim"/>
+
+	<fields>
+		<field
+				name="account"
+				description="Счет для закрытия"
+				type="account"
+				source="extra-parameters/parameter[@name='account']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"/>
+		<field
+				name="amount"
+				description="Сумма"
+				source="amount"
+				type="money"
+				signable="true">
+		</field>
+
+		<field
+				name="currency"
+				description="Валюта"
+				type="string"
+				source="currency"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+
+		<field name="accountType"
+		       source="extra-parameters/parameter[@name='account-type']/@value"
+		       description="Тип счета для закрытия"
+			   type="string"
+			   signable="true"/>
+
+
+		<field
+				name="contractNumber"
+				description="Номер договора"
+				type="string"
+				source="extra-parameters/parameter[@name='contract-number']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="openingDate"
+				description="Дата открытия"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='opening-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='opening-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='opening-date']/@value,1,4))"
+				signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="closingDate"
+				description="Дата закрытия"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='closing-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='closing-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='closing-date']/@value,1,4))"				
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="toAccount"
+				description="Перечислить на счет"
+				type="string"
+				source="extra-parameters/parameter[@name='to-account']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="toAccountType"
+		       source="extra-parameters/parameter[@name='to-account-type']/@value"
+		       description="Тип счета для перечисления"
+			   type="string"
+			   signable="true"/>
+
+		<!-- перевод в другой банк -->
+
+		<field
+				name="receiverAccount"
+				description="Счет получателя"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-account']/@value"
+				enabled="form['toAccount'] == 'AnotherBank'"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Счет получателя должен состоять из 20 цифр"/>
+					<parameter name="regexp">^\d{20}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="receiverCorAccount"
+				description="Кор.счет банка получателя"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-cor-account']/@value"
+				enabled="form['toAccount'] == 'AnotherBank'"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Кор.Счет должен состоять из 20 цифр"/>
+					<parameter name="regexp">^\d{20}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="receiverBankName"
+				description="Наименование банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank-name']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank'"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<!-- поля  рублёвого платежа -->
+
+		<field
+				name="receiverType"
+				description="Тип получателя"
+				source="extra-parameters/parameter[@name='receiver-type']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] == 'RUB'"/>
+
+		<field
+				name="receiverName"
+				description="Наименование получателя платежа"
+				source="extra-parameters/parameter[@name='receiver-name']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank'"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message
+							text="Название получателя не должно превышать 250 символов. Введите более короткое наименование"/>
+					<parameter name="regexp">^.{0,250}$</parameter>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverINN"
+				description="ИНН получателя платежа"
+				source="extra-parameters/parameter[@name='receiver-inn']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] == 'RUB'"
+				signable="true">
+		</field>
+
+		<field
+				name="receiverKPP"
+				description="КПП получателя платежа"
+				source="extra-parameters/parameter[@name='receiver-kpp']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] == 'RUB' &amp;&amp; form['receiverType'] == 'Jur'"
+				signable="true">
+		</field>
+
+
+
+		<field
+				name="receiverBIC"
+				description="БИК банка получателя"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-bic']/@value"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] == 'RUB'"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="БИК должен состоять из 9 цифр"/>
+					<parameter name="regexp">^\d{9}$</parameter>
+				</validator>
+				<validator mode="document"
+				           class="com.rssl.phizic.business.payments.forms.validators.BICFieldValidator">
+					<message text="БИК банка получателя не найден в справочнике банков"/>
+				</validator>
+			</validators>
+		</field>
+
+
+		
+		<!-- поля валютного платежа -->
+
+		<field
+				name="receiverCountryCode"
+				description="Код страны получателя"
+				source="extra-parameters/parameter[@name='receiver-country-code']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] != 'RUB'"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverCity"
+				description="Город получателя"
+				source="extra-parameters/parameter[@name='receiver-city']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] != 'RUB'"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverAddress"
+				description="Адрес получателя"
+				source="extra-parameters/parameter[@name='receiver-address']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] != 'RUB'"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+
+
+		<field
+				name="receiverBankCountryCode"
+				description="Страна банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank-country-code']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] != 'RUB'"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverBankCity"
+				description="Город банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank-city']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] != 'RUB'"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverBankAddress"
+				description="Адрес банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank-address']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] != 'RUB'"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<!--
+				  paymentConditions
+				  0 - текущим днем
+				  1 - следующим днем
+				  2 - через 2 дня
+			  -->
+		<field
+				name="paymentConditions"
+				description="Условия перевода"
+				source="extra-parameters/parameter[@name='payment-conditions']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] != 'RUB'"
+				signable="true">
+		</field>
+
+		<!--коммисия-->
+		<field
+				name="commissionAmount"
+				description="Сумма коммисии"
+				source="extra-parameters/parameter[@name='commission-amount']/@value"
+				type="money"
+				enabled="form['toAccount'] == 'AnotherBank'"
+				signable="true"/>
+
+		<field
+				name="nds"
+				description="Размер НДС"
+				source="extra-parameters/parameter[@name='nds']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank' &amp;&amp; form['currency'] == 'RUB' &amp;&amp; form['receiverType'] == 'Jur'"
+				signable="true">			
+		</field>
+
+		<field
+				name="ground"
+				description="Назначение платежа"
+				source="extra-parameters/parameter[@name='ground']/@value"
+				type="string"
+				enabled="form['toAccount'] == 'AnotherBank'"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Назначение платежа не должно превышать 200 символов"/>
+					<parameter name="regexp">^.{1,200}$</parameter>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+	</fields>
+</payment-form>

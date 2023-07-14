@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<typedef name="ServicesGroupCategory" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.services.groups.ServicesGroupCategory</param>
+	</typedef>
+
+	<typedef name="ServiceMode" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.services.groups.ServiceMode</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.services.groups.ServicesGroup" table="SERVICES_GROUPS">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_SERVICES_GROUPS</param>
+            </generator>
+		</id>
+
+        <property name="key"      type="string"                column="KEY"         not-null="true"/>
+        <property name="name"     type="string"                column="NAME"        not-null="true"/>
+        <property name="parentId" type="long"                  column="PARENT_ID"   not-null="false"/>
+        <property name="category" type="ServicesGroupCategory" column="CATEGORY"    not-null="true"/>
+        <property name="isAction" type="boolean"               column="IS_ACTION"   not-null="true"/>
+        <property name="order"    type="long"                  column="GROUP_ORDER" not-null="true"/>
+
+        <bag name="services" table="SERVICES_GROUPS_SERVICES" cascade="none" lazy="false">
+            <key column="GROUP_ID"/>
+            <composite-element class="com.rssl.phizic.business.services.groups.ServiceInformation">
+                <property name="key"  type="string"      column="SERVICE_KEY"  not-null="true"/>
+                <property name="mode" type="ServiceMode" column="SERVICE_MODE" not-null="true"/>
+            </composite-element>
+        </bag>
+    </class>
+
+</hibernate-mapping>

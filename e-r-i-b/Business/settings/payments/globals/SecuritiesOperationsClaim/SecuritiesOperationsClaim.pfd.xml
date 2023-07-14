@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="SecuritiesOperationsClaim"
+              description="Заявка на операции с ценными бумагами"
+			  detailedDescription="Подача в банк заявки на совершение операций с ценными бумагами в одном из офисов банка."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.DefaultClaim"/>
+	<statemachine name="ClaimStateMachine"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<field name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+
+		<field name="fullName"
+		       description="Ф.И.О."
+		       type="string"
+		       source="extra-parameters/parameter[@name='full-name']/@value"
+		       signable="true"/>
+
+		<field name="phone"
+		       description="Телефон"
+		       type="string"
+		       source="extra-parameters/parameter[@name='phone']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Телефон] не должна превышать 200 символов"/>
+					<parameter name="regexp">^.{1,200}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="email"
+		       description="E-mail"
+		       type="string"
+		       source="extra-parameters/parameter[@name='email']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [E-mail] не должна превышать 200 символов"/>
+					<parameter name="regexp">^.{1,200}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="operationSelect"
+		       description="Операции с ценными бумагами"
+		       type="string"
+		       source="extra-parameters/parameter[@name='operation']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="notFirstCheckBox"
+		       description="Проводились ли ранее операции с ценными бумагами"
+		       type="boolean"
+		       source="extra-parameters/parameter[@name='not-first-operation']/@value"
+		       signable="true">
+		</field>
+
+		<field name="ground"
+		       description="Комментарий"
+		       source="extra-parameters/parameter[@name='ground']/@value"
+		       type="string"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Комментарий] не должна превышать 200 символов"/>
+					<parameter name="regexp">^.{1,200}$</parameter>
+				</validator>
+			</validators>
+		</field>
+	</fields>
+</payment-form>

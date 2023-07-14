@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+	<typedef name="CommissionBase" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.loans.CommissionBase</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+	<class name="ru.softlab.phizicgate.rsloansV64.loans.LoanInfoImpl">
+		<id column="id" type="long"/>
+		<property name="firstDelayPenalty" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType"
+		          insert="false" update="false">
+		    <column name="firstDelayPenaltyVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="secondDelayPenalty" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType"
+		          insert="false" update="false">
+		    <column name="secondDelayPenaltyVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="thirdDelayPenalty" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType"
+		          insert="false" update="false">
+		    <column name="thirdDelayPenaltyVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="commissionRate"/>
+		<property name="commissionBase" type="CommissionBase"/>
+	</class>
+
+	<sql-query name="GetLoanInfo">
+	    <return alias="loans" class="ru.softlab.phizicgate.rsloansV64.loans.LoanInfoImpl">
+	        <return-property name="id" column="id"/>
+		    <return-property name="firstDelayPenalty">
+				<return-column name="firstDelayPenaltyVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+			<return-property name="secondDelayPenalty">
+				<return-column name="secondDelayPenaltyVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+			<return-property name="thirdDelayPenalty">
+				<return-column name="thirdDelayPenaltyVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+			<return-property name="commissionRate" column="commissionRate"/>
+			<return-property name="commissionBase" column="commissionBase"/>
+		</return>
+    	<![CDATA[
+    	SELECT
+    	 credit.T_CREDITNUMBER as id
+    	,claim.GetUsFiledValue(7, credit.t_credittypeid_ref, 15014) as firstDelayPenaltyVal
+    	,claim.GetUsFiledValue(7, credit.t_credittypeid_ref, 15015) as secondDelayPenaltyVal
+    	,claim.GetUsFiledValue(7, credit.t_credittypeid_ref, 15016) as thirdDelayPenaltyVal
+    	,claim.GetUsFiledValue(7, credit.t_credittypeid_ref, 15001) as commissionRate
+    	,claim.GetUsFiledValue(7, credit.t_credittypeid_ref, 15003) as commissionBase
+    	,credit.t_curcode as AmountCur
+    	FROM
+    	    dcredit_c_dbt credit
+    	WHERE
+    	    credit.t_creditnumber = :loanId
+		]]>
+	</sql-query>
+
+</hibernate-mapping>

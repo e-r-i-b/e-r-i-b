@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment name="defaultClientConfig"
+            xmlns="http://xml.apache.org/axis/wsdd/"
+            xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+            xmlns:handler="http://xml.apache.org/axis/wsdd/providers/handler">
+
+ <globalConfiguration>
+   <parameter name="disablePrettyXML" value="true"/>
+   <parameter name="dotNetSoapEncFix" value="true"/>
+   <parameter name="enableNamespacePrefixOptimization" value="false"/>
+ </globalConfiguration>
+
+ <handler type="java:org.apache.axis.handlers.http.URLMapper" name="URLMapper"/>
+ <handler type="java:org.apache.axis.transport.local.LocalResponder" name="LocalResponder"/>
+
+  <service name="TaskWebServicePort" provider="java:RPC" style="document" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://service.task.sbrf.ru"/>
+      <parameter name="wsdlServiceElement" value="TaskWebService"/>
+      <parameter name="schemaQualified" value="http://service.task.sbrf.ru"/>
+      <parameter name="wsdlServicePort" value="TaskWebServicePort"/>
+      <parameter name="className" value="com.rssl.phizic.ermb.migration.list.service.TaskWebServiceImpl"/>
+      <parameter name="wsdlPortType" value="TaskWebService"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="loadClients" qname="loadClients" returnQName="retNS:StatusRs" xmlns:retNS="http://service.task.sbrf.ru" returnType="rtns:>StatusRs" xmlns:rtns="http://service.task.sbrf.ru" >
+        <parameter qname="pns:loadClientsActionRq" xmlns:pns="http://service.task.sbrf.ru" type="tns:>loadClientsActionRq" xmlns:tns="http://service.task.sbrf.ru"/>
+      </operation>
+      <operation name="smsDelivery" qname="smsDelivery" returnQName="retNS:StatusRs" xmlns:retNS="http://service.task.sbrf.ru" returnType="rtns:>StatusRs" xmlns:rtns="http://service.task.sbrf.ru" >
+        <parameter qname="pns:SmsDeliveryActionRq" xmlns:pns="http://service.task.sbrf.ru" type="tns:>SmsDeliveryActionRq" xmlns:tns="http://service.task.sbrf.ru"/>
+      </operation>
+      <parameter name="allowedMethods" value="loadClients smsDelivery"/>
+
+      <arrayMapping
+        xmlns:ns="http://service.task.sbrf.ru"
+        qname="ns:>>SmsDeliveryActionRq>notSendsSegment"
+        type="java:java.lang.String[]"
+        innerType="cmp-ns:string" xmlns:cmp-ns="http://www.w3.org/2001/XMLSchema"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://service.task.sbrf.ru"
+        qname="ns:>StatusRs"
+        type="java:com.rssl.phizic.ermb.migration.list.service.generated.StatusRs"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <arrayMapping
+        xmlns:ns="http://service.task.sbrf.ru"
+        qname="ns:>>SmsDeliveryActionRq>sendsSegment"
+        type="java:java.lang.String[]"
+        innerType="cmp-ns:string" xmlns:cmp-ns="http://www.w3.org/2001/XMLSchema"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://service.task.sbrf.ru"
+        qname="ns:>SmsDeliveryActionRq"
+        type="java:com.rssl.phizic.ermb.migration.list.service.generated.SmsDeliveryActionRq"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://service.task.sbrf.ru"
+        qname="ns:>loadClientsActionRq"
+        type="java:com.rssl.phizic.ermb.migration.list.service.generated.LoadClientsActionRq"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+  </service>
+
+ <transport name="http">
+  <parameter name="qs:list"
+             value="org.apache.axis.transport.http.QSListHandler"/>
+  <parameter name="qs:method"
+             value="org.apache.axis.transport.http.QSMethodHandler"/>
+  <parameter name="qs:wsdl"
+             value="org.apache.axis.transport.http.QSWSDLHandler"/>
+  <requestFlow>
+   <handler type="URLMapper"/>
+   <handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+  </requestFlow>
+ </transport>
+
+ <transport name="local">
+  <responseFlow>
+   <handler type="LocalResponder"/>
+  </responseFlow>
+ </transport>
+</deployment>

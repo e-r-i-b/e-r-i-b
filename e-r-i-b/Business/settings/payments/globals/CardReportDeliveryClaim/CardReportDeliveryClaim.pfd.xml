@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="CardReportDeliveryClaim"
+              description="Заявка на изменение параметров подписки получения отчетов по карте"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+    <implementation class="com.rssl.phizic.business.documents.CardReportDeliveryClaim"/>
+
+    <fields>
+        <field  name="use"
+                description="Использование подписки"
+                type="boolean"
+                subType="static"
+                source="extra-parameters/parameter[@name='use-delivery']/@value">
+        </field>
+
+        <field  name="email"
+                description="Электронный адрес"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='email-delivery']/@value"
+                enabled="form.use == true">
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.EmailFieldValidator"/>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+            </validators>
+        </field>
+
+        <field  name="type"
+                description="Тип подписки"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='type-delivery']/@value"
+                enabled="form.use == true">
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Некорректно выбран тип подписки"/>
+                    <parameter name="regexp">HTML|PDF</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="language"
+                description="Язык подписки"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='language-delivery']/@value"
+                enabled="form.use == true">
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Некорректно выбран тип подписки"/>
+                    <parameter name="regexp">RU|EN</parameter>
+                </validator>
+            </validators>
+        </field>
+    </fields>
+</payment-form>

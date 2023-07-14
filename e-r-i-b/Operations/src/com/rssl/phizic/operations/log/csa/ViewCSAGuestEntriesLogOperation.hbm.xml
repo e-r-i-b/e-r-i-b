@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <resultset name="com.rssl.phizic.operations.log.csa.ViewCSAGuestEntriesLogOperation.list.resultset">
+		<return alias="entry" class="com.rssl.phizic.logging.csaAction.CSAActionGuestLogEntry"/>
+    </resultset>
+
+    <!-- Выборка записей из журнала гостевых входов
+
+    phone?has_content
+
+        Опорный элемент:
+            CSA_GAL_PHONE_IDX
+
+        Предикат доступа: "ENTRY"."PHONE_NUMBER"=:EXTRA_PHONE AND SYS_OP_DESCEND("START_DATE")>=SYS_OP_DESCEND(TO_TIMESTAMP(:EXT
+            RA_TODATE)) AND SYS_OP_DESCEND("START_DATE")<=SYS_OP_DESCEND(TO_TIMESTAMP(:EXTRA_FROMDATE))
+
+        Кардинальность:
+            Не превышает числа входов гостя с заданным номером за указанный период
+
+
+    !phone?has_content && fio?has_content
+
+        Опорный элемент:
+           CSA_GAL_FIO_DATE_IDX
+
+        Предикат доступа:
+           UPPER(REPLACE(REPLACE("SUR_NAME"||"FIRST_NAME"||"PATR_NAME",' ',''),'-','')) LIKE
+               UPPER(REPLACE(REPLACE(:EXTRA_FIO,' ',''),'-','')||'%') AND "ENTRY"."BIRTHDATE"=TO_TIMESTAMP(:EXTRA_BIRTHDAY) AND
+               SYS_OP_DESCEND("START_DATE")>=SYS_OP_DESCEND(TO_TIMESTAMP(:EXTRA_TODATE)) AND
+               SYS_OP_DESCEND("START_DATE")<=SYS_OP_DESCEND(TO_TIMESTAMP(:EXTRA_FROMDATE)))
+
+        Кардинальность:
+            Не превышает числа входов гостя с заданными ФИО и ДР за указанный период
+
+    -->
+	<sql-query name="com.rssl.phizic.operations.log.csa.ViewCSAGuestEntriesLogOperation.list" resultset-ref="com.rssl.phizic.operations.log.csa.ViewCSAGuestEntriesLogOperation.list.resultset"/>
+
+</hibernate-mapping>

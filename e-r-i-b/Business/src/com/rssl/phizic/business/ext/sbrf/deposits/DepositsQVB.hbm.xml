@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVB" table="DEPOSITS_QVB">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_QVB</param>
+            </generator>
+        </id>
+
+        <property name="depositType"                        type="long"         column="QDTN1"      not-null="true"/>
+        <property name="depositSubType"                     type="long"         column="QDTSUB"     not-null="true"/>
+        <property name="foreignCurrency"                    type="boolean"      column="QVAL"       not-null="true"/>
+        <property name="fullName"                           type="string"       column="QDN"        not-null="true"/>
+        <property name="shortName"                          type="string"       column="QSNAME"     not-null="false"/>
+        <property name="typeCode"                           type="long"         column="QTYPE"      not-null="true"/>
+        <property name="dateBegin"                          type="calendar"     column="QOPBEG"     not-null="true"/>
+        <property name="dateEnd"                            type="calendar"     column="QOPEND"     not-null="false"/>
+        <property name="sumInitialFee"                      type="big_decimal"  column="QPFS"       not-null="false"/>
+        <property name="minAdditionalFee"                   type="big_decimal"  column="QMINADD"    not-null="false"/>
+        <property name="minimumBalance"                     type="boolean"      column="QN_RESN"    not-null="false"/>
+        <property name="capitalization"                     type="long"         column="QCAP"       not-null="false"/>
+        <property name="violationCapitalization"            type="long"         column="QCAP_NU"    not-null="false"/>
+        <property name="prolongationCapitalization"         type="long"         column="QCAPN"      not-null="false"/>
+        <property name="balanceType"                        type="long"         column="QPRC"       not-null="false"/>
+        <property name="renewals"                           type="long"         column="QPROL"      not-null="false"/>
+        <property name="renewalProhibition"                 type="calendar"     column="Q_DT_PROL"  not-null="false"/>
+        <property name="rateType"                           type="long"         column="QPRCTAR"    not-null="false"/>
+        <property name="ratePeriodCode"                     type="long"         column="QPRCTYPE"   not-null="false"/>
+        <property name="period"                             type="string"       column="Q_SROK"     not-null="false"/>
+        <property name="residentDeposit"                    type="long"         column="FL_RES"     not-null="true"/>
+        <property name="remotelyOperations"                 type="boolean"      column="Q_PERMIT"   not-null="false"/>
+        <property name="debitOperationsCode"                type="long"         column="Q_EXPENS"   not-null="false"/>
+        <property name="groupCode"                          type="long"         column="Q_GROUP"    not-null="false"/>
+        <property name="cashlessAdditionalFee"              type="big_decimal"  column="Q_MINSD"    not-null="true"/>
+        <property name="chargeOffConditions"                type="long"         column="Q_CDED"     not-null="true"/>
+        <property name="earlyTerminationCapitalization"     type="long"         column="Q_CICET"    not-null="true"/>
+    </class>
+
+    <!--
+        Очистка таблицы DEPOSITS_QVB
+        Опорный объект: DEPOSITS_QVB
+        Предикаты доступа: fullscan
+        Кардинальность: ~750
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVB.deleteAll">
+        delete from com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVB
+    </query>
+
+    <!--
+        Получение названия типа вклада. Для настройки видимости в админке. Требуется общее название для вида вклада (считается, что это название минимального подвида)
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: ("QVB"."QDTN1"=TO_NUMBER(:TYPE) AND "QVB"."QDTSUB"= (SELECT MIN("QVB_SUB"."QDTSUB")
+                      FROM "DEPOSITS_QVB" "QVB_SUB" WHERE "QVB_SUB"."QDTN1"=TO_NUMBER(:TYPE))) AND ("QVB_SUB"."QDTN1"=TO_NUMBER(:TYPE))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVB.getDepositTypeName">
+        <return-scalar column="DEPOSIT_NAME" type="string"/>
+        <![CDATA[
+        SELECT
+            qvb.QDN as DEPOSIT_NAME
+        FROM
+            DEPOSITS_QVB qvb
+        WHERE
+            qvb.QDTN1 = :type AND
+            qvb.QDTSUB = (select min(qvb_sub.QDTSUB) from DEPOSITS_QVB qvb_sub where qvb_sub.QDTN1 = :type)
+        ]]>
+    </sql-query>
+
+    <!--
+        Проверить, доступна ли капитализация для вклада
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: ("QVB"."QDTN1"=TO_NUMBER(:TYPE))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVB.getCapitalization">
+        <return-scalar column="avail" type="int"/>
+        <![CDATA[
+        SELECT
+            1 as avail
+        FROM
+            DEPOSITS_QVB qvb
+        WHERE
+            qvb.QDTN1 = :type AND
+            qvb.QCAP > 0 AND
+            rownum = 1
+        ]]>
+    </sql-query>
+
+    <!--
+        Есть ли у вклада неснижаемый остаток
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: ("QVB"."QDTN1"=TO_NUMBER(:TYPE))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVB.withMinimumBalance">
+        <return-scalar column="MINIMUMBALANCE" type="int"/>
+        <![CDATA[
+                SELECT
+                    QN_RESN AS MINIMUMBALANCE
+                FROM
+                    DEPOSITS_QVB QVB
+                WHERE
+                    QVB.QDTN1 = :type AND
+                    ROWNUM = 1
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

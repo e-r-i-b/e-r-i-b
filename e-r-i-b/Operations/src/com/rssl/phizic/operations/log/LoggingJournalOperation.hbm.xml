@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<resultset name="com.rssl.phizic.operations.log.LoggingJournalOperation.list.resultset">
+        <return alias="lcentry" class="com.rssl.phizic.logging.logon.LogonLogEntry"/>
+		<return-scalar column="confirmType" type="string"/>
+		<return-scalar column="hasTry" type="boolean"/>
+    </resultset>
+    <sql-query name="com.rssl.phizic.operations.log.LoggingJournalOperation.list" resultset-ref="com.rssl.phizic.operations.log.LoggingJournalOperation.list.resultset">
+    </sql-query>
+
+    <!--Журнал регистрации входов  для ЕРКЦ
+        Опорный объект: RL_FIO_DATE_INDEX
+        Предикаты доступа: UPPER(REPLACE(REPLACE("SUR_NAME"||"FIRST_NAME"||"PATR_NAME",' ',''),'-','')) LIKE
+               UPPER(REPLACE(REPLACE(:EXTRA_FIO,' ',''),'-','')||'%') AND SYS_OP_DESCEND("LOGIN_DATE")>=SYS_OP_DESCEND(TO_TIMESTAMP(:E
+               XTRA_TODATE)) AND SYS_OP_DESCEND("LOGIN_DATE")<=SYS_OP_DESCEND(TO_TIMESTAMP(:EXTRA_FROMDATE))
+        Опорный объект: RL_LOGIN_DATE_INDEX
+        Предикаты доступа: "LCENTRY"."LOGIN_ID"=TO_NUMBER(:EXTRA_LOGINID) AND
+               SYS_OP_DESCEND("LOGIN_DATE")>=SYS_OP_DESCEND(TO_TIMESTAMP(:EXTRA_TODATE)) AND
+               SYS_OP_DESCEND("LOGIN_DATE")<=SYS_OP_DESCEND(TO_TIMESTAMP(:EXTRA_FROMDATE))
+    -->
+    <sql-query name="com.rssl.phizic.operations.log.LoggingJournalOperation.list.erkc">
+		<return alias="lcentry" class="com.rssl.phizic.logging.logon.LogonLogEntry"/>
+		<return-scalar column="confirmType" type="string"/>
+		<return-scalar column="hasTry" type="boolean"/>
+        <![CDATA[
+            SELECT
+                lcentry.*,
+                (
+                    SELECT entry.TYPE
+                    FROM OPERATION_CONFIRM_LOG entry
+                    WHERE entry.OPERATION_UID = lcentry.OPERATION_UID AND (entry.STATE='SUCCESSFUL' OR entry.STATE='CONF_SUCCESS') AND ROWNUM = 1
+                ) confirmType,
+                (
+                    SELECT '1'
+                    FROM OPERATION_CONFIRM_LOG entry
+                    WHERE entry.OPERATION_UID = lcentry.OPERATION_UID AND ROWNUM = 1
+                ) hasTry
+            FROM INPUT_REGISTER_JOURNAL lcentry
+            WHERE
+                lcentry.login_date >= :extra_fromDate AND lcentry.login_date <= :extra_toDate
+                AND((
+                        upper(replace(replace(concat(concat(lcentry.SUR_NAME, lcentry.FIRST_NAME), lcentry.PATR_NAME), ' ', ''), '-', '')) like upper(concat(replace(replace(:extra_fio, ' ', ''), '-', ''), '%'))
+                        AND lcentry.BIRTHDAY = :extra_birthday
+                        AND UPPER(REPLACE(lcentry.DOC_SERIES, ' ', '')||REPLACE(lcentry.DOC_NUMBER, ' ', '')) = UPPER(REPLACE(:extra_dul, ' ', ''))
+                    ) OR (
+                        lcentry.LOGIN_ID = :extra_loginId
+                   ))
+                AND (:extra_application IS NULL OR lcentry.APPLICATION = :extra_application)
+            ORDER BY lcentry.login_date DESC
+        ]]>
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class name="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.OfficeImpl" table="DEPARTMENTS" mutable="false">
+        <id name="synchKey" type="string"/>
+
+        <component name="code" class="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.CodeImpl">
+            <property name="id" type="string" column="ID" insert="false" update="false" not-null="true"/>
+        </component>
+
+        <property name="name" type="string" column="NAME"/>
+		<property name="address" type="string" column="POST_ADDRESS"/>
+		<property name="telephone" type="string" column="PHONE"/>
+        <property name="BIC" type="string"/>
+    </class>
+
+    <sql-query
+            name="com.rssl.phizicgate.rsretailV6r20.dictionaries.offices.OfficeImpl.list">
+        <return alias="office" class="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.OfficeImpl">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="code">
+		        <return-column name="fNCash"/>
+		    </return-property>
+	        <return-property name="name" column="tname"/>
+	        <return-property name="address" column="postAdress"/>
+	        <return-property name="telephone" column="phone"/>
+            <return-property name="parentSynchKey" column="parent"/>
+            <return-property name="BIC" column="BIC"/>
+        </return>
+        <![CDATA[
+            SELECT
+                l.t_fncash                  AS FNCash,
+                REPLACE(pa.t_name, chr(1), '') AS tname,
+                REPLACE(adr.t_adress, chr(1), '') AS postAdress,
+                REPLACE(adr.t_phonenumber, chr(1), '') AS phone,
+                CASE WHEN d.t_parentcode = 0 THEN NULL ELSE d.t_parentcode END AS parent,
+                CONNECT_BY_ROOT oc.t_Code AS BIC
+            FROM
+                dlistfdep_dbt  l
+                JOIN ddp_dep_dbt  d on l.t_fncash = d.t_code
+                JOIN dparty_dbt  pa on pa.t_partyid = d.t_partyid
+                JOIN dadress_dbt adr on adr.t_partyid = d.t_partyid and adr.t_type = 1
+                LEFT OUTER JOIN dobjcode_dbt oc on oc.t_ObjectType = 3 and oc.t_CodeKind = 3 and oc.t_ObjectID = d.t_PartyID
+           WHERE
+                NOT (CONNECT_BY_ROOT oc.t_Code IS NULL)
+                AND (:extra_name is null or :extra_name = '' or upper(pa.t_name) like upper(:extra_like_name))
+           START WITH d.t_code = l.t_fncash
+           CONNECT BY PRIOR d.t_Code =  d.t_ParentCode and (oc.T_CODE IS null)
+           ORDER BY l.t_fNCash
+        ]]>
+    </sql-query>
+
+    <sql-query
+            name="com.rssl.phizicgate.rsretailV6r20.dictionaries.offices.OfficeImpl.findById">
+        <return alias="office" class="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.OfficeImpl">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="code">
+		        <return-column name="fNCash"/>
+		    </return-property>
+	        <return-property name="name" column="tname"/>
+	        <return-property name="address" column="postAdress"/>
+	        <return-property name="telephone" column="phone"/>
+            <return-property name="parentSynchKey" column="parent"/>
+            <return-property name="BIC" column="BIC"/>
+        </return>
+        <![CDATA[
+            SELECT
+                l.t_fncash                  AS FNCash,
+                REPLACE(pa.t_name, chr(1), '') AS tname,
+                REPLACE(adr.t_adress, chr(1), '') AS postAdress,
+                REPLACE(adr.t_phonenumber, chr(1), '') AS phone,
+                CASE WHEN d.t_parentcode = 0 THEN NULL ELSE d.t_parentcode END AS parent,
+                CONNECT_BY_ROOT oc.t_Code AS BIC
+            FROM
+                dlistfdep_dbt  l
+                JOIN ddp_dep_dbt  d on l.t_fncash = d.t_code
+                JOIN dparty_dbt  pa on pa.t_partyid = d.t_partyid
+                JOIN dadress_dbt adr on adr.t_partyid = d.t_partyid and adr.t_type = 1
+                LEFT OUTER JOIN dobjcode_dbt oc on oc.t_ObjectType = 3 and oc.t_CodeKind = 3 and oc.t_ObjectID = d.t_PartyID
+           WHERE
+                NOT (CONNECT_BY_ROOT oc.t_Code IS NULL)
+                AND l.t_fncash = :extra_fnCash
+           START WITH d.t_code = l.t_fncash
+           CONNECT BY PRIOR d.t_Code =  d.t_ParentCode and (oc.T_CODE IS null)
+           ORDER BY l.t_fNCash
+         ]]>
+    </sql-query>
+</hibernate-mapping>

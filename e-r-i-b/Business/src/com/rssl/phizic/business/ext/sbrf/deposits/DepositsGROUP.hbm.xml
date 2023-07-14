@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsGROUP" table="DEPOSITS_QVB_GROUP">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_QVB_GROUP</param>
+            </generator>
+        </id>
+
+        <property name="groupCode"      type="long"         column="GR_CODE"        not-null="true"/>
+        <property name="groupName"      type="string"       column="GR_NAME"        not-null="true"/>
+    </class>
+
+    <!--
+        Очистка таблицы DEPOSITS_QVB_GROUP
+        Опорный объект: DEPOSITS_QVB_GROUP
+        Предикаты доступа: fullscan
+        Кардинальность: ~30
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsGROUP.deleteAll">
+        delete from com.rssl.phizic.business.ext.sbrf.deposits.DepositsGROUP
+    </query>
+
+    <!--
+        Поиск названия вклада по коду группы
+        Опорный объект: DEPOSITS_QVB_GROUP
+        Предикаты доступа: fullscan
+        Кардинальность: ~30
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsGROUP.findNameByGroupCode">
+        <return-scalar column="NAME" type="string"/>
+        <![CDATA[
+            SELECT GR.GR_NAME AS NAME
+            FROM DEPOSITS_QVB_GROUP GR
+            WHERE GR.GR_CODE = :groupCode
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

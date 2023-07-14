@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.loans.kinds.LoanKind" table="LOAN_KINDS" abstract="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_LOAN_KINDS</param>
+            </generator>
+        </id>
+
+        <property name="name"             type="string"  column="NAME"              not-null="true"/>
+	    <property name="calculator"       type="boolean" column="CALCULATOR"        not-null="false"/>
+	    <property name="target"           type="boolean" column="TARGET"            not-null="false"/>
+        <property name="description"      type="string"  column="DESCRIPTION"       not-null="false"/>
+	    <property name="claimDescription" type="text"    column="CLAIM_DESCRIPTION" not-null="false"/>
+	    <property name="detailsTemplate"  type="text"    column="DETAILS_TEMPLATE"  not-null="false"/>
+        <property name="upperName"             type="string"  column="UPPER_NAME"   not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.loans.kinds.LoanKind.findByFilter">
+        select kind
+        from com.rssl.phizic.business.loans.kinds.LoanKind as kind
+        where (:kindId is null or kind.id = :kindId)
+    </query>
+</hibernate-mapping>

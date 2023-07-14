@@ -1,0 +1,44 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef  name="SynchronizationState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.synchronization.information.SynchronizationState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.synchronization.information.SynchronizationStateEntity"
+           table="DICTIONARY_SYNCH_STATE"
+           mutable="false">
+        <composite-id>
+            <key-property name="lastUpdateId"   type="long"                 column="LAST_UPDATE_ID"/>
+            <key-property name="lastUpdateDate" type="calendar"             column="LAST_UPDATE_DATE"/>
+            <key-property name="state"          type="SynchronizationState" column="STATE"/>
+            <key-property name="errorCount"     type="long"                 column="ERROR_COUNT"/>
+        </composite-id>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.synchronization.information.doWait">
+        <![CDATA[
+        merge into DICTIONARY_SYNCH_STATE dic using DUAL on (exists(select * from DICTIONARY_SYNCH_STATE))
+        when     matched then update set dic.STATE = 'WAIT' where dic.STATE = 'UPDATED' or (dic.STATE = 'ERROR' and (:extra_synchronizationMode = 'HARD' or ERROR_COUNT < :extra_maxErrorCount))
+        when not matched then insert values (null, null, 'WAIT', 0) where not exists(select * from DICTIONARY_SYNCH_STATE)
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.synchronization.information.doProcess">
+        update DICTIONARY_SYNCH_STATE set STATE = 'PROCESS' where STATE = 'WAIT'
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.synchronization.information.doUpdate">
+        update DICTIONARY_SYNCH_STATE set LAST_UPDATE_ID = :extra_lastUpdateId, LAST_UPDATE_DATE = :extra_lastUpdateDate where STATE = 'PROCESS'
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.synchronization.information.doUpdated">
+        update DICTIONARY_SYNCH_STATE set STATE = 'UPDATED', ERROR_COUNT = 0 where STATE = 'PROCESS'
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.synchronization.information.doError">
+        update DICTIONARY_SYNCH_STATE set STATE = 'ERROR', ERROR_COUNT = ERROR_COUNT + 1 where STATE = 'PROCESS'
+    </sql-query>
+</hibernate-mapping>

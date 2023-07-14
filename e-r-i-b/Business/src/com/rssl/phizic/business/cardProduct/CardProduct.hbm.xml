@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="CardProductType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.cardProduct.CardProductType</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.cardProduct.CardProduct" table="CARD_PRODUCTS" polymorphism="explicit">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CARD_PRODUCTS</param>
+            </generator>
+        </id>
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="type" type="CardProductType" column="TYPE" not-null="true"/>
+        <property name="online" type="boolean" column="IS_ONLINE" not-null="false"/>
+        <bag name="kindOfProducts" table="CARD_PRODUCT_KINDS" cascade="none" access="field"
+             lazy="false" fetch="subselect" order-by="PRODUCT_KIND_ID asc">
+            <key column="CARD_PRODUCT_ID" not-null="true"/>
+            <many-to-many column="PRODUCT_KIND_ID"
+                class="com.rssl.phizic.business.ext.sbrf.dictionaries.CASNSICardProduct"/>
+        </bag>
+        <property name="stopOpenDate" type="calendar" column="STOP_OPEN_DATE" not-null="false"/>
+    </class>
+
+    <!-- Обновить максимальную дату закрытия вида карточных продуктов, у которых дата модификации входящих в них
+         видов карточных продуктов  равна сегодняшней дате (без учета времени)
+     -->    
+    <query name="com.rssl.phizic.business.cardProduct.CardProduct.getModificationProducts">
+        select product from com.rssl.phizic.business.cardProduct.CardProduct product
+        where product in (
+            select kindsCardProducts from  com.rssl.phizic.business.cardProduct.CardProduct kindsCardProducts
+            left join kindsCardProducts.kindOfProducts kinds 
+            where  kinds.lastUpdateDate >= :current_date
+        )
+    </query>
+
+    <!-- количество активных карточных продуктов -->
+    <query name="com.rssl.phizic.business.cardProduct.CardProduct.countActiveCardProduct" read-only="true">
+        select count(product)
+        from com.rssl.phizic.business.cardProduct.CardProduct as product
+        where product.type = :type
+            and product.online = :online
+            and (product.stopOpenDate >= :date)
+    </query>
+</hibernate-mapping>

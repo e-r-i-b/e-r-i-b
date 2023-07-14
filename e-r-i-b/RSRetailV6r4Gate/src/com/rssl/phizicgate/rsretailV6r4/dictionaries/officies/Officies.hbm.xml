@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class name="com.rssl.phizicgate.rsretailV6r4.dictionaries.officies.OfficeImpl" table="DEPARTMENTS" mutable="false">
+        <id name="synchKey" type="string"/>
+
+        <component name="code" class="com.rssl.phizicgate.rsretailV6r4.dictionaries.officies.CodeImpl">
+            <property name="id" type="string" column="ID" insert="false" update="false" not-null="true"/>
+        </component>
+
+        <property name="name"      type="string"          column="NAME"/>
+		<property name="address"   type="string"          column="POST_ADDRESS"/>
+		<property name="telephone" type="string"          column="PHONE"/>
+        <property name="BIC" type="string"/>
+    </class>
+
+    <sql-query name="com.rssl.phizicgate.rsretailV6r4.dictionaries.officies.OfficeImpl.list">
+        <return alias="office" class="com.rssl.phizicgate.rsretailV6r4.dictionaries.officies.OfficeImpl">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="code">
+		        <return-column name="fNCash"/>
+		    </return-property>
+	        <return-property name="name"     column="tname"/>
+	        <return-property name="address"   column="postAdress"/>
+	        <return-property name="telephone" column="phone"/>
+            <return-property name="BIC" column="BIC"/>
+        </return>
+        <![CDATA[
+        SELECT
+            dep.t_FNCash     AS fNCash,
+			REPLACE(t_Desc, CHR(1),'') AS     tname,
+			REPLACE(t_PostAdress,CHR(1),'') AS postAdress,
+			REPLACE(t_Phone,CHR(1),'')  AS phone,
+            part.T_CODE AS BIC
+	    FROM dlistfdep_dbt dep
+        JOIN DPARTCODE_DBT part ON part.T_CODEKIND = 3 AND part.T_PARTYID = RSB_KERNEL.GetSelfId()
+        WHERE
+            (:extra_name is null or :extra_name = '' or upper(dep.t_Desc) like upper(:extra_like_name))
+	    ORDER BY fNCash
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizicgate.rsretailV6r4.dictionaries.officies.OfficeImpl.findById">
+        <return alias="office" class="com.rssl.phizicgate.rsretailV6r4.dictionaries.officies.OfficeImpl">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="code">
+		        <return-column name="fNCash"/>
+		    </return-property>
+	        <return-property name="name"     column="tname"/>
+	        <return-property name="address"   column="postAdress"/>
+	        <return-property name="telephone" column="phone"/>
+            <return-property name="BIC" column="BIC"/>
+        </return>
+        <![CDATA[
+        SELECT
+            dep.t_FNCash     AS fNCash,
+			REPLACE(t_Desc, CHR(1),'') AS     tname,
+			REPLACE(t_PostAdress,CHR(1),'') AS postAdress,
+			REPLACE(t_Phone,CHR(1),'')  AS phone,
+            part.T_CODE AS BIC
+	    FROM dlistfdep_dbt dep
+        JOIN DPARTCODE_DBT part ON part.T_CODEKIND = 3 AND part.T_PARTYID = RSB_KERNEL.GetSelfId()
+	    where dep.t_FNCash = :extra_fnCash
+	    ORDER BY fNCash
+        ]]>
+    </sql-query>
+</hibernate-mapping>

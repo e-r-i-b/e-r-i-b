@@ -1,0 +1,268 @@
+/**
+ * IdentityCardType.java
+ *
+ * This file was auto-generated from WSDL
+ * by the Apache Axis 1.4 Apr 22, 2006 (06:55:48 PDT) WSDL2Java emitter.
+ */
+
+package com.rssl.phizic.etsm.listener.generated;
+
+
+/**
+ * ДУЛ
+ */
+public class IdentityCardType  implements java.io.Serializable {
+    private java.lang.String idType;
+
+    private java.lang.String idSeries;
+
+    private java.lang.String idNum;
+
+    private java.lang.String idIssueBy;
+
+    private java.util.Date idIssueDate;
+
+    public IdentityCardType() {
+    }
+
+    public IdentityCardType(
+           java.lang.String idType,
+           java.lang.String idSeries,
+           java.lang.String idNum,
+           java.lang.String idIssueBy,
+           java.util.Date idIssueDate) {
+           this.idType = idType;
+           this.idSeries = idSeries;
+           this.idNum = idNum;
+           this.idIssueBy = idIssueBy;
+           this.idIssueDate = idIssueDate;
+    }
+
+
+    /**
+     * Gets the idType value for this IdentityCardType.
+     * 
+     * @return idType
+     */
+    public java.lang.String getIdType() {
+        return idType;
+    }
+
+
+    /**
+     * Sets the idType value for this IdentityCardType.
+     * 
+     * @param idType
+     */
+    public void setIdType(java.lang.String idType) {
+        this.idType = idType;
+    }
+
+
+    /**
+     * Gets the idSeries value for this IdentityCardType.
+     * 
+     * @return idSeries
+     */
+    public java.lang.String getIdSeries() {
+        return idSeries;
+    }
+
+
+    /**
+     * Sets the idSeries value for this IdentityCardType.
+     * 
+     * @param idSeries
+     */
+    public void setIdSeries(java.lang.String idSeries) {
+        this.idSeries = idSeries;
+    }
+
+
+    /**
+     * Gets the idNum value for this IdentityCardType.
+     * 
+     * @return idNum
+     */
+    public java.lang.String getIdNum() {
+        return idNum;
+    }
+
+
+    /**
+     * Sets the idNum value for this IdentityCardType.
+     * 
+     * @param idNum
+     */
+    public void setIdNum(java.lang.String idNum) {
+        this.idNum = idNum;
+    }
+
+
+    /**
+     * Gets the idIssueBy value for this IdentityCardType.
+     * 
+     * @return idIssueBy
+     */
+    public java.lang.String getIdIssueBy() {
+        return idIssueBy;
+    }
+
+
+    /**
+     * Sets the idIssueBy value for this IdentityCardType.
+     * 
+     * @param idIssueBy
+     */
+    public void setIdIssueBy(java.lang.String idIssueBy) {
+        this.idIssueBy = idIssueBy;
+    }
+
+
+    /**
+     * Gets the idIssueDate value for this IdentityCardType.
+     * 
+     * @return idIssueDate
+     */
+    public java.util.Date getIdIssueDate() {
+        return idIssueDate;
+    }
+
+
+    /**
+     * Sets the idIssueDate value for this IdentityCardType.
+     * 
+     * @param idIssueDate
+     */
+    public void setIdIssueDate(java.util.Date idIssueDate) {
+        this.idIssueDate = idIssueDate;
+    }
+
+    private java.lang.Object __equalsCalc = null;
+    public synchronized boolean equals(java.lang.Object obj) {
+        if (!(obj instanceof IdentityCardType)) return false;
+        IdentityCardType other = (IdentityCardType) obj;
+        if (obj == null) return false;
+        if (this == obj) return true;
+        if (__equalsCalc != null) {
+            return (__equalsCalc == obj);
+        }
+        __equalsCalc = obj;
+        boolean _equals;
+        _equals = true && 
+            ((this.idType==null && other.getIdType()==null) || 
+             (this.idType!=null &&
+              this.idType.equals(other.getIdType()))) &&
+            ((this.idSeries==null && other.getIdSeries()==null) || 
+             (this.idSeries!=null &&
+              this.idSeries.equals(other.getIdSeries()))) &&
+            ((this.idNum==null && other.getIdNum()==null) || 
+             (this.idNum!=null &&
+              this.idNum.equals(other.getIdNum()))) &&
+            ((this.idIssueBy==null && other.getIdIssueBy()==null) || 
+             (this.idIssueBy!=null &&
+              this.idIssueBy.equals(other.getIdIssueBy()))) &&
+            ((this.idIssueDate==null && other.getIdIssueDate()==null) || 
+             (this.idIssueDate!=null &&
+              this.idIssueDate.equals(other.getIdIssueDate())));
+        __equalsCalc = null;
+        return _equals;
+    }
+
+    private boolean __hashCodeCalc = false;
+    public synchronized int hashCode() {
+        if (__hashCodeCalc) {
+            return 0;
+        }
+        __hashCodeCalc = true;
+        int _hashCode = 1;
+        if (getIdType() != null) {
+            _hashCode += getIdType().hashCode();
+        }
+        if (getIdSeries() != null) {
+            _hashCode += getIdSeries().hashCode();
+        }
+        if (getIdNum() != null) {
+            _hashCode += getIdNum().hashCode();
+        }
+        if (getIdIssueBy() != null) {
+            _hashCode += getIdIssueBy().hashCode();
+        }
+        if (getIdIssueDate() != null) {
+            _hashCode += getIdIssueDate().hashCode();
+        }
+        __hashCodeCalc = false;
+        return _hashCode;
+    }
+
+    // Type metadata
+    private static org.apache.axis.description.TypeDesc typeDesc =
+        new org.apache.axis.description.TypeDesc(IdentityCardType.class, true);
+
+    static {
+        typeDesc.setXmlType(new javax.xml.namespace.QName("http://generated.listener.etsm.phizic.rssl.com", "IdentityCardType"));
+        org.apache.axis.description.ElementDesc elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("idType");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://generated.listener.etsm.phizic.rssl.com", "IdType"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"));
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+        elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("idSeries");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://generated.listener.etsm.phizic.rssl.com", "IdSeries"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"));
+        elemField.setMinOccurs(0);
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+        elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("idNum");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://generated.listener.etsm.phizic.rssl.com", "IdNum"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"));
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+        elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("idIssueBy");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://generated.listener.etsm.phizic.rssl.com", "idIssueBy"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"));
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+        elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("idIssueDate");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://generated.listener.etsm.phizic.rssl.com", "idIssueDate"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "date"));
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+    }
+
+    /**
+     * Return type metadata object
+     */
+    public static org.apache.axis.description.TypeDesc getTypeDesc() {
+        return typeDesc;
+    }
+
+    /**
+     * Get Custom Serializer
+     */
+    public static org.apache.axis.encoding.Serializer getSerializer(
+           java.lang.String mechType, 
+           java.lang.Class _javaType,  
+           javax.xml.namespace.QName _xmlType) {
+        return 
+          new  org.apache.axis.encoding.ser.BeanSerializer(
+            _javaType, _xmlType, typeDesc);
+    }
+
+    /**
+     * Get Custom Deserializer
+     */
+    public static org.apache.axis.encoding.Deserializer getDeserializer(
+           java.lang.String mechType, 
+           java.lang.Class _javaType,  
+           javax.xml.namespace.QName _xmlType) {
+        return 
+          new  org.apache.axis.encoding.ser.BeanDeserializer(
+            _javaType, _xmlType, typeDesc);
+    }
+
+}

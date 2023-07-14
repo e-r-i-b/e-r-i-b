@@ -1,0 +1,35 @@
+--ЦСА Админ
+--ручной перенос
+select 'alter index ' || TABLE_OWNER || '.' || INDEX_NAME || ' rebuild tablespace CSA_ADM_IDX;' instruction from USER_INDEXES where INDEX_TYPE!='LOB';
+--массовый перенос скриптом
+begin 
+  for rec in (
+    select 'alter index ' || TABLE_OWNER || '.' || INDEX_NAME || ' rebuild tablespace CSA_ADM_IDX' instruction from USER_INDEXES where INDEX_TYPE!='LOB'
+  ) loop
+    execute immediate rec.instruction;
+  end loop;
+end;
+
+--ЦСА Einvoicing
+--ручной перенос
+select 'alter index ' || TABLE_OWNER || '.' || INDEX_NAME || ' rebuild tablespace EINVOICING_IDX;' instruction from USER_INDEXES where INDEX_TYPE!='LOB';
+--массовый перенос скриптом
+begin 
+  for rec in (
+    select 'alter index ' || TABLE_OWNER || '.' || INDEX_NAME || ' rebuild tablespace EINVOICING_IDX' instruction from USER_INDEXES where INDEX_TYPE!='LOB'
+  ) loop
+    execute immediate rec.instruction;
+  end loop;
+end;
+
+--ЦСА Offline doc
+--ручной перенос
+select 'alter index ' || TABLE_OWNER || '.' || INDEX_NAME || ' rebuild tablespace OFFLINE_DOC_IDX;' instruction from USER_INDEXES where INDEX_TYPE!='LOB';
+--массовый перенос скриптом
+begin 
+  for rec in (
+    select 'alter index ' || TABLE_OWNER || '.' || INDEX_NAME || ' rebuild tablespace OFFLINE_DOC_IDX' instruction from USER_INDEXES where INDEX_TYPE!='LOB'
+  ) loop
+    execute immediate rec.instruction;
+  end loop;
+end;

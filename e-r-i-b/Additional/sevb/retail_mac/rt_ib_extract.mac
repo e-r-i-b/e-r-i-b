@@ -1,0 +1,749 @@
+/****************************************************************
+
+  R-Style Software Lab.
+
+  RS-Retail 2.1.184.00
+
+  Выписка по счету. Форма 204-с.
+
+ 18.04.2006 SAV - Изменена форма выписки согласно заявке 2303
+ 15.06.2006 Понтяр Т.А. оптимизация макроса RSD, добавлено ФИО 
+            управляющего и гл.бухгалтера в конце выписки
+
+ 23.06.2006 KIN по требованию отдела вкладов убраны ФИО управляющего 
+            и гл.бухгалтера в конце выписки.
+ 04.07.2006 SAV - Адапртирована для печати на ТМ (ID 2451)
+            исправлены ошибки - дата предыдушей операции, входящий остаток, 
+            пропуск первой операции в цикле.
+ 06.03.2007 Петров - Исключение сторнированных и служебных операций
+ 15.05.2007 ALR - увеличено поле вывода номера документа
+*****************************************************************/
+/* 
+    -------------------
+      ИСХОДНЫЕ ДАННЫЕ  
+    -------------------
+
+Элемент сообщения         Тип           Комментарий
+------------------------------------------------------------------------------------------------------------
+request        
++-id                      string(32)    Идентификатор запроса в системе  ИКФЛ  
+L-getCompleteAccountAbstract_q         
+  +-fromDate              bdate         Дата, с которой надо получить информацию.
+  +-toDate                bdate         Дата, по которую надо получить информацию.              
+  +-getExtendedAbstract   string(16)    Признак того, что необходима справка о состоянии счета
+  L-accountReferenc       int32         Референс счета в  Retail
+
+
+    -------------------
+          ОТВЕТ
+    -------------------
+
+Элемент сообщения               Тип           Комментарий 
+------------------------------------------------------------------------------------------------------------
+response       
++-parentId                      string(32)    Идентификатор запроса в системе  ИКФЛ
++-id                            string(32)    Идентификатор ответа   
+L-getAccountTransactions_a
+  +-previousOperationDate       string(32)    Дата предыдущей операции по счету
+  +-interestRate                double        Процентная ставка
+  +-closedDate                  string(32)    Дата закрытия счета (этого эл.нет, если счет открыт)                      
+  +-closedSum                   lmoney        Сумма, выплаченная при закрытии счета       
+  +-transactions
+  │ L-transaction                                                                                      [0:n]
+  │   +-date                                  Дата операции
+  │   +-transactionCurrencyId                 Код валюты операции
+  │   +-creditSum               lmoney        Сумма прихода
+  │   +-debitSum                lmoney        Сумма расхода
+  │   +-documentNumber          string(10)    Номер документа операции
+  │   +-balance                 lmoney        Остаток вклада
+  │   +-counteragentAccount                   Корреспондирующий счет
+  │   L-description                           Основание операции
+  │
+  │
+  +-incomingRest                lmoney        Входящий остаток на момент начала выписки    
+  +-outcomingRest               lmoney        Исходящий остаток                        
+  +-totalInSum                  lmoney        Обороты по дебету
+  +-totalOutSum                 lmoney        Обороты по кредиту 
+  +-trustees
+    L-trustee
+      +-fullName                string(64)    ФИО доверенного лица    
+      +-endingDate              string(32)    Дата окончания доверенности
+      +-daysToEndingDate        string(16)    Количество дней до истечения срока действия доверенности
+  +-additionalInformation       string(64)    Дополнительная информация
+  
+*/
+
+import Rsexts, BankInter, Cb_Sql, User_GBA, OperCode, SqlConv,GetDocs,DeprIntr,IsSrvDoc,Календарь,deprintr;
+import cur_rate;
+import "rt_ib_xml.mac";
+
+var
+  fil = TBFile ( "listfdep.dbt", "r", 0 ), 
+  dtp = TBFile ( "sb_dtyp.dbt",  "r", 2 ), 
+  opr = TBFile ( "person.dbt",   "r", 0, "person.dbt", "bank.def" ), 
+  cur = TBFile ( "currency.dbt", "r", 0 ), 
+  dep = TBFile ( "depositr.dbt", "r", 8 ), 
+  doc = TBFile ( "sbdepdoc.dbt", "r", 6 ), 
+  sop = TBFile ( "suboper.dbt",  "r", 1 ),
+  trs = TBFile( "sbtrast.dbt",  "r", 0 );
+
+
+var depclnt = TClientList; /* Справочник вкладчиков */
+private var SQLStr,Set,SetR,sInSum=0;
+var scAcc,
+    scTran,
+    scLink,
+    scCard;
+
+
+const cRub = 0;  /* Код Российского рубля */
+const NatISO = "рублях";  /* Название национальной валюты */
+const NatRub = " руб. ", NatKop = " коп.";
+const NationalCurrency = 0;
+
+/* Значения doc->TypeOper для операций закрытия счета - выплаченная сумма */
+const OP_OUT         =  4;  /* Расход */
+const OP_GETCON      = 62;  /* -------- простое списание */
+const OP_CHDTYPE     = 78;  /* Перевод в другой вид вклада */
+const OP_WILL_GIVE   = 99;  /* Выдача наследства */
+
+/* Значения doc->TypeOper для операций открытия счета */
+const OP_OPENCAS =  1; /* наличными */
+/*const OP_OPENNCS = 51;*/ /* безналичными */
+const OP_OPENTRN = 58; /* переводом */    
+
+const SB_DEPOSIT = 1;
+
+const NullDate = date( 0, 0, 0 );
+
+const TRAST_DOC = "\x00";  /* Признак доверенности в sbtrast.dbt */
+
+const DateNull = date( 0, 0, 0 );
+
+var Rate= -1; //процентная ставка по счету
+
+var xmlId; // id ответа
+var fileIsOpen = false;
+
+macro GetQuart
+
+  var
+    Q,
+    Year,
+    Mon;
+
+  DateSplit( doc.rec.Date_Document, null, Mon, Year );
+
+  if ( Mon == 3 )
+    Q = 1;
+  elif ( Mon == 6 )
+    Q = 2;
+  elif ( Mon == 9 )
+    Q = 3;
+  else
+    Q = 4;
+  end;
+  return Q + "-й квартал " + Year + " года";
+end;
+
+/*****************************************************************
+               Процедуры для работы с xml "вручную"
+*****************************************************************/
+
+macro redirectOutputToFile(extFile)
+   setoutput(extFile, false);
+   open(extFile);
+   fileIsOpen = true;
+end;
+
+macro closeOutputFile(extFile)
+   close(extFile);
+   setoutput(null, true);
+   fileIsOpen = false;
+end;
+
+macro startTag(name)
+/* открывающий тэг */
+   print("<"+name+">");
+end;
+
+macro endTag(name)
+/* закрывающий тэг */
+   print("</"+name+">");
+end;
+
+macro createTagWithData(name, value)
+/* тэг с данными */
+   startTag(name);
+   print(value);
+   endTag(name);
+end;
+
+macro startXml(extFile)
+/* создание нового xml-файла */
+   redirectOutputToFile(extFile);
+   startTag("response");
+
+   createTagWithData("parentId", ParentId);
+   createTagWithData("id", xmlId);
+end;
+
+macro endXml(extFile)
+/* закрытие xml-файла */
+   endTag("response");
+   closeOutputFile(extFile);
+end;
+
+macro createErrorXml(extFile, mes)
+/* xml-файл с ответом-ошибкой */
+   if (fileIsOpen)
+      closeOutputFile(extFile);
+   end;
+   startXml(extFile);
+   startTag("error_a");
+
+   createTagWithData("code", "ERROR_VALIDATE");
+   createTagWithData("message", String(mes));
+
+   endTag("error_a");
+   endXml(extFile);
+end;
+
+macro processFile(extFile)
+/* обработка результата успешного выполнения макроса */
+   var outXml = "";
+   File extractFile (extFile) txt;
+   if (open(extractFile, extFile))
+      while (next(extractFile))
+         outXml = outXml + extractFile.str;
+      end;
+      close(extractFile);
+   end;
+   return outXml;
+end;
+
+/*****************************************************************
+               Определение кода национальной валюты
+*****************************************************************/
+macro NatCur()
+
+  var retCur;
+
+  cur.KeyNum = 1;
+  cur.rec.ExternalCode = NationalCurrency;
+  if ( cur.getEQ )
+    retCur = cur.rec.Code_Currency;
+  else
+    retCur = -1;
+  end;
+
+  cur.KeyNum = 0;
+
+  return retCur;
+
+end;
+
+/*****************************************************************
+                    Получение подоперации
+******************************************************************/
+macro GetSubOper
+  var SubOp;
+  if ( ( set.value("T_TypeOper") != 0 )  AND  ( set.value("T_ApplType") != 0 ) )
+    sop.rec.IsCur    = set.value("T_IsCur");
+    sop.rec.Kind     = set.value("T_Type_Account");
+    sop.rec.OperType = set.value("T_TypeOper");
+    sop.rec.Type     = set.value("T_ApplType");
+    if(sop.GetEQ)
+      SubOp=" ("+sop.rec.Name+")";
+    else
+      SubOp="";
+    end;
+  else
+    SubOp="";
+  end;
+  return SubOp;
+end;
+
+
+/*****************************************************************
+            Найти карточный счет и основную карту
+******************************************************************/
+macro findCardAccount( referenc )
+
+  var oldKeyNum,
+      retValue = false;
+
+  scAcc.rewind(); scAcc.clear();
+  scAcc.rec.Referenc = referenc;
+  if( scAcc.getEQ() )
+    oldKeyNum = scLink.keyNum;
+    scLink.keyNum = 6;
+    scLink.rewind(); scLink.clear();
+    scLink.rec.cardAccRef = referenc;
+    scLink.rec.mainCard   = "X";
+    if( ( scLink.getGE()        == true     ) and
+        ( scLink.rec.cardAccRef == referenc ) and
+        ( scLink.rec.mainCard   == "X"      )    )
+      scCard.rewind(); scCard.clear();
+      scCard.rec.FNCash  = scLink.rec.FNCash;
+      scCard.rec.cardRef = scLink.rec.cardRef;
+      if( scCard.getEQ() )
+        retValue = true;
+      end;
+    end;
+    scLink.keyNum = oldKeyNum;
+  end;
+
+  return retValue;
+
+end;
+
+/*****************************************************************
+                        Фильтр по записям
+******************************************************************/
+macro Filter( dc )
+  var mustBePrinted = TRUE;
+  if ( ( set.value("T_FlagStorn") != StrFor(0) )  OR
+       ( ( set.value("T_TypeOper") == Перевод_В_Другой_Вид_Вклада )  AND
+         set.value("T_ApplType" ) ))
+    mustBePrinted = FALSE;
+  end;
+  if ( ( set.value("T_InSum") == $0 ) AND ( set.value("T_OutSum") == $0 ) )
+    mustBePrinted = FALSE;
+  end;
+  return mustBePrinted;
+end; 
+
+macro GetAccount
+
+  record parm( "GetBkAcc.rec" );
+  record dd( "sbdepdoc.dbt" );
+  var
+    Op;
+  if ( set.value("T_ApplType") != 0 )
+    Op = set.value("T_TypeOper") * 1000 +set.value("T_ApplType");
+  else
+    Op = set.value("T_TypeOper");
+  end;
+
+  clearRecord( parm );
+  parm.ApplDoc = SB_DEPOSIT;
+  parm.TypeOper = Op;
+  parm.Kind = set.value("T_Type_Account");
+  parm.FNCash = set.value("T_FNCash");
+  parm.IsCur = set.value("T_IsCur");
+  parm.CodCur = set.value("T_Code_Currency");
+
+  CopyRSetToFBuff(dd, Set);
+  userGetBookAccounts( parm, NULL, dd );
+ 
+  if ( ( dd.InSum > $0 ) and ( parm.DebetAcc != "" ) )
+      return parm.DebetAcc;
+  elif ( ( dd.OutSum > $0 ) and ( parm.CreditAcc != "" ) )
+      return parm.CreditAcc;
+  elif ( ( dd.InSum > $0 ) or ( ( dd.OutSum > $0 ) ) )
+    return "Счет не определен";
+  else
+    return "";
+  end;
+end;
+
+/*****************************************************************
+       Получение суммы, выплаченной по вкладу при закрытии
+*****************************************************************/
+macro Get_Close_Sum()
+  var vCloseSum = 0.0;
+  var stat;
+
+  doc.Clear;
+  doc.rec.Referenc      = dep.rec.Referenc;
+  doc.rec.Date_Document = Date(31,12,9999);
+  doc.rec.NumDayDoc     = 32000;
+
+  doc.addFilter( "t.t_referenc = " + string( dep.rec.Referenc ) +
+                 " and t.t_typeoper in ( " + string( OP_OUT ) + ", " +
+                                             string( OP_GETCON ) + ", " +
+                                             string( OP_GETPOR ) + ", " +
+                                             string( OP_GETLPR ) + ", " +
+                                             string( OP_GETIN ) + ", " +
+                                             string( OP_GETOWN ) + ", " +
+                                             string( OP_GETALIEN ) + ", " +
+                                             string( OP_CONVERT ) + ", " +
+                                             string( OP_CHDTYPE ) + ", " +
+                                             string( OP_WILL_GIVE ) + " )" );
+
+  stat = doc.getLE;
+
+  while ( stat  AND  ( doc.rec.Referenc == dep.rec.Referenc ) )
+    if ( ( doc.rec.TypeOper == OP_OUT       )  OR  /* Расход */
+         ( doc.rec.TypeOper == OP_GETCON    )  OR  /* -------- простое списание */
+         ( doc.rec.TypeOper == OP_GETPOR    )  OR  /* -------- по поручению (разовому) */
+         ( doc.rec.TypeOper == OP_GETLPR    )  OR  /* -------- по поручению длительному */
+         ( doc.rec.TypeOper == OP_GETIN     )  OR  /* -------- переводом вклада */
+         ( doc.rec.TypeOper == OP_GETOWN    )  OR  /* -------- в свой филиал */
+         ( doc.rec.TypeOper == OP_GETALIEN  )  OR  /* -------- в чужой филиал */
+         ( doc.rec.TypeOper == OP_CONVERT   )  OR  /* -------- б\н покупка или конверсия валют */
+         ( doc.rec.TypeOper == OP_CHDTYPE   )  OR  /* Перевод в другой вид вклада */
+         ( doc.rec.TypeOper == OP_WILL_GIVE ) )    /* Выдача наследства */
+      vCloseSum = doc.rec.OutSum;
+      stat = FALSE;
+    else
+      stat = doc.Prev;
+    end;
+  end;
+
+  doc.dropFilter;
+
+  return vCloseSum;
+end;
+/*****************************************************************
+   2. Сведения о закрытии вклада
+      ( если вклад закрыт в указанном периоде )
+*****************************************************************/
+macro CloseAccountInfo( pCloseDate, pCloseSum )
+  var vCloseDate;
+  var vCloseSum;
+
+  vCloseDate = dep.rec.Close_Date;
+
+  if ( dep.rec.Close_Date == DateNull )
+    vCloseSum = ""; //пустая выплаченная сумма будет преобразована в null в джаве
+  else
+    vCloseSum = Get_Close_Sum();
+  end;
+
+  SetParm( 0, String( vCloseDate ) );
+  SetParm( 1, String( vCloseSum:0:2 ) );
+end;
+
+ // ────────────────────────────────────────────────────────────
+  // Определение процентной ставки счета
+  // ────────────────────────────────────────────────────────────
+  macro DefineRateForAccount(referenc, objecttype, realdate, rest )
+
+    var stat = 0;
+
+    var cmd_rate;
+    cmd_rate = RsdCommand("{ ? = call rpcc.GetRateForAccount( ?, ?, ?, ?, ? ) }");
+    cmd_rate.addParam( "RetVal",     RSDBP_RETVAL, V_INTEGER );
+    cmd_rate.addParam( "referenc",   RSDBP_IN );                 cmd_rate.value("referenc")     = referenc;
+    cmd_rate.addParam( "objecttype", RSDBP_IN );                 cmd_rate.value("objecttype")   = objecttype;
+    cmd_rate.addParam( "realdate",   RSDBP_IN );                 cmd_rate.value("realdate")     = realdate;
+    cmd_rate.addParam( "rest",       RSDBP_IN );                 cmd_rate.value("rest")         = rest;
+
+    cmd_rate.addParam( "rate",       RSDBP_OUT,    V_STRING  );
+
+    cmd_rate.execute;
+
+    stat = cmd_rate.value( "RetVal" ); 
+    if ( stat == 1 )
+      Rate = cmd_rate.value("rate");
+      stat = 0;
+    else
+      stat = 3649;
+    end;
+    
+    return stat;  
+
+  onError
+    return 20101;
+  end;//DefineRateForAccount(referenc, objecttype, realdate, rest )
+
+  macro AddError2OutXml( outXML, code, mes )
+  var nodeAnswer,node;
+    if(not outXML)
+      outXML = createOutXML("error_a", "code", "ERROR_VALIDATE", "message", mes );
+    else
+      node = nodeAnswer.appendChild( outXML.createNode(1, "errorCode", "") );
+      node.text = code;
+      if ( mes != "" )
+        node = nodeAnswer.appendChild( outXML.createNode(1, "errorText", "") );
+        node.text = mes;
+      end;
+
+    end;
+   
+    return outXML;
+  end;
+
+
+/*****************************************************************
+
+                  Основная процедура выписки
+                  
+записываем в xml следующие данные:                   date                дата проведения операции 
+        documentNumber      номер документа
+        operationCode       вид операции
+        operationName       наименование операции
+        debitSum            сумма операции по дт. сч.
+        creditSum           сумма операции по кр.сч
+        counteragentAccount номер корреспондирующего счета
+        cardNumber          номер карты 
+        
+******************************************************************/
+macro Extract(inXml, outXml)
+
+   macro fillTransaction(sDate, iCurrencyId,iDocNum, operationCode, GroundN, outSum, inSum, balance, sCorrAccount)
+
+      startTag("transaction");
+
+      createTagWithData("date",                  sDate);
+      createTagWithData("transactionCurrencyId", iCurrencyId);
+      createTagWithData("documentNumber",        iDocNum);
+      createTagWithData("operationCode",         operationCode);
+      createTagWithData("description",           GroundN);
+      createTagWithData("creditSum",             inSum);
+      createTagWithData("debitSum",              outSum);
+      createTagWithData("balance",               balance);
+      createTagWithData("counteragentAccount",   sCorrAccount);
+
+      endTag("transaction");
+   end;
+   
+   /*****************************************************************
+                      Цикл по доверенностям
+   *****************************************************************/
+   macro Get_Trasts( pDateStartStat, pDateFinishStat )
+        var vTrastFIO, vTrastDate, vTrastDays;
+        var stat;
+        var nodeTrustee, node;
+
+        trs.Clear;
+        trs.rec.Referenc  = dep.rec.Referenc;
+        trs.rec.VidDoc    = TRAST_DOC;
+
+        trs.addFilter( "t.t_Referenc = " + string( dep.rec.Referenc ) +
+                " and t.t_VidDoc = " + sqlChar( TRAST_DOC ) );
+
+        stat = trs.GetGE;
+
+          if ( ( NOT stat )  OR
+                ( trs.rec.Referenc != dep.rec.Referenc )  OR
+                 ( trs.rec.VidDoc   != TRAST_DOC ) )
+                /*нет доверенностей*/
+                return;
+          end;
+
+        while ( stat  AND
+                  ( trs.rec.Referenc == dep.rec.Referenc )  AND
+                  ( trs.rec.VidDoc   == TRAST_DOC    ) )
+
+                if ( depclnt.GetRecord( trs.rec.CodClient ) )
+                        vTrastFIO = Trim( depclnt.CurRec.rec.Name1 ) + " " +
+                        SubStr( Trim( depclnt.CurRec.rec.Name2 ), 1, 1 ) + "." +
+                        SubStr( Trim( depclnt.CurRec.rec.Name3 ), 1, 1 ) + ".";
+                else
+                        vTrastFIO = "";
+                end;
+
+                vTrastDate = String( trs.rec.CloseDate );
+
+                if ( trs.rec.CloseDate > {curdate} )
+                        vTrastDays = NDays( {curdate}, trs.rec.CloseDate );
+                else
+                        vTrastDays = 0;
+                end;
+
+                if ( ( trs.rec.DateOpen  <= pDateFinishStat )  AND
+                        ( trs.rec.CloseDate >= pDateStartStat ) )
+
+                        startTag("trustee");
+
+                        createTagWithData("fullName",         vTrastFIO);
+                        createTagWithData("endingDate",       vTrastDate);
+                        createTagWithData("daysToEndingDate", vTrastDays);
+
+                        endTag("trustee");
+                end;
+
+                stat = trs.Next;
+
+        end;
+
+        trs.dropFilter;
+   end;
+  
+   var accountReferenceXml = inXml.documentElement.selectSingleNode("//accountReferenc"); 
+   var getExtendedInfoXml  = inXml.documentElement.selectSingleNode("//getExtendedAbstract");
+   var fromDateXml = inXml.documentElement.selectSingleNode("//fromDate" ).text;
+   var toDateXml   = inXml.documentElement.selectSingleNode("//toDate" ).text;
+   var fromDate    = Date(fromDateXml);
+   var toDate      = Date(toDateXml);
+   var ref, getExtendedInfo = false;
+   var query, rs;
+   var stat,rateStat, 
+          totalOutSum = $0.00, totalInSum = $0.00, outcomeRest = $0.00, incomingRest = $0.00,
+          sDate;
+        
+   /* Определение кода национальной валюты */
+   var cNatCur = NatCur();
+
+   var sDate_Document = "";   // дата предыдущей операции по счету
+
+
+   var sCloseDate, sCloseSum; /*дата закрытия вклада, сумма, выплаченная при закрытии*/ 
+
+
+   var TextDir = GetRegVal( "RS-RETAIL\\INI\\ДИРЕКТОРИИ\\TEXTDIR", true );
+   var extFile = TextDir + "extract." + String( UserNumber() );
+
+   redirectOutputToFile(extFile);
+   xmlId = FormApplicationKey(1);
+
+   if (accountReferenceXml)
+      ref = int(accountReferenceXml.text);
+   else
+      createErrorXml(extFile, "не задан референс счета");
+      
+      outXml = processFile(extFile);
+      setParm(1, outXml);
+      return;
+
+   end;
+
+      if (getExtendedInfoXml)
+         getExtendedInfo = true;   /*todo может быть, нужно проверять содержимое переданного параметра ? (вдруг зададут false)*/
+      end;
+
+      /* Чтение записи счета    */        
+      dep.rec.Referenc = ref;
+      if ( NOT dep.GetEQ )
+         createErrorXml(extFile, "Не найдена запись счета с Reference="+ref);
+
+         outXml = processFile(extFile);
+         setParm(1, outXml);
+         return;
+
+      end;
+
+      startXml(extFile);
+      
+      startTag("getAccountTransactions_a");
+
+      /* Чтение записи вида вклада */
+      dtp.rec.FlagCur = dep.rec.IsCur;
+      dtp.rec.Kind    = dep.rec.Type_Account;
+      if ( NOT dtp.GetEQ )
+         dtp.rec.Name = "???";
+      end;
+
+        /* карточные счета не рассматриваем */
+        if( index( dep.rec.UserTypeAccount, "К" ) != 0 )
+                scAcc  = TBFile( "scAcc.dbt",  "R", 0, "scAcc.dbt",  "spcard.def" );
+                scTran = TBFile( "scTran.dbt", "R", 0, "scTran.dbt", "spcard.def" );
+                scLink = TBFile( "scLink.dbt", "R", 0, "scLink.dbt", "spcard.def" );
+                scCard = TBFile( "scCard.dbt", "R", 0, "scCard.dbt", "spcard.def" );
+                if( findCardAccount( dep.rec.Referenc ) )
+                        createErrorXml(extFile, "Недопустимый счет");
+
+                        outXml = processFile(extFile);
+                        setParm(1, outXml);
+                        return;
+
+                end;
+        end;
+        
+        /* Дата предыдущей операции по счету*/
+        /* Также получаем остатки,  на случай если не было транзакций. Они равны остатку предыдущей транзакции.*/
+        SQLStr = " Select d.t_Rest as t_rest, to_char(d.t_Date_document,'dd.mm.yyyy') as t_date_document "+
+                   " from dsbdepdoc_dbt d where d.t_Referenc = " + string( Ref ) +
+                "      and d.t_Date_Document <" + sqlDateToStr( fromDate ) +
+                " order by d.t_Date_Document desc";
+        Set = RsdRecordSet(SQLStr);
+        if (set.Movenext)
+                sDate_Document = set.value("t_Date_Document");
+                incomingRest = set.value("t_Rest");
+                outcomeRest = incomingRest;
+        end;
+
+            createTagWithData("previousOperationDate", sDate_Document);
+
+
+        /* Сведения о закрытии вклада ( если вклад закрыт в указанном периоде ) */
+         CloseAccountInfo( sCloseDate, sCloseSum );
+         /*if (sCloseDate != DateNull)*/
+
+            createTagWithData("closedDate", sCloseDate);
+
+            createTagWithData("closedSum", sCloseSum);
+    
+         /*end;*/
+        /*********************** основная информация о транзакциях *****************/
+
+            startTag("transactions");
+
+        SQLStr = " Select d.*,replace(d.t_ground,Chr(1),' ') as Ground "+
+             " from dsbdepdoc_dbt d Where d.t_Referenc = " + string( Ref ) +
+             " and d.t_Date_Document between " + sqlDateToStr(fromDate) + " and " + sqlDateToStr(toDate) +
+             " and d.t_typeoper NOT IN (38, 39)" +
+             " and d.t_kindop NOT IN (8, 9, 14, 15, 16)" +
+             " and d.t_action NOT IN (2, 11)" +
+             " order by d.t_date_document, d.t_numdaydoc ";
+
+        Set = RsdRecordSet(SQLStr);
+        stat = set.MoveNext;
+        if (stat)
+        
+                incomingRest = set.value("T_Rest") - set.value("T_InSum") + set.value("T_OutSum");
+                
+
+		/*** процентная ставка ***/
+		rateStat =  DefineRateForAccount( ref, 2001, fromDate, set.value("T_Rest"));
+          	if ( rateStat != 0 )
+            		outXml = AddError2OutXml(outXml, rateStat, getErrorString(rateStat));
+          	else                
+                	/*собственно, цикл по транзакциям*/
+	                while (stat)
+        	         if (Filter( doc ) )
+                	        totalOutSum = totalOutSum + set.value("T_OutSum");
+                        	totalInSum  = totalInSum  + set.value("T_InSum");
+	                        outcomeRest = set.value("T_Rest");
+
+        	           if (set.value("T_Date_Document") == set.value("T_DepDate_Document") )
+                                sDate = String( set.value("T_Date_Document"));
+              	           else
+                                sDate = String( set.value("T_Date_Document") ) + "/" +
+                                String( set.value("T_DepDate_Document") );
+                           end;       
+                	                        
+                           fillTransaction(sDate, set.value("T_Code_Currency") ,set.value("T_OrderNum"),set.value("T_TypeOper"), set.value("Ground")+GetSubOper(), set.value("T_OutSum"), set.value("T_InSum"), set.value("T_Rest"), GetAccount);
+          
+                           stat = set.MoveNext;  
+                	 else
+                           stat = set.MoveNext;
+                	 end; 
+              		end; /*end of цикл по транзакциям*/
+               end;
+                   
+         end;
+
+         endTag("transactions");
+         
+         createTagWithData("interestRate", string(Rate:0:2));
+
+         createTagWithData("incomingRest", incomingRest);
+         
+         createTagWithData("outcomingRest", outcomeRest);
+
+         createTagWithData("totalInSum", totalInSum);
+
+         createTagWithData("totalOutSum", totalOutSum);
+
+/******************* доверенности ***************************/         
+
+         startTag("trustees");
+            Get_Trasts( fromDate, toDate );
+         endTag("trustees");
+         
+         createTagWithData("additionalInformation", "");
+
+      endTag("getAccountTransactions_a");
+
+   endXml(extFile);
+    
+   outXml = processFile(extFile);
+
+   SetParm(1, outXml);
+
+    
+end; 

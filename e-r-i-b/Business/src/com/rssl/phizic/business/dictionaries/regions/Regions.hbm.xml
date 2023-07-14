@@ -1,0 +1,49 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.regions.Region" table="REGIONS">
+        <id name="id" type="long">
+			<generator class="com.rssl.phizic.dataaccess.common.counters.AssignedOrSequenceGenerator">
+            	<param name="sequence">S_REGIONS</param>
+			</generator>
+		</id>
+
+        <property name="synchKey"   type="string"       column="CODE"   not-null="true"/>
+        <property name="uuid"       type="string"       column="UUID"   not-null="true"/>
+        <property name="name"       type="string"       column="NAME"   not-null="true"/>
+        <property name="codeTB"     type="string"       column="CODE_TB"/>
+        <property name="providerCodeMAPI" type="string" column="PROVIDER_CODE_MAPI"/>
+        <property name="providerCodeATM" type="string"  column="PROVIDER_CODE_ATM"/>
+
+        <many-to-one name="parent" class="com.rssl.phizic.business.dictionaries.regions.Region" column="PARENT_ID"
+                     fetch="join"  lazy="false" not-null="false"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.dictionaries.regions.Region.findBySynchKey">
+        select region
+        from com.rssl.phizic.business.dictionaries.regions.Region as region
+        where region.synchKey = :synchKey
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.regions.Region.getAll">
+        select region
+        from com.rssl.phizic.business.dictionaries.regions.Region as region
+        order by region.synchKey
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.regions.Region.getAllRegionsForReplicate">
+        select region
+        from com.rssl.phizic.business.dictionaries.regions.Region as region
+        order by region.id, region.parent.id
+    </query>    
+
+    <!--Добавление региона (для 'живого' поиска)-->
+    <sql-query name="com.rssl.phizic.business.dictionaries.regions.Region.addRegion">
+        insert into regions (id, code, name, parent_id, code_tb)
+           values (:id, :synchKey, :name, :extra_parent_id, :codeTB)
+    </sql-query>
+
+
+</hibernate-mapping>

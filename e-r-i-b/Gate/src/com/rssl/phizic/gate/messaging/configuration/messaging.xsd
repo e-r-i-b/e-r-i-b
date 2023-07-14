@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+            jxb:version="1.0">
+	<xsd:element name="messaging-config">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="request" type="Request" maxOccurs="unbounded" minOccurs="0">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<jxb:property name="requests"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="Request">
+		<xsd:sequence>
+			<xsd:element name="response" type="Response" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="responses"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="attribute" maxOccurs="unbounded" minOccurs="0" type="Attribute">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="attributes"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="name" use="required" type="xsd:string"/>
+		<xsd:attribute name="endpoint" type="xsd:string"/>
+		<xsd:attribute name="subsystem" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>Подсистема, для задания доп. инфо по обработке запроса</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+        <xsd:attribute name="cacheKeyClass" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>Полное имя класса для вычисления ключа кеша</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="Response">
+		<xsd:attribute name="name" use="required" type="xsd:string"/>
+	</xsd:complexType>
+	<xsd:complexType name="Attribute">
+		<xsd:attribute name="name" use="required"/>
+		<xsd:attribute name="value" use="required"/>
+	</xsd:complexType>
+</xsd:schema>

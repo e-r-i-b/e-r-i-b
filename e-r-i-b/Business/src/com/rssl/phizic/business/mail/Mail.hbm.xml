@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="MailDirection" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.mail.MailDirection</param>
+	</typedef>
+
+    <typedef name="MailType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.mail.MailType</param>
+	</typedef>
+
+    <typedef name="MailState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.mail.MailState</param>
+    </typedef>
+
+    <typedef name="MailRecipientType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.mail.RecipientType</param>
+	</typedef>
+
+     <typedef name="MailResponceMethod" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.mail.MailResponseMethod</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.mail.Mail" table="MAIL">
+
+        <id name="id" type="long">
+         <generator class="com.rssl.phizic.dataaccess.common.counters.AssignedOrSequenceGenerator">
+          <param name="sequence">S_MAIL</param>
+         </generator>
+        </id>
+
+        <property name="parentId"       type="long"           column="PARENT_ID"      not-null="false"/>
+	    <property name="type"           type="MailType"       column="TYPE"           not-null="false"/>
+        <property name="state"          type="MailState"      column="STATE"          not-null="true"/>
+        <property name="responseMethod" type="MailResponceMethod" column="RESPONSE_METHOD" not-null="true"/>
+	    <property name="subject"        type="string"         column="SUBJECT"        not-null="false"/>
+	    <property name="body"           type="text"           column="BODY"           not-null="false"/>
+	    <property name="date"           type="calendar"       column="CREATION_DATE"  not-null="true"/>
+	    <many-to-one name="sender"      class="com.rssl.phizic.auth.CommonLogin"      column="SENDER_ID"  lazy="false" not-null="true"/>
+        <many-to-one name="employee"    class="com.rssl.phizic.auth.CommonLogin"      column="EMPLOYEE_ID" lazy="false" not-null="false"/>
+	    <property name="direction"      type="MailDirection"  column="DIRECTION"      not-null="false"/>
+        <property name="recipientType"  type="MailRecipientType"  column="RECIPIENT_TYPE" not-null="false"/>
+        <property name="recipientName"  type="string"         column="RECIPIENT_NAME" not-null="false"/>
+        <property name="recipientId"        type="long"           column="RECIPIENT_ID"   not-null="false"/>
+	    <property name="num"            type="long"           column="NUM"            not-null="false"/>        
+        <property name="phone"          type="string"         column="PHONE"          not-null="false"/>
+        <property name="email"          type="string"         column="E_MAIL"          not-null="false"/>
+        <property name="important"      type="boolean"        column="IMPORTANT"      not-null="false"/>
+        <property name="data" type="com.rssl.phizic.dataaccess.hibernate.BlobType" column="ATTACH" not-null="false"/>
+        <property name="fileName"       type="string"         column="FILE_NAME"      not-null="false"/>
+	    <property name="deleted"        type="boolean"        column="DELETED"        not-null="true"/>
+        <property name="show"           type="boolean"        column="IS_SHOW"        not-null="true"/>
+        <property name="responseTime"   type="long"           column="RESPONSE_TIME"  not-null="false"/>
+        <many-to-one name="theme"       class="com.rssl.phizic.business.mail.MailSubject" column="SUBJECT_ID" lazy="false" not-null="false"/>
+	</class>
+
+    <class name="com.rssl.phizic.gate.mail.IncomeMailListEntity">
+        <id name="id"/>
+        <property name="state"              type="string"/>
+        <property name="stateDescription"   type="string"/>
+        <property name="type"               type="string"/>
+        <property name="typeDescription"    type="string"/>
+        <property name="creationDate"       type="calendar"/>
+        <property name="responseMethod"     type="string"/>
+        <property name="theme"              type="string"/>
+        <property name="tb"                 type="string"/>
+        <property name="area"               type="string"/>
+        <property name="employeeFIO"        type="string"/>
+        <property name="employeeUserId"     type="string"/>
+        <property name="number"             type="long"/>
+        <property name="subject"            type="string"/>
+        <property name="senderFIO"          type="string"/>
+        <property name="senderId"           type="long"/>
+    </class>
+
+    <class name="com.rssl.phizic.gate.mail.OutcomeMailListEntity">
+        <id name="id"/>
+        <property name="state"              type="string"/>
+        <property name="stateDescription"   type="string"/>
+        <property name="type"               type="string"/>
+        <property name="typeDescription"    type="string"/>
+        <property name="creationDate"       type="calendar"/>
+        <property name="responseMethod"     type="string"/>
+        <property name="theme"              type="string"/>
+        <property name="tb"                 type="string"/>
+        <property name="area"               type="string"/>
+        <property name="employeeFIO"        type="string"/>
+        <property name="employeeUserId"     type="string"/>
+        <property name="number"             type="long"/>
+        <property name="subject"            type="string"/>
+        <property name="recipientFIO"       type="string"/>
+        <property name="recipientId"        type="long"/>
+    </class>
+
+    <class name="com.rssl.phizic.gate.mail.RemovedMailListEntity">
+        <id name="id"/>
+        <property name="state"                  type="string"/>
+        <property name="stateDescription"       type="string"/>
+        <property name="type"                   type="string"/>
+        <property name="typeDescription"        type="string"/>
+        <property name="creationDate"           type="calendar"/>
+        <property name="responseMethod"         type="string"/>
+        <property name="theme"                  type="string"/>
+        <property name="tb"                     type="string"/>
+        <property name="area"                   type="string"/>
+        <property name="employeeFIO"            type="string"/>
+        <property name="employeeUserId"         type="string"/>
+        <property name="number"                 type="long"/>
+        <property name="subject"                type="string"/>
+        <property name="recipientName"          type="string"/>
+        <property name="directionDescription"   type="string"/>
+    </class>
+
+
+    <class name="com.rssl.phizic.business.mail.MailEnumLoader" table="MAIL_ENUMS_DICTIONARY">
+        <composite-id>
+            <key-property name="code" column="CODE" type="string"/>
+            <key-property name="enumName" column="ENUM_NAME" type="string"/>
+        </composite-id>
+        <property name="description" type="string" column="DESCRIPTION"/>        
+    </class>
+
+	<sql-query name="com.rssl.phizic.business.mail.getNewImportantClientMails">
+        <return alias="mail" class="com.rssl.phizic.business.mail.Mail"/>
+		select {mail.*}
+          from
+                MAIL mail
+                LEFT JOIN RECIPIENTS recipient ON mail.ID = recipient.MAIL_ID
+          where mail.DIRECTION = 'CLIENT'
+                and mail.IMPORTANT = '1'
+                and recipient.RECIPIENT_ID = :recipient_id
+                and recipient.RECIPIENT_TYPE='PERSON'
+                and recipient.STATE = 'NEW'
+	</sql-query>
+
+
+    <query name="com.rssl.phizic.business.mail.getMailDraftByParentId">
+        select mail
+        from
+             com.rssl.phizic.business.mail.Mail mail
+        where
+             mail.parentId = :parentId and (mail.state = :state)
+    </query>
+
+
+    <sql-query name="com.rssl.phizic.business.mail.getCorrespondence.oracle">
+        <return alias="correspondence" class="com.rssl.phizic.business.mail.Mail"/>
+        <![CDATA[
+        SELECT {correspondence.*}
+           FROM MAIL correspondence
+           WHERE correspondence.state = 'NEW'
+           START WITH correspondence.id in (:mailId)
+           CONNECT BY PRIOR correspondence.parent_id = correspondence.id
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.mail.getCountCorrespondence.oracle">
+        <return-scalar column="counter" type="long"/>
+        <![CDATA[
+        SELECT count(*) counter
+           FROM MAIL correspondence
+           WHERE correspondence.state = 'NEW'
+           START WITH correspondence.id in (:mailId)
+           CONNECT BY PRIOR correspondence.parent_id = correspondence.id
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.mail.setDefaultSubjectId">
+        UPDATE  com.rssl.phizic.business.mail.Mail mail
+        SET mail.theme = :defaultTheme
+        WHERE mail.theme = :theme
+    </query>
+</hibernate-mapping>

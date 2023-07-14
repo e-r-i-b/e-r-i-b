@@ -1,0 +1,55 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="BasketIdentSystemIdType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.userDocuments.DocumentType</param>
+    </typedef>
+
+    <typedef name="BasketAttributeSystemIdType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+            <param name="enumClass">com.rssl.phizic.business.dictionaries.basketident.AttributeSystemId</param>
+        </typedef>
+
+    <typedef name="BasketAttributeDataTypeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+            <param name="enumClass">com.rssl.phizic.business.dictionaries.basketident.AttributeDataType</param>
+        </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.basketident.BasketIndetifierType" table="IDENT_TYPE_FOR_DEPS ">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_IDENT_TYPE_FOR_DEPS</param>
+            </generator>
+        </id>
+        <property name="name"           type="string"                   column="NAME"      not-null="true"/>
+        <property name="systemId"       type="BasketIdentSystemIdType"  column="SYSTEM_ID" not-null="true"/>
+        <property name="uuid"           type="string"                   column="UUID"      />
+        <map name="attributes" table="ATTRIBUTES_FOR_IDENT_TYPES" cascade="all" lazy="false" batch-size="5">
+   		    <key column="IDENT_ID" not-null="true"/>
+   		    <map-key column="SYSTEM_ID" type="string"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.basketident.AttributeForBasketIdentType"/>
+   	    </map>
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.basketident.AttributeForBasketIdentType" table="ATTRIBUTES_FOR_IDENT_TYPES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_IDENT_TYPE_FOR_DEPS</param>
+            </generator>
+        </id>
+
+        <property name="identId"    type="long"                         column="IDENT_ID"  not-null="true" insert="false" update="false"/>
+        <property name="systemId"   type="BasketAttributeSystemIdType"  column="SYSTEM_ID" not-null="true" insert="false" update="false"/>
+        <property name="name"       type="string"                       column="NAME"      not-null="true"/>
+        <property name="dataType"   type="BasketAttributeDataTypeType"  column="DATA_TYPE" not-null="true"/>
+        <property name="regexp"     type="string"                       column="REG_EXP"/>
+        <property name="mandatory"  type="boolean"                      column="MANDATORY" not-null="true"/>
+        <property name="uuid"       type="string"                       column="UUID"      />
+    </class>
+
+    <query name="com.rssl.phizic.business.dictionaries.basketident.findBySystemId">
+        select basketType from com.rssl.phizic.business.dictionaries.basketident.BasketIndetifierType basketType
+        where basketType.systemId = :systemId
+    </query>
+
+</hibernate-mapping>

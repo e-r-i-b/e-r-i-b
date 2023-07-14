@@ -1,0 +1,1285 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        >
+
+    <!--
+        Схема xml файла репликации биллинговых поставщиков услуг.
+
+        В настоящее время существует 2 типа xml файлов репликации биллинговых поставщиков услуг, исходя из требований
+        данная схема объединяет структуру обоих файлов, там где возможна двойственность источника - см. коментарий.
+        Качество данных проверяется в бизнесе см. ServiceProviderSAXLoader.java
+            -->
+
+    <xsd:element name="RecipientList" >
+		<xsd:complexType>
+			<xsd:choice>
+                <xsd:element ref="FullLoad"     maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="PartialLoad"  maxOccurs="1"   minOccurs="0"/>
+			</xsd:choice>
+            <xsd:attribute name="version" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+    <xsd:element name="FullLoad">
+        <xsd:annotation>
+            <xsd:documentation>
+                Полная репликация поставщиков услуг
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="Billing" type="BillingType"  maxOccurs="unbounded"   minOccurs="1"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="PartialLoad">
+        <xsd:annotation>
+            <xsd:documentation>
+                Частичная загрузка
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:choice>
+                <xsd:element ref="UpdateLoad"   maxOccurs="1"   minOccurs="1"/>
+                <xsd:element ref="DeleteLoad"   maxOccurs="1"   minOccurs="1"/>
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="UpdateLoad">
+        <xsd:annotation>
+            <xsd:documentation>
+                Частичная репликация поставщиков услуг
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="Billing" type="BillingType"  maxOccurs="unbounded"   minOccurs="1"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="DeleteLoad">
+        <xsd:annotation>
+            <xsd:documentation>
+                Репликация удаления поставщиков услуг
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="Billing" type="BillingType"  maxOccurs="unbounded"   minOccurs="1"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="BillingType">
+        <xsd:choice maxOccurs="unbounded"   minOccurs="0">
+            <xsd:element ref="CodeBS"           maxOccurs="1"           minOccurs="1"/>
+            <xsd:element name="DefaultValues"   maxOccurs="1"           minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Поля по умолчанию
+                        </xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="Recipient"   maxOccurs="1"   minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:all>
+                                        <xsd:element ref="StatusRecipient"      minOccurs="0"/>
+                                        <xsd:element ref="ServiceType"          minOccurs="0"/>
+                                        <xsd:element ref="CodeService"          minOccurs="0"/>
+                                        <xsd:element name="Regions"             minOccurs="0">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <xsd:element name="Region"  maxOccurs="unbounded"   minOccurs="0">
+                                                        <xsd:annotation>
+                                                            <xsd:documentation>
+                                                                В старом формате используется поле CodeRegion, в новом TER, KOD1
+                                                            </xsd:documentation>
+                                                        </xsd:annotation>
+                                                        <xsd:complexType>
+                                                            <xsd:all>
+                                                                <xsd:element ref="CodeRegion"   minOccurs="0"/>
+                                                                <xsd:element ref="TER"          minOccurs="0"/>
+                                                                <xsd:element ref="KOD1"         minOccurs="0"/>
+                                                            </xsd:all>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        <xsd:element name="PaymentRecipient"    minOccurs="0">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <xsd:element name="PaymentCodeOffice"       maxOccurs="1"   minOccurs="1">
+                                                        <xsd:annotation>
+                                                            <xsd:documentation>
+                                                                В старом формате используется само поле PaymentCodeOffice, в новом TB, OSB
+                                                            </xsd:documentation>
+                                                        </xsd:annotation>
+                                                        <xsd:complexType mixed="true">
+                                                            <xsd:sequence>
+                                                                <xsd:element ref="TB"           maxOccurs="1"   minOccurs="0"/>
+                                                                <xsd:element ref="OSB"          maxOccurs="1"   minOccurs="0"/>
+                                                            </xsd:sequence>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        <xsd:element ref="AllowPayments"        minOccurs="0"/>
+                                        <xsd:element ref="IsPropsOnline"        minOccurs="0"/>
+                                        <xsd:element ref="IsBankDetails"        minOccurs="0"/>
+                                        <xsd:element ref="IsMobileBank"         minOccurs="0"/>
+                                        <xsd:element ref="IsDebt"               minOccurs="0"/>
+                                        <xsd:element ref="IsPopular"            minOccurs="0"/>
+                                        <xsd:element ref="Commission"           minOccurs="0"/>
+                                        <xsd:element ref="Ground"               minOccurs="0"/>
+                                        <xsd:element name="Attributes"          minOccurs="0">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <xsd:element name="Attribute" maxOccurs="1" minOccurs="1">
+                                                        <xsd:complexType>
+                                                            <xsd:all>
+                                                                <xsd:element ref="IsRequired"   minOccurs="0"/>
+                                                                <xsd:element ref="IsEditable"   minOccurs="0"/>
+                                                                <xsd:element ref="IsVisible"    minOccurs="0"/>
+                                                                <xsd:element ref="IsSum"        minOccurs="0"/>
+                                                                <xsd:element ref="IsKey"        minOccurs="0"/>
+                                                            </xsd:all>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:all>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            <xsd:element name="Recipient"       maxOccurs="unbounded"   minOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Реплицируемый поставщик услуг
+                        </xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:all>
+                            <xsd:element ref="CodeRecipientSBOL"        minOccurs="0"/>
+                            <xsd:element ref="CodeRecipientBS"          minOccurs="0"/>
+                            <xsd:element ref="NameService"              minOccurs="0"/>
+                            <xsd:element ref="GrpServices"              minOccurs="0"/>
+                            <xsd:element ref="Alias"                    minOccurs="0"/>
+                            <xsd:element ref="LegalName"                minOccurs="0"/>
+                            <xsd:element ref="NameOnBill"               minOccurs="0"/>
+                            <xsd:element ref="INN"                      minOccurs="0"/>
+                            <xsd:element ref="KPP"                      minOccurs="0"/>
+                            <xsd:element ref="NotVisibleBankDetails"    minOccurs="0"/>
+                            <xsd:element ref="NotVisibleInHierarchy"    minOccurs="0"/>
+                            <xsd:element ref="VisiblePaymentsForInternetBank"    minOccurs="0"/>
+                            <xsd:element ref="VisiblePaymentsForMApi"   minOccurs="0"/>
+                            <xsd:element ref="VisiblePaymentsForAtmApi" minOccurs="0"/>
+	                        <xsd:element ref="AvailablePaymentsForInternetBank"    minOccurs="0"/>
+                            <xsd:element ref="AvailablePaymentsForMApi" minOccurs="0"/>
+                            <xsd:element ref="AvailablePaymentsForAtmApi" minOccurs="0"/>
+                            <xsd:element ref="AvailablePaymentsForErmb" minOccurs="0"/>
+                            <xsd:element ref="PlanForDeactivate"        minOccurs="0"/>
+                            <xsd:element ref="IsFederal"                minOccurs="0"/>
+                            <xsd:element ref="CodeRecipient"            minOccurs="0"/>
+                            <xsd:element ref="StatusRecipient"          minOccurs="0"/>
+                            <xsd:element ref="ServiceType"              minOccurs="0"/>
+                            <xsd:element ref="CodeService"              minOccurs="0"/>
+                            <xsd:element ref="Name"                     minOccurs="0"/>
+                            <xsd:element ref="AllowPayments"            minOccurs="0"/>
+                            <xsd:element ref="IsPropsOnline"            minOccurs="0"/>
+                            <xsd:element ref="IsBankDetails"            minOccurs="0"/>
+                            <xsd:element name="BankDetails"             minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:all>
+                                        <xsd:element ref="INN"              minOccurs="0"/>
+                                        <xsd:element ref="KPP"              minOccurs="0"/>
+                                        <xsd:element ref="Account"          minOccurs="1"/>
+                                        <xsd:element ref="BIC"              minOccurs="1"/>
+                                        <xsd:element ref="BankName"         minOccurs="0"/>
+                                        <xsd:element ref="BankCorAccount"   minOccurs="0"/>
+                                    </xsd:all>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element ref="PhoneToClient"            minOccurs="0"/>
+                            <xsd:element ref="SubType"                  minOccurs="0"/>
+                            <xsd:element ref="Comment"                  minOccurs="0"/>
+                            <xsd:element name="Regions"                 minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="Region"          maxOccurs="unbounded"   minOccurs="0">
+                                            <xsd:annotation>
+                                                <xsd:documentation>
+                                                    В старом формате используется поле CodeRegion, в новом TER, KOD1
+                                                </xsd:documentation>
+                                            </xsd:annotation>
+                                            <xsd:complexType>
+                                                <xsd:all>
+                                                    <xsd:element ref="CodeRegion"   minOccurs="0"/>
+                                                    <xsd:element ref="TER"          minOccurs="0"/>
+                                                    <xsd:element ref="KOD1"         minOccurs="0"/>
+                                                </xsd:all>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="PaymentRecipient"        minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="PaymentCodeOffice"       maxOccurs="1"   minOccurs="1">
+                                            <xsd:annotation>
+                                                <xsd:documentation>
+                                                    В старом формате используется само поле PaymentCodeOffice, в новом TB, OSB
+                                                </xsd:documentation>
+                                            </xsd:annotation>
+                                            <xsd:complexType mixed="true">
+                                                <xsd:sequence>
+                                                    <xsd:element ref="TB"           maxOccurs="1"   minOccurs="0"/>
+                                                    <xsd:element ref="OSB"          maxOccurs="1"   minOccurs="0"/>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        <xsd:element name="PaymentAccount"          maxOccurs="1"   minOccurs="0"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element ref="CodeOfficeNSI"            minOccurs="0"/>
+                            <xsd:element ref="TypeAccountPayment"       minOccurs="0"/>
+                            <xsd:element ref="IsDebt"                   minOccurs="0"/>
+                            <xsd:element ref="IsPopular"                minOccurs="0"/>
+                            <xsd:element ref="Commission"               minOccurs="0"/>
+                            <xsd:element ref="Ground"                   minOccurs="0"/>
+                            <xsd:element ref="MobileBank"               minOccurs="0"/>
+                            <xsd:element ref="VersionAPI"               minOccurs="0"/>
+                            <xsd:element ref="IsTemplateSupported"      minOccurs="0"/>
+                            <xsd:element ref="IsBarSupported"           minOccurs="0"/>
+                            <xsd:element ref="IsOfflineAvailable"       minOccurs="0"/>
+                            <xsd:element ref="IsEditPaymentSupported"   maxOccurs="1"   minOccurs="0" />
+                            <xsd:element ref="IsCreditCardAccessible"   maxOccurs="1"   minOccurs="0" />
+                            <xsd:element ref="AutoPayment"              minOccurs="0"/>
+                            <xsd:element ref="IsAutoPayAccessible"      maxOccurs="1"   minOccurs="0"/>
+                            <xsd:element ref="IsBankomat"               maxOccurs="1"   minOccurs="0"/>
+                            <xsd:element ref="AutoPayTypes"             maxOccurs="1"   minOccurs="0"/>
+                            <xsd:element ref="Limit"                    maxOccurs="1"   minOccurs="0"/>
+                            <xsd:element ref="GeneralGroupRisk"         maxOccurs="1"   minOccurs="0"/>
+                            <xsd:element ref="MobileGroupRisk"          maxOccurs="1"   minOccurs="0"/>
+                            <xsd:element name="Attributes"              minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="Attribute"           maxOccurs="unbounded"       minOccurs="1">
+                                            <xsd:complexType>
+                                                <xsd:all>
+                                                    <xsd:element ref="NameBS"               minOccurs="1"/>
+                                                    <xsd:element ref="NameVisible"          minOccurs="1"/>
+                                                    <xsd:element ref="Comment"              minOccurs="0"/>
+                                                    <xsd:element ref="Description"          minOccurs="0"/>
+                                                    <xsd:element ref="Type"                 minOccurs="1"/>
+                                                    <xsd:element ref="NumberPrecision"      minOccurs="0"/>
+                                                    <xsd:element ref="AttributeLength"      minOccurs="0"/>
+                                                    <xsd:element ref="IsRequired"           minOccurs="0"/>
+                                                    <xsd:element ref="IsEditable"           minOccurs="0"/>
+                                                    <xsd:element ref="IsVisible"            minOccurs="0"/>
+                                                    <xsd:element ref="IsSum"                minOccurs="0"/>
+                                                    <xsd:element ref="IsKey"                minOccurs="0"/>
+                                                    <xsd:element ref="IsForBill"            minOccurs="0"/>
+                                                    <xsd:element ref="IncludeInSMS"         minOccurs="0"/>
+                                                    <xsd:element ref="SaveInTemplate"       minOccurs="0"/>
+                                                    <xsd:element ref="HideInConfirmation"   minOccurs="0"/>
+                                                    <xsd:element ref="RequisiteTypes"       minOccurs="0"/>
+                                                    <xsd:element ref="DefaultValue"         minOccurs="0"/>
+                                                    <xsd:element ref="Menu"                 minOccurs="0"/>
+                                                    <xsd:element ref="Values"               minOccurs="0"/>
+                                                    <xsd:element ref="Validators"           minOccurs="0"/>
+                                                    <xsd:element ref="Mask"                 minOccurs="0"/>
+                                                    <xsd:element ref="BusinessSubType"      minOccurs="0"/>
+                                                </xsd:all>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:all>
+                    </xsd:complexType>
+                </xsd:element>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <!--
+        Поля поставщика услуг
+            -->
+    <xsd:element name="CodeBS">
+        <xsd:annotation>
+            <xsd:documentation>
+                Идентификатор биллинговой системы
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CodeRecipientSBOL">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код для группировки данных при отображении в СБОЛе
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CodeRecipientBS">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код поставщика услуг в биллинговой системе
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CodeRecipient">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код поставщика услуг в биллинговой системе
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="StatusRecipient">
+        <xsd:annotation>
+            <xsd:documentation>
+                Статус поставщика/услуги
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="ServiceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код услуги в справочнике ИКФЛ
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CodeService">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код услуги, которая предоставляется данным поставщиком услуг согласно кодировке в биллинговой системе
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="NameService">
+        <xsd:annotation>
+            <xsd:documentation>
+                Название услуги из биллинговой системы
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Name">
+        <xsd:annotation>
+            <xsd:documentation>
+                Полное наименование поставщика услуг, отображается пользователю на экране
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Alias">
+        <xsd:annotation>
+            <xsd:documentation>
+                Псевдоним(ы) поставщика, если несколько - указываются через запятую
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="LegalName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Юридическое наименование поставщика услуг (используется в СБОЛ для поиска поставщика, фактически, дополнение к Alias)
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="NameOnBill">
+        <xsd:annotation>
+            <xsd:documentation>
+                Наименование поставщика, выводимое в чеке
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="PaymentAccount">
+        <xsd:annotation>
+            <xsd:documentation>
+                Счет для расчетов с поставщиком услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="TB">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код ТБ для подразделения, которое обслуживает поставщик услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="OSB">
+        <xsd:annotation>
+            <xsd:documentation>
+                Номер ОСБ, которое обслуживает поставщик услуг, указывается без лидирующих нулей
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CodeRegion">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код региона
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="TER">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код территории
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="KOD1">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код района/города
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="INN">
+        <xsd:annotation>
+            <xsd:documentation>
+                ИНН поставщика услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="KPP">
+        <xsd:annotation>
+            <xsd:documentation>
+                КПП поставщика услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Account">
+        <xsd:annotation>
+            <xsd:documentation>
+                Счет поставщика услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="BIC">
+        <xsd:annotation>
+            <xsd:documentation>
+                БИК банка поставщика услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="BankName">
+        <xsd:annotation>
+            <xsd:documentation>
+                Название банка поставщика услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="BankCorAccount">
+        <xsd:annotation>
+            <xsd:documentation>
+                Корсчет банка поставщика услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="PhoneToClient">
+        <xsd:annotation>
+            <xsd:documentation>
+                Номер телефона поставщика услуг для обращений клиентов банка, которые совершили платежи в адрес поставщика для печати в чеке
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="SubType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак поставщика услуг ("Сотовая связь" или "Мобильный кошелек")
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Comment">
+        <xsd:annotation>
+            <xsd:documentation>
+                Коментарий
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CodeOfficeNSI">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код поставщика из справочника NSI
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="TypeAccountPayment">
+        <xsd:annotation>
+            <xsd:documentation>
+                Тип счета клиента
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="NotVisibleBankDetails">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «не отображать банковские реквизиты для поставщика»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="NotVisibleInHierarchy">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «не использовать при поиске в иерархическом меню»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+	<xsd:element name="VisiblePaymentsForMApi">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «видимость в иерархическом меню для mApi»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="VisiblePaymentsForInternetBank">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «видимость в иерархическом меню»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="VisiblePaymentsForAtmApi">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «видимость в иерархическом меню для atmApi»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AvailablePaymentsForInternetBank">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «доступность платежей»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AvailablePaymentsForMApi">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «доступность платежей для mApi»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AvailablePaymentsForAtmApi">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «доступность платежей для atmApi»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AvailablePaymentsForErmb">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «доступность платежей для ЕРМБ»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AllowPayments">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак позволяет осуществлять платежи и операции
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="PlanForDeactivate">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак поставщика, который планиреутся к отключению.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsFederal">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак федерального поставщика услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsPropsOnline">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак запрос реквизитов онлайн
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsBankDetails">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак запрос банковских реквизитов
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsDebt">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак поддержки задолжности
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsPopular">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак показвать в популярных
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsMobileBank">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак поддержки мобильного банка
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CodeMobileBank">
+        <xsd:annotation>
+            <xsd:documentation>
+                Код мобильного банка
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="VersionAPI">
+        <xsd:annotation>
+            <xsd:documentation>
+                Активен начиная с версии API
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsTemplateSupported">
+        <xsd:annotation>
+            <xsd:documentation>
+                Доступен для создания шаблонов
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsBarSupported">
+        <xsd:annotation>
+            <xsd:documentation>
+                Использовать код (QR, BAR) в мобильном приложении
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsOfflineAvailable">
+        <xsd:annotation>
+            <xsd:documentation>
+                Доступен ли поставщик при неактивной внешней системе
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsEditPaymentSupported">
+        <xsd:annotation>
+            <xsd:documentation>
+                Доступно редактирование платежа
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsCreditCardAccessible">
+        <xsd:annotation>
+            <xsd:documentation>
+                Оплата с кредитных карт разрешена
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="GrpServices">
+        <xsd:annotation>
+            <xsd:documentation>
+                Список групп услуг
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="GrpServiceCode"   maxOccurs="unbounded"   minOccurs="1"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="GrpServiceCode">
+        <xsd:annotation>
+            <xsd:documentation>
+                Группа услуг
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Commission">
+        <xsd:complexType>
+            <xsd:annotation>
+                <xsd:documentation>
+                    Комиссия за исполнение платежа
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:sequence>
+                <xsd:element ref="MinCommission"   maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="MaxCommission"   maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="Percent"         maxOccurs="1"   minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="MinCommission">
+        <xsd:annotation>
+            <xsd:documentation>
+                Максимальная сумма комиссии
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="MaxCommission">
+        <xsd:annotation>
+            <xsd:documentation>
+                Минимальная сумма комиссии
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Percent">
+        <xsd:annotation>
+            <xsd:documentation>
+                Процентная ставка комиссии
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Ground">
+        <xsd:complexType>
+            <xsd:annotation>
+                <xsd:documentation>
+                    Настройки формирования назначения платежа
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:sequence>
+                <xsd:element ref="IsGround"        maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="Separator1"      maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="Separator2"      maxOccurs="1"   minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="IsGround">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак необходимости формирования назначения платежа
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Separator1">
+        <xsd:annotation>
+            <xsd:documentation>
+                Разделитель дополнительных атрибутов
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Separator2">
+        <xsd:annotation>
+            <xsd:documentation>
+                Разделитель значений дополнительных атрибутов
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="MobileBank">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="IsMobileBank"     maxOccurs="1"   minOccurs="1"/>
+                <xsd:element ref="CodeMobileBank"   maxOccurs="1"   minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="AutoPayment">
+        <xsd:annotation>
+            <xsd:documentation>
+                Блок полей автоплатежа
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:all>
+                <xsd:element ref="IsAutoPayment"            maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="AutoPaymentSupportedInApi"    maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="AutoPaymentSupportedInATM"    maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="AutoPaymentSupportedInERMB"   maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="AutoPaymentVisible"           maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="AutoPaymentVisibleInApi"      maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="AutoPaymentVisibleInATM"      maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="AutoPaymentVisibleInERMB"     maxOccurs="1"   minOccurs="0" />
+                <xsd:element ref="IsBankomat"               maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="AlwaysAutoPayScheme"      maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="ThresholdAutoPayScheme"   maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="InvoiceAutoPayScheme"     maxOccurs="1"   minOccurs="0"/>
+            </xsd:all>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="IsAutoPayment">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак поддержки автоплатежей
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AutoPaymentSupportedInApi">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак поддержки автоплатежей для mApi
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AutoPaymentSupportedInATM">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак поддержки автоплатежей  для atmApi
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AutoPaymentSupportedInERMB">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак поддержки автоплатежей для ERMB
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AutoPaymentVisible">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак видимости автоплатежей в каталоге
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AutoPaymentVisibleInApi">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак видимости автоплатежей в каталоге для mApi
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AutoPaymentVisibleInATM">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак видимости автоплатежей в каталоге для atmApi
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AutoPaymentVisibleInERMB">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак видимости автоплатежей в каталоге для ERMB
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsBankomat">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак, определяющий возможность регистрировать подписки через УС без буквенной клавиатуры
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AlwaysAutoPayScheme">
+        <xsd:annotation>
+            <xsd:documentation>
+                Регулярный автоплатеж
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType mixed="true">
+            <xsd:sequence>
+                <xsd:element ref="MinPaySum"    maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="MaxPaySum"    maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="ClientHint"   maxOccurs="1"   minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="ThresholdAutoPayScheme">
+        <xsd:annotation>
+            <xsd:documentation>
+                Пороговый автоплатеж
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="MinPaySum"      maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="MaxPaySum"      maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="MinPayValue"    maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="MaxPayValue"    maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="ThresholdLimitList"  maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="IsAccessTotalAmount" maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="TotalAmountLimit"    maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="TotalAmountPeriod"   maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="ClientHint"     maxOccurs="1"   minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="ThresholdLimitList">
+        <xsd:annotation>
+            <xsd:documentation>
+                Допустимые пороговые значения
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="ThresholdLimit" maxOccurs="unbounded" minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="InvoiceAutoPayScheme">
+        <xsd:annotation>
+            <xsd:documentation>
+                По выставленному счету
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType mixed="true">
+            <xsd:sequence>
+                <xsd:element ref="ClientHint"   maxOccurs="1"   minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="MinPaySum">
+        <xsd:annotation>
+            <xsd:documentation>
+                Максимальная сумма оплаты
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="MaxPaySum">
+        <xsd:annotation>
+            <xsd:documentation>
+                Минимальная сумма оплаты
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="MinPayValue">
+        <xsd:annotation>
+            <xsd:documentation>
+                Максимальная значение оплаты
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="MaxPayValue">
+        <xsd:annotation>
+            <xsd:documentation>
+                Минимальная значение оплаты
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsAccessTotalAmount">
+        <xsd:annotation>
+            <xsd:documentation>
+                Доступность макимальной суммы платежей в период TotalAmountPeriod
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="TotalAmountLimit">
+        <xsd:annotation>
+            <xsd:documentation>
+                Максимальная сумма платежей в период TotalAmountPeriod
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="TotalAmountPeriod">
+        <xsd:annotation>
+            <xsd:documentation>
+                Период для подсчета максимальной суммы платежей
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="ThresholdLimit">
+        <xsd:annotation>
+            <xsd:documentation>
+                Допустимое пороговое значение
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="ClientHint">
+        <xsd:annotation>
+            <xsd:documentation>
+                Подсказка клиенту
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+     <!--
+        Поля которые передаются только в шине для поставщика услуг
+            -->
+    <xsd:element name="IsAutoPayAccessible">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак, определяющий возможность регистрации подписки на АП в пользу данного ПУ
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AutoPayTypes">
+        <xsd:annotation>
+            <xsd:documentation>
+                Доступные типы подписок
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="AutoPayType"            maxOccurs="3"   minOccurs="1"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="AutoPayType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Тип подписки
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Limit">
+        <xsd:annotation>
+            <xsd:documentation>
+                Лимит для пороговых автоплатежей
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="GeneralGroupRisk">
+        <xsd:annotation>
+            <xsd:documentation>
+                Группа риска основного приложения
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="MobileGroupRisk">
+        <xsd:annotation>
+            <xsd:documentation>
+                Группа риска по мобильному АПИ
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <!--
+        Поля дополнительных атрибутов поставщика услуг
+            -->
+    <xsd:element name="NameBS">
+        <xsd:annotation>
+            <xsd:documentation>
+                Наименование поля в биллинговой системе
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="NameVisible">
+        <xsd:annotation>
+            <xsd:documentation>
+                Наименование поля, выводимое клиенту на экран в пользовательском интерфейсе
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Description">
+        <xsd:annotation>
+            <xsd:documentation>
+                Объяснение по заполнению поля
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Тип поля
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="NumberPrecision">
+        <xsd:annotation>
+            <xsd:documentation>
+                Точность числового значения (количество знаков после запятой)
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AttributeLength">
+        <xsd:annotation>
+            <xsd:documentation>
+                Описание длины поля
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="Length"       maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="MaxLength"    maxOccurs="1"   minOccurs="0"/>
+                <xsd:element ref="MinLength"    maxOccurs="1"   minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="Length">
+        <xsd:annotation>
+            <xsd:documentation>
+                Длина по умолчанию. Если не определен какой-либо из параметров длны (max/min), то значение берется отсюда
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="MaxLength">
+        <xsd:annotation>
+            <xsd:documentation>
+                Минимально допустимая длина
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="MinLength">
+        <xsd:annotation>
+            <xsd:documentation>
+                Максимально допустимая длина
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Validators">
+        <xsd:annotation>
+            <xsd:documentation>
+                Валидаторы, дополнительных атрибутов поставщика услуг
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="Validator"    maxOccurs="unbounded"   minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="Validator">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="Type"         maxOccurs="1"   minOccurs="1"/>
+                <xsd:element ref="Message"      maxOccurs="1"   minOccurs="1"/>
+                <xsd:element ref="Parameter"    maxOccurs="1"   minOccurs="1"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="Message">
+        <xsd:annotation>
+            <xsd:documentation>
+                Сообщение, выводимое на экран клиенту при срабатывании валидатора
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Parameter">
+        <xsd:annotation>
+            <xsd:documentation>
+                regxep - выражение для валидатора
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="HideInConfirmation">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «Скрывать реквизит на форме подтверждения»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="SaveInTemplate">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак, обязательности заполнения поля и сохранения значения в шаблоне платежа
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IncludeInSMS">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак включения в текст SMS-сообщения с одноразовым паролем для подтверждения платежа
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsForBill">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак «Выводить в чеке»
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsRequired">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак обязательности заполнения поля
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsEditable">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак редактируемости поля клиентом
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsVisible">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак видимости поля клиентом
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsSum">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак того, что поле является полем общей суммы платежа
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="IsKey">
+        <xsd:annotation>
+            <xsd:documentation>
+                Признак того, что поле является ключевым полем (лицевым счетом) или входит в состав ключевых полей
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Menu">
+        <xsd:annotation>
+            <xsd:documentation>
+                Список значений для выбора клиентом при Type=list и set
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="MenuItem" maxOccurs="unbounded"   minOccurs="0"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="MenuItem">
+        <xsd:annotation>
+            <xsd:documentation>
+                Одно из значений для списка
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="DefaultValue">
+        <xsd:annotation>
+            <xsd:documentation>
+                Значение поля используемое по умолчанию
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Mask">
+        <xsd:annotation>
+            <xsd:documentation>
+                Маска для поля
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="BusinessSubType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Бизнес атрибут поля "интернет кошелек" либо "сотовая связь"
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Values">
+        <xsd:annotation>
+            <xsd:documentation>
+                Возможные значения поля, в качестве разделителя используется "|"
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="RequisiteTypes">
+        <xsd:annotation>
+            <xsd:documentation>
+                Список реквизитов
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="RequisiteType" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="RequisiteType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Бизнес–смысл реквизита.
+                Область допустимых значений реквизита:
+                -IsListOfCharges (Реквизит является Списком начислений);
+                -IsPeriod (Реквизит является Периодом платежа). Данные должны передаваться в формате: mm.yyyy.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+</xsd:schema>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="LoyaltyProgramRegistrationClaim"
+              description="Регистрация в бонусной программе &lt;br/&gt;«Спасибо от Сбербанка»"
+			  detailedDescription="Для подключения к бонусной программе заполните поля заявки и нажмите на кнопку «Подключить»."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.LoyaltyProgramRegistrationClaim"/>
+
+	<fields>
+        <field name="documentNumber"
+               source="document-number"
+               description="Номер документа"
+               type="string"
+               signable="true">
+        </field>
+
+        <field name="documentDate"
+               source="document-date"
+               description="Дата документа"
+               type="date"
+               signable="true"/>
+
+        <field name="state"
+               source="state"
+               description="Статус заявки"
+               type="string"/>
+
+        <field name="agreeForAll"
+               source="extra-parameters/parameter[@name='agreeForAll']/@value"
+               description="Согласие с условиями лицензионного соглашения"
+               type="boolean"/>
+
+        <field name="phone"
+               source="extra-parameters/parameter[@name='phone']/@value"
+               description="Номер телефона"
+               type="string">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field name="email"
+               source="extra-parameters/parameter[@name='email']/@value"
+               description="Электронная почта"
+               type="string">
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Неверно введен e-mail"/>
+                    <parameter name="regexp">^[\.\-_A-Za-z0-9]+?@[\.\-A-Za-z0-9]+?\.[A-Za-z0-9]{2,6}$</parameter>
+                </validator>
+            </validators>
+        </field>
+	</fields>
+
+</payment-form>

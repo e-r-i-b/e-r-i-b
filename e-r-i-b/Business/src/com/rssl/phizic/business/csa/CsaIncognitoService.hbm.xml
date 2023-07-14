@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--Получить клиентов с признаком "инкогнито"
+        Опорный объект: CSA_PROFILES_INCOGNITO_INDEX
+        Предикаты доступа: access(DECODE("INCOGNITO",'1',"ID",NULL)>TO_NUMBER(:PROFILE_ID))
+        Кардинальность: 1000 (стоп условие шедулера, обрабатываем пачками по 1000)
+    -->
+    <sql-query name="com.rssl.phizic.business.csa.IncognitoService.getIncognitoClients">
+        <return-scalar type="long" column="id"/>
+        <return-scalar type="string" column="first_name"/>
+        <return-scalar type="string" column="sur_name"/>
+        <return-scalar type="string" column="patr_name"/>
+        <return-scalar type="string" column="passport"/>
+        <return-scalar type="calendar" column="birthdate"/>
+        <return-scalar type="string" column="tb"/>
+
+        <![CDATA[
+               select profiles.ID id,
+                      profiles.FIRST_NAME  first_name,
+                      profiles.SUR_NAME  sur_name,
+                      profiles.PATR_NAME  patr_name,
+                      profiles.PASSPORT passport,
+                      profiles.BIRTHDATE birthdate,
+                      profiles.TB tb
+               from CSA_PROFILES profiles
+                      where decode(profiles.INCOGNITO, '1', profiles.ID, null) > :profile_id
+               order by decode(profiles.INCOGNITO, '1', profiles.ID, null)
+        ]]>
+	</sql-query>
+</hibernate-mapping>

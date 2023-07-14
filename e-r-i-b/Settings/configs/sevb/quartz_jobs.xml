@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<quartz xmlns="http://www.opensymphony.com/quartz/JobSchedulingData"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.opensymphony.com/quartz/JobSchedulingData http://www.opensymphony.com/quartz/xml/job_scheduling_data_1_5.xsd"
+		version="1.5">
+
+    <!--в бизнесе-->
+	<!--Сообщение о приеме документа к исполнению-->
+	<job>
+		<job-detail>
+			<name>NotificationHandler</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.jobs.NotificationHandlingJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>NotificationHandlerTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>NotificationHandlerJob</job-name>
+				<job-group>DEFAULT</job-group>
+	<!-- repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <job>
+        <job-detail>
+            <name>GorodPaymentExecuteJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.GorodPaymentsCarryJob
+            </job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>GorodPaymentsCarryTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>GorodPaymentExecuteJob</job-name>
+                <job-group>DEFAULT</job-group>
+    <!-- repeat indefinitely every 60 seconds -->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+<!--в бизнесе-->
+	<!--Взимание ежемесячной платы-->
+	<job>
+		<job-detail>
+			<name>ChargeOffPaymentsJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.business.chargeoff.job.ChargeOffPaymentsJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			  <cron>
+				<name>ChargeOffPaymentsTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ChargeOffPaymentsJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<cron-expression>0 0 12 * * ?</cron-expression>
+			  </cron>
+		</trigger>
+	</job>
+</quartz>

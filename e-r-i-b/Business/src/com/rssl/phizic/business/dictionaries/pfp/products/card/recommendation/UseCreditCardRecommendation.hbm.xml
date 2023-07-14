@@ -1,0 +1,41 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.card.recommendation.UseCreditCardRecommendation"
+           table="PFP_CARD_RECOMMENDATIONS">
+        <id name="id" type="long" column="ID" access="field">
+            <generator class="native">
+                <param name="sequence">S_PFP_CARD_RECOMMENDATIONS</param>
+            </generator>
+        </id>
+        <property name="uuid"           type="string" column="UUID"           not-null="true" update="false"/>
+        <property name="recommendation" type="string" column="RECOMMENDATION" not-null="false"/>
+        <component name="accountEfficacy" class="com.rssl.phizic.business.dictionaries.pfp.products.card.recommendation.ProductEfficacy">
+            <property name="fromIncome"    type="big_decimal" column="ACCOUNT_FROM_INCOME"    not-null="false"/>
+            <property name="toIncome"      type="big_decimal" column="ACCOUNT_TO_INCOME"      not-null="false"/>
+            <property name="defaultIncome" type="big_decimal" column="ACCOUNT_DEFAULT_INCOME" not-null="false"/>
+            <property name="description"   type="string"      column="ACCOUNT_DESCRIPTION"    not-null="false"/>
+        </component>
+        <component name="thanksEfficacy" class="com.rssl.phizic.business.dictionaries.pfp.products.card.recommendation.ProductEfficacy">
+            <property name="fromIncome"    type="big_decimal" column="THANKS_FROM_INCOME"    not-null="false"/>
+            <property name="toIncome"      type="big_decimal" column="THANKS_TO_INCOME"      not-null="false"/>
+            <property name="defaultIncome" type="big_decimal" column="THANKS_DEFAULT_INCOME" not-null="false"/>
+            <property name="description"   type="string"      column="THANKS_DESCRIPTION"    not-null="false"/>
+        </component>
+        <list name="cards" table="PFP_CR_CARDS" cascade="none" lazy="false">
+            <key column="RECOMMENDATION_ID" not-null="true"/>
+			<list-index column="LIST_INDEX"/>
+			<many-to-many class="com.rssl.phizic.business.dictionaries.pfp.products.card.Card" column="CARD_ID"/>
+        </list>
+        <list name="steps" table="PFP_CR_STEPS" cascade="all-delete-orphan" lazy="false">
+            <key column="RECOMMENDATION_ID" not-null="true"/>
+			<list-index column="LIST_INDEX"/>
+			<composite-element class="com.rssl.phizic.business.dictionaries.pfp.products.card.recommendation.UseCreditCardRecommendationStep">
+                <property name="name"        type="string" column="NAME"        not-null="true"/>
+                <property name="description" type="string" column="DESCRIPTION" not-null="true"/>
+			</composite-element>
+        </list>
+    </class>
+</hibernate-mapping>

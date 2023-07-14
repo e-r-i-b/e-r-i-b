@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="com.rssl.phizic.business.states.xml.generated"/>
+				<jxb:nameXmlTransform>
+					<jxb:elementName suffix="Element"/>
+					<jxb:typeName suffix="Descriptor"/>
+				</jxb:nameXmlTransform>
+			</jxb:schemaBindings>
+		</xsd:appinfo>
+	</xsd:annotation>
+
+    <xsd:element name="objects">
+        <xsd:complexType>
+            <xsd:sequence>
+	            <xsd:element name="object" type="ObjectType" maxOccurs="unbounded" minOccurs="0">
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+	<xsd:complexType name="ObjectType">
+		<xsd:sequence>
+			<xsd:element name="state" type="StateType" maxOccurs="unbounded"/>
+			<xsd:element name="activity" type="ActivityType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="className" type="xsd:string" use="required"/>
+		<xsd:attribute name="locator" type="xsd:string" use="required"/>
+		<xsd:attribute name="serializer" type="xsd:string" use="required"/>		
+	</xsd:complexType>
+	<xsd:complexType name="StateType">
+		<xsd:sequence>
+			<xsd:element name="field-array" type="FieldArrayType"/>
+			<xsd:element name="activity-ref" type="ActivityRefType"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="description" type="xsd:string" use="required"/>
+		<xsd:attribute name="user-name" type="xsd:string"/>
+		<xsd:attribute name="main" type="xsd:boolean" default="false"/>
+		<xsd:attribute name="initial" type="xsd:boolean" default="false"/>
+	</xsd:complexType>
+	<xsd:complexType name="ActivityType">
+		<xsd:sequence>
+			<xsd:element name="conditions" type="ConditionsType" maxOccurs="1" minOccurs="1"/>
+			<xsd:element name="operations" type="OperationsType"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="description" type="xsd:string" use="required"/>
+		<xsd:attribute name="back" type="xsd:boolean" use="optional" default="false"/>
+	</xsd:complexType>
+	<xsd:complexType name="FieldArrayType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="show" type="ShowType" use="optional" default="hide"/>
+	</xsd:complexType>
+	<xsd:complexType name="ActivityRefType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="ConditionsType">
+		<xsd:sequence>
+			<xsd:element name="main-condition" type="MainConditionType"/>
+			<xsd:element name="extended-condition" type="ExtendedConditionType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="MainConditionType">
+		<xsd:choice>
+			<xsd:element name="external-condition" type="ExternalConditionType" minOccurs="1"/>
+			<xsd:element name="form" type="FormType" maxOccurs="unbounded"/>
+		</xsd:choice>
+		<xsd:attribute name="success" type="xsd:string" use="required"/>		
+	</xsd:complexType>
+	<xsd:complexType name="ExtendedConditionType">
+		<xsd:attribute name="success" type="xsd:string" use="required"/>
+		<xsd:attribute name="priority" type="xsd:string"/>
+		<xsd:attribute name="className" type="xsd:string"/>
+	</xsd:complexType>
+	<xsd:complexType name="OperationsType">
+		<xsd:sequence>
+			<xsd:element name="operation-ref" type="OperationRefType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OperationRefType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="service" type="xsd:string" use="required"/>
+		<xsd:attribute name="method" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="ExternalConditionType">
+		<xsd:attribute name="className" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="FieldType">
+		<xsd:sequence>
+			<xsd:element name="format" type="FieldFormatType" maxOccurs="1" minOccurs="0"/>
+			<xsd:element name="validator" type="FieldValidatorType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="required" type="xsd:boolean" default="false"/>
+		<xsd:attribute name="minlength" type="xsd:decimal"/>
+		<xsd:attribute name="maxlength" type="xsd:decimal"/>
+	</xsd:complexType>
+	<xsd:complexType name="FieldFormatType">
+		<xsd:attribute name="regexp" type="xsd:string" use="required"/>
+		<xsd:attribute name="message" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="FieldValidatorType">
+		<xsd:sequence>
+			<xsd:element name="parameter" type="ParameterType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="className" type="xsd:string" use="required"/>
+		<xsd:attribute name="message" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="ParameterType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="value" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="FormType">
+		<xsd:sequence>
+			<xsd:element name="field" type="FieldRefType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="form-validator" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FormValidatorType">
+		<xsd:sequence>
+			<xsd:element name="className" type="xsd:string"/>
+			<xsd:element name="message" type="xsd:string"/>
+			<xsd:element name="field-ref" minOccurs="2" maxOccurs="unbounded" type="FieldRefType"/>
+			<xsd:element name="parameter" type="ParameterType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FieldRefType">
+		<xsd:attribute name="name" type="xsd:string"/>
+		<xsd:attribute name="fieldName" type="xsd:string"/>
+	</xsd:complexType>
+	<xsd:simpleType name="ShowType">
+  		<xsd:restriction base="xsd:string">
+    		<xsd:enumeration value="edit" />
+    		<xsd:enumeration value="hide" />
+    		<xsd:enumeration value="read" />
+	  </xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

@@ -1,0 +1,247 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo" mutable="false">
+        <id name="number"/>
+        <property name="name"/>
+        <property name="showInSystem"/>
+        <property name="showInMobile"/>
+        <property name="showInSocial"/>
+        <property name="showInATM"/>
+        <property name="showInSms"/>
+        <property name="showInMain"/>
+        <property name="positionNumber"/>
+    </class>
+
+    <!-- Получение информации о настройках карт клиента
+         Опорный объект: DXFK_CARDLINKS_TO_LOGINS
+         Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+         Кардинальность: Кардинальность будет равна количеству карт клиента. Селективность по логину высокая.
+      -->
+    <sql-query name="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo.getResourceInfo.CardLink">
+        <return class="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo">
+            <return-property name="number" column="resourceNumber"/>
+            <return-property name="name" column="resourceName"/>
+            <return-property name="showInSystem" column="showInSystem"/>
+            <return-property name="showInMobile" column="showInMobile"/>
+            <return-property name="showInSocial" column="showInSocial"/>
+            <return-property name="showInATM" column="showInATM"/>
+            <return-property name="showInSms" column="showInSms"/>
+            <return-property name="showInMain" column="showInMain"/>
+            <return-property name="positionNumber" column="positionNumber"/>
+        </return>
+        <![CDATA[
+            select
+                CARD_NUMBER as resourceNumber,
+                CARD_NAME as resourceName,
+                SHOW_IN_SYSTEM as showInSystem,
+                SHOW_IN_MOBILE as showInMobile,
+                SHOW_IN_SOCIAL as showInSocial,
+                SHOW_IN_ATM as showInATM,
+                SHOW_IN_SMS as showInSms,
+                SHOW_IN_MAIN as showInMain,
+                POSITION_NUMBER as positionNumber
+            from CARD_LINKS
+            where LOGIN_ID = :loginId
+        ]]>
+    </sql-query>
+
+    <!-- Получение информации о настройках счетов клиента
+         Опорный объект: DXFK_ACCOUNTLINKS_TO_LOGINS
+         Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+         Кардинальность: Кардинальность будет равна количеству счетов клиента. Селективность по логину высокая.
+      -->
+    <sql-query name="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo.getResourceInfo.AccountLink">
+        <return class="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo">
+            <return-property name="number" column="resourceNumber"/>
+            <return-property name="name" column="resourceName"/>
+            <return-property name="showInSystem" column="showInSystem"/>
+            <return-property name="showInMobile" column="showInMobile"/>
+            <return-property name="showInSocial" column="showInSocial"/>
+            <return-property name="showInATM" column="showInATM"/>
+            <return-property name="showInSms" column="showInSms"/>
+            <return-property name="showInMain" column="showInMain"/>
+            <return-property name="positionNumber" column="positionNumber"/>
+        </return>
+        <![CDATA[
+            select
+                ACCOUNT_NUMBER as resourceNumber,
+                ACCOUNT_NAME as resourceName,
+                SHOW_IN_SYSTEM as showInSystem,
+                SHOW_IN_MOBILE as showInMobile,
+                SHOW_IN_SOCIAL as showInSocial,
+                SHOW_IN_ATM as showInATM,
+                SHOW_IN_SMS as showInSms,
+                SHOW_IN_MAIN as showInMain,
+                POSITION_NUMBER as positionNumber
+            from ACCOUNT_LINKS
+            where LOGIN_ID = :loginId
+        ]]>
+    </sql-query>
+
+    <!-- Получение информации о настройках кредитов клиента
+         Опорный объект: DXFK_LOANLINKS_TO_LOGINS
+         Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+         Кардинальность: Кардинальность будет равна количеству кредитов клиента. Селективность по логину высокая.
+      -->
+    <sql-query name="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo.getResourceInfo.LoanLink">
+        <return class="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo">
+            <return-property name="number" column="resourceNumber"/>
+            <return-property name="name" column="resourceName"/>
+            <return-property name="showInSystem" column="showInSystem"/>
+            <return-property name="showInMobile" column="showInMobile"/>
+            <return-property name="showInSocial" column="showInSocial"/>
+            <return-property name="showInATM" column="showInATM"/>
+            <return-property name="showInSms" column="showInSms"/>
+            <return-property name="showInMain" column="showInMain"/>
+            <return-property name="positionNumber" column="positionNumber"/>
+        </return>
+        <![CDATA[
+            select
+                ACCOUNT_NUMBER as resourceNumber,
+                LOAN_NAME as resourceName,
+                SHOW_IN_SYSTEM as showInSystem,
+                SHOW_IN_MOBILE as showInMobile,
+                SHOW_IN_SOCIAL as showInSocial,
+                SHOW_IN_ATM as showInATM,
+                SHOW_IN_SMS as showInSms,
+                SHOW_IN_MAIN as showInMain,
+                POSITION_NUMBER as positionNumber
+            from LOAN_LINKS
+            where LOGIN_ID = :loginId
+        ]]>
+    </sql-query>
+
+    <!-- Получение информации о настройках ОМС клиента
+         Опорный объект: DXREFERENCE_6
+         Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+         Кардинальность: Кардинальность будет равна количеству ОМС клиента. Селективность по логину высокая.
+      -->
+    <sql-query name="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo.getResourceInfo.IMAccountLink">
+        <return class="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo">
+            <return-property name="number" column="resourceNumber"/>
+            <return-property name="name" column="resourceName"/>
+            <return-property name="showInSystem" column="showInSystem"/>
+            <return-property name="showInMobile" column="showInMobile"/>
+            <return-property name="showInSocial" column="showInSocial"/>
+            <return-property name="showInATM" column="showInATM"/>
+            <return-property name="showInSms" column="showInSms"/>
+            <return-property name="showInMain" column="showInMain"/>
+            <return-property name="positionNumber" column="positionNumber"/>
+        </return>
+        <![CDATA[
+            select
+                IMACCOUNT_NUMBER as resourceNumber,
+                IMACCOUNT_NAME as resourceName,
+                SHOW_IN_SYSTEM as showInSystem,
+                SHOW_IN_MOBILE as showInMobile,
+                SHOW_IN_SOCIAL as showInSocial,
+                SHOW_IN_ATM as showInATM,
+                null as showInSms,
+                SHOW_IN_MAIN as showInMain,
+                POSITION_NUMBER as positionNumber
+            from IMACCOUNT_LINKS
+            where LOGIN_ID = :loginId
+        ]]>
+    </sql-query>
+
+    <!-- Получение информации о настройках счетов депо клиента
+         Опорный объект: DXFK_DEPOLINKS_TO_LOGINS
+         Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+         Кардинальность: Кардинальность будет равна количеству счетов депо клиента. Селективность по логину высокая.
+      -->
+    <sql-query name="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo.getResourceInfo.DepoAccountLink">
+        <return class="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo">
+            <return-property name="number" column="resourceNumber"/>
+            <return-property name="name" column="resourceName"/>
+            <return-property name="showInSystem" column="showInSystem"/>
+            <return-property name="showInMobile" column="showInMobile"/>
+            <return-property name="showInSocial" column="showInSocial"/>
+            <return-property name="showInATM" column="showInATM"/>
+            <return-property name="showInSms" column="showInSms"/>
+            <return-property name="showInMain" column="showInMain"/>
+            <return-property name="positionNumber" column="positionNumber"/>
+        </return>
+        <![CDATA[
+            select
+                ACCOUNT_NUMBER as resourceNumber,
+                ACCOUNT_NAME as resourceName,
+                SHOW_IN_SYSTEM as showInSystem,
+                null as showInMobile,
+                null as showInSocial,
+                null as showInATM,
+                null as showInSms,
+                SHOW_IN_MAIN as showInMain,
+                POSITION_NUMBER as positionNumber
+            from DEPO_ACCOUNT_LINKS
+            where LOGIN_ID = :loginId
+        ]]>
+    </sql-query>
+
+    <!-- Получение информации о настройках сберегательных сертификатов клиента
+         Опорный объект: UNIQ_SEC_NUMBER
+         Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+         Кардинальность: Кардинальность будет равна количеству сберегательных сертификатов клиента. Селективность по логину высокая.
+      -->
+    <sql-query name="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo.getResourceInfo.SecurityAccountLink">
+        <return class="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo">
+            <return-property name="number" column="resourceNumber"/>
+            <return-property name="name" column="resourceName"/>
+            <return-property name="showInSystem" column="showInSystem"/>
+            <return-property name="showInMobile" column="showInMobile"/>
+            <return-property name="showInSocial" column="showInSocial"/>
+            <return-property name="showInATM" column="showInATM"/>
+            <return-property name="showInSms" column="showInSms"/>
+            <return-property name="showInMain" column="showInMain"/>
+            <return-property name="positionNumber" column="positionNumber"/>
+        </return>
+        <![CDATA[
+            select
+                SERIAL_NUMBER as resourceNumber,
+                SECURITY_NAME as resourceName,
+                SHOW_IN_SYSTEM as showInSystem,
+                null as showInMobile,
+                null as showInSocial,
+                null as showInATM,
+                null as showInSms,
+                null as showInMain,
+                null as positionNumber
+            from SECURITY_ACCOUNT_LINKS
+            where LOGIN_ID = :loginId
+        ]]>
+    </sql-query>
+
+    <!-- Получение информации о настройках карточки ПФР клиента
+         Опорный объект: DXFK_PFRLINKS_TO_LOGINS
+         Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+         Кардинальность: 1 (у клиента одна карточка ПФР). Селективность по логину высокая.
+      -->
+    <sql-query name="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo.getResourceInfo.PFRLink">
+        <return class="com.rssl.phizic.business.profileSynchronization.products.ResourceInfo">
+            <return-property name="number" column="resourceNumber"/>
+            <return-property name="name" column="resourceName"/>
+            <return-property name="showInSystem" column="showInSystem"/>
+            <return-property name="showInMobile" column="showInMobile"/>
+            <return-property name="showInSocial" column="showInSocial"/>
+            <return-property name="showInATM" column="showInATM"/>
+            <return-property name="showInSms" column="showInSms"/>
+            <return-property name="showInMain" column="showInMain"/>
+            <return-property name="positionNumber" column="positionNumber"/>
+        </return>
+        <![CDATA[
+            select
+                ID as resourceNumber,
+                null as resourceName,
+                SHOW_IN_SYSTEM as showInSystem,
+                null as showInMobile,
+                null as showInSocial,
+                null as showInATM,
+                null as showInSms,
+                SHOW_IN_MAIN as showInMain,
+                null as positionNumber
+            from PFRLINKS
+            where LOGIN_ID = :loginId
+        ]]>
+    </sql-query>
+</hibernate-mapping>

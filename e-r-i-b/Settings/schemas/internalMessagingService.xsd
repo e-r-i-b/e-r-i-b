@@ -1,0 +1,82 @@
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+            jxb:version="1.0">
+    <xsd:element name="internal-messaging-service">
+        <xsd:complexType>
+            <xsd:sequence>
+                <!-- описание серверной стороны -->
+                <xsd:element name="server" type="ServerType" minOccurs="0" maxOccurs="1"/>
+                <!-- описание клиентской стороны -->
+                <xsd:element name="client" type="ClientType" minOccurs="0" maxOccurs="1"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="ServerType">
+        <xsd:sequence>
+            <!-- список обработчиков запросов -->
+            <xsd:element name="requestHandlers" type="RequestHandlerType" minOccurs="1" maxOccurs="unbounded"/>
+            <!-- список обработчиков исключений, возникающих при получении/обработке запросов -->
+            <xsd:element ref="exceptionHandlers" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ClientType">
+        <xsd:sequence>
+            <!-- список обрабатываемых кодов ошибок -->
+            <xsd:element name="errors" type="ErrorsType" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RequestHandlerType">
+        <xsd:sequence>
+            <xsd:element name="handler" minOccurs="1" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <!-- название запроса -->
+                    <xsd:attribute name="request" type="xsd:string" use="required"/>
+                    <!-- класс обработчика -->
+                    <xsd:attribute name="class" type="xsd:string" use="required"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="exceptionHandlers">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="handler" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:complexType>
+                        <!-- класс исключения -->
+                        <xsd:attribute name="exception" type="xsd:string" use="required"/>
+                        <!-- класс обработчика -->
+                        <xsd:attribute name="class" type="xsd:string" use="required"/>
+                        <!-- код ошибки -->
+                        <xsd:attribute name="code" type="xsd:string" use="required"/>
+                        <!-- описание ошибки -->
+                        <xsd:attribute name="description" type="xsd:string" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:attribute name="defaultCode" type="xsd:string" use="required"/>
+            <xsd:attribute name="defaultDescription" type="xsd:string" use="required"/>
+        </xsd:complexType>
+    </xsd:element>
+
+
+    <xsd:complexType name="ErrorsType">
+        <xsd:sequence>
+            <xsd:element name="error" minOccurs="1" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <!-- код ошибки -->
+                    <xsd:attribute name="code" type="xsd:string" use="required"/>
+                    <!-- класс обработчика ошибки -->
+                    <xsd:attribute name="handler" type="xsd:string" use="optional"/>
+                    <!-- класс пробрасываемого исключения -->
+                    <xsd:attribute name="exception" type="xsd:string" use="optional"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

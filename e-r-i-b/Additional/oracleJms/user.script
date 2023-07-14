@@ -1,0 +1,22 @@
+begin  
+  sys.dbms_aqadm.create_queue_table(  
+     queue_table => 'PHIZIC_JMS_QUEUE_TABLE',  
+     queue_payload_type => 'SYS.AQ$_JMS_MESSAGE',  
+     sort_list => 'PRIORITY, ENQ_TIME',
+     Multiple_consumers => TRUE,
+     compatible => '10.0.0',  
+     primary_instance => 0,  
+     secondary_instance => 0,  
+     storage_clause => 'tablespace users pctfree 10 initrans 1 maxtrans 10 storage ( initial 64K minextents 1 maxextents unlimited )');  
+end; 
+
+begin  
+  sys.dbms_aqadm.create_queue(  
+    queue_name => 'PHIZIC_JMS_IN',  
+    queue_table => 'PHIZIC_JMS_QUEUE_TABLE',  
+    queue_type => sys.dbms_aqadm.normal_queue);  
+end;  
+
+begin  
+     dbms_aqadm.start_queue( queue_name =>'PHIZIC_JMS_IN' ,enqueue => true ,dequeue => true );  
+end;

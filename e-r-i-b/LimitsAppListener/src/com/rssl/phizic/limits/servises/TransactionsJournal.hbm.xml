@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="ChannelType">
+        <param name="enumClass">com.rssl.phizic.common.types.limits.ChannelType</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="OperationType">
+        <param name="enumClass">com.rssl.phizic.common.types.limits.OperationType</param>
+    </typedef>
+    
+    <class name="com.rssl.phizic.limits.servises.DocumentTransaction" table="TRANSACTIONS_JOURNAL">
+
+        <id name="externalId" type="string" column="EXTERNAL_ID"/>
+
+        <property name="documentExternalId"         type="string"        column="DOCUMENT_EXTERNAL_ID"       not-null="true"/>
+        <property name="amountValue"                type="big_decimal"   column="AMOUNT"                     not-null="false"/>
+        <property name="amountCurrency"             type="string"        column="CURRENCY"                   not-null="false"/>
+        <property name="operationDate"              type="calendar"      column="OPERATION_DATE"             not-null="true"/>
+        <property name="operationType"              type="OperationType" column="OPERATION_TYPE"             not-null="true"/>
+        <property name="channelType"                type="ChannelType"   column="CHANNEL_TYPE"               not-null="true"/>
+        <property name="limitsInfo"                 type="string"        column="LIMITS_INFO"                not-null="true"/>
+        <property name="profileId"                  type="long"          column="PROFILE_ID"                 not-null="true"/>
+
+    </class>
+
+    <query name="com.rssl.phizic.limits.servises.DocumentTransaction.find">
+        select transaction from com.rssl.phizic.limits.servises.DocumentTransaction transaction
+        where transaction.documentExternalId = :document_external_id
+            and transaction.operationDate = :operation_date
+    </query>
+</hibernate-mapping>

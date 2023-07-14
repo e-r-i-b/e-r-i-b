@@ -1,0 +1,145 @@
+import "rt_ib_xml.mac";
+class(cBaseDeposit) 
+    cGetAccount( inXml, outXml ) 
+   
+   var referenc;   
+
+   private macro readParameters( nodeElement )
+      var nodeComPay;
+      nodeComPay = nodeElement;
+      while( nodeComPay )
+         if   ( nodeComPay.NodeName == "accountReferenc" )
+            referenc = int( nodeComPay.text );
+         end;
+         nodeComPay = nodeComPay.nextSibling();
+      end;// while( nodeComPay )
+   end;//private macro readParameters( nodeElement )   
+
+   private macro createAccountXml(rs, outXml, parentNode)
+      var accountNode, node;
+
+      accountNode = parentNode.appendChild( outXML.createNode(1, "account", "") );
+
+      node = accountNode.appendChild( outXML.createNode(1, "id", "") );
+      node.text = rs.value("id");
+
+      node = accountNode.appendChild( outXML.createNode(1, "fullname", "") );
+      node.text = rs.value("fullname");
+
+      node = accountNode.appendChild( outXML.createNode(1, "number", "") );
+      node.text = rs.value("tnumber");
+
+      node = accountNode.appendChild( outXML.createNode(1, "description", "") );
+      node.text = rs.value("accType");
+
+      node = accountNode.appendChild( outXML.createNode(1, "fullDescription", "") );
+      node.text = rs.value("fullDescription");
+
+      node = accountNode.appendChild( outXML.createNode(1, "currency", "") );
+      node.text = rs.value("currencyid");
+
+      node = accountNode.appendChild( outXML.createNode(1, "openDate", "") );
+      node.text = rs.value("openDate");
+
+      node = accountNode.appendChild( outXML.createNode(1, "branch", "") );
+      node.text = rs.value("FNCash");
+
+      node = accountNode.appendChild( outXML.createNode(1, "creditAllowed", "") );
+      node.text = rs.value("creditAllowed");
+
+      node = accountNode.appendChild( outXML.createNode(1, "debitAllowed", "") );
+      node.text = rs.value("debitAllowed");
+
+      SetParm( 2, outXml );
+   end;//private macro createAccountXml(rs, outXml, parentNode)
+   
+   private macro getAccountByReferenc(inXml, outXml)
+      var cmd, rs;
+      cmd = RsdCommand("SELECT "+
+            "accounts.t_Referenc      AS id, "+
+            "accounts.t_Account       AS tnumber, "+
+            "accounts.t_Code_Currency AS currencyId, "+
+            "accounts.t_Type_Account  AS accType, "+
+            "accounts.t_Open_Date     AS OpenDate, "+
+            "accounts.t_FNCash        AS FNCash, "+
+            "types.t_name            AS fullDescription, "+
+            "(person.t_name1 ||' ' || person.t_name2 || ' ' || person.t_name3) as fullName, "+
+            "case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=accounts.t_type_account and t_flagcur=accounts.t_iscur)=0 "+
+            "    then (case "+
+            "             when(select count (*) from DSB_TYPOP_DBT where t_kind = accounts.t_type_account "+
+            "             and t_iscur=accounts.t_iscur and t_numopert in ( 62, 63, 64, 65, 66, 67) "+
+            "             and t_sysNumb = 0) > 0 then 1 else 0 end) "+
+            "     else (case "+
+            "             when (select count(*) from DSB_TYPOP_DBT where t_kind = "+
+            "                     (select t_aptype from DPC_APLTP_DBT where t_iscur=accounts.t_iscur "+
+            "                         and t_type = accounts.t_type_account "+
+            "                         and t_typerec = 1003 "+
+            "                         and t_appltype = 3010) "+
+            "                      and t_iscur=accounts.t_iscur and t_numopert in ( 62, 63, 64, 65, 66, 67) "+
+            "                     and t_sysNumb =0)>0 then 1 else 0 end) "+
+            "end "+
+            "as debitAllowed, "+
+            "case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=accounts.t_type_account and t_flagcur=accounts.t_iscur)=0 "+
+            "   then (case "+
+            "            when(select count(*) from DSB_TYPOP_DBT where t_kind = accounts.t_type_account "+
+            "            and t_iscur=accounts.t_iscur and t_numopert in (70, 71, 73) "+
+            "            and t_SysNumb=0) >0 then 1 else 0 end) "+
+            "    else (case "+
+            "            when (select count(*)  from DSB_TYPOP_DBT where t_kind = "+
+            "                    (select t_aptype from DPC_APLTP_DBT where t_iscur=accounts.t_iscur "+
+            "                        and t_type = accounts.t_type_account "+
+            "                        and t_typerec = 1003 "+
+            "                        and t_appltype = 3010) "+
+            "                     and t_iscur=accounts.t_iscur and t_numopert in (70, 71, 73) "+
+            "                    and t_SysNumb =0) >0 then 1 else 0 end) "+
+            "end "+
+            "as creditAllowed "+
+            "FROM ddepositr_dbt accounts "+
+            "INNER JOIN dpersn_dbt person "+
+            "    ON accounts.t_codclient = person.t_personid "+
+            "inner join DSB_DTYP_DBT  types "+
+            "    on accounts.t_type_account = types.t_kind and accounts.t_iscur = types.t_flagcur "+
+            "WHERE accounts.t_Referenc = ?");
+      cmd.addParam( "referenc", RSDBP_IN, V_STRING);
+      cmd.value("referenc") = referenc;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+
+      if ( (rs.moveNext))
+         createAccountXml(rs, outXml,nodeAnswer);
+      end;   
+
+      return outXml;
+   end;//private macro getAccountByReferenc(inXml, outXml)
+
+   macro start(inXml, outXml)
+      var nodeParentElement;
+      var stat = 0;
+
+      if(not outXml )
+         outXml = CreateXMLObject();
+         
+         if(not outXml) return; end;
+         CreateBeginTag( outXml );
+         nodeParentElement = inXml.documentElement.selectSingleNode( "//getAccount_q" );
+         nodeElement = nodeParentElement.firstChild();
+
+        if( nodeElement )
+            readParameters( nodeElement );
+            outXML = getAccountByReferenc( inXml, outXML );
+         end;
+      end;//if(not outXml )
+      return outXml;
+   end;//private macro start(inXml, outXml)
+
+end;  //class(cBaseDeposit) 
+
+macro GetAccountById( inXml, outXml )
+
+  var t = cGetAccount;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;
+

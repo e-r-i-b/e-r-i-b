@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+    <class name="com.rssl.phizic.business.incognitoDictionary.IncognitoPhone" table="INCOGNITO_PHONES" abstract="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_INCOGNITO_PHONES</param>
+            </generator>
+        </id>
+        <property name="phoneNumber"    type="string"   column="PHONE_NUMBER"   not-null="true"/>
+        <property name="loginId"        type="long"     column="LOGIN_ID"       not-null="false"/>
+    </class>
+
+    <!--Найти телефоны по списку
+        Опорный объект: I_INCOGNITO_PHONES
+        Предикаты доступа: access("PHONE_NUMBER"=:NUMBERS)
+        Кардинальность: 1 (в редких случаях возможно 2)
+    -->
+    <query name="com.rssl.phizic.business.incognitoDictionary.findPhones">
+        select phone from com.rssl.phizic.business.incognitoDictionary.IncognitoPhone phone
+        where phone.phoneNumber in (:numbers)
+    </query>
+
+    <!--
+        Удаление инкогнито телефонов.
+        Опорный объект: I_INCOGNITO_PHONES
+        Предикаты доступа: access("PHONE_NUMBER"=:PHONE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.incognitoDictionary.delete">
+        delete from INCOGNITO_PHONES where PHONE_NUMBER = :extra_phone
+    </sql-query>
+
+    <!--
+        Удаление инкогнито телефонов по логин ид.
+        Опорный объект: IDX_LOGIN_INCOGNITO
+        Предикаты доступа: "LOGIN_ID"=:LOGINID
+        Кардинальность: 10
+     -->
+    <sql-query name="com.rssl.phizic.business.incognitoDictionary.deleteByLoginId">
+        delete from INCOGNITO_PHONES where LOGIN_ID = :extra_loginId
+    </sql-query>
+
+
+</hibernate-mapping>

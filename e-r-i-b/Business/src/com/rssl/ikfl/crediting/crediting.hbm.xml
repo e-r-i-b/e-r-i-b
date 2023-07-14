@@ -1,0 +1,279 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <!--todo согласование будет при реализации задачи оптимизации CRM-->
+    <!-- ************************************************************************************************* -->
+    <!-- Типы данных -->
+
+    <typedef name="OfferProductType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.ikfl.crediting.OfferProductType</param>
+	</typedef>
+
+    <typedef name="OfferRequestStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.ikfl.crediting.OfferRequestStatus</param>
+	</typedef>
+
+    <typedef name="OfferResponseChannel" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.ikfl.crediting.OfferResponseChannel</param>
+	</typedef>
+
+    <typedef name="FeedbackType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.ikfl.crediting.FeedbackType</param>
+	</typedef>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Сущности -->
+
+    <class table="CRM_OFFER_LOGINS" name="com.rssl.ikfl.crediting.OfferLogin">
+        <id name="id" type="long" access="field">
+            <generator class="native">
+                <param name="sequence">S_CRM_OFFER_LOGINS</param>
+            </generator>
+        </id>
+        <property name="surName"            type="string"               access="field"  column="SUR_NAME"         not-null="true"/>
+        <property name="firstName"          type="string"               access="field"  column="FIRST_NAME"       not-null="true"/>
+        <property name="patrName"           type="string"               access="field"  column="PATR_NAME"        not-null="false"/>
+        <property name="birthDay"           type="calendar"             access="field"  column="BIRTHDAY"         not-null="true"/>
+        <property name="docSeries"          type="string"               access="field"  column="DOC_SERIES"       not-null="false"/>
+        <property name="docNumber"          type="string"               access="field"  column="DOC_NUMBER"       not-null="false"/>
+        <property name="tb"                 type="string"               access="field"  column="TB"               not-null="true"/>
+        <property name="lastRqUID"          type="string"               access="field"  column="LAST_RQ_UID"      not-null="true"/>
+        <property name="lastRqTime"         type="calendar"             access="field"  column="LAST_RQ_TIME"     not-null="true"/>
+        <property name="lastRqStatus"       type="OfferRequestStatus"   access="field"  column="LAST_RQ_STATUS"   not-null="true"/>
+    </class>
+
+    <class table="CRM_OFFERS" name="com.rssl.ikfl.crediting.Offer">
+        <id       name="id"                 type="long"                 column="ID"/>
+        <property name="surName"            type="string"               column="SUR_NAME"               not-null="true"/>
+        <property name="firstName"          type="string"               column="FIRST_NAME"             not-null="true"/>
+        <property name="patrName"           type="string"               column="PATR_NAME"              not-null="false"/>
+        <property name="birthDay"           type="calendar"             column="BIRTHDAY"               not-null="true"/>
+        <property name="docSeries"          type="string"               column="DOC_SERIES"             not-null="false"/>
+        <property name="docNumber"          type="string"               column="DOC_NUMBER"             not-null="false"/>
+        <property name="campaignId"         type="string"               column="CAMPAIGN_ID"            not-null="true"/>
+        <property name="campaignName"       type="string"               column="CAMPAIGN_NAME"          not-null="false"/>
+        <property name="productType"        type="OfferProductType"     column="PRODUCT_TYPE"           not-null="true"/>
+        <property name="sourceCode"         type="string"               column="SOURCE_CODE"            not-null="true"/>
+        <property name="sourceName"         type="string"               column="SOURCE_NAME"            not-null="true"/>
+        <property name="productASName"      type="string"               column="PRODUCT_AS_NAME"        not-null="true"/>
+        <property name="productTypeCode"    type="string"               column="PRODUCT_TYPE_CODE"      not-null="false"/>
+        <property name="productCode"        type="string"               column="PRODUCT_CODE"           not-null="false"/>
+        <property name="productSubCode"     type="string"               column="PRODUCT_SUB_CODE"       not-null="false"/>
+        <property name="campaignMemberId"   type="string"               column="CAMPAIGN_MEMBER_ID"     not-null="true"/>
+        <property name="clientId"           type="string"               column="CLIENT_ID"              not-null="true"/>
+        <property name="tb"                 type="string"               column="TB"                     not-null="true"/>
+        <property name="priority"           type="int"                  column="PRIORITY"               not-null="true"/>
+        <property name="personalText"       type="string"               column="PERSONAL_TEXT"          not-null="false"/>
+        <property name="expDate"            type="calendar"             column="EXP_DATE"               not-null="true"/>
+        <property name="currencyCode"       type="string"               column="CURRENCY_CODE"          not-null="true"/>
+        <property name="rateMin"            type="big_decimal"          column="RATE_MIN"               not-null="false"/>
+        <property name="rateMax"            type="big_decimal"          column="RATE_MAX"               not-null="false"/>
+        <property name="limitMin"           type="big_decimal"          column="LIMIT_MIN"              not-null="false"/>
+        <property name="limitMax"           type="big_decimal"          column="LIMIT_MAX"              not-null="false"/>
+        <property name="periodMin"          type="int"                  column="PERIOD_MIN"             not-null="false"/>
+        <property name="periodMax"          type="int"                  column="PERIOD_MAX"             not-null="false"/>
+        <property name="loadDate"           type="calendar_date"        column="LOAD_DATE"              not-null="true"/>
+        <property name="offerUsed"          type="boolean"              column="IS_OFFER_USED"          not-null="true"/>
+        <property name="active"             type="boolean"              column="IS_ACTIVE"              not-null="true"/>
+
+        <set name="topUps" table="CRM_OFFER_TOPUP" lazy="false" cascade="all-delete-orphan">
+            <key column="OFFER_ID"/>
+            <one-to-many class="com.rssl.ikfl.crediting.OfferTopUp"/>
+        </set>
+    </class>
+
+    <class table="CRM_OFFER_CONDITIONS" name="com.rssl.ikfl.crediting.OfferCondition">
+        <composite-id>
+            <key-property name="offerId"    type="long"                 column="OFFER_ID"/>
+            <key-property name="rate"       type="big_decimal"          column="RATE"/>
+            <key-property name="period"     type="int"                  column="PERIOD"/>
+        </composite-id>
+
+        <property name="amount"             type="big_decimal"          access="field"  column="AMOUNT"                 not-null="true"/>
+    </class>
+
+    <class table="CRM_OFFER_FEEDBACKS" name="com.rssl.ikfl.crediting.Feedback">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CRM_OFFER_FEEDBACKS</param>
+            </generator>
+        </id>
+        <property name="surName"            type="string"               column="SUR_NAME"               not-null="true"/>
+        <property name="firstName"          type="string"               column="FIRST_NAME"             not-null="true"/>
+        <property name="patrName"           type="string"               column="PATR_NAME"              not-null="false"/>
+        <property name="birthDay"           type="calendar"             column="BIRTHDAY"               not-null="true"/>
+        <property name="docSeries"          type="string"               column="DOC_SERIES"             not-null="true"/>
+        <property name="docNumber"          type="string"               column="DOC_NUMBER"             not-null="false"/>
+        <property name="sourceCode"         type="string"               column="SOURCE_CODE"            not-null="true"/>
+        <property name="campaignMemberId"   type="string"               column="CAMPAIGN_MEMBER_ID"     not-null="true"/>
+        <property name="feedbackTime"       type="calendar"           column="FEEDBACK_TIME"            not-null="false"/>
+        <property name="channel"            type="OfferResponseChannel"       column="CHANNEL"         not-null="false"/>
+        <property name="feedbackType"        type="FeedbackType"             column="TYPE"           not-null="false"/>
+        <property name="offerEndDate"       type="calendar"             column="OFFER_END_DATE"         not-null="true"/>
+    </class>
+
+    <class table="CRM_OFFER_TOPUP" name="com.rssl.ikfl.crediting.OfferTopUp">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CRM_OFFER_TOPUP</param>
+            </generator>
+        </id>
+
+        <property name="offerId"             type="long"        column="OFFER_ID"            not-null="true"/>
+        <property name="topUpLoanBlockCount" type="integer"     column="BLOCK_COUNT"         not-null="true"/>
+        <property name="idSource"            type="string"      column="ID_SOURCE"           not-null="true"/>
+        <property name="idContract"          type="string"      column="ID_CONTRACT"         not-null="true"/>
+        <property name="loanAccountNumber"   type="string"      column="LOAN_ACCOUNT_NUMBER" not-null="true"/>
+        <property name="agreementNumber"     type="string"      column="AGREEMENT_NUMBER"    not-null="true"/>
+        <property name="startDate"           type="calendar"    column="START_DATE"          not-null="true"/>
+        <property name="maturityDate"        type="calendar"    column="MATURITY_DATE"       not-null="true"/>
+        <property name="totalAmount"         type="big_decimal" column="TOTAL_AMOUNT"        not-null="true"/>
+        <property name="currency"            type="string"      column="CURRENCY"            not-null="true"/>
+        <property name="totalRepaymentSum"   type="big_decimal" column="TOTAL_REPAYMENT_SUM"/>
+    </class>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Запросы -->
+
+    <sql-query name="com.rssl.ikfl.crediting.DeleteClientOffers">
+        delete from crm_offer_logins
+        where
+            upper(trim(regexp_replace(crm_offer_logins.sur_name||' '||crm_offer_logins.first_name||' '||crm_offer_logins.patr_name,'( )+',' '))) =
+                upper(trim(regexp_replace(:extra_surname||' '||:extra_firstname||' '||:extra_patrname,'( )+',' ')))
+                and upper(replace(crm_offer_logins.doc_series, ' ', '')||replace(crm_offer_logins.doc_number, ' ', '')) in (:extra_document)
+                and crm_offer_logins.birthday = :extra_birthday
+    </sql-query>
+
+    <sql-query name="com.rssl.ikfl.crediting.LoadFeedback">
+        <return alias="feedback" class="com.rssl.ikfl.crediting.Feedback"/>
+        <![CDATA[
+            select {feedback.*} from CRM_OFFER_FEEDBACKS feedback
+            where
+                upper(trim(regexp_replace(feedback.sur_name||' '||feedback.first_name||' '||feedback.patr_name,'( )+',' '))) =
+                upper(trim(regexp_replace(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                and upper(replace(feedback.doc_series, ' ', '')||replace(feedback.doc_number, ' ', '')) in (:document)
+                and feedback.birthday = :birthday
+                and feedback.SOURCE_CODE =  :sourceCode
+                and feedback.CAMPAIGN_MEMBER_ID =  :campaignMemberId
+                AND feedback.TYPE = :feedbackType
+            for update nowait
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.ikfl.crediting.FindOfferFeedback">
+        <return alias="feedback" class="com.rssl.ikfl.crediting.Feedback"/>
+        <![CDATA[
+            select * from CRM_OFFER_FEEDBACKS feedback
+            join CRM_OFFERS offer on
+                upper(trim(regexp_replace(offer.sur_name||' '||offer.first_name||' '||offer.patr_name,'( )+',' '))) =
+                upper(trim(regexp_replace(feedback.sur_name||' '||feedback.first_name||' '||feedback.patr_name,'( )+',' ')))
+                and upper(replace(offer.doc_series, ' ', '')||replace(offer.doc_number, ' ', '')) =
+                    upper(replace(feedback.doc_series, ' ', '')||replace(feedback.doc_number, ' ', ''))
+                and offer.birthday = feedback.birthday
+                and offer.SOURCE_CODE = feedback.SOURCE_CODE
+                and offer.CAMPAIGN_MEMBER_ID = feedback.CAMPAIGN_MEMBER_ID
+                AND feedback.TYPE = :feedbackType
+            where offer.ID = :offerId
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.ikfl.crediting.Offer.getLoanOfferByPersonData">
+        <return alias="Offer" class="com.rssl.ikfl.crediting.Offer"/>
+        <![CDATA[
+            select crm_offers.*
+            from crm_offers
+            where
+                upper(trim(regexp_replace(crm_offers.sur_name||' '||crm_offers.first_name||' '||crm_offers.patr_name,'( )+',' '))) =
+                upper(trim(regexp_replace(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                and upper(replace(crm_offers.doc_series, ' ', '')||replace(crm_offers.doc_number, ' ', '')) in (:document)
+                and crm_offers.birthday = :birthday
+                and crm_offers.product_type = 'CONSUMER_CREDIT'
+                and crm_offers.exp_date > :now
+                and crm_offers.is_offer_used = 0
+                and crm_offers.is_active = 1
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.ikfl.crediting.Offer.getLoanCardOfferByPersonData">
+        <return alias="Offer" class="com.rssl.ikfl.crediting.Offer"/>
+        <![CDATA[
+            select crm_offers.*
+            from crm_offers
+            where
+                upper(trim(regexp_replace(crm_offers.sur_name||' '||crm_offers.first_name||' '||crm_offers.patr_name,'( )+',' '))) =
+                upper(trim(regexp_replace(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                and upper(replace(crm_offers.doc_series, ' ', '')||replace(crm_offers.doc_number, ' ', '')) in (:document)
+                and crm_offers.birthday = :birthday
+                and (crm_offers.product_type = 'CREDIT_CARD' OR crm_offers.product_type = 'CHANGE_LIMIT')
+                and crm_offers.exp_date > :now
+                and crm_offers.is_offer_used = 0
+                and crm_offers.is_active = 1
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.ikfl.crediting.Offer.getOfferConditionsByOfferId">
+        select offerCondition
+        from com.rssl.ikfl.crediting.OfferCondition offerCondition
+        where offerCondition.offerId = :offerId
+    </query>
+
+    <sql-query name="com.rssl.ikfl.crediting.Offer.getOfferConditionsByLoginId">
+        <return alias="offerCondition" class="com.rssl.ikfl.crediting.OfferCondition"/>
+        <![CDATA[
+            select conditions.* from CRM_OFFER_CONDITIONS conditions
+            join CRM_OFFERS offer on offer.ID = conditions.OFFER_ID
+            where
+                upper(trim(regexp_replace(offer.sur_name||' '||offer.first_name||' '||offer.patr_name,'( )+',' '))) =
+                upper(trim(regexp_replace(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                and upper(replace(offer.doc_series, ' ', '')||replace(offer.doc_number, ' ', '')) in (:document)
+                and offer.birthday = :birthday
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.ikfl.crediting.Offer.isOfferReceivingInProgress">
+        <![CDATA[
+            select 1
+            from crm_offer_logins
+            where
+                upper(trim(regexp_replace(crm_offer_logins.sur_name||' '||crm_offer_logins.first_name||' '||crm_offer_logins.patr_name,'( )+',' '))) =
+                upper(trim(regexp_replace(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                and upper(replace(crm_offer_logins.doc_series, ' ', '')||replace(crm_offer_logins.doc_number, ' ', '')) in (:document)
+                and crm_offer_logins.birthday = :birthday
+                and crm_offer_logins.last_rq_status = 'IN_PROGRESS'
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.ikfl.crediting.Offer.markOfferAsUsed">
+        update com.rssl.ikfl.crediting.Offer offer
+        set  offer.offerUsed = true
+        where offer.id = :id
+    </query>
+
+    <sql-query name="com.rssl.ikfl.crediting.Offer.findOfferLogin">
+        <return alias="offerLogin" class="com.rssl.ikfl.crediting.OfferLogin"/>
+        <![CDATA[
+            select crm_offer_logins.*
+            from crm_offer_logins
+            where
+                upper(trim(regexp_replace(crm_offer_logins.sur_name||' '||crm_offer_logins.first_name||' '||crm_offer_logins.patr_name,'( )+',' '))) =
+                upper(trim(regexp_replace(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                and upper(replace(crm_offer_logins.doc_series, ' ', '')||replace(crm_offer_logins.doc_number, ' ', '')) in (:document)
+                and crm_offer_logins.birthday = :birthday
+                and crm_offer_logins.tb = :tb
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.ikfl.crediting.Offer.markPersonCrmOffersAsNonActive">
+        update crm_offers offer
+        set offer.is_active = 0
+        where
+            upper(trim(regexp_replace(offer.sur_name||' '||offer.first_name||' '||offer.patr_name, '( )+', ' '))) =
+            upper(trim(regexp_replace(:extra_surname||' '||:extra_firstname||' '||:extra_patrname, '( )+', ' ')))
+            and upper(replace(offer.doc_series, ' ', '')||replace(offer.doc_number, ' ', '')) = :extra_document
+            and offer.birthday = :extra_birthday
+    </sql-query>
+
+</hibernate-mapping>

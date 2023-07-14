@@ -1,0 +1,80 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="DictionaryProductType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.common.DictionaryProductType</param>
+    </typedef>
+    <typedef name="SegmentCodeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.SegmentCodeType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.types.ProductTypeParameters"
+           table="PFP_PRODUCT_TYPE_PARAMETERS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_PRODUCT_TYPE_PARAMETERS</param>
+            </generator>
+        </id>
+        <property name="uuid" type="string"                column="UUID"            not-null="true" update="false"/>
+        <property name="name" type="string"                column="NAME"            not-null="true"/>
+        <property name="type" type="DictionaryProductType" column="DICTIONARY_TYPE" not-null="true"/>
+        <property name="use"  type="boolean"               column="USE"             not-null="true"/>
+        <bag name="targetGroup" table="PFP_PT_TARGET_GROUPS" cascade="all-delete-orphan" lazy="false">
+            <key     column="PRODUCT_ID"   not-null="true"/>
+			<element column="SEGMENT_CODE" not-null="true" type="SegmentCodeType"/>
+        </bag>
+        <property name="imageId"     type="long"   column="IMAGE_ID"    not-null="false"/>
+        <property name="description" type="string" column="DESCRIPTION" not-null="false"/>
+
+        <property name="useOnDiagram" type="boolean" column="USE_ON_DIAGRAM" not-null="true"/>
+        <property name="useOnTable"   type="boolean" column="USE_ON_TABLE"   not-null="true"/>
+
+        <component name="diagramParameters" class="com.rssl.phizic.business.dictionaries.pfp.products.types.DiagramParameters">
+            <property name="useZero" type="boolean" column="AXIS_USE_ZERO"/>
+            <component name="axisX" class="com.rssl.phizic.business.dictionaries.pfp.products.types.DiagramAxis">
+                <property name="name"     type="string"  column="X_AXIS_NAME"/>
+                <property name="useSteps" type="boolean" column="X_AXIS_USE_STEPS"/>
+                <list name="steps" table="PFP_DIAGRAM_STEPS" cascade="all-delete-orphan" lazy="false">
+                    <key column="PFP_TYPE_PARAMETERS_ID" not-null="false"/>
+                    <list-index column="LIST_INDEX"/>
+                    <composite-element class="com.rssl.phizic.business.dictionaries.pfp.products.types.DiagramStep">
+                        <property name="from" type="long"    column="STEP_FROM" not-null="true"/>
+                        <property name="to"   type="long"    column="STEP_TO"   not-null="true"/>
+                        <property name="name" type="string" column="STEP_NAME" not-null="true"/>
+                    </composite-element>
+                </list>
+            </component>
+            <component name="axisY" class="com.rssl.phizic.business.dictionaries.pfp.products.types.DiagramAxis">
+                <property name="name" type="string"  column="Y_AXIS_NAME"/>
+            </component>
+        </component>
+
+        <component name="tableParameters" class="com.rssl.phizic.business.dictionaries.pfp.products.types.TableParameters">
+            <bag name="columns" table="PFP_TABLE_COLUMNS" cascade="all-delete-orphan" lazy="false" fetch="subselect" order-by="ORDER_INDEX">
+                <key column="PFP_TYPE_PARAMETERS_ID"/>
+                <one-to-many class="com.rssl.phizic.business.dictionaries.pfp.products.types.TableColumn"/>
+            </bag>
+        </component>
+
+        <component name="link" class="com.rssl.phizic.business.dictionaries.pfp.products.types.ProductTypeLink">
+            <property name="name"    type="string" column="LINK_NAME"     not-null="true"/>
+            <property name="hint"    type="string" column="LINK_HINT"     not-null="true"/>
+        </component>
+    </class>
+
+    <!-- сегменты для типов продукта -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.products.types.ProductTypeParameters.getSegmentsForTypes">
+        <return-scalar column="SEGMENT" type="string"/>
+        <![CDATA[
+            SELECT DISTINCT(SEGMENT_CODE) SEGMENT
+            FROM PFP_PT_TARGET_GROUPS
+            WHERE PRODUCT_ID IN (SELECT ID
+                                 FROM PFP_PRODUCT_TYPE_PARAMETERS
+                                 WHERE DICTIONARY_TYPE IN (:productTypes) AND USE = 1)
+
+		]]>
+    </sql-query>
+
+</hibernate-mapping>

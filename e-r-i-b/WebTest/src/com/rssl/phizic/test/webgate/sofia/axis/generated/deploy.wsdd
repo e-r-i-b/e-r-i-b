@@ -1,0 +1,29 @@
+<!-- Use this file to deploy some handlers/chains and services      -->
+<!-- Two ways to do this:                                           -->
+<!--   java org.apache.axis.client.AdminClient deploy.wsdd          -->
+<!--      after the axis server is running                          -->
+<!-- or                                                             -->
+<!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   -->
+<!--      from the same directory that the Axis engine runs         -->
+
+<deployment
+    xmlns="http://xml.apache.org/axis/wsdd/"
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from WebBankService WSDL service -->
+
+  <service name="WebBankServiceIFPort" provider="java:RPC" style="wrapped" use="literal">
+      <parameter name="wsdlTargetNamespace" value="urn:dpc"/>
+      <parameter name="wsdlServiceElement" value="WebBankService"/>
+      <parameter name="schemaUnqualified" value="urn:dpc"/>
+      <parameter name="wsdlServicePort" value="WebBankServiceIFPort"/>
+      <parameter name="className" value="com.rssl.phizic.test.webgate.sofia.axis.WebBankServiceIFBindingImpl"/>
+      <parameter name="wsdlPortType" value="WebBankServiceIF"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="sendMessage" qname="operNS:sendMessage" xmlns:operNS="urn:dpc" returnQName="sendMessageReturn" returnType="rtns:string" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="" >
+        <parameter qname="message" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <parameter name="allowedMethods" value="sendMessage"/>
+
+  </service>
+</deployment>

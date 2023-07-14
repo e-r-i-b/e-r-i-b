@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.template.DocTemplateBase" table="TEMPLATES_DOCS_CONTRACT" >
+
+        <id name="id" type="long" node="id">
+	        <generator class="native">
+				<param name="sequence">S_TEMPLATES_DOCS_CONTRACT</param>
+			</generator>
+	    </id>
+
+	    <discriminator column="CATEGORY" type="string"/>
+
+        <property name="name" type="not-null-string"/>
+	    <property name="description" type="string"/>
+	    <property name="departmentId" column="DEPARTMENT_ID"/>
+	    <property name="update" column="UPDATE_DATE" type="calendar"/>
+	    <property name="data" type="com.rssl.phizic.business.template.BinaryBlobType" column="DOC"/>
+	    <property name="fileName" column="FILE_NAME" type="string"/>
+	    <property name="fileType" column="FILE_TYPE" type="string"/>
+    </class>
+
+    <subclass name="com.rssl.phizic.business.template.DocTemplate"
+              extends="com.rssl.phizic.business.template.DocTemplateBase"
+		      discriminator-value="T">
+    </subclass>
+
+	<subclass name="com.rssl.phizic.business.template.BanksDocument"
+	          extends="com.rssl.phizic.business.template.DocTemplateBase"
+			  discriminator-value="D">
+	</subclass>
+
+	<query name="GetBanksDocumentsList">
+	   SELECT tmp FROM com.rssl.phizic.business.template.BanksDocument tmp
+		  where tmp.departmentId = :departmentId
+	</query>
+</hibernate-mapping>

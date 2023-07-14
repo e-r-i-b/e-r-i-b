@@ -1,0 +1,788 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Типы данных -->
+
+    <typedef name="CardOperationClaimStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.finances.CardOperationClaimStatus</param>
+	</typedef>
+
+    <typedef name="OperationType" class="com.rssl.phizic.business.finances.OperationTypeEnumType">
+		<param name="enumClass">com.rssl.phizic.business.finances.OperationType</param>
+	</typedef>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Сущности -->
+
+    <class table="CARD_OPERATIONS" name="com.rssl.phizic.business.finances.CardOperation">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CARD_OPERATIONS</param>
+            </generator>
+        </id>
+        <property name="externalId" type="string" column="EXTERNAL_ID" not-null="false"/>
+        <property name="date" type="calendar" column="OPERATION_DATE" not-null="true"/>
+        <property name="loadDate" type="calendar" column="LOAD_DATE" not-null="false"/>
+        <property name="cardNumber" type="string" column="CARD_NUMBER" not-null="false"/>
+        <property name="originalDescription" type="string" column="ORIGINAL_DESCRIPTION" not-null="false"/>
+        <property name="description" type="string" column="DESCRIPTION" not-null="false"/>
+        <property name="cardAmount" type="big_decimal" column="CARD_SUMM" not-null="false"/>
+        <property name="nationalAmount" type="big_decimal" column="NATIONAL_SUMM" not-null="true"/>
+        <property name="cash" type="boolean" column="IO_CASH" not-null="true"/>
+        <property name="deviceNumber" type="string" column="DEVICE_NUMBER" not-null="false"/>
+        <property name="ownerId" type="long" column="LOGIN_ID" not-null="true"/>
+        <many-to-one name="category" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory"
+                     column="CATEGORY_ID" lazy="false" not-null="false" />
+        <property name="mccCode" column="MCC_CODE" not-null="false"/>
+        <property name="operationType" type="OperationType" column="OPERATION_TYPE" not-null="false"/>
+        <property name="businessDocumentId" type="long" column="BUSINESS_DOCUMENT_ID" not-null="false"/>
+        <property name="hidden" type="boolean" column="HIDDEN" not-null="false"/>
+        <property name="originalCountry" type="country" column="ORIGINAL_COUNTRY" not-null="false"/>
+        <property name="clientCountry" type="country" column="CLIENT_COUNTRY" not-null="false"/>
+        <property name="originalCategoryName" type="string" column="ORIGINAL_CATEGORY_NAME" not-null="false"/>
+
+        <filter name="byCategoryFilter"/>
+        <filter name="byIdInMAPIFilter"/>
+    </class>
+
+    <class table="CARD_OPERATION_CLAIMS" name="com.rssl.phizic.business.finances.CardOperationClaim">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CARD_OPERATION_CLAIMS</param>
+            </generator>
+        </id>
+        <property name="cardNumber" type="string" column="CARD_NUMBER" not-null="true"/>
+        <property name="status" type="CardOperationClaimStatus" column="STATUS" not-null="true"/>
+        <property name="waitingStartTime" type="calendar" column="WAIT_START_TIME" not-null="true"/>
+        <property name="processingStartTime" type="calendar" column="PROC_START_TIME" not-null="false"/>
+        <property name="executingEndTime" type="calendar" column="EXEC_END_TIME" not-null="false"/>
+        <property name="lastOperationDate" type="calendar" column="LAST_OPERATION_DATE" not-null="false"/>
+        <property name="ownerId" type="long" column="LOGIN_ID" not-null="true"/>
+        <property name="lastError" type="string" column="LAST_ERROR" not-null="false"/>
+        <property name="executionAttemptNum" type="integer" column="EXECUTION_ATTEMPT_NUM" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.finances.CardOperationCategoryGraphAbstract" mutable="false">
+        <id name="id"/>
+        <property name="name"/>
+        <property name="categorySum"/>
+        <property name="visibleSum"/>
+        <property name="incomeType"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.finances.CardOperationAbstract" mutable="false">
+        <id name="id"/>
+        <property name="date"/>
+        <property name="operationSum"/>
+        <property name="income"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.finances.CashAndCashlessOperationsGraphAbstract" mutable="false">
+        <id name="id"/>
+        <property name="date"/>
+        <property name="operationSum"/>
+        <property name="income"/>
+        <property name="cash"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.finances.financeCalendar.CalendarDataDescription" mutable="false">
+        <id name="date"/>
+        <property name="outcomeSum"/>
+        <property name="incomeSum"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.finances.financeCalendar.CalendarDayExtractByOperationDescription" mutable="false">
+        <id name="id"/>
+        <property name="description"/>
+        <property name="categoryName"/>
+        <property name="categoryColor"/>
+        <property name="amount"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.finances.Budget" table="CLIENTS_BUDGET">
+        <composite-id>
+            <key-many-to-one name="login"  class="com.rssl.phizic.auth.LoginImpl" column="LOGIN_ID" foreign-key="true" lazy="false"/>
+            <key-property name="categoryId" type="long" column="CATEGORY_ID"/>
+        </composite-id>
+        <property name="budget" type="double" column="BUDGET"/>
+    </class>
+
+    <class table="ALF_RECATEGORIZATION_RULES" name="com.rssl.phizic.business.finances.recategorization.ALFRecategorizationRule">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_ALF_RECATEGORIZATION_RULES</param>
+            </generator>
+        </id>
+        <property name="loginId"       type="long"   column="LOGIN_ID"        not-null="true"/>
+        <property name="description"   type="string" column="DESCRIPTION"     not-null="true"/>
+        <property name="mccCode"       type="long"   column="MCC_CODE"        not-null="true"/>
+        <many-to-one name="newCategory" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory" column="NEW_CATEGORY_ID" lazy="false" not-null="true" />
+    </class>
+
+    <class table="CARD_OPERATIONS_EXT_FIELDS" name="com.rssl.phizic.business.finances.CardOperationExtendedFields">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CARD_OPERATIONS_EXT_FIELDS</param>
+            </generator>
+        </id>
+        <property name="cardOperationId" type="long" column="CARD_OPERATION_ID" not-null="true"/>
+        <property name="pushUID" type="long" column="PUSHUID" not-null="false"/>
+        <property name="parentPushUID" type="long" column="PARENT_PUSHUID" not-null="false"/>
+        <property name="authCode" type="string" column="AUTHCODE" not-null="false"/>
+        <property name="operationTypeWay" type="string" column="OPERATION_TYPE_WAY" not-null="false"/>
+        <property name="loadDateMAPI" type="calendar" column="LOAD_DATE_MAPI" not-null="false"/>
+        <property name="categoryChange" type="boolean">
+            <column name="CATEGORY_CHANGE" not-null="true" default="0"/>
+        </property>
+        <property name="date" type="calendar" column="OPERATION_DATE" not-null="true"/>
+    </class>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Запросы -->
+
+    <!-- Список категорий операций, доступных пользователю, с указанием типа доходности -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getCardOperationCategories">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory"/>
+        <![CDATA[
+            select {category.*}
+            from CARD_OPERATION_CATEGORIES category
+            where nvl(LOGIN_ID, -1) in (:extra_loginId, -1)
+            and income = :extra_income
+            and visible = '1'
+            ORDER BY nvl(LOGIN_ID, -1)
+        ]]>
+    </sql-query>
+
+    <!-- Ищет АЛФ категорию для первой услуги заданного провайдера
+        Опорный объект: SK_SERV_PROVIDER_PAYMENT_SERV
+        Предикаты доступа: access("PROVSERV"."SERVICE_PROVIDER_ID"=TO_NUMBER(:PROVIDERID)
+        Кардинальность: 1 (выставлен параметр MaxResults = 1)
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.providers.ServiceProvider.getCardOperationCategories">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory"/>
+        <![CDATA[
+            select
+                {category.*}
+            from
+                CARD_OPERATION_CATEGORIES category
+            inner join
+                PAYMENT_SERVICES_TO_CATEGORIES paymentCategory on category.ID = paymentCategory.CATEGORY_ID
+            inner join
+                PAYMENT_SERVICES paymentService on paymentCategory.SERVICE_CODE = paymentService.CODE
+            inner join
+                SERV_PROVIDER_PAYMENT_SERV provServ on paymentService.ID = provServ.PAYMENT_SERVICE_ID
+            where
+                provServ.SERVICE_PROVIDER_ID = :extra_providerId
+        ]]>
+    </sql-query>
+
+    <!-- Список категорий операций, доступных пользователю, с указанием типа доходности и признаком необходимости получать категории для переводов -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getCardOperationCategoriesByShowTransfers">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory"/>
+        <![CDATA[
+            select {category.*}
+            from CARD_OPERATION_CATEGORIES category
+            where nvl(LOGIN_ID, -1) in (:extra_loginId, -1)
+            and income = :extra_income
+            and (IS_TRANSFER = '0' OR IS_TRANSFER = :extra_showTransfer)
+            and visible = '1'
+            ORDER BY nvl(LOGIN_ID, -1)
+        ]]>
+    </sql-query>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Запросы по заявкам -->
+
+	<!-- Поиск заявок по логину -->
+    <query name="com.rssl.phizic.business.finances.CardOperationClaimService.findByLogin">
+        from com.rssl.phizic.business.finances.CardOperationClaim
+        where ownerId = :loginId
+    </query>
+
+    <!-- Поиск заявки по логину и карте -->
+    <query name="com.rssl.phizic.business.finances.CardOperationClaimService.findByLoginAndCard">
+        from com.rssl.phizic.business.finances.CardOperationClaim
+        where ownerId = :loginId
+          and cardNumber in (:cardNumbers)
+    </query>
+
+    <!--
+        Опорный объект: I_CARD_OPERATION_CLAIMS_STATUS
+        Предикаты доступа: -
+        Кардинальность: первые {maxCount} заявок для обработки джобом
+    -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationClaimService.getClaimsToLoadOperations">
+        <return alias="claim" class="com.rssl.phizic.business.finances.CardOperationClaim"/>
+        <![CDATA[
+            SELECT
+                {claim.*},
+                decode(STATUS, 'TIMEOUT', 1, 'PROCESSING', 2, 'WAITING', 3, 'AUTO_WAITING', 4) priority
+            FROM CARD_OPERATION_CLAIMS claim
+            WHERE
+                decode(STATUS, 'TIMEOUT', 1, 'PROCESSING', 2, 'WAITING', 3, 'AUTO_WAITING', 4) IS NOT NULL
+                AND (STATUS <> 'PROCESSING' OR nvl(PROC_START_TIME, TO_DATE('01.01.0001', 'DD.MM.YYYY')) < :staleLatestTime)
+                AND EXECUTION_ATTEMPT_NUM < :executionAttemptMaxNum
+                AND rownum <= :maxCount
+            ORDER BY priority
+        ]]>
+    </sql-query>
+
+    <!-- Групповое обновление статуса заявок на "выполняется" -->
+    <query name="com.rssl.phizic.business.finances.CardOperationClaimService.markClaimsProcessing">
+        update com.rssl.phizic.business.finances.CardOperationClaim claim
+        set claim.status = :processingStatus,
+            claim.processingStartTime = :processingStartTime,
+            claim.executionAttemptNum = claim.executionAttemptNum + 1
+        where claim.id in (:claimIds)
+    </query>
+
+    <!-- Перевести заявку в статус "выполняется", при условии, что никто другой не перевел заявку в этот статус с момента выборки.
+         Своего рода проверка на StaleObjectState. -->
+    <!-- Опорный объект: PK_CARD_OPERATION_CLAIMS
+         Предикаты доступа: access("CLAIM"."ID"=TO_NUMBER(:CLAIMID))
+         Кардинальность: 0/1 INDEX UNIQUE SCAN
+      -->
+    <query name="com.rssl.phizic.business.finances.CardOperationClaimService.markClaimProcessing">
+        update
+            com.rssl.phizic.business.finances.CardOperationClaim claim
+        set
+            claim.status = :processingStatus,
+            claim.processingStartTime = :newProcessingStartTime,
+            claim.executionAttemptNum = :oldExecutionAttemptNum + 1
+        where
+            claim.id = :claimId
+            and (:oldProcessingStartTime is null and claim.processingStartTime is null or claim.processingStartTime = :oldProcessingStartTime)
+            and (:oldExecutionAttemptNum is null and claim.executionAttemptNum is null or claim.executionAttemptNum = :oldExecutionAttemptNum)
+    </query>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Запросы по операциям -->
+
+    <!-- Получение списка категорий и суммы операций в национальной валюте  -->
+    <!-- Опорный объект: I_CARDOP_LCO
+         Предикаты доступа: access("CO"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "CO"."OPERATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND
+                        "CO"."OPERATION_DATE"<=TO_TIMESTAMP(:TODATE))
+         Кардинальность: Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить максимум по 13 секциям.
+                                 Селективность по логину высокая.
+      -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getCategoriesGraph">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategoryGraphAbstract">
+            <return-property name="id" column="categoryId"/>
+            <return-property name="сategory"    column="name"/>
+            <return-property name="categorySum" column="amount"/>
+            <return-property name="visibleSum"  column="visibleAmount"/>
+            <return-property name="incomeType"  column="incomeType"/>
+        </return>
+        <![CDATA[
+            SELECT
+               category.id as categoryId,
+               category.name as name,
+               category.income as incomeType,
+
+               case when res.amount is null then 0 else res.amount end as amount,
+               case when res.visibleAmount is null then 0 else res.visibleAmount end as visibleAmount
+            FROM
+                CARD_OPERATION_CATEGORIES category
+                LEFT JOIN
+                (SELECT
+                    SUM(co.NATIONAL_SUMM) as amount,
+                    SUM(DECODE(co.HIDDEN, '1', 0, co.NATIONAL_SUMM)) as visibleAmount,
+                    co.CATEGORY_ID as id
+                FROM
+                    CARD_OPERATIONS co
+                WHERE
+                    co.LOGIN_ID = :loginId and
+                    (co.CARD_NUMBER in (:cardNumbers) or co.OPERATION_TYPE = :paymentType or (:cardNumbersEmpty = '1' and co.OPERATION_TYPE = :paymentType)) and
+                    co.OPERATION_DATE >= :fromDate and :toDate >= co.OPERATION_DATE and
+                    ( :cash = '1' or co.IO_CASH = :cash ) and
+                    (:country is null or co.CLIENT_COUNTRY = :country) AND
+                    co.LOAD_DATE IS NOT NULL
+                GROUP BY co.CATEGORY_ID) res ON category.ID = res.id
+            WHERE (nvl(category.LOGIN_ID, -1) = -1 or nvl(category.LOGIN_ID, -1) = :loginId)
+                and ((:income IS NULL) OR (category.INCOME = :income))
+                and (IS_TRANSFER = '0' OR IS_TRANSFER = :showTransfer)
+                and category.VISIBLE = '1'
+                and ((:excludeCategoriesEmpty = '1') or (category.ID_IN_MAPI is null or category.ID_IN_MAPI not in (:excludeCategories)))
+            ORDER BY category.LOGIN_ID nulls first, res.amount
+        ]]>
+    </sql-query>
+
+    <!--
+       - Получение списка расходов\доходов за каждый месяц периода
+       - Опорный объект: CARD_OPERATIONS
+       - Кардинальность: Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить максимум по 13 секциям. Селективность по логину высокая.
+       - Предикаты доступа:
+       - 1. access(""OPERATION"".""LOGIN_ID""=TO_NUMBER(:LOGINID) AND ""OPERATION"".""OPERATION_DATE"">=TO_TIMESTAMP(:FROMDATE) AND "OPERATION"".""OPERATION_DATE""<=TO_TIMESTAMP(:TODATE))"
+       - 2. access(""CATEGORY"".""ID""=""OPERATION"".""CATEGORY_ID"")"
+      -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getDiagramData">
+        <return-scalar column="incomeType"    type="boolean"/>
+        <return-scalar column="amount"        type="double"/>
+        <return-scalar column="operationDate" type="calendar"/>
+        <![CDATA[
+            SELECT CATEGORY.INCOME AS incomeType,
+                   SUM(OPERATION.NATIONAL_SUMM) AS amount,
+                   TRUNC(OPERATION.OPERATION_DATE, 'MM') AS operationDate
+              FROM CARD_OPERATION_CATEGORIES CATEGORY, CARD_OPERATIONS OPERATION
+             WHERE CATEGORY.ID        = OPERATION.CATEGORY_ID
+               AND OPERATION.LOGIN_ID = :loginId
+               AND (OPERATION.OPERATION_DATE >= :fromDate AND OPERATION.OPERATION_DATE <= :toDate)
+               AND (:onlyCash = '0' OR CATEGORY.CASHLESS = '0')
+               AND ((CATEGORY.IS_TRANSFER             = :transfer) OR
+                    (CATEGORY.FOR_INTERNAL_OPERATIONS = :internal) OR
+                    (CATEGORY.IS_TRANSFER = '0' AND CATEGORY.FOR_INTERNAL_OPERATIONS = '0' AND :noTransfer = '1'))
+               AND (:cardNumbers IS NULL OR OPERATION.CARD_NUMBER IN (:cardNumbers))
+          GROUP BY TRUNC(OPERATION.OPERATION_DATE, 'MM'), CATEGORY.INCOME
+        ]]>
+    </sql-query>
+
+    <!-- Возвращает суммарный расход по категории за последние 6 месяцев -->
+    <!-- Опорный объект: I_CARDOP_LCO
+         Предикаты доступа: "CO"."LOGIN_ID"(+)=TO_NUMBER(:LOGINID) AND "CO"."OPERATION_DATE"(+)>=TO_TIMESTAMP(:FROMDATE) AND
+              "CO"."OPERATION_DATE"(+)<=TO_TIMESTAMP(:TODATE)
+         Кардинальность: Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить по 6 секциям.
+      -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getCategorySumBudget">
+        <return-scalar column="amount" type="double"/>
+        <![CDATA[
+            SELECT
+               res.amount as amount
+            FROM
+                CARD_OPERATION_CATEGORIES category
+                LEFT JOIN
+                (SELECT
+                    SUM(co.NATIONAL_SUMM) as amount,
+                    co.CATEGORY_ID as id
+                FROM
+                    CARD_OPERATIONS co
+                WHERE
+                    co.LOGIN_ID = :loginId and
+                    co.CARD_NUMBER in (:cardNumbers) and
+                    co.OPERATION_DATE >= :fromDate and :toDate >= co.OPERATION_DATE and
+                    co.LOAD_DATE IS NOT NULL
+                GROUP BY co.CATEGORY_ID) res ON category.ID = res.id
+            WHERE  category.ID = :categoryId
+            ORDER BY category.LOGIN_ID nulls first, res.amount
+        ]]>
+    </sql-query>
+
+    <!-- Получение списка операций за период (для построения графика "Поступления и списания") -->
+    <!-- Опорный объект: I_CARDOP_LCO
+         Предикаты доступа: "OPERATION"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "OPERATION"."OPERATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND
+              "OPERATION"."OPERATION_DATE"<=TO_TIMESTAMP(:TODATE)
+         Кардинальность: Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить максимум по 13 секциям.
+      -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getOperationsGraph">
+        <return alias="operation" class="com.rssl.phizic.business.finances.CardOperationAbstract">
+            <return-property name="id" column="operationId"/>
+            <return-property name="date" column="operationDate"/>
+            <return-property name="operationSum" column="operationSumm"/>
+            <return-property name="income" column="income"/>
+        </return>
+        <![CDATA[
+            SELECT
+                operation.ID as operationId,
+                operation.OPERATION_DATE as operationDate,
+                operation.NATIONAL_SUMM as operationSumm,
+                category.INCOME as income
+            FROM
+                CARD_OPERATIONS operation INNER JOIN CARD_OPERATION_CATEGORIES category ON category.ID = operation.CATEGORY_ID
+            WHERE
+                operation.LOGIN_ID = :loginId AND
+                operation.CARD_NUMBER in (:cardNumbers) AND
+                operation.OPERATION_DATE >= :fromDate and :toDate >= operation.OPERATION_DATE AND
+                (:cash = '1' OR operation.IO_CASH = :cash) AND
+                category.VISIBLE = '1' AND
+                operation.LOAD_DATE IS NOT NULL
+        ]]>
+    </sql-query>
+
+    <!-- Получение списка операций за период (для построения графика "Наличные и безналичные") -->
+    <!-- Опорный объект: I_CARDOP_LCO
+         Предикаты доступа: "OPERATION"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "OPERATION"."OPERATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND
+              "OPERATION"."OPERATION_DATE"<=TO_TIMESTAMP(:TODATE)
+         Кардинальность: Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить максимум по 13 секциям.
+      -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getCashOperationsGraph">
+        <return alias="operation" class="com.rssl.phizic.business.finances.CashAndCashlessOperationsGraphAbstract">
+            <return-property name="id" column="operationId"/>
+            <return-property name="date" column="operationDate"/>
+            <return-property name="operationSum" column="operationSumm"/>
+            <return-property name="income" column="income"/>
+            <return-property name="cash" column="cash"/>
+        </return>
+        <![CDATA[
+            SELECT
+                operation.ID as operationId,
+                operation.OPERATION_DATE as operationDate,
+                operation.NATIONAL_SUMM as operationSumm,
+                category.INCOME as income,
+                operation.IO_CASH as cash
+            FROM
+                CARD_OPERATIONS operation INNER JOIN CARD_OPERATION_CATEGORIES category ON category.ID = operation.CATEGORY_ID
+            WHERE
+                operation.LOGIN_ID = :loginId AND
+                operation.CARD_NUMBER in (:cardNumbers) AND
+                operation.OPERATION_DATE >= :fromDate and :toDate >= operation.OPERATION_DATE AND
+                (:cash = '1' OR operation.IO_CASH = :cash) AND
+                category.VISIBLE = '1' AND
+                operation.LOAD_DATE IS NOT NULL
+        ]]>
+    </sql-query>
+
+    <!-- Сохранить новую общую категорию для операций -->
+    <query name="com.rssl.phizic.business.finances.CardOperationService.setGeneralCategory">
+        update com.rssl.phizic.business.finances.CardOperation op
+        set op.category.id = :newCategoryId
+        where op.category.id = :oldCategoryId
+          and op.ownerId = :loginId
+    </query>
+
+    <!-- Обновляет категорию у операции -->
+    <query name="com.rssl.phizic.business.finances.CardOperationService.setNewCategory">
+        update com.rssl.phizic.business.finances.CardOperation op
+        set op.category.id = :newCategoryId
+        where op.id = :operationId
+          and op.ownerId = :loginId
+    </query>
+
+    <!-- список карточных операций в заданной категории -->
+    <query name="com.rssl.phizic.business.finances.CardOperationService.getCardOperations">
+        from com.rssl.phizic.business.finances.CardOperation op
+        where op.ownerId = :loginId
+          and op.category.id = :categoryId
+        order by op.date desc, op.id asc
+    </query>
+
+    <!-- содержатся ли карточные операции в данной категории -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.categoryContainsOperations">
+        <return-scalar column="containsOperation" type="int"/>
+        <![CDATA[
+            SELECT
+                1 containsOperation
+            FROM
+                CARD_OPERATIONS operation
+            WHERE
+                operation.CATEGORY_ID = :categoryId
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.finances.CardOperationService.DeleteOldCardOperation">
+       <![CDATA[
+        DELETE FROM com.rssl.phizic.business.finances.CardOperation operation
+        WHERE operation.date < :date
+        ]]>
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationClaimService.getPersonsToUpdateClaims">
+        <return alias="profile" class="com.rssl.phizic.business.profile.Profile"/>
+        <![CDATA[
+            SELECT {profile.*}
+            FROM PROFILE profile
+            WHERE LAST_UPDATE_OPER_CLAIMS_DATE < :currentDate
+            AND USING_FINANCES_COUNT >= :minCountOfUsingFinances
+            AND DECODE(USING_FINANCES_COUNT, 0, null, TRUNC(USING_ALF_EVERY_THREE_DAYS_NUM * 100 / USING_FINANCES_COUNT)) >= :minProbabilityOfUsingFinances * 100
+            AND ROWNUM <= :maxResults
+        ]]>
+    </sql-query>
+
+    <!-- Опорный объект: I_CARDOP_LCO
+             Предикаты доступа: access("CARDOPERAT0_"."LOGIN_ID"=:loginId AND "CARDOPERAT0_"."OPERATION_DATE">=TO_TIMESTAMP(:fromDate) AND
+                            "CARDOPERAT0_"."OPERATION_DATE"<=TO_TIMESTAMP(:toDate))
+             Кардинальность: Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить максимум по 13 секциям.
+                                     Селективность по логину высокая.
+          -->
+    <query name="com.rssl.phizic.business.finances.CardOperationService.getOutcomeOperations">
+        <![CDATA[
+        select operation
+        from com.rssl.phizic.business.finances.CardOperation as operation
+        where
+            (:showOtherPayments = '1' and operation.operationType = 'OTHER' or operation.cardNumber in (:cardNumbers))
+            and operation.ownerId = :loginId
+            and  :fromDate <= operation.date and operation.date <= :toDate
+            and operation.loadDate <= :maxLoadDate
+            and operation.category.income = :income
+            and (:showCash = '1' or operation.cash = '0')
+            and operation.category.visible = '1'
+            and (:hidden is null or nvl(operation.hidden, '0') = :hidden)
+            and (:country is null or operation.clientCountry = :country)
+        order by operation.date
+        ]]>
+    </query>
+
+    <!-- Получает правило перекатегоризации по логину клиента, описанию и МСС-коду
+        Опорный объект: I_ALF_RECATEGORIZATION_RULES
+        Предикаты доступа: "RULES"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "RULES"."DESCRIPTION"=:DESCRIPTION AND "RULES"."MCC_CODE"=TO_NUMBER(:MCCCODE)
+        Кардинальность: По связке "логин клиента, описание и МСС-код" получаем всегда не более одной записи.
+    -->
+    <query name="com.rssl.phizic.business.finances.recategorization.ALFRecategorizationRuleService.findRecategorizationRuleByOperation">
+        select rule
+        from com.rssl.phizic.business.finances.recategorization.ALFRecategorizationRule rule
+        where rule.loginId = :loginId
+        and rule.mccCode = :mccCode
+        and rule.description = :description
+    </query>
+
+    <query name="com.rssl.phizic.business.finances.recategorization.ALFRecategorizationRuleService.removeRecategorizationRuleByCategory">
+        delete com.rssl.phizic.business.finances.recategorization.ALFRecategorizationRule rule
+        where rule.newCategory.id = :categoryId
+    </query>
+
+    <!-- Проверяет наличие правил перекатегоризации для категории
+        Опорный объект: DXFK_RULE_TO_CATEGORY
+        Предикаты доступа: "ALFRECATEG0_"."NEW_CATEGORY_ID"=TO_NUMBER(:CATEGORYID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.finances.recategorization.ALFRecategorizationRuleService.existRecategorizationRule">
+        <return-scalar column="existRule" type="int"/>
+        <![CDATA[
+            select count(1) as existRule
+            from ALF_RECATEGORIZATION_RULES rule
+            where rule.NEW_CATEGORY_ID = :categoryId
+            and rownum <= 1
+        ]]>
+    </sql-query>
+
+    <!-- Получает данные для отображения на финансовом календаре.
+        Опорный объект: I_CARDOP_LCO
+        Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID) AND "OPERATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND "OPERATION_DATE"<=TO_TIMESTAMP(:TODATE)
+        Кардинальность: Данные получаем за месяц целиком + захватываются несколько дней до начала месяца и несколько дней после окончания месяца (чтобы всегда была информация с понедельника по воскресенье).
+                        Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить максимум по 3м секциям.
+                        Селективность по логину высокая.
+    -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getCalendarData">
+        <return class="com.rssl.phizic.business.finances.financeCalendar.CalendarDataDescription">
+            <return-property name="date" column="op_date"/>
+            <return-property name="outcomeSum" column="outcomeSum"/>
+            <return-property name="incomeSum" column="incomeSum"/>
+        </return>
+        <![CDATA[
+            SELECT
+                TRUNC(OPERATION_DATE) as op_date,
+                SUM(CASE WHEN NATIONAL_SUMM < 0 THEN NATIONAL_SUMM ELSE 0 END) as outcomeSum,
+                SUM(CASE WHEN NATIONAL_SUMM > 0 THEN NATIONAL_SUMM ELSE 0 END) as incomeSum
+            FROM
+                CARD_OPERATIONS
+            WHERE
+                LOGIN_ID = :loginId
+            AND
+                OPERATION_DATE >= :fromDate and :toDate >= OPERATION_DATE
+            AND
+                (:showOtherPayments = '1' AND OPERATION_TYPE = 'OTHER' OR CARD_NUMBER in (:cardNumbers))
+            AND
+                LOAD_DATE IS NOT NULL
+            GROUP BY TRUNC(OPERATION_DATE)
+            ORDER BY TRUNC(OPERATION_DATE)
+        ]]>
+    </sql-query>
+
+    <!-- Получает данные для отображения на финансовом календаре.
+        Опорный объект: I_CARDOP_LCO
+        Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID) AND "OPERATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND "OPERATION_DATE"<=TO_TIMESTAMP(:TODATE)
+        Кардинальность: Данные получаем за месяц целиком + захватываются несколько дней до начала месяца и несколько дней после окончания месяца (чтобы всегда была информация с понедельника по воскресенье).
+                        Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить максимум по 3м секциям.
+                        Селективность по логину высокая.
+    -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getCalendarDataByAdditionalParams">
+        <return class="com.rssl.phizic.business.finances.financeCalendar.CalendarDataDescription">
+            <return-property name="date" column="op_date"/>
+            <return-property name="outcomeSum" column="outcomeSum"/>
+            <return-property name="incomeSum" column="incomeSum"/>
+        </return>
+        <![CDATA[
+            SELECT
+                TRUNC(OPERATION_DATE) as op_date,
+                SUM(CASE WHEN NATIONAL_SUMM < 0 THEN NATIONAL_SUMM ELSE 0 END) as outcomeSum,
+                SUM(CASE WHEN NATIONAL_SUMM > 0 THEN NATIONAL_SUMM ELSE 0 END) as incomeSum
+            FROM
+                CARD_OPERATIONS c_operation INNER JOIN CARD_OPERATION_CATEGORIES category ON c_operation.CATEGORY_ID = category.ID
+            WHERE
+                c_operation.LOGIN_ID = :loginId
+            AND
+                OPERATION_DATE >= :fromDate and :toDate >= OPERATION_DATE
+            AND
+                LOAD_DATE IS NOT NULL
+            AND
+                (:showOtherPayments = '1' AND OPERATION_TYPE = 'OTHER' OR CARD_NUMBER in (:cardNumbers))
+            AND
+                (:showCash = '1' OR IO_CASH = :showCash)
+            AND
+                (:country IS NULL OR CLIENT_COUNTRY = :country OR CLIENT_COUNTRY IS NULL AND ORIGINAL_COUNTRY = :country)
+            AND
+                (category.ID_IN_MAPI IS NULL OR category.ID_IN_MAPI NOT IN (:excludeCategories))
+            GROUP BY TRUNC(OPERATION_DATE)
+            ORDER BY TRUNC(OPERATION_DATE)
+        ]]>
+    </sql-query>
+
+    <!-- Получает данные для отображения выписки за день на финансовом календаре.
+        Опорный объект: I_CARDOP_LCO
+        Предикаты доступа: "OPERATION"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "OPERATION"."OPERATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND "OPERATION"."OPERATION_DATE"<=TO_TIMESTAMP(:TODATE)
+        Кардинальность: Поиск данных происходит за один день. Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить только в 1ой секциии.
+                        Селективность по логину высокая.
+    -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getDayExtractToFinanceCalendar">
+        <return class="com.rssl.phizic.business.finances.financeCalendar.CalendarDayExtractByOperationDescription">
+            <return-property name="id" column="id"/>
+            <return-property name="description" column="description"/>
+            <return-property name="categoryName" column="categoryName"/>
+            <return-property name="categoryColor" column="categoryColor"/>
+            <return-property name="amount" column="amount"/>
+        </return>
+        <![CDATA[
+            SELECT
+                operation.ID as id,
+                operation.DESCRIPTION as description,
+                category.NAME as categoryName,
+                category.COLOR as categoryColor,
+                operation.NATIONAL_SUMM as amount
+            FROM
+                CARD_OPERATIONS operation INNER JOIN CARD_OPERATION_CATEGORIES category ON category.ID = operation.CATEGORY_ID
+            WHERE
+                operation.LOGIN_ID = :loginId
+            AND
+                operation.OPERATION_DATE >= :fromDate and :toDate >= operation.OPERATION_DATE
+            AND
+                operation.LOAD_DATE <= :maxLoadDate
+            AND
+                (:showOtherPayments = '1' AND operation.OPERATION_TYPE = 'OTHER' OR operation.CARD_NUMBER in (:cardNumbers))
+            ORDER BY operation.OPERATION_DATE
+        ]]>
+    </sql-query>
+
+    <!-- Получение списка всех операций клиента начиная с заданной даты -->
+    <!-- Опорный объект: I_CARDOP_LCO
+         Предикаты доступа: access("OP"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "OP"."OPERATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND "OP"."OPERATION_DATE"<TO_TIMESTAMP(:TODATE))
+         Кардинальность: произведение количества операций в день, количества дней в месяце и количества месяцев (loading.pack.size.in.months).
+                        Если в день 20 операций, 30 дней в месяце и пачка по 3м месяцам, то 1800 записей.
+      -->
+    <query name="com.rssl.phizic.business.finances.CardOperationService.getClientLoadedOperations">
+        select operation
+        from com.rssl.phizic.business.finances.CardOperation as operation
+        where operation.ownerId = :loginId
+          and operation.date >= :fromDate and :toDate > operation.date
+        order by operation.date
+    </query>
+
+    <!-- Опорный объект: I_CARDOP_LCO
+            Предикаты доступа: access("CARDOPERAT0_"."LOGIN_ID"=:loginId AND "CARDOPERAT0_"."OPERATION_DATE">=TO_TIMESTAMP(:fromDate) AND
+                           "CARDOPERAT0_"."OPERATION_DATE"<=TO_TIMESTAMP(:toDate))
+            Кардинальность: Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить максимум по 13 секциям.
+                                    Селективность по логину высокая.
+         -->
+    <query name="com.rssl.phizic.business.finances.CardOperationService.getOutcomeOperationsDesc">
+         <![CDATA[
+        select operation
+        from com.rssl.phizic.business.finances.CardOperation as operation
+        where
+            (:showOtherPayments = '1' and operation.operationType = 'OTHER' or operation.cardNumber in (:cardNumbers))
+            and operation.ownerId = :loginId
+            and  :fromDate <= operation.date and operation.date <= :toDate
+            and operation.loadDate <= :maxLoadDate
+            and operation.category.income = :income
+            and (:showCash = '1' or operation.cash = '0')
+            and operation.category.visible = '1'
+            and (:hidden is null or nvl(operation.hidden, '0') = :hidden)
+            and (:country is null or operation.clientCountry = :country)
+        order by operation.date desc
+        ]]>
+    </query>
+
+    <!-- Возвращает суммарный ненулевой расход по категориям за последние 6 месяцев
+         Опорный объект: I_CARDOP_LCO
+         Предикаты доступа: "CO"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "CO"."OPERATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND "CO"."OPERATION_DATE"<=TO_TIMESTAMP(:TODATE)
+         Кардинальность: Таблица CARD_OPERATIONS - секционированная по месяцам, поэтому поиск данных будет проходить по 6 секциям.
+      -->
+    <sql-query name="com.rssl.phizic.business.finances.BudgetService.getCategoriesDefaultBudgets">
+        <return-scalar column="categoryId" type="long"/>
+        <return-scalar column="amount" type="double"/>
+        <![CDATA[
+            SELECT
+                co.CATEGORY_ID as categoryId,
+                SUM(co.NATIONAL_SUMM) as amount
+            FROM CARD_OPERATION_CATEGORIES category
+            INNER JOIN CARD_OPERATIONS co ON category.ID = co.CATEGORY_ID
+            WHERE
+                co.LOGIN_ID = :loginId and
+                (co.CARD_NUMBER in (:cardNumbers) or :cardNumbersEmpty = '1') and
+                co.OPERATION_DATE >= :fromDate and :toDate >= co.OPERATION_DATE and
+                co.LOAD_DATE <= :maxLoadDate and
+                category.INCOME = '0'
+            GROUP BY co.CATEGORY_ID
+        ]]>
+    </sql-query>
+
+    <!-- Поиск операции по pushUID
+         Опорный объект: I_CARDOPEF_PUSHUID
+         Предикаты доступа: access("OPERATIONEXTENDEDFIELDS"."PUSHUID"=TO_NUMBER(:PUSHUID))
+         Кардинальность: 1
+      -->
+    <query name="com.rssl.phizic.business.finances.CardOperationService.findByPushUID">
+        select operationExtendedFields
+        from com.rssl.phizic.business.finances.CardOperationExtendedFields as operationExtendedFields
+        where operationExtendedFields.pushUID = :pushUID
+    </query>
+
+    <!-- Поиск операций по parentPushUID
+         Опорный объект: I_CARDOPEF_PARENT_PUSHUID
+         Предикаты доступа: access("OPERATIONEXTENDEDFIELDS"."PARENT_PUSHUID"=TO_NUMBER(:PARENTPUSHUID))
+         Кардинальность: :  зависит от количества дочерних операций одной операции данного клиента
+      -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.findByParentPushUID">
+        <return alias="operation" class="com.rssl.phizic.business.finances.CardOperation"/>
+        <![CDATA[
+            select {operation.*}
+            from CARD_OPERATIONS operation
+            inner join CARD_OPERATIONS_EXT_FIELDS operationExtendedFields
+                on operation.ID = operationExtendedFields.CARD_OPERATION_ID
+            where operationExtendedFields.PARENT_PUSHUID = :parentPushUID
+         ]]>
+    </sql-query>
+
+    <!-- Поиск доп. полей операции по ид операции
+         Опорный объект: I_CARDOPEF_CARD_OPERATION_ID
+         Предикаты доступа: access("OPERATIONEXTENDEDFIELDS"."CARD_OPERATION_ID"=TO_NUMBER(:CARDOPERATIONID))
+         Кардинальность: :  1
+      -->
+    <query name="com.rssl.phizic.business.finances.CardOperationService.getCardOperationExtendedFields">
+        select operationExtendedFields
+        from com.rssl.phizic.business.finances.CardOperationExtendedFields as operationExtendedFields
+        where operationExtendedFields.cardOperationId = :cardOperationId
+    </query>
+
+    <!-- Возвращает операции с окончившимся временем жизни
+         Опорный объект: I_CARDOPEF_CARD_OPERATION_DATE
+         Предикаты доступа: access("OPERATIONEXTENDEDFIELDS"."OPERATION_DATE"<TO_TIMESTAMP(:LIFETIME))
+         Кардинальность: :  :  зависит от количества операций с закончившимся временем жизни по всем клиентам
+      -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getDeadOperations">
+        <return alias="operation" class="com.rssl.phizic.business.finances.CardOperation"/>
+        <![CDATA[
+            select {operation.*}
+            from CARD_OPERATIONS operation
+            inner join CARD_OPERATIONS_EXT_FIELDS operationExtendedFields
+                on operation.ID = operationExtendedFields.CARD_OPERATION_ID
+            where operationExtendedFields.PUSHUID is not null
+                and operation.EXTERNAL_ID is null
+                and operationExtendedFields.OPERATION_DATE < :lifetime
+                and operation.LOAD_DATE is not null
+         ]]>
+    </sql-query>
+
+    <filter-def name="byCategoryFilter" condition="CATEGORY_ID in (:categoryIds)">
+        <filter-param name="categoryIds" type="long"/>
+    </filter-def>
+
+    <filter-def name="byIdInMAPIFilter" condition="
+        CATEGORY_ID in (
+            select category.ID
+            from CARD_OPERATION_CATEGORIES category
+            where category.ID_IN_MAPI is null
+            or category.ID_IN_MAPI not in (:excludeCategories))">
+        <filter-param name="excludeCategories" type="string"/>
+    </filter-def>
+</hibernate-mapping>

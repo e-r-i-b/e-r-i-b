@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RecallPayment" description="Отзыв перевода"
+              detailedDescription="Используйте данную форму для отзыва перевода"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+    <implementation class="com.rssl.phizic.business.documents.RecallDocument"/>
+    <statemachine name="RecallPaymentStateMachine"/>
+	<extended-metadata-loader class="com.rssl.phizic.business.forms.RecallPaymentMetadataLoader"/>
+	<list-form name="$calculated"/>
+	<need-parent value="true"/>
+    <fields>
+        <field
+		        name="documentNumber"
+		        description="Номер отзыва"
+		        type="string"
+		        source="document-number">
+        </field>
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+		       type="string"/>
+		<field
+				name="documentDate"
+				description="Дата отзыва"
+				type="date"
+				source="document-date">
+            <validators>
+	            <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+		        <validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+	        </validators>
+        </field>
+	    <field
+			    name="recalledDocumentNumber"
+			    description="Номер отзываемого перевода"
+			    type="string"
+			    source="extra-parameters/parameter[@name='recalled-document-number']/@value">
+        </field>
+	    <field
+			    name="amountCurrency"
+			    description="Валюта"
+			    source="extra-parameters/parameter[@name='recalled-document-amount-currency']/@value"
+			    type="string"/>
+		<field
+				name="amount"
+				description="Сумма отзываемого перевода"
+				source="extra-parameters/parameter[@name='recalled-document-amount']/@value"
+				type="money">
+		</field>
+	    <field
+			    name="payerAccountSelect"
+			    description="Счет списания"
+			    type="account"
+			    source="extra-parameters/parameter[@name='recalled-document-payer-account']">
+	    </field>
+	    <field
+			    name="parentId"
+			    description="Ссылка на отзываемый платеж"
+			    source="extra-parameters/parameter[@name='parent-id']/@value"
+			    type="string">
+        </field>
+	    <field
+			    name="recalled-document-form-name"
+			    description="Форма отзываемого документа"
+			    source="extra-parameters/parameter[@name='recalled-document-form-name']/@value"
+			    type="string">
+        </field>
+    </fields>
+	<dictionaries>
+		<entity-list name="paymentDescriptors">
+            <entity key="RurPayment">Перевести деньги</entity>
+            <entity key="RurPayJurSB">Оплатить товары или услуги</entity>
+            <entity key="ConvertCurrencyPayment">Обменять валюту</entity>
+            <entity key="InternalPayment">Перевод между счетами</entity>
+        </entity-list>
+	</dictionaries>
+</payment-form>

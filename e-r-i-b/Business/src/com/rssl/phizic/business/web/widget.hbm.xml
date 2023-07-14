@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Типы данных -->
+
+    <typedef name="WebPageLocation" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.web.Location</param>
+	</typedef>
+
+    <typedef name="WebPageLayout" class="com.rssl.phizic.business.web.LayoutHibernateType"/>
+
+    <typedef name="WidgetAccessor" class="com.rssl.phizic.dataaccess.hibernate.StrategyType">
+        <param name="strategyInterface">com.rssl.phizic.business.web.widget.strategy.WidgetAccessor</param>
+    </typedef>
+
+    <typedef name="WidgetInitializer" class="com.rssl.phizic.dataaccess.hibernate.StrategyType">
+        <param name="strategyInterface">com.rssl.phizic.business.web.widget.strategy.WidgetInitializer</param>
+    </typedef>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Сущности -->
+
+    <class name="com.rssl.phizic.business.web.WidgetDefinition" table="WIDGET_DEFINITIONS">
+
+        <id name="codename" type="string" column="CODENAME"/>
+
+        <property name="username"           type="string"           column="USERNAME"               not-null="true"/>
+        <property name="description"        type="string"           column="DESCRIPTION"            not-null="true"/>
+	    <property name="loadMode"           type="string"           column="LOAD_MODE"              not-null="true"/>
+	    <property name="path"               type="string"           column="URL_PATH"               not-null="true"/>
+	    <property name="operation"          type="string"           column="OPERATION"              not-null="true"/>
+	    <property name="widgetClass"        type="class"            column="WIDGET_CLASS"           not-null="true"/>
+	    <property name="picture"            type="string"           column="PICTURE"                not-null="false"/>
+	    <property name="initialSize"        type="string"           column="INITIAL_SIZE"           not-null="true"/>
+	    <property name="sizeable"           type="boolean"          column="SIZEABLE"               not-null="true"/>
+	    <property name="index"              type="long"             column="INDEX_NUMBER"           not-null="true"/>
+	    <property name="availability"       type="boolean"          column="AVAILABILITY"           not-null="true"/>
+	    <property name="addingDate"         type="calendar"         column="ADDING_DATE"            not-null="false"/>
+        <property name="accessor"           type="WidgetAccessor"   column="ACCESSOR"               not-null="true"/>
+        <property name="initializer"        type="WidgetInitializer" column="INITIALIZER"           not-null="true"/>
+        <property name="maxCount"           type="integer"          column="MAX_COUNT"              not-null="true"/>
+        <property name="maxCountMessage"    type="string"           column="MAX_COUNT_MESSAGE"      not-null="true"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.web.WidgetBean" table="WIDGETS">
+
+        <id name="codename" type="string" column="CODENAME"/>
+
+        <property name="definitionCodename" type="string"           column="DEFINITION_CODENAME"    not-null="true"/>
+        <property name="webPageId"          type="long"             column="WEB_PAGE_ID"            not-null="true"/>
+	    <property name="body"               type="string"           column="BODY"                   not-null="true"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.web.WebPage" table="WEB_PAGES">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_WEB_PAGES</param>
+            </generator>
+        </id>
+
+
+        <property name="classname"          type="string"           column="CLASSNAME"              not-null="true"/>
+        <property name="location"           type="WebPageLocation"  column="LOCATION"               not-null="true"/>
+	    <property name="layout"             type="WebPageLayout"    column="LAYOUT"                 not-null="true"/>
+
+        <many-to-one name="profile"
+                     class="com.rssl.phizic.business.profile.Profile"
+                     column="PROFILE_ID"
+                     fetch="join"
+                     lazy="false"
+                     not-null="true"/>
+
+    </class>
+
+    <!-- ************************************************************************************************* -->
+    <!-- Запросы -->
+
+    <query name="com.rssl.phizic.business.web.WidgetDefinition.removeAll">
+        delete from com.rssl.phizic.business.web.WidgetDefinition
+    </query>
+
+    <query name="com.rssl.phizic.business.web.WebPage.getByProfile">
+        from WebPage
+        where profile = :profile
+    </query>
+
+    <query name="com.rssl.phizic.business.web.WebPage.removeByProfile">
+        delete WebPage
+        where profile = :profile
+    </query>
+
+    <query name="com.rssl.phizic.business.web.WidgetBean.getByWebPageId">
+        from WidgetBean
+        where webPageId in (:webPageIds)
+    </query>
+
+    <query name="com.rssl.phizic.business.web.WidgetBean.removeByWebPageId">
+        delete WidgetBean
+        where webPageId in (:webPageIds)
+    </query>
+
+</hibernate-mapping>

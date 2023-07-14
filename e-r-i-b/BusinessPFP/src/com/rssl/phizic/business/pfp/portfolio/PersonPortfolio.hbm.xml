@@ -1,0 +1,111 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hobernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="ProductType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.riskProfile.ProductType</param>
+    </typedef>
+
+    <typedef name="DictionaryProductType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.common.DictionaryProductType</param>
+    </typedef>
+
+    <typedef name="PortfolioType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.common.PortfolioType</param>
+    </typedef>
+
+    <typedef name="PortfolioProductState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.pfp.portfolio.PortfolioProductState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.pfp.portfolio.product.PfpProductExtendedField" table="PFP_PRODUCT_FIELDS"
+          entity-name="ProductFields">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PFP_PRODUCT_FIELDS</param>
+            </generator>
+        </id>
+        <property name="key"    type="string"   column="KEY"    not-null="true" insert="false" update="false"/>
+        <property name="value"  type="string"   column="VALUE"  not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.pfp.portfolio.product.BaseProduct" table="PFP_BASE_PRODUCT" discriminator-value="baseProduct">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PFP_BASE_PRODUCT</param>
+            </generator>
+        </id>
+
+        <discriminator formula="case
+                                    when PRODUCT_TYPE = 'INSURANCE' then 'INSURANCE'
+                                    when PRODUCT_TYPE in ('FUND','IMA','TRUST_MANAGING')  then 'INVESTMENT'
+                                    when PRODUCT_TYPE = 'PENSION'  then 'PENSION'
+                                    else 'baseProduct'
+                                end" type="string" not-null="true"/>
+
+        <property name="productType"    type="DictionaryProductType"    column="PRODUCT_TYPE" not-null="true"/>
+        <property name="productName"    type="string"                   column="PRODUCT_NAME" not-null="false"/>
+        <property name="amount"         type="money"                                          not-null="true">
+            <column name="AMOUNT"/>
+			<column name="AMOUNT_CURRENCY"/>
+		</property>
+        <property name="income"         type="big_decimal"   column="PRODUCT_INCOME" not-null="false"/>
+        <property name="dictionaryProductId"  type="long"    column="DICTIONARY_PRODUCT_ID"  not-null="false"/>
+        <map name="productExtendedFields" access="field" table="PFP_PRODUCT_FIELDS"
+             cascade="all-delete-orphan" lazy="false">
+            <key column="BASE_PRODUCT_ID" not-null="true"/>
+            <map-key column="KEY" type="string"/>
+            <one-to-many entity-name="ProductFields"/>
+        </map>
+
+        <subclass name="com.rssl.phizic.business.pfp.portfolio.product.InsuranceBaseProduct" discriminator-value="INSURANCE"/>
+        <subclass name="com.rssl.phizic.business.pfp.portfolio.product.InvestmentBaseProduct" discriminator-value="INVESTMENT"/>
+        <subclass name="com.rssl.phizic.business.pfp.portfolio.product.PensionBaseProduct" discriminator-value="PENSION"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.pfp.portfolio.PortfolioProduct" table="PORTFOLIO_PRODUCT">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PORTFOLIO_PRODUCT</param>
+            </generator>
+        </id>
+        <property name="productType"    type="DictionaryProductType" column="PRODUCT_TYPE" not-null="true"/>
+        <property name="name"           type="string"                column="NAME"         not-null="true"/>
+        <property name="imageId"        type="long"                  column="IMAGE_ID"     not-null="false"/>
+        <property name="state"          type="PortfolioProductState" column="STATE"        not-null="true"/>
+        <property name="dictionaryProductId"  type="long"            column="DICTIONARY_PRODUCT_ID"  not-null="false"/>
+
+        <list name="baseProductList" table="PFP_BASE_PRODUCT" cascade="all-delete-orphan" lazy="false">
+            <key column="PORTFOLIO_PRODUCT_ID" not-null="true"/>
+			<list-index column="LIST_INDEX"/>
+			<one-to-many class="com.rssl.phizic.business.pfp.portfolio.product.BaseProduct"/>
+        </list>
+    </class>
+
+    <class name="com.rssl.phizic.business.pfp.portfolio.PersonPortfolio" table="PERSON_PORTFOLIO">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PERSON_PORTFOLIO</param>
+            </generator>
+        </id>
+        <property name="type"               type="PortfolioType" column="TYPE"          not-null="true"/>
+        <property name="wantedIncome"       type="big_decimal"   column="WANTED_INCOME" not-null="false"/>
+        <property name="startAmount"          access="field" type="money" not-null="true">
+            <column name="START_AMOUNT"/>
+			<column name="START_AMOUNT_CURRENCY"/>
+		</property>
+
+        <property name="temporaryStartAmount" access="field" type="money" not-null="false">
+            <column name="TEMP_START_AMOUNT"/>
+			<column name="TEMP_START_AMOUNT_CURRENCY"/>
+        </property>
+
+        <list name="portfolioProductList" table="PORTFOLIO_PRODUCT" cascade="all-delete-orphan" lazy="false">
+            <key column="PORTFOLIO_ID" not-null="true"/>
+			<list-index column="LIST_INDEX"/>
+			<one-to-many class="com.rssl.phizic.business.pfp.portfolio.PortfolioProduct"/>
+        </list>
+    </class>
+
+</hibernate-mapping>

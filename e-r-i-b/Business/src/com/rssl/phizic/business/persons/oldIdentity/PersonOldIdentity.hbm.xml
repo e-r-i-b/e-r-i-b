@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="DocumentType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.person.PersonDocumentType</param>
+	</typedef>
+
+    <typedef name="PersonOldIdentityStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.type.PersonOldIdentityStatus</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.common.type.PersonOldIdentity" table="PERSON_OLD_IDENTITY">
+
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PERSON_OLD_IDENTITY</param>
+            </generator>
+        </id>
+
+        <property name="firstName"          type="not-null-string"          column="FIRST_NAME"         not-null="true"/>
+        <property name="surName"            type="not-null-string"          column="SUR_NAME"           not-null="true"/>
+        <property name="patrName"           type="string"                   column="PATR_NAME"          not-null="false"/>
+        <property name="birthDay"           type="calendar"                 column="BIRTHDAY"           not-null="true"/>
+        <property name="docType"            type="DocumentType"             column="DOC_TYPE"           not-null="false"/>
+        <property name="docName"            type="string"                   column="DOC_NAME"           not-null="false"/>
+        <property name="docNumber"          type="string"                   column="DOC_NUMBER"         not-null="false"/>
+        <property name="docSeries"          type="string"                   column="DOC_SERIES"         not-null="false"/>
+        <property name="docIssueDate"       type="calendar"                 column="DOC_ISSUE_DATE"     not-null="false"/>
+        <property name="docIssueBy"         type="string"                   column="DOC_ISSUE_BY"       not-null="false"/>
+        <property name="docIssueByCode"     type="string"                   column="DOC_ISSUE_BY_CODE"  not-null="false"/>
+        <property name="docMain"            type="boolean"                  column="DOC_MAIN"           not-null="false"/>
+        <property name="docTimeUpDate"      type="calendar"                 column="DOC_TIME_UP_DATE"   not-null="false"/>
+        <property name="docIdentify"        type="boolean"                  column="DOC_IDENTIFY"       not-null="false"/>
+        <property name="status"             type="PersonOldIdentityStatus"  column="STATUS"             not-null="true"/>
+        <property name="region"             type="string"                   column="TB"                 not-null="true"/>
+
+        <many-to-one name="person"
+                     class="com.rssl.phizic.person.Person"
+                     column="PERSON_ID"
+                     lazy="false"
+                     not-null="true"/>
+
+        <many-to-one name="employee"
+                     class="com.rssl.phizic.auth.CommonLogin"
+                     column="EMPLOYEE_ID"
+                     lazy="false"
+                     not-null="false"/>
+
+        <property name="dateChange" type="calendar" column="DATE_CHANGE" not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.persons.PersonOldIdentityService.findByFIOAndDoc">
+        select oldIdentity
+        from PersonOldIdentity as oldIdentity
+        where upper(replace(oldIdentity.surName,' ','') || replace(oldIdentity.firstName,' ','') || replace(oldIdentity.patrName,' ','')) = :FIO
+        and replace(oldIdentity.docSeries,' ','') || replace(oldIdentity.docNumber,' ','')  = :Doc
+        and oldIdentity.birthDay = :birthDay
+    </query>
+
+</hibernate-mapping>

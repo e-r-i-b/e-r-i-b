@@ -1,0 +1,86 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.commission.CommissionType"
+           table="COMMISSIONS">
+
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_COMMISSIONS</param>
+			</generator>
+		</id>
+
+
+	    <property name="key" type="string" column="COMM_KEY" unique="true" not-null="true"/>
+	    <property name="name" type="string" column="COMM_NAME" not-null="true"/>
+    </class>
+
+	<class name="com.rssl.phizic.business.commission.CommissionRule" table="COMMISSIONVALS" abstract="true">
+
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_COMMISSIONVALS</param>
+			</generator>
+		</id>
+
+		<discriminator column="TYPE" not-null="true"/>
+
+		<property name="currencyCode" type="string" column="CURRENCY" not-null="true"/>
+
+		<many-to-one name="type"
+		             class="com.rssl.phizic.business.commission.CommissionType"
+					 column="COMMISSION_ID"
+					 not-null="true"
+		             fetch="join"/>
+	</class>
+
+	<subclass name="com.rssl.phizic.business.commission.GateRule"
+		      extends="com.rssl.phizic.business.commission.CommissionRule"
+			  discriminator-value="G">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.commission.FixedRule"
+		          extends="com.rssl.phizic.business.commission.CommissionRule"
+		          discriminator-value="F">
+
+		<property name="amount" type="big_decimal" column="FIXED_AMOUNT" not-null="true"/>
+
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.commission.RateRule"
+	          extends="com.rssl.phizic.business.commission.CommissionRule"
+	          discriminator-value="R">
+
+		<property name="rate" type="big_decimal" not-null="true"/>
+		<property name="minAmount" type="big_decimal" column="MIN_AMOUNT" not-null="true"/>
+		<property name="maxAmount" type="big_decimal" column="MAX_AMOUNT" not-null="true"/>
+
+	</subclass>
+
+	<query name="com.rssl.phizic.business.commission.CommissionService.removeByType">
+		delete from com.rssl.phizic.business.commission.CommissionRule rule
+		where rule.type = :type
+	</query>
+
+	<query name="com.rssl.phizic.business.commission.CommissionService.findRule">
+		select rule
+		from com.rssl.phizic.business.commission.CommissionRule rule
+		where rule.type = :type and rule.currencyCode = :currencyCode
+	</query>
+
+	<query name="com.rssl.phizic.business.commission.CommissionService.findRules">
+		select rule
+		from com.rssl.phizic.business.commission.CommissionRule rule
+		where rule.type = :type
+	</query>
+
+	<query name="com.rssl.phizic.business.commission.CommissionService.typeByKey">
+		select type
+		from com.rssl.phizic.business.commission.CommissionType type
+		where type.key = :key
+	</query>
+
+</hibernate-mapping>

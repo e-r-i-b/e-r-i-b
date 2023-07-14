@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <resultset name="com.rssl.phizic.operations.ext.sbrf.payment.SearchServicesPaymentApiOperation.searchMApiLT52.resultset">
+        <return-scalar column="billingId" type="long"/><!--0-->
+
+        <return-scalar column="serviceId" type="long"/><!--1-->
+        <return-scalar column="serviceName" type="string"/><!--2-->
+        <return-scalar column="serviceImageId" type="long"/><!--3-->
+        <return-scalar column="serviceImageDate" type="timestamp"/><!--4-->
+
+        <return-scalar column="providerId" type="long"/><!--5-->
+        <return-scalar column="providerName" type="string"/><!--6-->
+        <return-scalar column="providerImageId" type="long"/><!--7-->
+        <return-scalar column="providerImageDate" type="timestamp"/><!--8-->
+
+        <return-scalar column="autopaymentSupported" type="boolean"/><!--9-->
+        <return-scalar column="barSupported" type="boolean"/><!--10-->
+        <return-scalar column="inn" type="string"/><!--11-->
+        <return-scalar column="account" type="string"/><!--12-->
+
+        <return-scalar column="groupId" type="long"/><!--13-->
+        <return-scalar column="groupName" type="string"/><!--14-->
+        <return-scalar column="groupDescription" type="string"/><!--15-->
+        <return-scalar column="groupImageId" type="long"/><!--16-->
+        <return-scalar column="groupImageDate" type="timestamp"/><!--17-->
+        <return-scalar column="groupImageUrl" type="string"/><!--18-->
+
+        <return-scalar column="parentId" type="long"/><!--19-->
+        <return-scalar column="parentName" type="string"/><!--20-->
+        <return-scalar column="parentDescription" type="string"/><!--21-->
+        <return-scalar column="parentImageId" type="long"/><!--22-->
+        <return-scalar column="parentImageDate" type="timestamp"/><!--23-->
+        <return-scalar column="parentImageUrl" type="string"/><!--24-->
+    </resultset>
+
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.SearchServicesPaymentApiOperation.searchMApiLT52"/>
+
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.SearchServicesPaymentApiOperation.searchServices">
+        <return-scalar column="service1Id" type="long"/><!--0-->
+        <return-scalar column="service1Name" type="string"/><!--1-->
+        <return-scalar column="service1Description" type="string"/><!--2-->
+        <return-scalar column="service1ImageId" type="long"/><!--3-->
+        <return-scalar column="service1ImageDate" type="timestamp"/><!--4-->
+        <return-scalar column="service1ImageUrl" type="string"/><!--5-->
+        <return-scalar column="service1Guid" type="string"/><!--6-->
+
+        <return-scalar column="service2Id" type="long"/><!--7-->
+        <return-scalar column="service2Name" type="string"/><!--8-->
+        <return-scalar column="service2Description" type="string"/><!--9-->
+        <return-scalar column="service2ImageId" type="long"/><!--10-->
+        <return-scalar column="service2ImageDate" type="timestamp"/><!--11-->
+        <return-scalar column="service2ImageUrl" type="string"/><!--12-->
+        <return-scalar column="service2Guid" type="string"/><!--13-->
+
+        <return-scalar column="service3Id" type="long"/><!--14-->
+        <return-scalar column="service3Name" type="string"/><!--15-->
+        <return-scalar column="service3Description" type="string"/><!--16-->
+        <return-scalar column="service3ImageId" type="long"/><!--17-->
+        <return-scalar column="service3ImageDate" type="timestamp"/><!--18-->
+        <return-scalar column="service3ImageUrl" type="string"/><!--19-->
+        <return-scalar column="service3Guid" type="string"/><!--20-->
+        <![CDATA[
+        select
+            service1.ID service1Id,
+            service1.NAME service1Name,
+            service1.DESCRIPTION service1Description,
+            service1.IMAGE_ID service1ImageId,
+            service1Images.UPDATE_TIME service1ImageDate,
+            service1.IMAGE_NAME service1ImageUrl,
+            service1.code service1Guid,
+
+            service2.ID service2Id,
+            service2.NAME service2Name,
+            service2.DESCRIPTION service2Description,
+            service2.IMAGE_ID service2ImageId,
+            service2Images.UPDATE_TIME service2ImageDate,
+            service2.IMAGE_NAME service2ImageUrl,
+            service2.code service2Guid,
+
+            service3.ID service3Id,
+            service3.NAME service3Name,
+            service3.DESCRIPTION service3Description,
+            service3.IMAGE_ID service3ImageId,
+            service3Images.UPDATE_TIME service3ImageDate,
+            service3.IMAGE_NAME service3ImageUrl,
+            service3.code service3Guid
+        from
+            PAYMENT_SERVICES service1
+            left join PAYMENT_SERV_PARENTS parent1 on parent1.SERVICE_ID = service1.ID
+            left join PAYMENT_SERVICES service2 on service2.ID = parent1.PARENT_ID
+            left join PAYMENT_SERV_PARENTS parent2 on parent2.SERVICE_ID = service2.ID
+            left join PAYMENT_SERVICES service3 on service3.ID = parent2.PARENT_ID
+            left join IMAGES service1Images on service1Images.ID = service1.IMAGE_ID
+            left join IMAGES service2Images on service2Images.ID = service2.IMAGE_ID
+            left join IMAGES service3Images on service3Images.ID = service3.IMAGE_ID
+        where
+            upper(service1.NAME) like upper(:extra_like_search)
+        order by service1.priority asc
+        ]]>
+    </sql-query>
+
+    <!--
+      mAPI [5.20; ...) и atmAPI (с настройкой "как в mAPI": категории и поставщики). Новая иерархии услуг (>= 11 релиз)
+      Опорный объект: SP_AGRR_PK
+      Предикаты доступа: access("PROVIDERS"."P_KEY"=:EXTRA_PKEY AND "PROVIDERS"."REGION_ID"=-1 AND "PROVIDERS"."CHANEL"=:EXTRA_CHANEL)
+      Кардинальность: если не выбран регион оплаты, то около 90К, для выбранного региона - менее 10К
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.SearchServicesPaymentApiOperation.searchResult.multilocale">
+        <return-scalar column="billingId" type="long"/><!--0-->
+
+        <return-scalar column="serviceId" type="long"/><!--1-->
+        <return-scalar column="serviceName" type="string"/><!--2-->
+        <return-scalar column="serviceImageId" type="long"/><!--3-->
+        <return-scalar column="serviceImageDate" type="timestamp"/><!--4-->
+        <return-scalar column="serviceGuid" type="string"/><!--5-->
+
+        <return-scalar column="providerId" type="long"/><!--6-->
+        <return-scalar column="providerName" type="string"/><!--7-->
+        <return-scalar column="providerImageId" type="long"/><!--8-->
+        <return-scalar column="providerImageDate" type="timestamp"/><!--9-->
+        <return-scalar column="providerGuid" type="string"/><!--10-->
+
+        <return-scalar column="autoPaymentSupported" type="boolean"/><!--11-->
+        <return-scalar column="barSupported" type="boolean"/><!--12-->
+        <return-scalar column="inn" type="string"/><!--13-->
+        <return-scalar column="account" type="string"/><!--14-->
+
+        <return-scalar column="categoryId" type="long"/><!--15-->
+        <return-scalar column="categoryName" type="string"/><!--16-->
+        <return-scalar column="categoryDescription" type="string"/><!--17-->
+        <return-scalar column="categoryImageId" type="long"/><!--18-->
+        <return-scalar column="categoryImageDate" type="timestamp"/><!--19-->
+        <return-scalar column="categoryImageUrl" type="string"/><!--20-->
+        <return-scalar column="categoryGuid" type="string"/><!--21-->
+        <return-scalar column="providerSubType" type="string"/><!--22-->
+        select distinct
+            providers.BILLING_ID billingId,
+            providers.ID serviceId,
+            NVL(sp_res.NAME_SERVICE, providers.NAME_B_SERVICE) serviceName,
+            providers.IMAGE_ID serviceImageId,
+            providers.IMAGE_UPDATE_TIME serviceImageDate,
+            providers.uuid serviceGuid,
+
+            providers.ID providerId,
+            NVL(sp_res.NAME, providers.PROVIDER_NAME) providerName,
+            providers.IMAGE_ID providerImageId,
+            providers.IMAGE_UPDATE_TIME providerImageDate,
+            providers.uuid providerGuid,
+            case when providers.AVAILABLE_IQW_AUTOP is not null or providers.AVAILABLE_ESB_AUTOP is not null then '1' else '0' end autoPaymentSupported,
+            providers.IS_BAR_SUPPORTED barSupported,
+            providers.INN inn,
+            providers.ACCOUNT account,
+
+            case
+                when (providers.CATEGORY_ID is not null) then providers.CATEGORY_ID
+                when (providers.GROUP_ID is not null) then providers.GROUP_ID
+                when (providers.SERVICE_ID is not null) then providers.SERVICE_ID
+                else null
+            end categoryId,
+            case
+                when (providers.CATEGORY_ID is not null) then NVL(ps_res.NAME, providers.CATEGORY_NAME)
+                when (providers.GROUP_ID is not null) then NVL(ps_res.NAME, providers.GROUP_NAME)
+                when (providers.SERVICE_ID is not null) then NVL(ps_res.NAME, providers.SERVICE_NAME)
+                else null
+            end categoryName,
+            case --имя услуги совпадает на проме с дескрипшеном.
+                when (providers.CATEGORY_ID is not null) then NVL(ps_res.NAME, providers.CATEGORY_NAME)
+                when (providers.GROUP_ID is not null) then NVL(ps_res.NAME, providers.GROUP_NAME)
+                when (providers.SERVICE_ID is not null) then NVL(ps_res.NAME, providers.SERVICE_NAME)
+                else null
+            end categoryDescription,
+            null categoryImageId, -- картинки не привязаны к категориям
+            null categoryImageDate, -- картинки не привязаны к категориям
+            case
+                when (providers.CATEGORY_ID is not null) then providers.CATEGORY_IMAGE
+                when (providers.GROUP_ID is not null) then providers.GROUP_IMAGE
+                when (providers.SERVICE_ID is not null) then providers.SERVICE_IMAGE
+                else null
+            end categoryImageUrl,
+            case
+                when (providers.CATEGORY_ID is not null) then providers.CATEGORY_GUID
+                when (providers.GROUP_ID is not null) then providers.GROUP_GUID
+                when (providers.SERVICE_ID is not null) then providers.SERVICE_GUID
+                else null
+            end categoryGuid,
+            case
+                when (providers.SUB_TYPE is not null) then providers.SUB_TYPE
+            end providerSubType
+        from
+            SERVICE_PROVIDERS_AGGR providers
+            left join SERVICE_PROVIDERS_RES sp_res on providers.uuid = sp_res.uuid and sp_res.LOCALE_ID = :extra_localeId
+            left join PAYMENT_SERVICES_RES ps_res on nvl(providers.CATEGORY_GUID, nvl(providers.GROUP_GUID, providers.SERVICE_GUID)) = ps_res.uuid and ps_res.LOCALE_ID = :extra_localeId
+        where
+            providers.BILLING_ID is not null
+            and providers.CHANEL = :extra_chanel
+            and providers.P_KEY = :extra_pkey
+            and providers.REGION_ID = :extra_region_id
+            and
+                (
+                   ('PAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_PAYMENTS is not null) or
+                   ('ESB_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_ESB_AUTOP is not null) or
+                   ('IQW_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_IQW_AUTOP is not null) or
+                   ('TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_TEMPLATES is not null) or
+                   ('MB_TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_MB_TEMPLATES is not null) or
+                   ('BASKET' in (:extra_functionality) and  providers.AVAILABLE_BASKET is not null)
+                )
+            and
+                (
+                    (:extra_like_search_long is not null and (providers.INN LIKE :extra_like_search_long or providers.ACCOUNT LIKE :extra_like_search_long)) or
+                    (:extra_like_search is not null and (upper(providers.PROVIDER_NAME) LIKE upper(:extra_like_search) or upper(sp_res.NAME) LIKE upper(:extra_like_search) or
+                    upper(providers.ALIAS) LIKE upper(:extra_like_search)  or upper(sp_res.ALIAS) LIKE upper(:extra_like_search)  or
+                    upper(providers.LEGAL_NAME)  LIKE upper(:extra_like_search) or upper(sp_res.LEGAL_NAME)  LIKE upper(:extra_like_search)))
+                )
+        order by serviceId, providerName asc
+    </sql-query>
+
+    <!--
+  mAPI [5.20; ...) и atmAPI (с настройкой "как в mAPI": категории и поставщики). Новая иерархии услуг (>= 11 релиз)
+  Опорный объект: SP_AGRR_PK
+  Предикаты доступа: access("PROVIDERS"."P_KEY"=:EXTRA_PKEY AND "PROVIDERS"."REGION_ID"=-1 AND "PROVIDERS"."CHANEL"=:EXTRA_CHANEL)
+  Кардинальность: если не выбран регион оплаты, то около 90К, для выбранного региона - менее 10К
+-->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.SearchServicesPaymentApiOperation.searchResult">
+        <return-scalar column="billingId" type="long"/><!--0-->
+
+        <return-scalar column="serviceId" type="long"/><!--1-->
+        <return-scalar column="serviceName" type="string"/><!--2-->
+        <return-scalar column="serviceImageId" type="long"/><!--3-->
+        <return-scalar column="serviceImageDate" type="timestamp"/><!--4-->
+        <return-scalar column="serviceGuid" type="string"/><!--5-->
+
+        <return-scalar column="providerId" type="long"/><!--6-->
+        <return-scalar column="providerName" type="string"/><!--7-->
+        <return-scalar column="providerImageId" type="long"/><!--8-->
+        <return-scalar column="providerImageDate" type="timestamp"/><!--9-->
+        <return-scalar column="providerGuid" type="string"/><!--10-->
+
+        <return-scalar column="autoPaymentSupported" type="boolean"/><!--11-->
+        <return-scalar column="barSupported" type="boolean"/><!--12-->
+        <return-scalar column="inn" type="string"/><!--13-->
+        <return-scalar column="account" type="string"/><!--14-->
+
+        <return-scalar column="categoryId" type="long"/><!--15-->
+        <return-scalar column="categoryName" type="string"/><!--16-->
+        <return-scalar column="categoryDescription" type="string"/><!--17-->
+        <return-scalar column="categoryImageId" type="long"/><!--18-->
+        <return-scalar column="categoryImageDate" type="timestamp"/><!--19-->
+        <return-scalar column="categoryImageUrl" type="string"/><!--20-->
+        <return-scalar column="categoryGuid" type="string"/><!--21-->
+        <return-scalar column="providerSubType" type="string"/><!--22-->
+        select distinct
+            providers.BILLING_ID billingId,
+            providers.ID serviceId,
+            providers.NAME_B_SERVICE serviceName,
+            providers.IMAGE_ID serviceImageId,
+            providers.IMAGE_UPDATE_TIME serviceImageDate,
+            providers.uuid serviceGuid,
+
+            providers.ID providerId,
+            providers.PROVIDER_NAME providerName,
+            providers.IMAGE_ID providerImageId,
+            providers.IMAGE_UPDATE_TIME providerImageDate,
+            providers.uuid providerGuid,
+            case when providers.AVAILABLE_IQW_AUTOP is not null or providers.AVAILABLE_ESB_AUTOP is not null then '1' else '0' end autoPaymentSupported,
+            providers.IS_BAR_SUPPORTED barSupported,
+            providers.INN inn,
+            providers.ACCOUNT account,
+
+            case
+                when (providers.CATEGORY_ID is not null) then providers.CATEGORY_ID
+                when (providers.GROUP_ID is not null) then providers.GROUP_ID
+                when (providers.SERVICE_ID is not null) then providers.SERVICE_ID
+                else null
+            end categoryId,
+            case
+                when (providers.CATEGORY_ID is not null) then providers.CATEGORY_NAME
+                when (providers.GROUP_ID is not null) then providers.GROUP_NAME
+                when (providers.SERVICE_ID is not null) then providers.SERVICE_NAME
+                else null
+            end categoryName,
+            case --имя услуги совпадает на проме с дескрипшеном.
+                when (providers.CATEGORY_ID is not null) then providers.CATEGORY_NAME
+                when (providers.GROUP_ID is not null) then providers.GROUP_NAME
+                when (providers.SERVICE_ID is not null) then providers.SERVICE_NAME
+                else null
+            end categoryDescription,
+            null categoryImageId, -- картинки не привязаны к категориям
+            null categoryImageDate, -- картинки не привязаны к категориям
+            case
+                when (providers.CATEGORY_ID is not null) then providers.CATEGORY_IMAGE
+                when (providers.GROUP_ID is not null) then providers.GROUP_IMAGE
+                when (providers.SERVICE_ID is not null) then providers.SERVICE_IMAGE
+                else null
+            end categoryImageUrl,
+            case
+                when (providers.CATEGORY_ID is not null) then providers.CATEGORY_GUID
+                when (providers.GROUP_ID is not null) then providers.GROUP_GUID
+                when (providers.SERVICE_ID is not null) then providers.SERVICE_GUID
+                else null
+            end categoryGuid,
+            case
+                when (providers.SUB_TYPE is not null) then providers.SUB_TYPE
+            end providerSubType
+        from
+            SERVICE_PROVIDERS_AGGR providers
+        where
+            providers.BILLING_ID is not null
+            and providers.CHANEL = :extra_chanel
+            and providers.P_KEY = :extra_pkey
+            and providers.REGION_ID = :extra_region_id
+            and
+                (
+                   ('PAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_PAYMENTS is not null) or
+                   ('ESB_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_ESB_AUTOP is not null) or
+                   ('IQW_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_IQW_AUTOP is not null) or
+                   ('TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_TEMPLATES is not null) or
+                   ('MB_TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_MB_TEMPLATES is not null) or
+                   ('BASKET' in (:extra_functionality) and  providers.AVAILABLE_BASKET is not null)
+                )
+            and
+                (
+                    (:extra_like_search_long is not null and (providers.INN LIKE :extra_like_search_long or providers.ACCOUNT LIKE :extra_like_search_long)) or
+                    (:extra_like_search is not null and (upper(providers.PROVIDER_NAME) LIKE upper(:extra_like_search) or upper(providers.ALIAS) LIKE upper(:extra_like_search)  or upper(providers.LEGAL_NAME)  LIKE upper(:extra_like_search)))
+                )
+        order by serviceId, providerName asc
+    </sql-query>
+
+    <!--
+      atmAPI (с настройкой "как в браузерной версии": категории, услуги и поставщики). Поиск по ГУ и ПУ. Возвращаются ПУ.
+      Опорный объект: SP_AGRR_PK
+      Предикаты доступа: access("PROVIDERS"."P_KEY"=:EXTRA_PKEY AND "PROVIDERS"."REGION_ID"=-1 AND "PROVIDERS"."CHANEL"=:EXTRA_CHANEL)
+      Кардинальность: если не выбран регион оплаты, то около 90К, для выбранного региона - менее 10К
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.SearchServicesPaymentApiOperation.searchResultFull">
+        <return-scalar column="billingId" type="long"/><!--0-->
+
+        <return-scalar column="serviceId" type="long"/><!--1-->
+        <return-scalar column="serviceName" type="string"/><!--2-->
+        <return-scalar column="serviceImageId" type="long"/><!--3-->
+        <return-scalar column="serviceImageDate" type="timestamp"/><!--4-->
+        <return-scalar column="serviceGuid" type="string"/><!--5-->
+
+        <return-scalar column="providerId" type="long"/><!--6-->
+        <return-scalar column="providerName" type="string"/><!--7-->
+        <return-scalar column="providerImageId" type="long"/><!--8-->
+        <return-scalar column="providerImageDate" type="timestamp"/><!--9-->
+        <return-scalar column="providerGuid" type="string"/><!--10-->
+
+        <return-scalar column="autoPaymentSupported" type="boolean"/><!--11-->
+        <return-scalar column="inn" type="string"/><!--12-->
+        <return-scalar column="account" type="string"/><!--13-->
+
+        <return-scalar column="service1Id" type="long"/><!--14-->
+        <return-scalar column="service1Name" type="string"/><!--15-->
+        <return-scalar column="service1Description" type="string"/><!--16-->
+        <return-scalar column="service1ImageId" type="long"/><!--17-->
+        <return-scalar column="service1ImageDate" type="timestamp"/><!--18-->
+        <return-scalar column="service1ImageUrl" type="string"/><!--19-->
+        <return-scalar column="service1Guid" type="string"/><!--20-->
+
+        <return-scalar column="service2Id" type="long"/><!--21-->
+        <return-scalar column="service2Name" type="string"/><!--22-->
+        <return-scalar column="service2Description" type="string"/><!--23-->
+        <return-scalar column="service2ImageId" type="long"/><!--24-->
+        <return-scalar column="service2ImageDate" type="timestamp"/><!--25-->
+        <return-scalar column="service2ImageUrl" type="string"/><!--26-->
+        <return-scalar column="service2Guid" type="string"/><!--27-->
+
+        <return-scalar column="service3Id" type="long"/><!--28-->
+        <return-scalar column="service3Name" type="string"/><!--29-->
+        <return-scalar column="service3Description" type="string"/><!--30-->
+        <return-scalar column="service3ImageId" type="long"/><!--31-->
+        <return-scalar column="service3ImageDate" type="timestamp"/><!--32-->
+        <return-scalar column="service3ImageUrl" type="string"/><!--33-->
+        <return-scalar column="service3Guid" type="string"/><!--34-->
+
+        <return-scalar column="providerImageHelpId"         type="long"/><!--35-->
+        <return-scalar column="providerImageHelpUpdateTime" type="timestamp"/><!--36-->
+        <return-scalar column="subType" type="string"/><!--37-->
+        select distinct
+            providers.BILLING_ID billingId,
+
+            providers.ID serviceId,
+            providers.NAME_B_SERVICE serviceName,
+            providers.IMAGE_ID serviceImageId,
+            providers.IMAGE_UPDATE_TIME serviceImageDate,
+            providers.uuid serviceGuid,
+
+            providers.ID providerId,
+            providers.PROVIDER_NAME providerName,
+            providers.IMAGE_ID providerImageId,
+            providers.IMAGE_UPDATE_TIME providerImageDate,
+            providers.uuid providerGuid,
+
+            case when providers.AVAILABLE_IQW_AUTOP is not null or providers.AVAILABLE_ESB_AUTOP is not null then '1' else '0' end autoPaymentSupported,
+            providers.INN inn,
+            providers.ACCOUNT account,
+
+            providers.SERVICE_ID service1Id,
+            providers.SERVICE_NAME service1Name,
+            providers.SERVICE_NAME service1Description, --дескрипшен на проме равен нейму
+            null service1ImageId,  -- каринки не привязаны на проме
+            null service1ImageDate, -- каринки не привязаны на проме
+            providers.SERVICE_IMAGE  service1ImageUrl,
+            providers.SERVICE_GUID  service1Guid,
+
+            providers.GROUP_ID service2Id,
+            providers.GROUP_NAME service2Name,
+            providers.GROUP_NAME  service2Description, --дескрипшен на проме равен нейму
+            null service2ImageId, -- каринки не привязаны на проме
+            null service2ImageDate, -- каринки не привязаны на проме
+            providers.GROUP_IMAGE service2ImageUrl,
+            providers.GROUP_GUID service2Guid,
+
+            providers.CATEGORY_ID service3Id,
+            providers.CATEGORY_NAME service3Name,
+            providers.CATEGORY_NAME service3Description, --дескрипшен на проме равен нейму
+            null service3ImageId, -- каринки не привязаны на проме
+            null service3ImageDate, -- каринки не привязаны на проме
+            providers.CATEGORY_IMAGE service3ImageUrl,
+            providers.CATEGORY_GUID service3Guid,
+
+            providers.H_IMAGE_ID       providerImageHelpId,
+            providers.H_IMAGE_UPDATE_TIME providerImageHelpUpdateTime,
+            case
+                when (providers.SUB_TYPE is not null) then providers.SUB_TYPE
+            end subType
+        from
+            SERVICE_PROVIDERS_AGGR providers
+        where
+            providers.BILLING_ID is not null
+            and providers.CHANEL = :extra_chanel
+            and providers.P_KEY = :extra_pkey
+            and providers.REGION_ID = :extra_region_id
+            and
+                (
+                   ('PAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_PAYMENTS is not null) or
+                   ('ESB_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_ESB_AUTOP is not null) or
+                   ('IQW_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_IQW_AUTOP is not null) or
+                   ('TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_TEMPLATES is not null) or
+                   ('MB_TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_MB_TEMPLATES is not null) or
+                   ('BASKET' in (:extra_functionality) and  providers.AVAILABLE_BASKET is not null)
+                )
+            and
+                (
+                    (:extra_like_search_long is not null and (providers.INN LIKE :extra_like_search_long or providers.ACCOUNT LIKE :extra_like_search_long)) or
+                    (:extra_like_search is not null and (upper(providers.PROVIDER_NAME) LIKE upper(:extra_like_search) or upper(providers.ALIAS) LIKE upper(:extra_like_search)  or upper(providers.LEGAL_NAME)  LIKE upper(:extra_like_search))) or
+                    (:extra_includeServices = '1' and (upper(providers.CATEGORY_NAME) LIKE upper(:extra_like_search) or upper(providers.GROUP_NAME) LIKE upper(:extra_like_search)  or upper(providers.SERVICE_NAME)  LIKE upper(:extra_like_search)))
+                )
+        order by serviceId, providerName asc
+    </sql-query>
+</hibernate-mapping>

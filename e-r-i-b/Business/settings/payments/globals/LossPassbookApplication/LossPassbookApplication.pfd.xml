@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="LossPassbookApplication"
+              description="Заявить об утере сберегательной книжки"
+			  detailedDescription="На основании этого заявления будут приостановлены наличные расходные операции по счету. Проведение операций по данному счету через «Сбербанк Онлайн» по-прежнему будет доступно."
+			  confirmDescription="Ваша заявка успешно отправлена в банк! Спасибо, что воспользовались системой «Сбербанк Онлайн»!"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.LossPassbookApplication"/>
+	<statemachine name="PaymentStateMachine"/>
+
+	<fields>
+        <field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+
+        <field
+			name="accountSelect"
+			description="Вклад"
+			type="resource"
+			source="extra-parameters/parameter[@name='deposit-account']/@value"
+			signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="sms" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Операция не выполнена. Неверный номер карты или счета. Укажите в запросе другую карту/счет для блокировки."/>
+                </validator>
+                <validator mode="sms" class="com.rssl.phizic.business.payments.forms.validators.LossPassbookAccountValidator">
+                    <message text="Операция не выполнена. Сберкнижка по данному счету не выдавалась."/>
+                </validator>
+			</validators>
+		</field>
+
+        <field name="accountNumber"
+            description="Номер вклада"
+            type="string"
+            source="extra-parameters/parameter[@name='account-number']/@value"
+            value="form.accountSelect==null?'':form.accountSelect.getNumber()">
+        </field>
+
+        <field
+			name="accountLink"                                         
+			description="Номер вклада"
+			type="string"
+			source="extra-parameters/parameter[@name='deposit-account-link']/@value"
+			signable="true">
+		</field>
+
+		<field
+			name="accountSelectType"
+			description="Тип счета списания"
+			type="string"
+			source="extra-parameters/parameter[@name='deposit-account-type']/@value"
+			signable="true"
+			value="form.accountSelect==null?null:form.accountSelect.getValue().getDescription()">
+		</field>
+
+        <field
+            name="accountSelectName"
+            description="Наименование счета списания"
+            type="string"
+            source="extra-parameters/parameter[@name='from-account-name']/@value"
+            signable="true"
+            value="form.accountSelect==null?null:form.accountSelect.getName()">
+        </field>
+
+		<field
+			name="amountCurrency"
+			description="Валюта"
+			source="extra-parameters/parameter[@name='amount-currency']/@value"			
+			type="string"
+			signable="true"
+			value="form.accountSelect==null?null:form.accountSelect.getCurrency().getCode()">
+		</field>
+
+		<field
+			name="toAccountSelect" 
+			description="Счет для перечисления средств" 
+			type="string"
+			source="extra-parameters/parameter[@name='receiver-account']/@value"
+			signable="true">
+			
+			<validators>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.UserAccountValidator"/>
+			</validators>
+		</field>
+
+		<field
+			name="closingAmountOrPassbookDuplicateRadio"
+			description="Расторжение договора / Оформление дубликата сберкнижки"
+			type="string"
+			source="extra-parameters/parameter[@name='amount-or-passbook']/@value"
+			signable="true">
+		</field>	 
+
+		<field
+			name="moneyOrTransferToAccountRadio"
+			description="Наличные / Перечисление на счет"
+			type="string"
+			source="extra-parameters/parameter[@name='money-or-transfer']/@value"
+			signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<parameter name="regexp">[01]</parameter>
+				</validator>
+			</validators>
+		</field>
+
+      <field name="accountRest"
+             description="Остаток на счете"
+             type="string"
+             source="ignored"
+             value="form.accountSelect==null?'':form.accountSelect.getRest().getDecimal()">
+        </field>
+    </fields>
+</payment-form>

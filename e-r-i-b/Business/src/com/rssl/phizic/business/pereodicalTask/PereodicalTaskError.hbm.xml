@@ -1,0 +1,32 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+       <class name="com.rssl.phizic.business.pereodicalTask.PereodicalTaskError"
+              table="PEREODICAL_TASK_ERROR">
+           
+            <id name="id" type="long" column="ID">
+                <generator class="native">
+                    <param name="sequence">S_PEREODICAL_TASK_ERROR</param>
+                </generator>
+            </id>
+
+            <many-to-one name="result"
+                         class="com.rssl.phizic.business.pereodicalTask.PereodicalTaskResult"
+                         column="RESULT_ID"
+                         fetch="join"
+                         lazy="false"
+                         cascade="delete-orphan"/>
+
+            <property name="errText" type="string" column="ERR_TEXT"/>
+
+        </class>
+                     
+        <query name="com.rssl.phizic.business.pereodicalTask.PereodicalTaskError.getErrorByResult">
+            select err
+            from com.rssl.phizic.business.pereodicalTask.PereodicalTaskError err
+            where err.result = :result
+        </query>
+
+</hibernate-mapping>

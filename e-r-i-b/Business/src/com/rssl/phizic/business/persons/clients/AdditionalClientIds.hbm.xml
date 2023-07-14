@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class name="com.rssl.phizic.business.persons.clients.AdditionalClientIds" table="ADDITIONAL_CLIENTS_IDS">
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_ADDITIONAL_CLIENTS_IDS</param>
+			</generator>
+		</id>
+
+		<property name="clientId" type="string" column="CLIENT_ID" not-null="true"/>
+		<property name="parentId" type="string" column="PARENT_ID"/>
+
+		<set name="addClientIds" cascade="all,delete-orphan"  lazy="false">
+			<key>
+				<column name="PARENT_ID" />
+			</key>
+			<one-to-many class="com.rssl.phizic.business.persons.clients.AdditionalClientIds"/>
+		</set>
+	</class>
+
+	<query name="com.rssl.phizic.business.persons.clients.findAdditionalsByClientId">
+		select clientIds
+		from com.rssl.phizic.business.persons.clients.AdditionalClientIds clientIds
+		where clientIds.clientId = :clientId
+	</query>
+
+	<query name="com.rssl.phizic.business.persons.clients.findMainIdByClientId">
+		select clientIds
+		from com.rssl.phizic.business.persons.clients.AdditionalClientIds clientIds
+		where clientIds.id = (
+			select addClientIds.parentId
+			from com.rssl.phizic.business.persons.clients.AdditionalClientIds addClientIds
+			where addClientIds.clientId = :clientId
+					)
+	</query>
+
+</hibernate-mapping>

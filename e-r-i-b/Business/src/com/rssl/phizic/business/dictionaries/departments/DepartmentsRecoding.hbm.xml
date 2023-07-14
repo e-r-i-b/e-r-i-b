@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="windows-1251" ?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding" table="DEPARTMENTS_RECORDING">
+		<id name="id" column="ID" type="long">
+			<generator class="native">
+				<param name="sequence">S_DEPARTMENTS_RECORDING</param>
+			</generator>
+		</id>
+
+		<property name="tbErib"        column="TB_ERIB"        type="string" not-null="true"/>
+		<property name="osbErib"       column="OSB_ERIB"       type="string" not-null="false"/>
+		<property name="officeErib"    column="OFFICE_ERIB"    type="string" not-null="false"/>
+
+		<property name="tbSpoobk2"     column="TB_SPOOBK2"     type="string" not-null="true"/>
+		<property name="osbSpoobk2"    column="OSB_SPOOBK2"    type="string" not-null="false"/>
+		<property name="officeSpoobk2" column="OFFICE_SPOOBK2" type="string" not-null="false"/>
+        <property name="despatch"      column="DESPATCH"       type="string" not-null="false"/>
+        <property name="dateSuc"       column="DATE_SUC"       type="calendar" not-null="false"/>
+	</class>
+
+    <class entity-name="DepartmentsRecodingTemporary" name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding" table="DEPARTMENTS_RECORDING_TMP">
+		<id name="id" column="ID" type="long">
+			<generator class="native">
+				<param name="sequence">S_DEPARTMENTS_RECORDING_TMP</param>
+			</generator>
+		</id>
+
+		<property name="tbErib"        column="TB_ERIB"        type="string" not-null="true"/>
+		<property name="osbErib"       column="OSB_ERIB"       type="string" not-null="false"/>
+		<property name="officeErib"    column="OFFICE_ERIB"    type="string" not-null="false"/>
+
+		<property name="tbSpoobk2"     column="TB_SPOOBK2"     type="string" not-null="true"/>
+		<property name="osbSpoobk2"    column="OSB_SPOOBK2"    type="string" not-null="false"/>
+		<property name="officeSpoobk2" column="OFFICE_SPOOBK2" type="string" not-null="false"/>
+        <property name="despatch"      column="DESPATCH"       type="string" not-null="false"/>
+        <property name="dateSuc"       column="DATE_SUC"       type="calendar" not-null="false"/>
+	</class>
+
+    <resultset name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.getDespatchFromSpoobk.resultset">
+        <return-scalar column="code" type="string"/>
+    </resultset>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.findDepartmentsRecodingByErib">
+        <return alias="d" class="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding"/>
+        <![CDATA[
+        select {d.*} from DEPARTMENTS_RECORDING d
+         where d.tb_erib = :tb
+           and
+             (
+                (:osb is null and :office is null and d.osb_erib is null and d.office_erib is null)
+                or
+                (d.osb_erib = :osb and :office is null and d.office_erib is null)
+                or
+                (d.osb_erib = :osb and d.office_erib = :office)
+             )
+         ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.getDespatchFromSpoobk"
+            resultset-ref="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.getDespatchFromSpoobk.resultset">
+        <!--смотреть запрос в DepartmentsRecoding.getDespatchFromSpoobk.ftl-->
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.findCodesContainsInDepartments">
+        <return-scalar column="code" type="string"/>
+        <![CDATA[
+            select code as code from
+            (
+                select (d.TB || '|' || d.OSB || '|' || d.OFFICE) as code
+                  from DEPARTMENTS d
+                 where  d.TB || '|' || d.OSB || '|' || d.OFFICE in(:codes)
+            )
+        ]]>
+    </sql-query>
+
+    <!--
+    Делает выборку департаментов. Выбираются только департаменты, значения столбцов(TB, OSB, OFFICE) которых
+    идентичны значениям столбцов(TB_ERIB, OSB_ERIB, OFFICE_ERIB) таблицы DEPARTMENTS_RECORDING_TMP.
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.findDepartmentsIds">
+        <return alias="x" class="com.rssl.phizic.business.departments.Department"/>
+
+        select {x.*} from DEPARTMENTS x
+         where x.id not in
+         (
+            select y.id from DEPARTMENTS y
+                        join DEPARTMENTS_RECORDING_TMP z
+                          on y.TB = z.TB_ERIB and y.OSB = z.OSB_ERIB and y.OFFICE = z.OFFICE_ERIB
+         )
+    </sql-query>
+    
+    <sql-query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.findDepartmentsInExceptionTable">
+        <return alias="x" class="com.rssl.phizic.business.departments.Department"/>
+
+        select {x.*} from DEPARTMENTS x
+         where x.id in
+         (
+            select y.id from DEPARTMENTS y
+              join OFFICES_NOT_ISSUING_CARDS z
+                on y.TB = z.TB and y.OSB = z.OSB and y.OFFICE = z.OFFICE
+         )
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.findDepartmentsForLoadToSpoobk">
+        <return-scalar type="string" column="tb"/>
+        <return-scalar type="string" column="osb"/>
+        <return-scalar type="string" column="office"/>
+
+        <![CDATA[
+            select d.TB     as tb,
+                   d.OSB    as osb,
+                   d.OFFICE as office
+
+            from DEPARTMENTS d
+        ]]>
+    </sql-query>
+
+    <!-- Получение департамента по tb, osb, vsp -->
+    <!--
+        Опорный объект: SPOOBK2_TB_OSB
+        Предикаты доступа: ТБ access(DEPARTMENTS_RECORDING.TB_SPOOBK2=:TB2)
+        Кардинальность: 0/1 INDEX RANGE SCAN
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.findDepartmentRecodingBySpoobk">
+        <return alias="d" class="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding"/>
+        <![CDATA[
+        select {d.*} from DEPARTMENTS_RECORDING d
+        where
+            (
+                (d.tb_spoobk2 = :tb2)
+                and
+                (d.osb_spoobk2 = :osb2)
+                and
+                (d.office_spoobk2 = :vsp2)
+            )
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.clearTemporary">
+        delete from DepartmentsRecodingTemporary
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.clearDictionary">
+        delete from DepartmentsRecoding
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.listOfAllFromTemporary">
+        select drt from DepartmentsRecodingTemporary drt
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.departments.DepartmentsRecoding.addSpoobkMockRecord">
+        <!--смотреть запрос в DepartmentsRecoding.addSpoobkMockRecord.ftl-->
+    </sql-query>
+</hibernate-mapping>

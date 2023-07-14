@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions
+    name="CSAAdminService"
+    targetNamespace="http://csa.admin/erib/adapter"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:ns="http://csa.admin/erib/adapter">
+
+    <wsdl:types>
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://csa.admin/erib/adapter">
+            <xsd:include schemaLocation="CSAAdminService.xsd"/>
+        </xsd:schema>
+    </wsdl:types>
+
+    <wsdl:message name="request">
+        <wsdl:part name="request" element="ns:Request"/>
+    </wsdl:message>
+
+    <wsdl:message name="response">
+        <wsdl:part name="response" element="ns:Response"/>
+    </wsdl:message>
+
+    <wsdl:portType name="CSAAdminService">
+        <wsdl:operation name="exec" parameterOrder="request">
+            <wsdl:input  message="ns:request"  name="request"/>
+            <wsdl:output message="ns:response" name="response"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="CSAAdminServiceSoapBinding" type="ns:CSAAdminService">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="exec">
+            <soap:operation soapAction="http://csa.admin/erib/adapter/exec"/>
+            <wsdl:input name="request">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="response">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="CSAAdminService">
+        <wsdl:port binding="ns:CSAAdminServiceSoapBinding" name="CSAAdminService">
+            <soap:address location="http://localhost:8080/CSAAdmin/services/CSAAdminService"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

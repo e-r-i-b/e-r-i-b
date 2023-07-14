@@ -1,0 +1,563 @@
+import rcw, rsd;//, deprintr;
+import "rt_ib_xml.mac";
+import "user_gba.mac";
+import OperCode, SqlConv, IsSrvDoc;
+
+/* 
+    ───────────────────
+      ИСХОДНЫЕ ДАННЫЕ  
+    ───────────────────
+
+Элемент сообщения         Тип           Комментарий
+────────────────────────────────────────────────────────────────────────────────────────────────────────────
+request        
+├─id                      string(32)    Идентификатор запроса в системе  ИКФЛ  
+└─getAccountTrnsactions_q         
+  ├─fromDa                bdate         Дата, с которой надо получить информацию.
+  ├─toDate                bdate         Дата, по которую надо получить информацию.              
+  └─accountReferenc       int32         Референс счета в  Retail
+
+
+    ───────────────────
+          ОТВЕТ
+    ───────────────────
+
+Элемент сообщения               Тип           Комментарий 
+────────────────────────────────────────────────────────────────────────────────────────────────────────────
+response       
+├─parentId                      string(32)    Идентификатор запроса в системе  ИКФЛ
+├─id                            string(32)    Идентификатор ответа   
+└─getDepositList_a            
+
+response          
+├─parentId                      string(32)    Идентификатор запроса в системе  ИКФЛ 
+├─id                            string(32)    Идентификатор ответа   
+└─getAccountTrnsactions_a
+  ├─previousOperationDate       string(12)    Дата предыдущей операции
+  ├─closedDate                  string(32)    Дата закрытия счета (этого эл.нет, если счет открыт) - пустой элемент
+  ├─closedSum                   lmoney        Сумма, выплаченная при закрытии счета - пустой элемент
+  ├─transactions
+  │ └─transaction                                                                                      [0:n]
+  │   ├─date                                  Дата операции
+  │   ├─transactionCurrencyId                 Код валюты операции
+  │   ├─creditSum               lmoney        Сумма прихода
+  │   ├─debitSum                lmoney        Сумма расхода
+  │   ├─documentNumber          string(10)    Номер документа операции
+  │   ├─balance                 lmoney        Баланс
+  │   ├─counteragent                          Корреспондент
+  │   ├─counteragentAccount                   Корреспондирующий счет
+  │   ├─counteragentBank                      Бик банка корреспондента
+  │   ├─counteragentBankName                  Бик банка корреспондента
+  │   ├─bookAccount                           Счет контировки
+  │   └─description                           Основание операции
+  ├─interestRate                double        Процентная ставка   (зд. возвращается пустой элем)
+  ├─incomingRest                string(12)    Входящий остаток на момент начала выписки
+  ├─outcomingRest               string(12)    Исходящий остаток (на момент окончания выписки)
+  │
+  │
+  ├─totalInSum                  lmoney        Обороты по дебету
+  ├─totalOutSum                 lmoney        Обороты по кредиту
+  ├─trustees                                  Список доверенностей (здесь - пустой элемент)
+  └─additionalInformation                     Дополнительная информация (здесь - пустой элемент)
+  
+*/
+
+
+macro GetQuart(date)
+
+    var Q, Year, Mon;
+
+    DateSplit( date, null, Mon, Year );
+
+    if ( Mon == 3 )
+        Q = 1;
+    elif ( Mon == 6 )
+        Q = 2;
+    elif ( Mon == 9 )
+        Q = 3;
+    else
+        Q = 4;
+    end;
+    return Q + "-й квартал " + Year + " года";
+end;
+
+/* -----------------21.12.2007 10:14-----------------
+ *  Забираем основание из ядра. 
+ *  Документ определяем по дате, номеру и сумме, что вообще-то безобразие.
+ * --------------------------------------------------*/
+macro GetGroundFromYadro(Numdoc, datecarry, sumcarry, sAccount)
+    
+    var sGround : string = "",
+        qr      : string = "",
+        sTable  : string = "darhdoc_dbt",
+        rs      : rsdRecordSet;
+
+    if (substr(sAccount,6,3) != "810")
+        sTable = "darhdoc$_dbt";
+    end;
+    
+    qr = "select t_ground from msibbnk_up." + sTable + " t " +
+         "where t.t_numb_document = '" + numdoc + "' " +
+         "and t.t_date_carry = to_date('" + datecarry + "','dd.mm.yyyy') " +
+         "and t.t_sum = " + sumcarry;
+
+    rs = rsdRecordSet(qr,rsdval_client,rsdval_static);
+
+    if (rs.movenext)
+        sGround = rs.value(0);
+    end;
+
+    rs = null;
+    return (sGround);
+end;
+
+/* -----------------12.02.2008 16:17-----------------
+ * 
+ * --------------------------------------------------*/
+macro GetBalanceAccount(sAccount, sAccountType)
+    var sNerez             : string = "t_balcacc",
+        qr                 : string,
+        sBalanceAccount    : string, 
+        sCur               : string = "0",
+        iCurAccount        : integer;
+        
+    if (substr(sAccount,1,3) == "426")
+        sNerez = "t_balcaccres";
+    end;
+    iCurAccount = int(substr(sAccount,6,3));
+
+    if   (iCurAccount == 840)
+        sCur = "1";
+    elif (iCurAccount == 978)
+        sCur = "5";
+    end;
+
+    qr = "SELECT typ." + sNerez + " " +
+         "FROM   dsb_actyp_dbt typ " +
+         "WHERE  typ.t_codaccount = 0 and t_fncash = 1 " +
+         "AND    (typ.t_kind = '" + sAccountType + "' " +
+         "AND    typ.t_codcur = " + sCur + " " +
+         "OR     substr(typ.t_kind,1,12) = '" + sAccountType + "')";
+    //println(qr);
+    //exit(0);
+
+    var rs : rsdRecordSet = rsdRecordSet(qr,rsdval_client,rsdval_static);
+    if (rs.movenext)
+        sBalanceAccount = rs.value(0);
+    end;
+    rs = null;
+    return sBalanceAccount;
+end;
+
+/* -----------------12.02.2008 20:23-----------------
+ * 
+ * --------------------------------------------------*/
+macro GetDocNumberFromYadro(dDateDocument, sAccount, sBalanceAccount, sCorrAccount);
+    var iDocNum : integer = 0,
+        sTable = "darhdoc_dbt",
+        qr : string = "";
+    
+    if (substr(sAccount,6,3) != "810")
+        sTable = "darhdoc$_dbt";
+    end;
+
+    qr = "SELECT t_numb_document " +
+         "from msibbnk_up." + sTable + " t " +
+         "where t.t_date_carry = to_date('" + string(date(dDateDocument):f) + "','dd.mm.yyyy') " +
+         "and (t_account_payer = '" + sAccount + "' or " 
+         "     t_account_payer = '" + sBalanceAccount + "' or " +
+         "     t_account_receiver = '" + sAccount + "' or " + 
+         "     t_account_receiver = '" + sBalanceAccount + "' or " +
+         "     t_ground LIKE '%" + sAccount + "%') " +
+         "and (t_account_receiver = '" + sCorrAccount + "' " +
+         " or  t_account_payer = '" + sCorrAccount + "')";
+    //println(qr);
+    //exit(0);
+    var rs : rsdRecordSet = rsdRecordSet(qr,rsdval_client,rsdval_static);
+    if (rs.movenext)
+        iDocNum = rs.value(0);
+    end;
+    rs = null;
+    return iDocNum;
+end;
+
+/* -----------------07.02.2008 16:28-- JAG ---------------
+ *  Подставляем корреспондентский счет для 72-ой операции (причисление процентов)
+ * --------------------------------------------------*/
+macro GetCorrAccount72(DocDate, sAccount)
+    var sCorrAccount = "",
+        fNerez : bool = false,
+        fNps   : bool = false,
+        fCur   : bool = false;
+
+    if (substr(sAccount,6,3) != "810")
+        fCur = true;
+    end;
+
+    if (substr(sAccount,1,3) == "426")
+        fNerez = true;
+    end;
+
+    if ((substr(sAccount,14,2) == "91") or (substr(sAccount,14,2) == "92"))
+        fNps = true;
+    end;
+
+    if (DocDate < date(1,1,2008))
+        if (fNps)
+            sCorrAccount = "70203810700002310104";
+        elif (fNerez)
+            sCorrAccount = "70203810600002310301";
+        elif (fCur)
+            sCorrAccount = "70203810100002310131";
+        else
+            sCorrAccount = "70203810800002310101";
+        end;
+    else
+        if (fNps)
+            sCorrAccount = "70606810800002150104";
+        elif (fNerez)
+            sCorrAccount = "70606810800002150201";
+        elif (fCur)
+            sCorrAccount = "70606810200002150131";
+        else
+            sCorrAccount = "70606810000002160101";
+        end;
+    end;
+    return sCorrAccount;
+end;
+
+/* -----------------07.02.2008 16:28-- JAG ---------------
+ *  Подставляем корреспондентский счет для 100-ой операции (налог на причисленные проценты)
+ * --------------------------------------------------*/
+macro GetCorrAccount100(DocDate, sAccount)
+    var sCorrAccount = "",
+        fNerez : bool = false;
+
+    if (substr(sAccount,1,3) == "426")
+        fNerez = true;
+    end;
+
+    if (fNerez)
+        sCorrAccount = "60301810500000000036";
+    else
+        sCorrAccount = "60301810600000000318";
+    end;
+
+    return sCorrAccount;
+end;
+
+/* -----------------28.12.2007 18:38-----------------
+ * 
+ * --------------------------------------------------*/
+macro GetCorrAccountFromYadro(Numdoc, datecarry, sumcarry, sAccount, iTypeOper)
+
+//зачисление 1,3,38,51,71,72,73,
+//списание   4,6,10,62,63,65,66,67,81,
+
+
+    var sPayerAccount    : string = "",
+        sReceiverAccount : string = "",
+        sCorrAccount     : string = "",
+        sTable           : string = "darhdoc_dbt";
+    var qr, rs, ground;
+
+    if (substr(sAccount,6,3) != "810")
+        sTable = "darhdoc$_dbt";
+    end;
+
+    qr = "select t_account_payer, t_account_receiver " +
+         "from msibbnk_up." + sTable + " t " +
+         "where t.t_numb_document = '" + numdoc + "' " +
+         "and t.t_date_carry = to_date('" + datecarry + "','dd.mm.yyyy') " +
+         "and t.t_sum = " + sumcarry;
+
+    rs = rsdRecordSet(qr,rsdval_client,rsdval_static);
+    if (rs.movenext)
+        if ((iTypeOper == 1 ) or
+            (iTypeOper == 3 ) or
+            (iTypeOper == 38) or
+            (iTypeOper == 51) or
+            (iTypeOper == 71) or
+            (iTypeOper == 72) or
+            (iTypeOper == 73)) 
+            sCorrAccount = rs.value(0);
+        else
+            sCorrAccount = rs.value(1);
+        end;
+    end;
+
+    rs = null;
+    return (sCorrAccount);
+end;
+
+macro getAccountTransactions( inXml, outXml )
+
+   macro fillTransaction(nodeTransactions, iDocNum, sDate, GroundN, sCorrAccount, inSum, outSum, rest, counteragent, counteragentBank, counteragentBankName)
+      var nodeDeposit = nodeTransactions.appendChild(outXML.createNode(1, "transaction", ""));
+
+      var node = nodeDeposit.appendChild(outXml.createNode(1, "date", "") );
+      node.text = sDate;
+
+      node = nodeDeposit.appendChild(outXml.createNode(1, "transactionCurrencyId", ""));
+      node.text = "1";
+
+      node = nodeDeposit.appendChild(outXml.createNode(1, "creditSum", ""));
+      node.text = inSum;
+
+      node = nodeDeposit.appendChild(outXml.createNode(1, "debitSum", ""));
+      node.text = outSum;
+
+      node = nodeDeposit.appendChild(outXml.createNode(1, "documentNumber", ""));
+      node.text = iDocNum;
+
+      node = nodeDeposit.appendChild(outXml.createNode(1, "balance", ""));
+      node.text = rest;
+
+      node = nodeDeposit.appendChild(outXml.createNode(1, "counteragentAccount", ""));
+      node.text = sCorrAccount;
+      
+      node = nodeDeposit.appendChild(outXml.createNode(1, "counteragent", ""));
+      node.text = counteragent;
+      
+      node = nodeDeposit.appendChild(outXml.createNode(1, "counteragentBank", ""));
+      node.text = counteragentBank;
+
+      node = nodeDeposit.appendChild(outXml.createNode(1, "counteragentBankName", ""));
+      node.text = counteragentBankName;
+
+      node = nodeDeposit.appendChild(outXml.createNode(1, "bookAccount", ""));
+      node.text = sCorrAccount;
+
+      node = nodeDeposit.appendChild(outXml.createNode(1, "description", ""));
+      node.text = GroundN;
+   end;
+
+   var rt_paym = TBFile ( "rt_paym.dbt",  "r", 0 );
+   var rt_paym1=trechandler ("rt_paym.1" );
+   rt_paym1.setRecordAddr(rt_paym);
+
+   var accountReferencXml = inXml.documentElement.selectSingleNode("//accountReferenc"); 
+   var fromDateXml = inXml.documentElement.selectSingleNode("//fromDate" ).text;
+   var toDateXml   = inXml.documentElement.selectSingleNode("//toDate" ).text;
+   var fromDate    = Date(fromDateXml);
+   var toDate      = Date(toDateXml);
+   
+   var totalOutSum = $0.00, totalInSum = $0.00;
+   var fStartLine = true;
+
+   var ref;
+   var node, nodeAnswer, nodeTransactions;
+   var query, rs;
+
+   var mOutSum, mInSum, mRest, 
+       dDocDate, dDepDate, 
+       iTypeOper, iTypeComplexOper, 
+       sAccount, iOrderNum, 
+       iTypeAccount, sGround, 
+       sBalanceAccount, sDate,
+       iDocNum, sCorrAccount;
+
+   var counteragent, counteragentBank, counteragentBankName;
+   var previousOperationDate;
+   var incomingRest, outcomingRest; //входящий, исходящий остатки
+
+   if (accountReferencXml)
+      ref = int(accountReferencXml.text);
+   else
+      outXML = AddError2OutXml_(outXML, "не задан референс счета");
+   end;
+   
+   if (not outXml)
+      outXml = CreateXMLObject();
+      if (not outXml)
+         return;
+      end;
+      outXml.documentElement = outXml.createNode(1, "response", "");
+      node = outXml.documentElement.appendChild( outXml.createNode(1, "parentId", "") ); 
+      node.text = ParentId;
+      node = outXml.documentElement.appendChild(outXml.createNode(1, "id", ""));
+      node.text = FormApplicationKey(1);
+      nodeAnswer = outXml.documentElement.appendChild(outXml.createNode(1, "getAccountTransactions_a", ""));
+
+      /* Дата предыдущей операции по счету*/
+
+      query = " Select to_char(d.t_Date_document,'dd.mm.yyyy') as t_date_document "+
+                   " from dsbdepdoc_dbt d where d.t_Referenc = " + string( ref ) +
+                "      and d.t_Date_Document <" + sqlDateToStr( fromDate ) +
+                " order by d.t_Date_Document desc";
+      rs = RsdRecordSet(query);
+      if (rs.Movenext)
+              previousOperationDate = rs.value("t_Date_Document");
+      end;
+ 
+      node = outXML.createNode(1, "previousOperationDate",  "");
+      node.text = previousOperationDate;
+      nodeAnswer.appendChild(node);
+
+      /* Сведения о закрытии вкладa,процентная ставка - здесь только заглушки */
+
+      node = outXML.createNode(1, "interestRate", ""); 
+      node.text = "";
+      nodeAnswer.appendChild(node);
+
+      node = outXML.createNode(1, "closedDate", ""); 
+      node.text = "";
+      nodeAnswer.appendChild(node);
+    
+      node = outXML.createNode(1, "closedSum", ""); 
+      node.text = "";
+      nodeAnswer.appendChild(node);
+      
+
+
+      /* получаем входящий остаток */
+      query = 
+      "SELECT t_Rest FROM dsbdepdoc_dbt                " +
+      "WHERE  t_KindOp not in (8,9,14,15,16)           " +
+      "AND    t_Action != 2                            " +
+      "AND    t_TypeOper not in (38,39,35)             " +
+      "AND    t_Mode != 2                              " +
+      "AND    bitand(t_flags,131072 ) = 0              " +
+      "AND    t_FlagStorn = chr(0)                     " +
+      "AND    ((t_typeoper <> 78) OR (t_appltype > 0)) " +
+      "AND    t_Date_Document < to_date('" + string(fromDate:f) + "','dd.mm.yyyy') " +
+      "AND    t_referenc = " + ref + " " +
+      "AND    ((t_OutSum <> 0) or (t_InSum <> 0))      " +
+      "AND    rownum<2                                 " +
+      "ORDER BY t_date_document DESC";
+
+      rs = rsdRecordSet(query, rsdval_client, rsdval_static);
+
+      if (rs.movenext)
+        incomingRest = rs.value("t_Rest");
+      end;
+ 
+
+      nodeTransactions = nodeAnswer.appendChild(outXML.createNode(1, "transactions", ""));
+
+      /*****************************************************************
+                        Основная процедура выписки
+      ******************************************************************/
+      query = 
+      "SELECT * FROM dsbdepdoc_dbt                     " +
+      "WHERE  t_KindOp not in (8,9,14,15,16)           " +
+      "AND    t_Action != 2                            " +
+      "AND    t_TypeOper not in (38,39,35)             " +
+      "AND    t_Mode != 2                              " +
+      "AND    bitand(t_flags,131072 ) = 0              " +
+      "AND    t_FlagStorn = chr(0)                     " +
+      "AND    ((t_typeoper <> 78) OR (t_appltype > 0)) " +
+      "AND    t_Date_Document >= to_date('" + string(fromDate:f) + "','dd.mm.yyyy') " +
+      "AND    t_Date_Document <= to_date('" + string(toDate:f) + "','dd.mm.yyyy') " +
+      "AND    t_referenc = " + ref + " " +
+      "AND    ((t_OutSum <> 0) or (t_InSum <> 0))     " +
+      "ORDER BY t_date_document";
+
+      rs = rsdRecordSet(query, rsdval_client, rsdval_static);
+
+
+      while(rs.movenext)
+
+          mOutSum             = rs.value("t_OutSum");
+          mInSum              = rs.value("t_InSum");
+          mRest               = rs.value("t_Rest");
+          dDocDate            = date(rs.value("t_Date_Document"));
+          dDepDate            = date(rs.value("t_DepDate_Document"));
+          iTypeOper           = rs.value("t_TypeOper");
+          iTypeComplexOper    = rs.value("t_TypeComplexOper");
+          sAccount            = rs.value("t_account");
+          iOrderNum           = rs.value("t_ordernum");
+          iTypeAccount        = rs.value("t_type_account");
+          sGround             = rs.value("t_ground");
+          outcomingRest       = rs.value("t_rest");
+
+          if ((iTypeOper == 63) or (iTypeOper == 62) or (iTypeOper == 1))
+              sGround = GetGroundFromYadro(iOrderNum, dDocDate, mOutSum + mInSum, sAccount);
+              if (sGround == "")
+                  sGround = rs.value("t_ground");
+              end;
+          end;
+
+          if (fStartLine)
+              sBalanceAccount = GetBalanceAccount(sAccount, iTypeAccount);
+              fStartLine = false;
+          end;
+
+          totalOutSum = totalOutSum + mOutSum;
+          totalInSum  = totalInSum  + mInSum;
+
+          sDate = String(date(dDocDate):f);
+
+          if ( ( rs.value("t_Mode") == 1 ) and ( iTypeOper == Зачисление_Процентов ) )
+              sGround= "Проценты за " + GetQuart(dDocDate);
+          end;
+
+          iDocNum = GetDocNumberFromYadro(dDocDate, sAccount, sBalanceAccount, sCorrAccount);
+          if (iDocNum == 0)
+              iDocNum = iOrderNum;
+          end;
+
+          if (iTypeOper == 72)
+              sCorrAccount = GetCorrAccount72(dDocDate, sAccount);
+          elif ((iTypeOper == 62) and (iTypeComplexOper == 72))
+              sCorrAccount = GetCorrAccount100(dDocDate, sAccount);
+          else
+              sCorrAccount = GetCorrAccountFromYadro(iOrderNum, dDocDate, 
+                                                     mOutSum + mInSum, 
+                                                     sAccount, iTypeOper);
+          end;
+
+
+          rt_paym.rec.iApplicationKind = rs.value("t_iApplicationKind");
+          rt_paym.rec.ApplicationKey = rs.value("t_ApplicationKey");
+          rt_paym.rec.AttrID = "РЕКВ_ПОЛ";
+          
+          counteragent         = "";
+          counteragentBank     = "";
+          counteragentBankName = "";
+
+          if (rt_paym.getEQ)
+             
+             counteragent         = rt_paym.rec.RecivFIO;
+             counteragentBank     = rt_paym1.rec.BIC;
+             counteragentBankName = rt_paym1.rec.Bank;
+          end;
+
+          fillTransaction(nodeTransactions, iDocNum, sDate, sGround, sCorrAccount, mInSum, mOutSum, mRest, counteragent, counteragentBank, counteragentBankName);
+
+          //totalOutSum = totalOutSum + mOutSum; - лишние две строки? (см выше)
+          //totalInSum  = totalInSum  + mInSum;
+      end;
+
+      /* входящий остаток */ 
+      node = outXML.createNode(1, "incomingRest", ""); 
+      node.text = incomingRest;
+      nodeAnswer.appendChild(node);
+         
+      /* исходящий остаток */
+      node = outXML.createNode(1, "outcomingRest",  "");
+      node.text = outcomingRest;
+      nodeAnswer.appendChild(node);
+
+      /* обороты */     
+      node = outXML.createNode(1, "totalInSum",  "");
+      node.text = totalInSum;
+      nodeAnswer.appendChild(node);
+      node = outXML.createNode(1, "totalOutSum", "");
+      node.text = totalOutSum;
+      nodeAnswer.appendChild(node);
+         
+      /******************* доверенности ***************************/
+      nodeAnswer.appendChild(outXML.createNode(1, "trustees", ""));
+
+      node = outXML.createNode(1, "additionalInformation",  "");
+      node.text = "";
+      nodeAnswer.appendChild(node);
+
+   end;
+
+   SetParm(1, outXml);
+end;
+
+
+

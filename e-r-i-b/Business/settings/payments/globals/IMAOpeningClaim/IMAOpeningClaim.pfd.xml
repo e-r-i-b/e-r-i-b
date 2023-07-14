@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="IMAOpeningClaim" description="Открытие обезличенного металлического счета"
+              detailedDescription="На этой странице Вы можете открыть обезличенный металлический счет. Для этого заполните поля формы и нажмите на кнопку «Открыть»."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.IMAOpeningClaim"/>
+
+	<statemachine name="PaymentStateMachine"/>
+    <extended-metadata-loader
+            class="com.rssl.phizic.business.payments.forms.meta.ima.IMAOpeningClaimMetadataLoader"/>
+
+    <fields>
+        
+        <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true">
+		</field>
+
+        <field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+        </field>
+
+		<field name="operationDate"
+               source="operation-date-short-year"
+               description="Дата отправки платежа"
+               type="string"/>        
+
+        <field name="operationTime"
+			source="operation-time"
+			description="Время отправки платежа"
+			type="string"/>
+
+        <field
+                name="toAccountSelect"
+                description="Счет/карта зачисления"
+                type="string"
+                source="receiver-account"
+                signable="true">
+        </field>
+
+        <field
+                name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Счет списания"
+                type="resource">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, укажите значение в поле Счет списания"/>
+                </validator>
+            </validators>
+        </field>
+
+        <field
+                name="imaId"
+                description="Идентификатор металла"
+                type="string"
+                source="extra-parameters/parameter[@name='imaId']/@value">
+        </field>
+
+        <field
+                name="openingDate"
+                description="Дата открытия счета"
+                type="string"
+                source="extra-parameters/parameter[@name='opening-date']/@value">
+        </field>
+
+        <field
+                name="buyIMAProduct"
+                description="Металл"
+                type="string"
+                source="extra-parameters/parameter[@name='buyIMAProduct']/@value">
+        </field>
+
+        <field
+                name="defaultLocaleImaName"
+                description="Название металла в базовой локали"
+                type="string"
+                source="extra-parameters/parameter[@name='defaultLocaleImaName']/@value">
+        </field>
+
+        <field
+                name="IMAType"
+                description="Вид продукта"
+                type="string"
+                source="extra-parameters/parameter[@name='ima-type']/@value">
+        </field>
+
+        <field
+                name="IMASubType"
+                description="Подвид продукта"
+                type="string"
+                source="extra-parameters/parameter[@name='ima-sub-type']/@value">
+        </field>
+
+        <field
+                name="course"
+                description="Курс валют"
+                type="string"
+                source="extra-parameters/parameter[@name='convertion-rate']/@value">
+        </field>
+
+        <field
+                name="premierShowMsg"
+                description="Отображать сообщение о тарифе Сбербанк Премьер"
+                type="string"
+                source="extra-parameters/parameter[@name='premier-show-msg']/@value">
+        </field>
+
+        <field
+                name="standartCourse"
+                description="Обычный курс валют"
+                type="string"
+                source="extra-parameters/parameter[@name='standart-convertion-rate']/@value">
+        </field>
+
+        <field
+                name="courseSell"
+                description="Курс валют"
+                type="string"
+                source="extra-parameters/parameter[@name='course-sell']/@value">
+        </field>
+
+        <field
+                name="sellCurrency"
+                description="Валюта продажи"
+                type="string"
+                source="extra-parameters/parameter[@name='sellCurrency']/@value">
+        </field>
+
+
+        <field
+                name="buyCurrency"
+                description="Валюта счета"
+                type="string"
+                source="extra-parameters/parameter[@name='buyCurrency']/@value">
+        </field>
+
+        <field
+                name="authorizeCode"
+                description="Код авторизации"
+                type="string"
+                source="extra-parameters/parameter[@name='AUTHORIZE_CODE']/@value">
+        </field>        
+
+        <field
+                name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field
+                name="fromAccountSelect"
+                description="Счет/карта списания"
+                type="string"
+                source="payer-account"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getNumber()">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+		</field>
+
+        <field
+                name="fromResourceCode"
+                description="Код счета списания"
+                type="string"
+                source="extra-parameters/parameter[@name='from-resource-code']/@value"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getCode()">
+		</field>
+
+        <field
+                name="fromAccountType"
+                source="extra-parameters/parameter[@name='from-account-type']/@value"
+                description="Тип (описание) источника списания"
+                type="string"
+                signable="true"
+                value="(form.fromResource==null || form.fromResourceType == 'com.rssl.phizic.business.resources.external.IMAccountLink')?null:form.fromResource.getValue().getDescription()">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field
+                name="fromAccountName"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                description="Наименование источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getName()">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field
+                name="fromResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                type="string"
+                value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+                signable="true"/>
+
+        <field
+                name="authorizeCode"
+                description="Код авторизации"
+                type="string"
+                source="extra-parameters/parameter[@name='AUTHORIZE_CODE']/@value">
+        </field>
+
+        <field
+                name="toResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='to-resource-currency']/@value"
+                type="string"
+                signable="true"/>
+
+        <!-- имя поля, в котором хранится точное значение суммы.
+             Иначе говоря, в поле exactAmount ссылка на поле, в котором сумма, введённая пользователем -->
+        <field
+                name="exactAmount"
+                description="Сумма списания (зачисления)"
+                source="exact-amount"
+                type="string">
+
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field
+                name="courseChanged"
+                description="изменился ли курс конверсии"
+                source="extra-parameters/parameter[@name='recalculated-amount-changed']/@value"
+                type="string"/>
+
+         <field
+                name="operationCode"
+                source="extra-parameters/parameter[@name='operation-code']/@value"
+                description="Код валютной операции"
+                value="((form.toAccountSelect != null &amp;&amp; (form.toAccountSelect.substring(0,5) == '40820' || form.toAccountSelect.substring(0,3) == '426')) || (form.fromAccountSelect != null &amp;&amp; (form.fromAccountSelect.substring(0,5) == '40820' || form.fromAccountSelect.substring(0,3) == '426'))) ? '{VO99090}' : ''"/>
+
+		<field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+		<field name="officeName"
+               source="extra-parameters/parameter[@name='office-name']/@value"
+               description="Место открытия"
+               type="string">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field name="officeAddress"
+               source="extra-parameters/parameter[@name='office-address']/@value"
+               description="Адрес офиса открытия ОМС"
+               type="string">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field name="officeRegion"
+               source="extra-parameters/parameter[@name='office-region']/@value"
+               description="Номер ТБ"
+               type="string">
+        </field>
+
+		<field name="officeBranch"
+               source="extra-parameters/parameter[@name='office-branch']/@value"
+               description="Номер ОСБ"
+               type="string">
+        </field>
+
+		<field name="office"
+               source="extra-parameters/parameter[@name='office']/@value"
+               description="Номер ВСП"
+               type="string">
+        </field>
+
+        <field
+                name="sellAmount"
+                description="Сумма"
+                source="amount"
+                type="money"
+                signable="true">
+
+			<validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="document|template" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+                    <message text="Пожалуйста, укажите сумму , которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+		</field>
+
+        <field
+                name="buyAmount"
+                description="Сумма/масса"
+                source="destination-amount"
+                type="money"
+                signable="true">
+
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="document|template" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+                    <message text="Пожалуйста, укажите массу , которую необходимо перевести. Например, 100,5"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+                <validator mode="document|template" class="com.rssl.common.forms.validators.MaxDecimalPrecisionValidator" enabled="form.toResourceCurrency == 'A99'">
+                    <message text="Пожалуйста, укажите массу серебра с точностью до 1 грамма. Например, 23 г."/>
+                    <parameter name="precision">0</parameter>
+                </validator>
+                <validator mode="document|template" class="com.rssl.common.forms.validators.MaxDecimalPrecisionValidator"
+                           enabled="(form.toResourceCurrency == 'A98') || (form.toResourceCurrency == 'A76') || (form.toResourceCurrency == 'A33')">
+                    <message text="Пожалуйста, укажите массу выбранного Вами металла с точностью до одного знака после запятой. Например, 1,2 г."/>
+                    <parameter name="precision">1</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <!-- Значение суммы/массы, введенное клиентом -->
+        <field
+                name="valueOfExactAmount"
+                description="Сумма списания (зачисления)"
+                source="extra-parameters/parameter[@name='value-of-exact-amount']/@value"
+                type="money">
+        </field>
+
+        <!--валюта суммы списания - всегда валюта продукта списания-->
+        <field
+                name="sellAmountCurrency"
+                description="Валюта"
+                source="amount-currency"
+                type="string"
+                signable="true"
+                value="form.sellAmount==null?null:form.fromResourceCurrency"/>
+
+        <!--валюта суммы зачисления - всегда валюта продукта зачисления-->
+        <field
+                name="buyAmountCurrency"
+                description="Валюта"
+                source="destination-amount-currency"
+                type="string"
+                signable="true">
+        </field>
+
+        <field name="tarifPlanCodeType"
+               description="Тарифный план валюты"
+               source="extra-parameters/parameter[@name='tarif-plan-code-type']/@value"
+               type="string"
+               value="xpath:phiz:document('currentPerson.xml')//field[@name='tarifPlanCodeType']"/>
+
+        <field
+                name="pfpId"
+                description="Идентификатор ПФП"
+                source="extra-parameters/parameter[@name='pfpId']/@value"
+                type="long"/>
+
+        <field
+                name="pfpPortfolioId"
+                description="Идентификатор портфеля из ПФП"
+                source="extra-parameters/parameter[@name='pfpPortfolioId']/@value"
+                type="long"/>
+    </fields>
+
+	<form-validators>
+
+        <form-validator mode="document|template" class="com.rssl.phizic.business.payments.forms.validators.PaymentCurrencyPermittedValidator"
+                enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.AccountLink'">
+            <message text="Вы не можете покупать металлы за иностранную валюту. Пожалуйста, выберите рублевый счет."/>
+            <field-ref name="amountCurrency">fromResourceCurrency</field-ref>
+            <parameter name="currencies">RUB;RUR</parameter>
+        </form-validator>
+
+        <form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.CorrectOfficeValidator">
+            <message text="Выберите другое место открытия или счёт списания. ОСБ счёта списания и место открытия ОМС должны совпадать."/>
+            <field-ref name="fromAccount">fromAccountSelect</field-ref>
+            <field-ref name="officeBranch">officeBranch</field-ref>
+            <field-ref name="fromResourceType">fromResourceType</field-ref>
+        </form-validator>
+        
+    </form-validators>
+
+</payment-form>

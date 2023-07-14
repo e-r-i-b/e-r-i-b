@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="PFRStatementClaim"
+              description="Заявка на получение выписки из ПФР"
+			  detailedDescription="С данной страницы Вы можете отправить заявку на получение выписки из Пенсионного Фонда РФ. "
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.PFRStatementClaim"/>
+	<statemachine name="PFRStatementClaimStateMachine"/>
+
+	<fields>
+        <field name="documentNumber"
+               source="document-number"
+               description="Номер документа"
+               type="string"
+               signable="true">
+        </field>
+
+        <field name="documentDate"
+               source="document-date"
+               description="Дата документа"
+               type="date"
+               signable="true"/>
+
+        <field name="state"
+               source="state"
+               description="Статус заявки"
+               type="string"/>
+
+        <field name="refusingReason"
+               source="refusing-reason"
+               description="Причина отказа"
+               type="string"/>
+        
+        <field name="claimSendMethod"
+               source="extra-parameters/parameter[@name='claim-send-method']/@value"
+               description="Способ отправки заявки: по паспорту way или по СНИЛС"
+               type="string"/>
+
+        <field name="SNILS"
+               source="extra-parameters/parameter[@name='SNILS']/@value"
+               description="Страховой Номер Индивидуального Лицевого Счёта"
+               type="string">
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.claimSendMethod=='USING_SNILS'">
+                    <message text="Введите Страховой Номер Индивидуального Лицевого Счёта"/>
+                </validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator" enabled="form.claimSendMethod=='USING_SNILS'">
+                    <message text="Страховой Номер Индивидуального Лицевого Счёта должен содержать только цифры по маске 'XXX-XXX-XXX XX'"/>
+                    <parameter name="regexp">\d{3}-\d{3}-\d{3} \d{2}</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field name="firstname"
+               source="extra-parameters/parameter[@name='firstname']/@value"
+               description="Имя"
+               type="string"/>
+
+        <field name="surname"
+               source="extra-parameters/parameter[@name='surname']/@value"
+               description="Фамилия"
+               type="string"/>
+
+        <field name="patrname"
+               source="extra-parameters/parameter[@name='patrname']/@value"
+               description="Отчество"
+               type="string"/>
+
+        <field name="birthday"
+               source="extra-parameters/parameter[@name='birthday']/@value"
+               description="Дата рождения"
+               type="date"/>
+
+        <field name="personDocNumber"
+               source="extra-parameters/parameter[@name='person-doc-number']/@value"
+               description="Номер документа"
+               type="string"/>
+
+        <field name="personDocSeries"
+               source="extra-parameters/parameter[@name='person-doc-series']/@value"
+               description="Серия документа"
+               type="string"/>
+
+        <field name="personDocIssueDate"
+               source="extra-parameters/parameter[@name='person-doc-issue-date']/@value"
+               description="Дата выдачи документа"
+               type="date"/>
+
+        <field name="personDocIssueBy"
+               source="extra-parameters/parameter[@name='person-doc-issue-by']/@value"
+               description="Кем выдан документ"
+               type="string"/>
+
+        <field name="personDocIssueByCode"
+               source="extra-parameters/parameter[@name='person-doc-issue-by-code']/@value"
+               description="Код подразделения, выдавшего документ"
+               type="string"/>
+
+		<field name="claimReadyState"
+		       source="extra-parameters/parameter[@name='claim-ready-state']/@value"
+		       description="Статус готовности выписки"
+			   type="string"/>
+
+        <field name="claimReadyStateDescription"
+               source="extra-parameters/parameter[@name='claim-ready-state-description']/@value"
+               description="Текстовое описание статуса готовности выписки"
+               type="string"/>
+	</fields>
+
+</payment-form>

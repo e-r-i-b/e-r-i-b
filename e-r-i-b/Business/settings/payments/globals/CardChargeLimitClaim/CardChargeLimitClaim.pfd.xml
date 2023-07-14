@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="CardChargeLimitClaim"
+		description="Установка лимита для дополнительных карт"
+		detailedDescription="Подача в банк заявки на установку лимита расходования средств для дополнительных карт клиента."
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.DefaultClaim"/>
+	<statemachine name="ClaimStateMachine"/>
+	
+	<fields>
+		<field  name="state"
+				source="state"
+				description="Статус заявки"
+				type="string"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+		<field  name="baseCardNumber"
+				source="extra-parameters/parameter[@name='base-card']/@value"
+				description="Номер основной карты"
+				type="card">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="additCardNumber"
+				source="extra-parameters/parameter[@name='addit-card']/@value"
+				description="Номер дополнительной карты"
+				type="card">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="baseCardType"
+				source="extra-parameters/parameter[@name='base-card-type']/@value"
+				description="Тип карты"
+				type="string">
+		</field>
+		<field  name="additCardType"
+				source="extra-parameters/parameter[@name='addit-card-type']/@value"
+				description="Тип карты"
+				type="string">
+		</field>
+		<field  name="documentNumber"
+				source="document-number"
+		        description="Номер документа"
+				type="string"
+				signable="true">
+		</field>
+		<field  name="documentDate"
+				source="document-date"
+		        description="Дата документа"
+				type="date"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="admissionDate"
+				source="admission-date"
+				type="date"
+				description="Дата приема плaтежа банком">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="account"
+				source="extra-parameters/parameter[@name='account']/@value"
+		        description="Карточный счёт"
+				type="string"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="fullName"
+				source="extra-parameters/parameter[@name='full-name']/@value"
+				description="Ф.И.О. клиента"
+				type="string"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Ф.И.О. клиента] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+		<field  name="ownerName"
+				source="extra-parameters/parameter[@name='owner-name']/@value"
+				description="Ф.И.О. держателя карты"
+				type="string"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Ф.И.О. держателя карты] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+		<field  name="phone"
+				source="extra-parameters/parameter[@name='phone']/@value"
+				type="string"
+				description="Контактный телефон"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Контактный телефон]  должна содержать от 10 до 20 цифр"/>
+					<parameter name="regexp">\d{10,20}$</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field  name="limit"
+				source="extra-parameters/parameter[@name='limit']/@value"
+				description="Сумма лимита"
+				type="string">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator mode="document" class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field  name="period"
+				source="extra-parameters/parameter[@name='period']/@value"
+				type="string"
+				description="Период ограничений"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field  name="amount"
+				source="extra-parameters/parameter[@name='amount']/@value"
+		        description="Сумма наличных операций"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field  name="amountv"
+				description="Сумма безналичных операций"
+				source="extra-parameters/parameter[@name='amountv']/@value"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<!-- Вспомогательные поля -->
+
+		<field  name="currency"
+				source="extra-parameters/parameter[@name='currency']/@value"
+		        description="Валюта"
+				type="string">
+		</field>
+
+	</fields>
+
+	<form-validators>
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.BaseAdditionalCardValidator">
+			<message text="Выбранная дополнительная карта не является дополнительной для выбранной основной"/>
+			<field-ref name="baseCard">baseCardNumber</field-ref>
+			<field-ref name="additCard">additCardNumber</field-ref>
+		</form-validator>
+
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.CardAndClientCompatibles">
+			<field-ref name="cardId">baseCardNumber</field-ref>
+		</form-validator>
+
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.CardAndClientCompatibles">
+			<field-ref name="cardId">additCardNumber</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

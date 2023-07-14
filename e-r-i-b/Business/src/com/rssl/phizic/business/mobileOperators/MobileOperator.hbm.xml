@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.mobileOperators.MobileOperator" table="MOBILE_OPERATORS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_MOBILE_OPERATORS</param>
+            </generator>
+        </id>
+
+        <property name="code" type="long" column="CODE" not-null="true"/>
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="flAuto" type="boolean" column="FL_AUTO" not-null="true"/>
+        <property name="balance" type="integer" column="BALANCE" not-null="false"/>
+        <property name="minSumm" type="integer" column="MIN_SUMM" not-null="false"/>
+        <property name="maxSumm" type="integer" column="MAX_SUMM" not-null="false"/>
+
+    </class>
+
+
+    <query name="com.rssl.phizic.business.mobileOperators.MobileOperator.removeAll">
+        delete from com.rssl.phizic.business.mobileOperators.MobileOperator as mobileOperator
+    </query>
+
+
+    <query name="com.rssl.phizic.business.mobileoperators.MobileOperator.getAll">
+        select mobileOperator
+        from com.rssl.phizic.business.mobileOperators.MobileOperator as mobileOperator
+        order by mobileOperator.code
+    </query>
+
+    <!-- Получить список всех мобильных операторов в БД, отсортированных по названию -->
+    <query name="com.rssl.phizic.operations.dictionaries.mobileoperators.ShowMobileOperatorsOperation.sortByName">
+        select mobileOperator from com.rssl.phizic.business.mobileOperators.MobileOperator mobileOperator
+        order by mobileOperator.name asc
+    </query>    
+
+</hibernate-mapping>    

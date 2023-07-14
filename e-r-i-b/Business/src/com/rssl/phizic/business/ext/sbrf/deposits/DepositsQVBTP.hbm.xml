@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVBTP" table="DEPOSITS_QVB_TP">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_QVB_TP</param>
+            </generator>
+        </id>
+
+        <property name="depositType"        type="long"         column="TP_QDTN1"       not-null="true"/>
+        <property name="depositSubType"     type="long"         column="TP_QDTSUB"      not-null="true"/>
+        <property name="foreignCurrency"    type="boolean"      column="TP_QVAL"        not-null="true"/>
+        <property name="code"               type="long"         column="TP_CODE"        not-null="true"/>
+        <property name="dateBegin"          type="calendar"     column="TP_DBEG"        not-null="true"/>
+        <property name="dateEnd"            type="calendar"     column="TP_DEND"        not-null="true"/>
+    </class>
+
+    <!--
+        Очистка таблицы DEPOSITS_QVB_TP
+        Опорный объект: DEPOSITS_QVB_TP
+        Предикаты доступа: fullscan
+        Кардинальность: ~60
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVBTP.deleteAll">
+        delete from com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVBTP
+    </query>
+
+    <!--
+        Получение записей зависимости подвидов вклада от ТП
+        Опорный объект: IDX_DEPOSITS_QVB_TP
+        Предикаты доступа: ("TP"."TP_QDTN1"=TO_NUMBER(:TYPE))
+        Кардинальность: зависит от количества подходящих записей (т.е. значений подвидов в виде вклада и соответствующих им значений тарифных планов)
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsQVBTP.getTariffDependence">
+        <return-scalar column="SUBTYPE" type="long"/>
+        <return-scalar column="CODE" type="long"/>
+        <![CDATA[
+        SELECT
+            tp.TP_QDTSUB    as SUBTYPE,
+            tp.TP_CODE      as CODE
+        FROM
+            DEPOSITS_QVB_TP tp
+        WHERE
+            tp.TP_QDTN1 = :type AND
+            tp.TP_DBEG <= :current_date AND
+            tp.TP_DEND > :current_date
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

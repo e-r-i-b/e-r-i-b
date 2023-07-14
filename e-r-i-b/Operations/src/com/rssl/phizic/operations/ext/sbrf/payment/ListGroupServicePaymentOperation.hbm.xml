@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!-- возвращает подгруппы группы с идентификатором :groupId, у котороых есть поставщики -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListGroupServicePaymentOperation.list">
+         <return  alias="paymentService" class="com.rssl.phizic.business.dictionaries.payment.services.PaymentService"/>
+         <![CDATA[
+           select {paymentService.*} from PAYMENT_SERVICES paymentService where ((:groupId is null and paymentService.parent_id is null) or (paymentService.parent_id = :groupId)) and exists (
+            select min(id) from SERVICE_PROVIDERS provider join SERV_PROVIDER_PAYMENT_SERV provider_payment on provider.id =  provider_payment.service_provider_id
+                LEFT OUTER JOIN SERVICE_PROVIDER_REGIONS serviceProviderRegions ON serviceProviderRegions.SERVICE_PROVIDER_ID = provider.ID
+                where
+                provider.VISIBLE_PAYMENTS_FOR_IB = 1
+                and (provider.IS_POPULAR = 1 or provider.IS_FEDERAL = 1)
+
+                AND
+                provider.KIND <> 'T'
+                AND
+                provider.IS_ALLOW_PAYMENTS = 1
+                AND
+                provider.STATE = 'ACTIVE'
+                AND
+                (:clientType <> 'CARD' OR (provider.ACCOUNT_TYPE = 'CARD' OR provider.ACCOUNT_TYPE = 'ALL'))
+                AND not(provider.BILLING_ID is null)
+                AND
+                    -- хоть каке-то переводы должны быть доступны
+                    (:cardProvidersAllowed = 1 or :accountProvidersAllowed = 1  or :federalProvidersAllowed = 1) and
+                    (
+                        -- A. Либо поставщик поддерживает переводы со счёта
+                        ( (provider.ACCOUNT_TYPE in ('DEPOSIT', 'ALL')) and (:accountProvidersAllowed = 1) ) or
+                        -- B. Либо поставщик поддерживает карточные переводы
+                        ( (provider.ACCOUNT_TYPE in ('CARD', 'ALL')) and
+                          -- карточные переводы разрешены для любых поставщиков (1) либо только для федеральных (2)
+                          (:cardProvidersAllowed = 1 or (:cardProvidersAllowed = 2 and :federalProvidersAllowed = 1 and provider.IS_FEDERAL = 1))
+                        )
+                    )
+                    -- указан список внешних ID, не содержащих услугу
+                    AND not(provider.BILLING_ID is null)
+                    AND ( :externalIdCount=0 OR
+                            SUBSTR(provider.EXTERNAL_ID, INSTR(provider.EXTERNAL_ID, '@')+1) IN (:servicelessExternalIdList)
+                            )
+                        AND ( :extra_region_id is null OR serviceProviderRegions.REGION_ID is NULL
+                            OR provider.IS_FEDERAL = 1 
+                            OR serviceProviderRegions.REGION_ID in
+                               (select ID from REGIONS regions
+                                    START WITH regions.ID = :extra_region_id
+                                    CONNECT BY regions.ID = PRIOR regions.PARENT_ID)
+                            OR serviceProviderRegions.REGION_ID in
+                               (select ID from REGIONS regions
+                                    START WITH regions.ID = :extra_region_id
+                                    CONNECT BY regions.PARENT_ID = PRIOR regions.ID)
+                            )
+
+                and provider_payment.payment_service_id  in
+                    (
+                        select id from PAYMENT_SERVICES
+                        start with PAYMENT_SERVICES.parent_id = paymentService.id
+                        connect by PAYMENT_SERVICES.parent_id = PRIOR PAYMENT_SERVICES.id
+                     )
+                 or provider_payment.payment_service_id= paymentService.id
+                 group by CODE_RECIPIENT_SBOL, CODE
+            )
+            and
+                paymentService.SYSTEM = 0
+        ]]>
+    </sql-query>
+</hibernate-mapping>

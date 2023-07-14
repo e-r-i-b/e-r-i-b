@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsTDOG" table="DEPOSITS_FIELD_TDOG">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_FIELD_TDOG</param>
+            </generator>
+        </id>
+
+        <property name="depositType"            type="long"         column="VID"                not-null="true"/>
+        <property name="depositSubType"         type="long"         column="PVID"               not-null="true"/>
+        <property name="sum"                    type="string"       column="SUM_VKL"            not-null="false"/>
+        <property name="currency"               type="string"       column="CURR_VKL"           not-null="false"/>
+        <property name="period"                 type="string"       column="QSROK"              not-null="false"/>
+        <property name="dateEnd"                type="string"       column="DATA_END"           not-null="false"/>
+        <property name="rate"                   type="string"       column="PERCENT"            not-null="false"/>
+        <property name="incomingTransactions"   type="string"       column="PRIXOD"             not-null="false"/>
+        <property name="minAdditionalFee"       type="string"       column="MIN_ADD"            not-null="false"/>
+        <property name="additionalFeePeriod"    type="string"       column="PER_ADD"            not-null="false"/>
+        <property name="debitTransactions"      type="string"       column="RASXOD"             not-null="false"/>
+        <property name="sumMinBalance"          type="string"       column="SUM_NOST"           not-null="false"/>
+        <property name="frequencyPercent"       type="string"       column="PER_PERCENT"        not-null="false"/>
+        <property name="percentOrder"           type="string"       column="ORD_PERCENT"        not-null="false"/>
+        <property name="incomeOrder"            type="string"       column="ORD_DOXOD"          not-null="false"/>
+        <property name="renewals"               type="string"       column="QPROL"              not-null="false"/>
+    </class>
+
+    <!--
+        Очистка таблицы DEPOSITS_FIELD_TDOG
+        Опорный объект: DEPOSITS_FIELD_TDOG
+        Предикаты доступа: fullscan
+        Кардинальность: ~400
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsTDOG.deleteAll">
+        delete from com.rssl.phizic.business.ext.sbrf.deposits.DepositsTDOG
+    </query>
+
+    <!--
+        Получение условий вкладного продукта
+        Опорный объект: IDX_DEPOSITS_TDOG
+        Предикаты доступа: ("TD"."VID"=TO_NUMBER(:TYPE) AND "TD"."PVID"= (SELECT MIN("QVB"."QDTSUB") FROM  "DEPOSITS_QVB" "QVB" WHERE "QVB"."QDTN1"=TO_NUMBER(:TYPE) AND
+                      "QVB"."Q_GROUP"=TO_NUMBER(:GROUPCODE))) AND ("QVB"."QDTN1"=TO_NUMBER(:TYPE))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsTDOG.getDepositAdditionalInfo">
+        <return alias="td" class="com.rssl.phizic.business.ext.sbrf.deposits.DepositsTDOG"/>
+        <![CDATA[
+        SELECT
+            {td.*}
+        FROM
+            DEPOSITS_FIELD_TDOG td
+        WHERE td.VID = :extra_type AND
+                (:extra_subType is null AND td.PVID = (SELECT
+                                min(qvb.QDTSUB)
+                            FROM
+                                DEPOSITS_QVB qvb
+                            WHERE
+                                qvb.QDTN1 = :extra_type AND
+                                qvb.Q_GROUP = :extra_groupCode) OR
+                td.PVID = :extra_subType)
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

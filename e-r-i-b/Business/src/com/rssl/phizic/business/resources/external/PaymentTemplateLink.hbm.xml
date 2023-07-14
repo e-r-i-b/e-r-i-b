@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.resources.external.PaymentTemplateLink"
+          table="PAYMENT_TEMPLATE_LINKS">
+
+       <id name="id" type="long">
+           <generator class="native">
+               <param name="sequence">S_PAYMENT_TEMPLATE_LINKS</param>
+           </generator>
+       </id>
+
+       <property name="externalId" column="EXTERNAL_ID"/>
+
+       <property name="loginId" type="long" not-null="true" column="LOGIN_ID" />
+
+       <many-to-one name="serviceProvider"
+                    class="com.rssl.phizic.business.dictionaries.providers.BillingServiceProvider"
+                    column="SERVICE_PROVIDER_ID"
+                    not-null="true"
+                    lazy="false"/>
+
+    </class>
+
+	<query name="com.rssl.phizic.business.resources.external.PaymentTemplateLink.list">
+		from   com.rssl.phizic.business.resources.external.PaymentTemplateLink
+		where  loginId = :login
+	</query>
+
+    <!-- ищет ссылку по external-id и логину -->
+    <query name="com.rssl.phizic.business.resources.external.PaymentTemplateLink.findByExternalId">
+        from   com.rssl.phizic.business.resources.external.PaymentTemplateLink
+        where  loginId = :login
+          and  externalId = :externalId
+    </query>
+
+</hibernate-mapping>

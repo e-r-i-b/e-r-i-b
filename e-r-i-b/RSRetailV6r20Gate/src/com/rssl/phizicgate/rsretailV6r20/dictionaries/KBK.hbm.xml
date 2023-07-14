@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping catalog="RSRetailV51">
+
+    <class name="com.rssl.phizic.gate.dictionaries.KBKRecord" table="KBK">
+	    <id name="id" type="long" column="ID"/>
+	    <property name="taxonomy" type="long" column="TAXONOMY"/>
+        <property name="code" type="string" column="CODE" not-null="true"/>
+		<property name="note" type="string" column="NOTE"/>
+	    <property name="superior" type="long" column="SUPERIOR"/>
+    </class>
+
+    <sql-query name="GetKBK">
+        <return alias="kbk" class="com.rssl.phizic.gate.dictionaries.KBKRecord">
+	        <return-property name="id"     column="ID"/>
+	        <return-property name="taxonomy"   column="Taxonomy"/>
+	        <return-property name="code"   column="Code"/>
+	        <return-property name="note"    column="Note"/>
+	        <return-property name="superior" column="Superior"/>
+        </return>
+        <![CDATA[
+	    SELECT
+        	KBKRecords.t_ID           AS id,
+        	KBKRecords.t_Taxonomy     AS taxonomy,
+        	KBKRecords.t_Code         AS code,
+        	KBKRecords.t_Note         AS note,
+        	KBKRecords.t_Superior     AS superior
+	    FROM dbt_tx_dbt KBKRecords where KBKRecords.t_Taxonomy ='9'
+	    ORDER BY ID
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="SessionStateType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.auth.csa.back.servises.SessionState</param>
+	</typedef>
+    <class name="com.rssl.auth.csa.back.servises.Session" table="CSA_SESSIONS">
+
+        <id name="guid" type="string" column="SID">
+            <generator class="com.rssl.phizic.dataaccess.hibernate.GUIDGenerator"/>
+        </id>
+
+        <property name="creationDate" type="calendar"   column="CREATION_DATE" not-null="true"/>
+        <property name="closeDate" type="calendar"      column="CLOSE_DATE" not-null="false"/>
+        <property name="state" type="SessionStateType" column="STATE" not-null="true"/>
+        <property name="connectorGuid" type="string" column="CONNECTOR" not-null="true"/>
+        <property name="prevSessionGuid" type="string" column="PREV_SESSION_ID" not-null="false"/>
+        <property name="prevSessionDate" type="calendar" column="PREV_SESSION_DATE" not-null="false"/>
+    </class>
+
+    <query name="com.rssl.auth.csa.back.servises.Session.getBySID">
+		<![CDATA[
+        select session from com.rssl.auth.csa.back.servises.Session session
+        where session.guid = :sid
+      ]]>
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Session.getActiveByConnector">
+		<![CDATA[
+        select session from com.rssl.auth.csa.back.servises.Session session
+        where session.connectorGuid = :connectorGUID
+            and session.state  = 'ACTIVE'
+            and session.creationDate >= :start_date
+      ]]>
+    </query>
+</hibernate-mapping>

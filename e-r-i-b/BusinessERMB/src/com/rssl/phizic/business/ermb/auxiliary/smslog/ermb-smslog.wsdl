@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:ns="http://sbrf.ru/ermb/auxiliary/sms-log"
+                  name="ERMBSmsLogWService"
+                  targetNamespace="http://sbrf.ru/ermb/auxiliary/sms-log">
+
+    <wsdl:import namespace="http://sbrf.ru/ermb/auxiliary/sms-log" location="ermb-smslog.xsd"/>
+
+	<wsdl:message name="RequestMessageLog">
+		<wsdl:part element="ns:SmsLogRq" name="req"/>
+	</wsdl:message>
+	<wsdl:message name="ResponseMessageLog">
+		<wsdl:part element="ns:SmsLogRs" name="resp"/>
+	</wsdl:message>
+    
+	<wsdl:portType name="ermbSmsLogService">
+		<wsdl:operation name="getMessageLog">
+			<wsdl:input message="ns:RequestMessageLog"/>
+			<wsdl:output message="ns:ResponseMessageLog"/>
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<wsdl:binding name="smsLogService" type="ns:ermbSmsLogService">
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="getMessageLog">
+            <soap:operation style="document"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<wsdl:service name="smsLogService">
+		<wsdl:port name="smsLogService" binding="ns:smsLogService">
+			<soap:address location="http://localhost:8080/services/smsLogService"/>
+		</wsdl:port>
+	</wsdl:service>
+    
+</wsdl:definitions>

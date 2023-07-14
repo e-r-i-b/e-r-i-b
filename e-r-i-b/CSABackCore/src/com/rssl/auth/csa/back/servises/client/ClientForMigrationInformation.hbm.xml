@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <typedef name="CreationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+   		<param name="enumClass">com.rssl.phizic.common.types.client.CreationType</param>
+   	</typedef>
+
+    <class name="com.rssl.auth.csa.back.servises.client.ClientForMigrationInformation" table="CSA_PROFILES" lazy="false" mutable="false">
+        <id       name="id"                 column="ID"                             type="long"             access="field"/>
+        <property name="firstname"          column="FIRST_NAME"                     type="string"           access="field"/>
+        <property name="surname"            column="SUR_NAME"                       type="string"           access="field"/>
+        <property name="patronymic"         column="PATR_NAME"                      type="string"           access="field"/>
+        <property name="birthday"           column="BIRTHDATE"                      type="calendar"         access="field"/>
+        <property name="document"           column="PASSPORT"                       type="string"           access="field"/>
+        <property name="tb"                 column="TB"                             type="string"           access="field"/>
+        <property name="creationType"       column="CREATION_TYPE"                  type="CreationType"     access="field"/>
+        <property name="agreementNumber"    column="AGREEMENT_NUMBER"               type="string"           access="field"/>
+    </class>
+
+
+    <resultset name="com.rssl.auth.csa.back.servises.client.waitMigrationList.resultset">
+        <return alias="profiles" class="com.rssl.auth.csa.back.servises.client.ClientForMigrationInformation"/>
+    </resultset>
+    <sql-query name="com.rssl.auth.csa.back.servises.client.waitMigrationList"/>
+
+    <!--Считает количество клиентов ожидающих миграции
+        Опорный элемент: I_CSA_PROFILE_NODES_STATE
+        Предикаты доступа: access("TEMPORARYPROFILENODES"."STATE"='WAIT_MIGRATION')
+        Кардинальность: количество клиентов, ожидающих миграцию
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.client.waitMigrationCount">
+        <return-scalar column="clientsCount" type="long"/>
+        SELECT
+            count(1) clientsCount
+        FROM
+            CSA_PROFILE_NODES mainProfileNodes
+            JOIN CSA_PROFILE_NODES temporaryProfileNodes ON temporaryProfileNodes.PROFILE_ID = mainProfileNodes.PROFILE_ID AND temporaryProfileNodes.ID != mainProfileNodes.ID
+        WHERE
+            mainProfileNodes.PROFILE_TYPE = 'MAIN'
+            AND temporaryProfileNodes.STATE = 'WAIT_MIGRATION'
+            AND mainProfileNodes.NODE_ID = :extra_nodeId
+    </sql-query>
+
+    <!--Статус клиента
+        Опорный элемент: CSA_PROFILES_UNIVERSAL_ID
+        Предикаты доступа: access(UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'( )+',' ')))=UPPER(TRIM( REGEXP_REPLACE (:EXTRA_SURNAME||' '||:EXTRA_FIRSTNAME||' '||:EXTRA_PATRNAME,'( )+',' ')))
+                                  AND "CLIENT"."BIRTHDATE"=TO_TIMESTAMP(:EXTRA_BIRTHDAY)
+                                  AND REPLACE("PASSPORT",' ','')=REPLACE(:EXTRA_PASSPORT,' ','')
+                                  AND "CLIENT"."TB"=:EXTRA_TB)
+
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.client.state">
+        <return-scalar column="state" type="string"/>
+        <![CDATA[
+            SELECT
+                decode(max(decode(nodes.EXISTING_USERS_ALLOWED, '1', 1, 0) + decode(temporaryProfileNodes.STATE, 'WAIT_MIGRATION', 2, 0)), 3, 'WAIT_MIGRATION', 1, 'MAIN', 'TEMPORARY') state
+            FROM CSA_PROFILES client
+                JOIN CSA_PROFILE_NODES mainProfileNodes ON client.ID = mainProfileNodes.PROFILE_ID AND mainProfileNodes.PROFILE_TYPE = 'MAIN'
+                JOIN CSA_NODES nodes ON mainProfileNodes.NODE_ID = nodes.ID
+                LEFT JOIN CSA_PROFILE_NODES temporaryProfileNodes ON client.ID = temporaryProfileNodes.PROFILE_ID AND temporaryProfileNodes.PROFILE_TYPE = 'TEMPORARY'
+            WHERE
+                UPPER(TRIM(REGEXP_REPLACE(client.SUR_NAME||' '||client.FIRST_NAME||' '||client.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:extra_surname||' '||:extra_firstname||' '||:extra_patrname,'( )+',' ')))
+                AND REPLACE(client.PASSPORT,' ','') = REPLACE(:extra_passport,' ','')
+                AND client.birthdate = :extra_birthday
+                AND client.tb = :extra_tb
+        ]]>
+    </sql-query>
+</hibernate-mapping>

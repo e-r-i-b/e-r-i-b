@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.rssl.phizicgate.rsretailV6r20.clients" catalog="RSRetailV6r20">
+    <class name="ClientImpl" entity-name="FullClient">
+        <cache usage="read-only"/>
+
+        <id name="longId" column="PersonID"/>
+        <property name="displayId"    type="string" column="displayId"/>
+
+        <property name="shortName"     type="string" column="shortName"/>
+        <property name="fullName"      type="string" column="fullName"/>
+
+        <property name="surName"       type="string" column="surName"/>
+        <property name="firstName"     type="string" column="firstName"/>
+        <property name="patrName"      type="string" column="patrName"/>
+        <property name="birthDay"      type="calendar" column="birthDay"/>
+        <property name="birthPlace"    type="string" column="birthPlace"/>
+	    <property name="maleFromRetail" type="string"  column="gender"/>
+	    <property name="homePhone"     type="string" column="homePhone"/>
+		<property name="jobPhone"      type="string" column="jobPhone"/>
+		<property name="mobilePhone"   type="string" column="mobilePhone"/>
+		<property name="email"         type="string" column="email"/>
+	    <property name="INN"           type="string" column="inn"/>
+	    <property name="citizenship"   type="string" column="citizenship"/>
+	    <property name="residentFromRetail"      type="string" column="resident"/>
+    </class>
+
+    <class name="ClientImpl" entity-name="LigthClient">
+        <cache usage="read-only"/>
+
+        <id name="longId" column="PersonID"/>
+        <property name="displayId"    type="string" column="displayId"/>
+
+        <property name="shortName"     type="string" column="shortName"/>
+        <property name="fullName"      type="string" column="fullName"/>
+
+	    <property name="surName"       type="string" column="surName"/>
+	    <property name="firstName"     type="string" column="firstName"/>
+	    <property name="patrName"      type="string" column="patrName"/>
+	    <property name="birthDay"      type="calendar" column="birthDay"/>
+	    <property name="birthPlace"    type="string" column="birthPlace"/>
+    </class>
+
+
+
+    <sql-query name="GetFullClientInfo">
+        <return alias="person" entity-name="FullClient">
+            <return-property name="displayId"    column="displayId"/>
+            <return-property name="longId"       column="longId"/>
+            <return-property name="shortName"    column="shortName"/>
+            <return-property name="fullName"     column="fullName"/>
+
+            <return-property name="surName"      column="surName"/>
+            <return-property name="firstName"    column="firstName"/>
+            <return-property name="patrName"     column="patrName"/>
+            <return-property name="birthDay"     column="birthDay"/>
+            <return-property name="birthPlace"   column="birthPlace"/>
+            <return-property name="maleFromRetail" column="gender"/>
+	        <return-property name="homePhone"    column="homePhone"/>
+	        <return-property name="jobPhone"     column="jobPhone"/>
+	        <return-property name="mobilePhone"  column="mobilePhone"/>
+	        <return-property name="email"        column="email"/>
+	        <return-property name="inn"          column="inn"/>
+	        <return-property name="citizenship"  column="citizenship"/>
+	        <return-property name="residentFromRetail"  column="resident"/>
+        </return>
+
+        SELECT
+            party.t_PartyID                          AS displayId
+           ,party.t_PartyID                          AS longId
+           ,REPLACE(party.t_shortname, CHR(1), '')   AS shortName
+           ,REPLACE(party.t_name, CHR(1), '')        AS fullName
+
+           ,REPLACE(person.t_Name1, CHR(1), '')      AS surName
+           ,REPLACE(person.t_Name2, CHR(1), '')      AS firstName
+           ,REPLACE(person.t_Name3, CHR(1), '')      AS patrName
+           ,to_char(to_date(person.t_Born, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS birthDay <!-- перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   -->
+           ,REPLACE(person.t_BirsPlase, CHR(1), '')  AS birthPlace
+           ,REPLACE(person.t_ismale, CHR(1), '')     AS gender
+           ,REPLACE(addr.t_e_mail, CHR(1), '')       AS email
+           ,REPLACE(addr.t_phonenumber, CHR(1), '')  AS homePhone
+           ,REPLACE(addr.t_phonenumber2, CHR(1), '') AS jobPhone
+           ,REPLACE(addr.t_fax, CHR(1), '')          AS mobilePhone
+           ,REPLACE(codes.t_code, CHR(1), '')        AS inn
+           ,REPLACE(country.t_fullname, CHR(1), '')  AS citizenship
+           ,REPLACE(party.t_notresident, CHR(1), '')  AS resident
+        FROM
+            dpersn_dbt person
+           ,dparty_dbt party
+        left join dadress_dbt addr on addr.t_type = 1 and addr.t_partyid    = party.t_partyid
+           ,dpaprkind_dbt kind
+           ,dcountry_dbt country
+        left join dpartcode_dbt codes on codes.t_codekind = 16 and codes.t_partyid  = :personId
+        WHERE
+            person.t_personid = :personId
+        and person.t_personid = party.t_partyid
+        and party.t_legalform = 2
+        and country.t_codelat3 = party.t_nrcountry
+
+<!--
+		SELECT
+            party.t_PartyID                          AS displayId
+		   ,party.t_PartyID                          AS longId
+		   ,REPLACE(party.t_shortname, CHR(1), '')   AS shortName
+		   ,REPLACE(party.t_name, CHR(1), '')        AS fullName
+
+		   ,REPLACE(person.t_Name1, CHR(1), '')      AS surName
+		   ,REPLACE(person.t_Name2, CHR(1), '')      AS firstName
+		   ,REPLACE(person.t_Name3, CHR(1), '')      AS patrName
+		   ,person.t_Born                            AS birthDay
+		   ,REPLACE(person.t_BirsPlase, CHR(1), '')  AS birthPlace
+	       ,REPLACE(person.t_ismale, CHR(1), '')     AS gender
+	       ,REPLACE(addr.t_e_mail, CHR(1), '')       AS email
+		   ,REPLACE(addr.t_phonenumber, CHR(1), '')  AS homePhone
+		   ,REPLACE(addr.t_phonenumber2, CHR(1), '') AS jobPhone
+		   ,REPLACE(addr.t_fax, CHR(1), '')          AS mobilePhone
+	       ,REPLACE(codes.t_code, CHR(1), '')        AS inn
+	       ,REPLACE(country.t_fullname, CHR(1), '')  AS citizenship
+	       ,REPLACE(party.t_notresident, CHR(1), '')  AS resident 
+		FROM
+			dpersn_dbt person
+			and notetext.t_objecttype = 8
+	        and notetext.t_notekind = 1
+		   ,dparty_dbt party
+	    left join dadress_dbt addr on addr.t_type = 1 and addr.t_partyid    = party.t_partyid
+		   ,dpaprkind_dbt kind
+	       ,dcountry_dbt country
+		left join dpartcode_dbt codes on codes.t_codekind = 16 and codes.t_partyid  = :personId
+		WHERE
+			person.t_personid = :personId
+		and person.t_personid = party.t_partyid
+		and party.t_legalform = 2
+	    and (country.t_codelat3 = party.t_nrcountry or country.t_codelat2 = party.t_nrcountry)
+-->	    
+    </sql-query>
+
+    <sql-query name="GetLightClientByName" fetch-size="500">
+        <return alias="party" entity-name="LigthClient">
+            <return-property name="longId"       column="longId"/>
+            <return-property name="displayId"    column="displayId"/>
+            <return-property name="shortName"    column="shortName"/>
+            <return-property name="fullName"     column="fullName"/>
+
+	        <return-property name="surName"      column="surName"/>
+	        <return-property name="firstName"    column="firstName"/>
+	        <return-property name="patrName"     column="patrName"/>
+	        <return-property name="birthDay"     column="birthDay"/>
+	        <return-property name="birthPlace"   column="birthPlace"/>
+        </return>
+
+        SELECT
+          party.t_PartyID           AS displayId,
+          party.t_PartyID           AS longId,
+          party.t_ShortName         AS shortName,
+          party.t_Name              AS fullName,
+          person.t_Name1            AS surName,
+          person.t_Name2            AS firstName,
+          person.t_Name3            AS patrName,
+          to_char(to_date(person.t_Born, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS birthDay, <!-- перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   -->
+          person.t_BirsPlase        AS birthPlace
+
+          FROM
+          dpersn_dbt person
+
+            INNER JOIN dparty_dbt party ON person.t_PersonID = party.t_PartyID
+
+          WHERE
+                party.t_LegalForm = 2
+                AND upper(person.t_Name1) LIKE :surNameLikePattern
+                AND upper(person.t_Name2) LIKE :firstNameLikePattern
+                AND upper(person.t_Name3) LIKE :patrNameLikePattern
+                AND (:personId is NULL or person.t_personid = :personId)
+                AND (:branch is NULL or person.t_Branch = :branch)
+                AND person.t_PersonID in (SELECT client.t_PartyID
+                                            FROM dclient_dbt client
+                                            WHERE person.t_PersonID = client.t_PartyID
+                                            AND client.t_servicekind = 10)
+<!--
+        SELECT
+                party.t_PartyID          AS displayId,
+                party.t_PartyID          AS longId,
+                party.t_ShortName        AS shortName,
+                party.t_Name             AS fullName,
+
+				person.t_Name1           AS surName,
+				person.t_Name2           AS firstName,
+				person.t_Name3           AS patrName,
+				person.t_Born            AS birthDay,
+				person.t_BirsPlase       AS birthPlace
+        FROM
+			dpersn_dbt person
+			INNER JOIN dparty_dbt party ON person.t_PersonID = party.t_PartyID AND party.t_LegalForm = 2
+        WHERE
+	          party.t_LegalForm = 2
+          AND upper(person.t_Name1) LIKE :surNameLikePattern
+		  AND upper(person.t_Name2) LIKE :firstNameLikePattern
+		  AND upper(person.t_Name3) LIKE :patrNameLikePattern
+          AND (:personId is NULL or person.t_personid = :personId)
+-->
+    </sql-query>
+
+</hibernate-mapping>

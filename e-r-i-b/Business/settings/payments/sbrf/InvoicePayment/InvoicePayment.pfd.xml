@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="InvoicePayment" description="Оплата счета."
+              confirmDescription="Счет успешно оплачен."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.InvoicePayment"/>
+	<statemachine name="InvoicePayment"/>
+    <extended-metadata-loader class="com.rssl.phizic.business.payments.forms.meta.basket.CreateInvoicePaymentMetadataLoader"/>
+
+	<fields>
+        <field name="subscriptionAutopayId"
+               description="Идентификатор автопоиска счетов"
+               source="extra-parameters/parameter[@name='subscription-autopay-id']/@value"
+               type="string"/>
+
+        <field name="invoiceId"
+               description="Идентификатор задолженности"
+               source="extra-parameters/parameter[@name='invoice-id']/@value"
+               type="long"/>
+
+        <field name="invoiceAutopayId"
+               description="идентификатор задолженности в АС AutoPay"
+               source="extra-parameters/parameter[@name='invoice-autopay-id']/@value"
+               type="string"/>
+
+        <field name="invoiceStatus"
+               description="Статус задолженности"
+               source="extra-parameters/parameter[@name='invoice-status']/@value"
+               type="string"/>
+
+        <field name="subscriptionName"
+               description="Наименовение услуги"
+               source="extra-parameters/parameter[@name='subscription-name']/@value"
+               type="string"/>
+
+        <field name="receiverName"
+               description="Наименование"
+               type="string"
+               source="receiver-name"/>
+
+        <field name="nameService"
+               description="Наименование услуги в биллинговой системе"
+               type="string"
+               source="extra-parameters/parameter[@name='nameService']/@value"/>
+
+        <field name="receiverAccount"
+               description="Счет зачисления"
+               type="string"
+			   source="receiver-account"/>
+
+        <field name="receiverINN"
+			   description="ИНН"
+			   type="string"
+			   source="extra-parameters/parameter[@name='receiver-inn']/@value"/>
+
+        <field name="receiverBIC"
+               description="БИК"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-bic']/@value"/>
+
+        <field name="receiverBankName"
+               source="extra-parameters/parameter[@name='receiver-bank']/@value"
+               description="Наименование банка"
+               type="string"/>
+
+        <field name="receiverCorAccount"
+               description="Кор.счет банка получателя"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-cor-account']/@value"/>
+
+        <field name="commission"
+               description="Комиссия"
+               source="commission"
+               type="money"/>
+
+        <field name="commissionCurrency"
+               description="Валюта комиссии"
+               source="commission-currency"
+               type="string"/>
+
+        <field  name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Источник списания средств: счет, карта"
+                type="resource">
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="fromAccountSelect"
+                description="карта списания"
+                type="string"
+                source="payer-account"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getNumber()">
+		</field>
+
+
+        <field name="fromAccountName"
+               source="extra-parameters/parameter[@name='from-account-name']/@value"
+               description="Наименование источника списания"
+               type="string"
+               value="form.fromResource==null?null:form.fromResource.getName()"/>
+
+        <field name="fromResourceCurrency"
+               description="Валюта"
+               source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+               type="string"
+               value="form.fromResource==null?null:form.fromResource.getCurrency().getCode()"/>
+
+        <field name="fromResourceRest"
+               source="extra-parameters/parameter[@name='from-resource-rest']/@value"
+               description="Остаток на счете списания"
+               type="string"
+               value="form.fromResource==null?null:form.fromResource.getRest().getDecimal()"/>
+
+        <field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+        <field name="recipient"
+               description="Идентифкатор поставщика услуг"
+               type="long"
+               source="recipient"/>
+
+        <field name="fromResourceType"
+               source="extra-parameters/parameter[@name='from-resource-type']/@value"
+               description="Тип источника списания"
+               type="string"
+               value="form.fromResource==null?null:form.fromResource.getClass().getName()"/>
+	</fields>
+</payment-form>

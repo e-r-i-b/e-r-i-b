@@ -1,0 +1,138 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="SegmentCodeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.SegmentCodeType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceCompany"
+           table="PFP_INSURANCE_COMPANIES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_INSURANCE_COMPANIES</param>
+            </generator>
+        </id>
+        <property name="uuid"    type="string" column="UUID"     not-null="true" update="false"/>
+        <property name="name"    type="string" column="NAME"     not-null="true" unique="true"/>
+        <property name="imageId" type="long"   column="IMAGE_ID" not-null="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.PeriodType"
+           table="PFP_INSURANCE_PERIOD_TYPES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_INSURANCE_PERIOD_TYPES</param>
+            </generator>
+        </id>
+        <property name="uuid"   type="string" column="UUID"     not-null="true" update="false"/>
+        <property name="name"   type="string" column="NAME"     not-null="true" unique="true"/>
+        <property name="months" type="long"   column="MONTHS"   not-null="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceDatePeriod"
+           table="PFP_INSURANCE_DATE_PERIODS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_INSURANCE_DATE_PERIODS</param>
+            </generator>
+        </id>
+        <property name="defaultPeriod" type="boolean"     column="IS_DEFAULT_PERIOD" not-null="true"/>
+        <property name="minSum"        type="big_decimal" column="PERIOD_MIN_SUM"    not-null="false"/>
+        <property name="maxSum"        type="big_decimal" column="PERIOD_MAX_SUM"    not-null="false"/>
+        <property name="period"        type="string"      column="PERIOD"            not-null="true"/>
+
+        <many-to-one name="type" class="com.rssl.phizic.business.dictionaries.pfp.products.insurance.PeriodType" column="TYPE_ID" lazy="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceType"
+           table="PFP_INSURANCE_TYPES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_INSURANCE_TYPES</param>
+            </generator>
+        </id>
+        <property name="uuid"        type="string" column="UUID"        not-null="true" update="false"/>
+        <property name="name"        type="string" column="NAME"        not-null="true"/>
+        <property name="description" type="string" column="DESCRIPTION" not-null="true"/>
+        <property name="imageId"     type="long"   column="IMAGE_ID"    not-null="false"/>
+
+        <many-to-one name="parent" class="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceType" column="PARENT_ID" lazy="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceProduct"
+           table="PFP_INSURANCE_PRODUCTS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_INSURANCE_PRODUCTS</param>
+            </generator>
+        </id>
+        <property name="uuid"        type="string"  column="UUID"        not-null="true" update="false"/>
+        <property name="name"        type="string"  column="NAME"        not-null="true"/>
+        <property name="forComplex"  type="boolean" column="FOR_COMPLEX" not-null="true"/>
+        <property name="imageId"     type="long"    column="IMAGE_ID"    not-null="false"/>
+        <property name="minAge"      type="long"    column="MIN_AGE"     not-null="false"/>
+        <property name="maxAge"      type="long"    column="MAX_AGE"     not-null="false"/>
+        <property name="description" type="string"  column="DESCRIPTION" not-null="false"/>
+        <property name="minIncome"     type="big_decimal" column="MIN_INCOME"     not-null="false"/>
+        <property name="maxIncome"     type="big_decimal" column="MAX_INCOME"     not-null="false"/>
+        <property name="defaultIncome" type="big_decimal" column="DEFAULT_INCOME" not-null="false"/>
+        <property name="universal"     type="boolean"     column="UNIVERSAL"      not-null="true"/>
+        <property name="enabled"       type="boolean"     column="ENABLED"        not-null="true"/>
+
+        <many-to-one name="insuranceCompany" class="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceCompany" column="COMPANY_ID" lazy="false"/>
+        <many-to-one name="type"             class="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceType"    column="TYPE_ID"    lazy="false"/>
+
+        <list name="periods" table="PFP_INS_PRODUCT_TO_PERIODS" cascade="all-delete-orphan" lazy="false" >
+            <key column="PRODUCT_ID" not-null="false"/>
+			<list-index column="LIST_INDEX"/>
+			<many-to-many class="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceDatePeriod" column="DATE_PERIOD_ID"/>
+        </list>
+        <set      name="targetGroup"   table="PFP_IP_TARGET_GROUPS_BUNDLE" cascade="none" lazy="false">
+            <key     column="PRODUCT_ID"   not-null="true"/>
+			<element column="SEGMENT_CODE" not-null="true" type="SegmentCodeType"/>
+        </set>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceType.hasChild">
+        <return-scalar column="hasChild" type="integer"/>
+        <![CDATA[
+             SELECT DECODE(COUNT(*), 0, 0, 1) hasChild
+             FROM PFP_INSURANCE_TYPES
+             WHERE PARENT_ID = :typeId
+		]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceType.getImageId">
+        <return-scalar column="imageId" type="long"/>
+        <![CDATA[
+            SELECT types.IMAGE_ID imageId
+            FROM PFP_INSURANCE_TYPES types
+            WHERE types.IMAGE_ID is not null and rownum = 1
+            START WITH types.ID = :id
+            CONNECT BY types.ID = PRIOR types.PARENT_ID
+		]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceProduct.getImageId">
+        <return-scalar column="imageId" type="long"/>
+        <![CDATA[
+            SELECT DECODE(insuranceProduct.image_id, null,
+                    (SELECT types.IMAGE_ID
+                    FROM PFP_INSURANCE_TYPES types
+                    WHERE types.IMAGE_ID is not null and rownum = 1
+                    START WITH types.ID = insuranceProduct.TYPE_ID
+                    CONNECT BY types.ID = PRIOR types.PARENT_ID), insuranceProduct.image_id) imageId
+            FROM PFP_INSURANCE_PRODUCTS insuranceProduct
+            WHERE insuranceProduct.ID = :id
+		]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceType.countInsuranceType">
+        <return-scalar column="count" type="long"/>
+            SELECT COUNT(*) count FROM PFP_INSURANCE_TYPES WHERE ID not in
+                (SELECT PARENT_ID FROM PFP_INSURANCE_TYPES WHERE PARENT_ID is not null)
+    </sql-query>
+
+</hibernate-mapping>

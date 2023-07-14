@@ -1,0 +1,33 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.fund.initiator.FundGroupPhone" table="FUND_GROUP_PHONES">
+        <composite-id>
+            <key-property name="groupId"    type="long"     column="GROUP_ID"/>
+            <key-property name="phone"      type="string"   column="PHONE"/>
+        </composite-id>
+    </class>
+
+    <!--Удаление записей о получателях по идентификатору группы
+        Опорный элемент: I_FUND_GROUP_PHONE
+        Предикат доступа: ("PHONES"."GROUP_ID"=TO_NUMBER(:GROUPID)
+        Кардинальность: не превышает числа получателей в одной группе получателей
+    -->
+    <query name="com.rssl.phizic.business.fund.initiator.FundGroupPhone.removeByGroupId">
+        delete from FundGroupPhone phone where phone.groupId = :groupId
+    </query>
+
+    <!--Получение записей о получателях по идентификатору группы
+     Опорный элемент: I_FUND_GROUP_PHONE
+     Предикат доступа: ("PHONES"."GROUP_ID"=TO_NUMBER(:GROUPID)
+     Кардинальность: не превышает числа получателей в одной группе получателей
+ -->
+    <sql-query name="com.rssl.phizic.business.fund.initiator.FundGroupPhone.selectByGroupId">
+        <return-scalar column="PHONE" type="string"/>
+        <![CDATA[
+            SELECT phones.PHONE FROM FUND_GROUP_PHONES phones where phones.GROUP_ID = :groupId
+        ]]>
+    </sql-query>
+</hibernate-mapping>

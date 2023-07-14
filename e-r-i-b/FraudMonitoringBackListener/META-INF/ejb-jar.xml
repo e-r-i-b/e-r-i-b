@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ejb-jar
+        PUBLIC "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 2.0//EN"
+        "http://java.sun.com/dtd/ejb-jar_2_0.dtd">
+
+<ejb-jar id="EJBJar_FraudMonitoringBackListener">
+    <enterprise-beans>
+        <!-- смс канал -->
+        <message-driven id="MessageDriver_FraudMonitoringBackListener">
+            <!-- логическое имя MDB -->
+            <ejb-name>FraudMonitoringBackListener</ejb-name>
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.monitoring.fraud.ejb.FraudMonitoringBackListener</ejb-class>
+            <transaction-type>Bean</transaction-type>
+            <!--<message-selector>JMSXGroupID='groupId'</message-selector>-->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+            <resource-ref id="ResourceRef_FraudMonitoringBackListenerQCF">
+                <res-ref-name>jms/monitoring/fraud/BlockingClientRequestQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+            <resource-ref id="ResourceRef_FraudMonitoringBackListenerQueue">
+                <res-ref-name>jms/monitoring/fraud/BlockingClientRequestQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+        </message-driven>
+
+        <message-driven id="MessageDriver_FraudMonitoringNotificationTransportListener">
+            <!-- логическое имя MDB -->
+            <ejb-name>FraudMonitoringNotificationTransportListener</ejb-name>
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.monitoring.fraud.ejb.FraudMonitoringNotificationTransportListener</ejb-class>
+            <transaction-type>Bean</transaction-type>
+            <!--<message-selector>JMSXGroupID='groupId'</message-selector>-->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+            <resource-ref id="ResourceRef_FraudMonitoringTransportNotificationListenerQCF">
+                <res-ref-name>jms/monitoring/fraud/CSABackTransportQueueQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+            <resource-ref id="ResourceRef_FraudMonitoringTransportNotificationListenerQueue">
+                <res-ref-name>jms/monitoring/fraud/CSABackTransportQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+        </message-driven>
+    </enterprise-beans>
+</ejb-jar>

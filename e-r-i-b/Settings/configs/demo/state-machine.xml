@@ -1,0 +1,756 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../schemas/state-machine.xsd">
+
+	<states name="PaymentStateMachine" inital-state="INITIAL"
+	        description="МС документа, не требующего подтверждения сотрудником банка и направленного прямо в ритейл">
+
+		<state
+			id="INITIAL" description="Статус документа: только что создан (еще не сохранен)"
+			client-form="/private/payments/payment.do"
+			>
+			<handlers>
+				<handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+					<parameter name="datePropertyType" value="java.util.Calendar"/>
+					<parameter name="datePropertyName" value="closingDate"/>
+					<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+						<parameter name="whiteList" value="DepositClosingClaim;AccountClosingClaim"/>
+					</enabled>
+				</handler>
+			</handlers>
+			<events>
+				<event name="SAVE" description="Сохранение документа клиентом" type="client">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.PaymentValidatorHandler">
+							<parameter name="useInTemplate" value="false"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+								<parameter name="blackList" value="ElectricPayment;AccountClosingClaim;DepositClosingClaim;InternalTransferClaim"/>
+							</enabled>
+						</handler>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DefaultCommissionSaveHandler">
+							<parameter name="useInTemplate" value="false"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+								<parameter name="blackList" value="PurchaseSaleCurrencyPayment;ConvertCurrencyPayment;ElectricPayment;DepositClosingClaim;InternalTransferClaim"/>
+							</enabled>
+						</handler>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.PrepareDocumentHandler">
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+								<parameter name="whiteList" value="RurPayJurSB"/>
+							</enabled>
+						</handler>
+                    </handlers>
+                    <next-states default="SAVED"/>
+				</event>
+				<event name="SAVEASTEMPLATE" description="Сохраненить документ, как шаблон"  type="client">
+                    <next-states default="TEMPLATE"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="SAVED" description="Статус документа: сохранен (введен)"
+			client-form="/private/payments/confirm.do"
+			>
+			<events>
+				<event name="DISPATCH" description="Отправка документа клиентом" type="client">
+					<handlers>
+                        <handler class="com.rssl.phizic.business.payments.CheckRateDidntChangeHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="PurchaseSaleCurrencyPayment"/>
+                            </enabled>
+                        </handler>
+						<handler class="com.rssl.phizic.business.payments.ValidatePaymentAccountAction">
+							<parameter name="checkType"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+								<parameter name="blackList" value="ElectricPayment;DepositClosingClaim;AccountClosingClaim;InternalTransferClaim"/>
+							</enabled>
+						</handler>
+					</handlers>
+                    <next-states default="DISPATCHED">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.DelayedStateCondition" state="DELAYED_DISPATCH">
+                             <handlers>
+                                <handler class="com.rssl.phizic.business.payments.ValidatePaymentAccountAction">
+                                    <parameter name="checkType"/>
+                                    <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                        <parameter name="blackList" value="ElectricPayment;DepositClosingClaim;AccountClosingClaim;InternalTransferClaim"/>
+                                    </enabled>
+                                </handler>
+                                <handler class="com.rssl.phizic.business.payments.CheckRateDidntChangeHandler">
+                                    <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                        <parameter name="whiteList" value="PurchaseCurrencyPayment;SaleCurrencyPayment;ConvertCurrencyPayment"/>
+                                    </enabled>
+                                </handler>
+                            </handlers>
+                        </next-state>
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetGoodAndServicesDateAction">
+                                <parameter name="datePropertyType" value="java.util.Calendar"/>
+                                <parameter name="datePropertyName" value="admissionDate"/>
+                                <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                    <parameter name="whiteList" value="GoodsAndServicesPayment"/>
+                                </enabled>
+                            </handler>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+                                <parameter name="datePropertyType" value="java.util.Calendar"/>
+                                <parameter name="datePropertyName" value="admissionDate"/>
+                                <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                    <parameter name="blackList" value="RurPayJurSB"/>
+                                </enabled>
+                            </handler>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                        </handlers>
+                    </next-states>
+				</event>
+                <event name="EDIT" description="Редактирование документа"  type="client">
+                    <next-states default="INITIAL"/>
+                </event>
+			</events>
+		</state>
+		<state
+			id="DISPATCHED" description="Статус документа: отправлен на обработку"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			>
+			<events>
+				<event name="SUCCESS" description="Выдан" type="system">
+                    <next-states default="SUCCESSED"/>
+				</event>
+				<event name="RECEIVE" description="Получен банком получателем" type="system">
+                    <next-states default="RECEIVED"/>
+				</event>
+				<event name="CANCELATION" description="Аннулирование" type="system">
+                    <next-states default="CANCELATION"/>
+				</event>
+				<event name="MODIFICATION" description="Изменение"  type="system">
+                    <next-states default="MODIFICATION"/>
+				</event>
+				<event name="RETURN" description="Возвращен" type="system">
+                    <next-states default="RETURNED"/>
+				</event>
+				<event name="EXECUTE" description="Подтверждение документа системой"  type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="TaxPayment;RurPayment;ElectricPayment;RurPayJurSB;InternalPayment;InternalTransferClaim;CardReplenishmentPayment;DepositReplenishmentClaim;GKHPayment;ConvertCurrencyPayment;PurchaseCurrencyPayment;PurchaseSaleCurrencyPayment;SaleCurrencyPayment;CurrencyPayment;AccountClosingClaim"/>
+                            </enabled>
+                        </handler>
+                    </handlers>
+                    <next-states default="EXECUTED"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <next-states default="REFUSED"/>
+				</event>
+				<event name="RECALL" description="Отзыв документа" type="client">
+                    <next-states default="RECALLED"/>
+				</event>
+				<event name="ERROR" description="При работе с документом произошла ошибка" type="system">
+                    <next-states default="ERROR"/>
+				</event>
+			</events>
+		</state>
+        <state
+            id="DELAYED_DISPATCH" description="Статус документа: ожидание отправки на обработку"
+            client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			>
+			<events>
+                <event name="DISPATCH" description="Отправка документа клиентом" type="system">
+					<handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+							<parameter name="datePropertyType" value="java.util.Calendar"/>
+							<parameter name="datePropertyName" value="admissionDate"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+								<parameter name="blackList" value="RurPayJurSB"/>
+							</enabled>
+						</handler>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.SetGoodAndServicesDateAction">
+							<parameter name="datePropertyType" value="java.util.Calendar"/>
+							<parameter name="datePropertyName" value="admissionDate"/>
+							<enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+								<parameter name="whiteList" value="GoodsAndServicesPayment"/>
+							</enabled>
+						</handler>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+					</handlers>
+                    <next-states default="DISPATCHED"/>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <next-states default="REFUSED"/>
+                </event>
+            </events>
+		</state>
+		<state
+			id="SUCCESSED" description="Статус документа: выдан"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="RECEIVED" description="Статус документа: получен банком получателем"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="CANCELATION" description="Статус документа: отправлен в банк получателя"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="MODIFICATION" description="Статус документа: изменен"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			>
+		</state>
+		<state
+			id="RETURNED" description="Статус документа: возвращен"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="EXECUTED" description="Статус документа: отправлен на обработку"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="TEMPLATE" description="Статус документа: Шаблон"
+			client-form="/private/payments/payment.do"
+			>
+			<events>
+				<event name="INITIAL" description="Инициализация документа" type="client">
+                    <next-states default="INITIAL"/>
+				</event>
+				<event name="SAVEASTEMPLATE" description="Сохраненить документ, как шаблон" type="client">
+                    <next-states default="TEMPLATE"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="REFUSED" description="Статус документа: Отказан"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="RECALLED" description="Статус документа: Отозван"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="ERROR" description="Статус документа: ошибка"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+	</states>
+
+	<states name="RecallPaymentStateMachine" inital-state="INITIAL"
+	        description="МС документа, не требующего подтверждения сотрудником банка и направленного прямо в ритейл">
+
+		<state
+			id="INITIAL" description="Статус документа: только что создан (еще не сохранен)"
+			client-form="/private/payments/payment.do"
+			>
+			<events>
+				<event name="SAVE" description="Сохранение документа клиентом"  type="client">
+                    <next-states default="SAVED"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="SAVED" description="Статус документа: сохранен (введен)"
+			client-form="/private/payments/confirm.do"
+			>
+			<events>
+				<event name="DISPATCH" description="Отправка документа клиентом" type="client">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.WithdrawBusinessDocumentSender"/>
+					</handlers>
+                    <next-states default="EXECUTED"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="EXECUTED" description="Статус документа: исполнен"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			>
+		</state>
+	</states>
+
+	<states name="ContactPaymentStateMachine" inital-state="INITIAL"
+	        description="МС перевода по сети Contact">
+
+		<state
+			id="INITIAL" description="Статус документа: только что создан (еще не сохранен)"
+			client-form="/private/payments/payment.do"
+			>
+			<events>
+				<event name="SAVE" description="Сохранение документа клиентом"  type="client">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.PaymentValidatorHandler">
+							<parameter name="useInTemplate" value="false"/>
+						</handler>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DefaultCommissionSaveHandler">
+							<parameter name="useInTemplate" value="false"/>
+						</handler>
+					</handlers>
+                    <next-states default="SAVED"/>
+				</event>
+				<event name="SAVEASTEMPLATE" description="Сохраненить документ, как шаблон" type="client">
+                    <next-states default="TEMPLATE"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="SAVED" description="Статус документа: сохранен (введен)"
+			client-form="/private/payments/confirm.do"
+			>
+			<events>
+				<event name="DISPATCH" description="Отправка документа клиентом" type="client">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.ValidatePaymentAccountAction">
+							<parameter name="checkType"/>
+						</handler>
+					</handlers>
+                    <next-states default="DISPATCHED">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.DelayedStateCondition" state="DELAYED_DISPATCH">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.ValidatePaymentAccountAction">
+                                    <parameter name="checkType"/>
+                                </handler>
+                            </handlers>
+                        </next-state>
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+                                <parameter name="datePropertyType" value="java.util.Calendar"/>
+                                <parameter name="datePropertyName" value="admissionDate"/>
+                            </handler>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                        </handlers>
+                    </next-states>
+				</event>
+				<event name="EDIT" description="Редактирование документа" type="client">
+                    <next-states default="INITIAL"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="DISPATCHED" description="Статус документа: отправлен на обработку"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			>
+			<events>
+				<event name="SUCCESS" description="Выдан" type="system">
+                    <next-states default="SUCCESSED"/>
+				</event>
+				<event name="RECEIVE" description="Получен банком получателем"  type="system">
+                    <next-states default="RECEIVED"/>
+				</event>
+				<event name="CANCELATION" description="Аннулирование" type="system">
+                    <next-states default="CANCELATION"/>
+				</event>
+				<event name="MODIFICATION" description="Изменение" type="system">
+                    <next-states default="MODIFICATION"/>
+				</event>
+				<event name="RETURN" description="Возвращен"  type="system">
+                    <next-states default="RETURNED"/>
+				</event>
+				<event name="EXECUTE" description="Исполнен"  type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнениии документа" type="system">
+                    <next-states default="REFUSED"/>
+				</event>
+				<event name="RECALL" description="Отзыв документа" type="client">
+                    <next-states default="RECALLED"/>
+				</event>
+				<event name="ERROR" description="При работе с документом произошла ошибка" type="system">
+                    <next-states default="ERROR"/>
+				</event>
+				<event name="EDIT" description="Редактирование документа" type="client">
+                    <next-states default="INITIAL"/>
+				</event>
+			</events>
+		</state>
+        <state
+            id="DELAYED_DISPATCH" description="Статус документа: ожидание отправки на обработку"
+            client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			>
+			<events>
+                <event name="DISPATCH" description="Отправка документа клиентом" type="system">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+							<parameter name="datePropertyType" value="java.util.Calendar"/>
+							<parameter name="datePropertyName" value="admissionDate"/>
+						</handler>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+					</handlers>
+                    <next-states default="DISPATCHED"/>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <next-states default="REFUSED"/>
+                </event>
+            </events>
+		</state>
+		<state
+			id="EXECUTED" description="Статус документа: исполнен"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="RECEIVED" description="Статус документа: получен банком получателем"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="CANCELATION" description="Статус документа: отправлен в банк получателя"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="MODIFICATION" description="Статус документа: изменен"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			>
+		</state>
+		<state
+			id="RETURNED" description="Статус документа: возвращен"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="SUCCESSED" description="Статус документа: выдан"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="REFUSED" description="Статус документа: отказан"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="RECALLED" description="Статус документа: отозван"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="TEMPLATE" description="Статус документа: Шаблон"
+			client-form="/private/payments/payment.do"
+			>
+			<events>
+				<event name="INITIAL" description="Инициализация документа" type="client">
+                    <next-states default="INITIAL"/>
+				</event>
+				<event name="SAVEASTEMPLATE" description="Сохраненить документ, как шаблон" type="client">
+                    <next-states default="TEMPLATE"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="ERROR" description="Статус документа: ошибка"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+	</states>
+
+	<states name="ClaimStateMachine" inital-state="INITIAL"
+	        description="МС документа, требующего подтверждение сотрудника банка и ненаправленного далее в ритейл">
+		<state
+			id="INITIAL" description="Статус документа: только что создан (еще не сохранен)"
+			client-form="/private/claims/claim.do"
+			>
+			<events>
+				<event name="SAVE" description="Сохранение документа клиентом"  type="client">
+                    <next-states default="SAVED"/>
+				</event>
+		    </events>
+		</state>
+		<state
+			id="SAVED" description="Статус документа: сохранен (введен)"
+			client-form="/private/claims/confirm.do"
+			>
+			<events>
+				<event name="DISPATCH" description="Отправка документа клиентом в банк на подтверждение" type="client">
+                    <next-states default="DISPATCHED"/>
+			    </event>
+			</events>
+		</state>
+		<state
+			id="DISPATCHED" description="Статус документа: отправлен на обработку"
+			client-form="/private/claims/view.do"
+			employee-form="/claims/claim.do"
+			>
+			<events>
+				<event name="EXECUTE" description="Подтверждение (исполнение) документа сотрудником банка" type="employee">
+                    <next-states default="EXECUTED"/>
+				</event>
+				<event name="ACCEPT" description="Утверждение (одобрение) документа сотрудником банка" type="employee">
+                    <next-states default="ACCEPTED"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <next-states default="REFUSED"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнении документа"  type="employee">
+                    <next-states default="REFUSED"/>
+				</event>
+				<event name="ERROR" description="При работе с документом произошла ошибка" type="system">
+                    <next-states default="ERROR"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="ACCEPTED" description="Статус документа: одобрен"
+			client-form="/private/claims/view.do"
+			employee-form="/claims/claim.do">
+			<events>
+				<event name="EXECUTE" description="Подтверждение (исполнение) документа сотрудником банка" type="employee">
+                    <next-states default="EXECUTED"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="EXECUTED" description="Статус документа: исполнен"
+			client-form="/private/claims/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="REFUSED" description="Статус документа: Отказан"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="ERROR" description="Статус документа: ошибка"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+	</states>
+
+	<states name="OpenClaimStateMachine" inital-state="INITIAL"
+	        description="МС документа, требующего подтверждение сотрудника банка и направленного далее в ритейл">
+		<state
+			id="INITIAL" description="Статус документа: только что создан (еще не сохранен)"
+			client-form="/private/claims/claim.do"
+			>
+			<events>
+				<event name="SAVE" description="Сохранение документа клиентом" type="client">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DepartmentDocumentHandler"/>
+					</handlers>
+                    <next-states default="SAVED"/>
+				</event>
+		    </events>
+		</state>
+		<state
+			id="SAVED" description="Статус документа: сохранен (введен)"
+			client-form="/private/claims/confirm.do"
+			>
+			<events>
+				<event name="DISPATCH" description="Отправка документа клиентом в банк на подтверждение" type="client">
+                    <next-states default="DISPATCHED"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="DISPATCHED" description="Статус документа: отправлен на обработку"
+			client-form="/private/claims/view.do"
+			employee-form="/claims/claim.do"
+			>
+			<events>
+				<event name="SEND" description="Отправка документа сотрудником банка в riteil" type="employee">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+					</handlers>
+                    <next-states default="SENDED"/>
+				</event>
+				<event name="ACCEPT" description="Утверждение (одобрение) документа сотрудником банка" type="employee">
+                    <next-states default="ACCEPTED"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <next-states default="REFUSED"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <next-states default="REFUSED"/>
+				</event>
+				<event name="ERROR" description="При работе с документом произошла ошибка" type="system">
+                    <next-states default="ERROR"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="ACCEPTED" description="Статус документа: одобрен"
+			client-form="/private/claims/view.do"
+			employee-form="/claims/claim.do">
+			<events>
+				<event name="SEND" description="Отправка документа сотрудником банка в riteil" type="employee">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+					</handlers>
+                    <next-states default="SENDED"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="SENDED" description="Статус документа: отправлен в rs-ritail"
+			client-form="/private/claims/view.do"
+			employee-form="/claims/claim.do"
+			>
+			<events>
+				<event name="EXECUTE" description="Исполнен сотрудником банка"  type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OpenAccountPostUpdateDocumentHandler">
+                            <enabled class="com.rssl.phizic.business.documents.payments.handlers.DocumentFormNameHandlerFilter">
+                                <parameter name="whiteList" value="AccountOpeningClaim"/>
+                            </enabled>
+                        </handler>
+                    </handlers>
+                    <next-states default="EXECUTED"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнении документа"  type="system">
+                    <next-states default="REFUSED"/>
+				</event>
+				<event name="ERROR" description="При работе с документом произошла ошибка"  type="system">
+                    <next-states default="ERROR"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="EXECUTED" description="Статус документа: исполнен"
+			client-form="/private/claims/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="REFUSED" description="Статус документа: Отказан"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+		<state
+			id="ERROR" description="Статус документа: ошибка"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+	</states>
+
+	<states name="LoanClaimStateMachine" inital-state="INITIAL"
+	        description="МС кредитной заявки">
+		<state
+			id="INITIAL" description="Статус документа: только что создан (еще не сохранен)"
+			client-form="/private/claims/claim.do"
+			>
+			<events>
+				<event name="SAVE" description="Сохранение документа клиентом" type="client">
+                    <next-states default="SAVED"/>
+				</event>
+				<event name="SAVEASDRAFT" description="Сохраненить, как черновик" type="client">
+                    <next-states default="DRAFT"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="SAVED" description="Статус документа: сохранен (введен)"
+			client-form="/private/claims/confirm.do"
+			>
+			<events>
+				<event name="DISPATCH" description="Отправление клиентом сотруднику банка"  type="client">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.SimpleBusinessDocumentDateAction"/>
+					</handlers>
+                    <next-states default="DISPATCHED"/>
+				</event>
+				<event name="EDIT" description="Редактирование кредитной заявки" type="client">
+                    <next-states default="INITIAL"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="DISPATCHED" description="Статус документа: принят к исполнению"
+			client-form="/private/claims/view.do"
+			employee-form="/loans/claims/claim.do"
+			>
+			<events>
+				<event name="COMPLETION" description="Отправка документа сотрудником банка на доработку" type="employee">
+                    <next-states default="COMPLETION"/>
+				</event>
+				<event name="ACCEPT" description="Отправка документа в RS-Loans" type="employee">
+					<handlers>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+					</handlers>
+                    <next-states default="CONSIDERATION"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <next-states default="REFUSED"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="CONSIDERATION" description="Статус документа: в рассмотрении"
+			client-form="/private/claims/view.do"
+			employee-form="/loans/claims/list.do"
+			>
+			<events>
+				<event name="APPROVE" description="Ободрена банком"  type="system">
+                    <next-states default="APPROVED"/>
+				</event>
+				<event name="EXECUTE" description="Выдан кредит" type="system">
+                    <next-states default="EXECUTED"/>
+				</event>
+				<event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <next-states default="REFUSED"/>
+				</event>
+				<event name="COMPLETION" description="Требуется доработка" type="system">
+                    <next-states default="COMPLETION"/>
+				</event>
+			</events>
+		</state>
+		<state
+			id="APPROVED" description="Статус документа: одобрена банком"
+			client-form="/private/claims/view.do"
+			employee-form="/loans/claims/list.do"
+			/>
+		<state
+			id="EXECUTED" description="Статус документа: выдан кредит"
+			client-form="private/claims/view.do"
+			employee-form="/loans/claims/list.do"
+			/>
+		<state
+			id="REFUSED" description="Статус документа: отказан"
+			client-form="private/claims/view.do"
+			employee-form="/loans/claims/list.do"
+			/>
+        <state
+			id="COMPLETION" description="Статус документа: требуется доработка"
+			client-form="/private/claims/claim.do"
+            >
+            <events>
+                    <event name="SAVE" description="Сохранен клиентом"  type="client">
+                        <next-states default="SAVED"/>
+                    </event>
+                    <event name="SAVEASDRAFT" description="Сохраненить, как черновик" type="client">
+                        <next-states default="DRAFT"/>
+                    </event>
+            </events>
+        </state>
+		<state
+			id="DRAFT" description="Статус документа: черновик"
+			client-form="/private/payments/payment.do"
+			>
+			<events>
+				<event name="INITIAL" description="Инициализация документа" type="client">
+                    <next-states default="INITIAL"/>
+				</event>
+				<event name="SAVEASDRAFT" description="Сохраненить документ, как черновик"  type="client">
+                    <next-states default="DRAFT"/>
+				</event>
+                <event name="SAVE" description="Сохраненить документ" type="client">
+                    <next-states default="SAVED"/>
+                </event>
+			</events>
+		</state>
+		<state
+			id="ERROR" description="Статус документа: ошибка"
+			client-form="/private/payments/view.do"
+			employee-form="/claims/claim.do"
+			/>
+	</states>
+
+</config>

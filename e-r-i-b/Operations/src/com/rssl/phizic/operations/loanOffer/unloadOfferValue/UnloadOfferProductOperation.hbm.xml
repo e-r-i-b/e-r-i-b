@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--Включаем LoanOfferClaim и ShortLoanClaim с прикрепленным пред одобренным-->
+    <sql-query name="com.rssl.phizic.operations.loanOffer.unloadOfferValue.UnloadOfferClaimOperationBase.loanOfferPaymentList">
+        <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+            select {document.*}
+            from BUSINESS_DOCUMENTS document
+            where (
+              (document.KIND = '4') or  (
+              document.KIND = 'EM'
+            and exists (
+              select extFields.PAYMENT_ID from  DOCUMENT_EXTENDED_FIELDS extFields
+              where
+                    extFields.PAYMENT_ID = document.id
+                and NAME = 'loanOfferId'
+                and VALUE is not null)
+            ))
+            and document.STATE_CODE = 'DISPATCHED'
+            and  document.EXECUTION_DATE > :fromDate
+            and  document.EXECUTION_DATE <= :toDate
+            order by document.EXECUTION_DATE
+        ]]>
+    </sql-query>
+
+     <!--Возвращаем заявки классов LoanCardOfferClaim и PreapprovedLoanCardClaim-->
+     <sql-query name="com.rssl.phizic.operations.loanOffer.unloadOfferValue.UnloadOfferClaimOperationBase.loanCardOfferPaymentList">
+         <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+         <![CDATA[
+             select {document.*}
+             from BUSINESS_DOCUMENTS document
+             where (document.KIND = '5' or document.KIND = 'PC')
+             and document.STATE_CODE = 'DISPATCHED'
+             and  document.EXECUTION_DATE > :fromDate
+             and  document.EXECUTION_DATE <= :toDate
+             order by document.EXECUTION_DATE
+         ]]>
+    </sql-query>
+
+    <!--Включаем LoanProductClaim и ShortLoanClaim без прикрепленного пред одобренного-->
+    <sql-query name="com.rssl.phizic.operations.loanOffer.unloadOfferValue.UnloadOfferClaimOperationBase.loanProductPaymentList">
+    <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+    <![CDATA[
+        select {document.*}
+            from BUSINESS_DOCUMENTS document
+            where (
+              (document.KIND = '6') or  (
+              document.KIND = 'EM'
+            and exists (
+              select extFields.PAYMENT_ID from  DOCUMENT_EXTENDED_FIELDS extFields
+              where
+                    extFields.PAYMENT_ID = document.id
+                and NAME = 'loanOfferId'
+                and VALUE is null)
+            ))
+            and document.STATE_CODE = 'DISPATCHED'
+            and  document.EXECUTION_DATE > :fromDate
+            and  document.EXECUTION_DATE <= :toDate
+            order by document.EXECUTION_DATE
+    ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.operations.loanOffer.unloadOfferValue.UnloadOfferClaimOperationBase.loanCardProductPaymentList">
+    <![CDATA[
+        select document
+        from   com.rssl.phizic.business.documents.payments.LoanCardProductClaim  document
+        where document.state.code ='DISPATCHED'
+        and  document.executionDate > :fromDate
+        and  document.executionDate <= :toDate
+        order by document.executionDate
+            ]]>
+    </query>
+
+    <!--
+      Возвращаем заявки класса LoanCardClaim
+      Опорный объект: LOAN_CARD_CLAIMS,LOAN_CCLAIMS_STCD_IDX
+      Предикаты доступа: filter(TO_TIMESTAMP(:FROMDATE)<TO_TIMESTAMP(:TODATE))
+                         filter("LOANCARDCLAIM"."PREAPPROVED"='0' AND "LOANCARDCLAIM"."EXECUTION_DATE">TO_TIMESTAMP(:FROMDATE) AND "LOANCARDCLAIM"."EXECUTION_DATE"<=TO_TIMESTAMP(:TODATE))
+                         access("LOANCARDCLAIM"."STATE_CODE"='DISPATCHED')
+      Кардинальность: Все найденные
+    -->
+    <sql-query name="com.rssl.phizic.operations.loanOffer.unloadOfferValue.UnloadOfferClaimOperationBase.loanCardClaimPaymentList">
+         <return alias="loanCardClaim" class="com.rssl.phizic.business.documents.payments.LoanCardClaim"/>
+         <![CDATA[
+             select {loanCardClaim.*}
+             from LOAN_CARD_CLAIMS loanCardClaim
+             where loanCardClaim.STATE_CODE = 'DISPATCHED'
+             and loanCardClaim.PREAPPROVED = :preaproved
+             and  loanCardClaim.EXECUTION_DATE > :fromDate
+             and  loanCardClaim.EXECUTION_DATE <= :toDate
+             order by loanCardClaim.EXECUTION_DATE
+         ]]>
+    </sql-query>
+
+</hibernate-mapping>

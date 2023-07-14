@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="Publicity" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.loans.products.Publicity</param>
+	</typedef>
+    
+    <class name="com.rssl.phizic.business.loans.products.LoanProductBase" table="LOAN_PRODUCTS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_LOAN_PRODUCTS</param>
+            </generator>
+        </id>
+        <discriminator column="DISCR" type="string"/>
+
+        <property name="name"               type="string"   column="NAME"                 not-null="true"/>
+        <many-to-one name="loanKind" class="com.rssl.phizic.business.loans.kinds.LoanKind" column="LOAN_KIND_ID" not-null="true" lazy="false"/>
+        <property name="changeDate" type="calendar" column="CHANGE_DATE" not-null="false"/>
+
+        <subclass name="com.rssl.phizic.business.loans.products.LoanProduct" discriminator-value="E">
+            <property name="briefDescription"   type="string"   column="BRIEF_DESCRIPTION"    not-null="false"/>
+            <property name="description"        type="text"     column="DESCRIPTION"          not-null="false"/>
+            <property name="packageTemplateId"  type="long"     column="DOCUMENTS_PACKAGE_ID" not-null="false"/>
+            <property name="anonymousClaim"     type="boolean"  column="ANONYMOUS_CLAIM"      not-null="false"/>
+            <property name="guarantorsCount"    type="long"     column="GUARANTORS_COUNT"     not-null="false"/>
+        </subclass>
+        <subclass name="com.rssl.phizic.business.loans.products.ModifiableLoanProduct" discriminator-value="M">
+            <component name="minDuration" class="com.rssl.phizic.business.loans.products.YearMonth">
+                <property name="year"   type="integer" column="MIN_DURATION_YEARS"/>
+                <property name="month"  type="integer" column="MIN_DURATION_MONTHS"/>
+            </component>
+            <component name="maxDuration" class="com.rssl.phizic.business.loans.products.MaxDuration">
+                <property name="year"   type="integer" column="MAX_DURATION_YEARS"/>
+                <property name="month"  type="integer" column="MAX_DURATION_MONTHS"/>
+            </component>
+            <property name="maxDurationInclude"          type="boolean"     column="IS_MAX_DURATION_INCL"  not-null="false"/>
+            <property name="needInitialInstalment"       type="boolean"     column="NEED_INIT_INST"        not-null="false"/>
+            <property name="minInitialInstalment"        type="big_decimal" column="MIN_INIT_INST"         not-null="false"/>
+            <property name="maxInitialInstalment"        type="big_decimal" column="MAX_INIT_INST"         not-null="false"/>
+            <property name="maxInitialInstalmentInclude" type="boolean"     column="IS_MAX_INIT_INST_INCL" not-null="false"/>
+            <property name="needSurety"                  type="boolean"     column="NEED_SURETY"           not-null="false"/>
+            <property name="additionalTerms"             type="string"      column="ADDITIONAL_TERMS"      not-null="false"/>
+            <property name="publicity"                   type="Publicity"   column="IS_PUBLIC"             not-null="false"/>
+            
+            <bag name="conditions" table="LOAN_PRODUCT_CONDITIONS" lazy="false" cascade="all-delete-orphan" order-by="CURRENCY asc">
+                <key column="PRODUCT_ID" not-null="true"/>
+                <one-to-many class="com.rssl.phizic.business.loans.conditions.LoanCondition"/>
+            </bag>
+
+            <bag name="terbanks" table="LOAN_PRODUCT_DEPARTMENT" lazy="false" cascade="none" order-by="DEPARTMENT_ID asc">
+                <key column="PRODUCT_ID" not-null="true"/>
+                <many-to-many column="DEPARTMENT_ID" class="com.rssl.phizic.business.departments.Department"/>
+            </bag>
+        </subclass>
+
+        <filter name="loan_product_filter_by_department"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.loans.products.ModifiableLoanProduct.getAllProductsByAllowedTB">
+        select product
+        from com.rssl.phizic.business.loans.products.ModifiableLoanProduct as product
+        where product.publicity != 'DELETED'
+    </query>
+    
+    <query name="com.rssl.phizic.business.loans.products.ModifiableLoanProduct.findByFilter">
+        select product
+        from com.rssl.phizic.business.loans.products.ModifiableLoanProduct as product
+        where
+            (:kindId is null or product.loanKind.id = :kindId)
+            and (:productId is null or product.id = :productId)
+            and ((:publicity is null and product.publicity != 'DELETED') or product.publicity = :publicity)
+    </query>
+
+    <query name="com.rssl.phizic.business.loans.products.ModifiableLoanProduct.getConditionsByProduct">
+        select condition
+        from com.rssl.phizic.business.loans.conditions.LoanCondition as condition
+        where condition.productId = :productId
+    </query>
+
+
+     <query name="com.rssl.phizic.business.loans.products.ModifiableLoanProduct.getOfferProductByConditionId" >
+           select product
+           from  com.rssl.phizic.business.loans.products.ModifiableLoanProduct as  product
+           join product.conditions conditions
+           where conditions.id = :id
+      </query>
+
+       <query name="com.rssl.phizic.business.loans.products.ModifiableLoanProduct.isPublishedProductsExists">
+            select count(*)
+            from  com.rssl.phizic.business.loans.products.ModifiableLoanProduct as  product
+            where product.publicity = 'PUBLISHED'
+      </query>
+
+    <filter-def name="loan_product_filter_by_department"
+                   condition="(
+                        (SELECT
+                            count(lpd.PRODUCT_ID) - count(ad.TB)
+                        FROM
+                            LOAN_PRODUCT_DEPARTMENT lpd
+                            join DEPARTMENTS dep on lpd.DEPARTMENT_ID = dep.id
+                            left join ALLOWED_DEPARTMENTS ad on ad.LOGIN_ID = :employeeLoginId
+                                                        and ad.TB||'|'||ad.OSB||'|'||ad.VSP in (
+                                                                            dep.TB||'|*|*',
+                                                                            dep.TB||'|'||dep.OSB||'|*',
+                                                                            dep.TB||'|'||dep.OSB||'|'||dep.OFFICE,
+                                                                            '*|*|*')
+                        WHERE
+                            lpd.PRODUCT_ID = ID
+                        ) = 0)"
+              >
+   		<filter-param name="employeeLoginId" type="long"/>
+   	</filter-def>
+
+</hibernate-mapping>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.monitoring.documents.GetMonitoredDocumentsOperation.DISPATCH_DOCUMENT_COUNT">
+        <return alias="document"        class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <return-scalar column="description" type="string"/>
+        <![CDATA[
+            SELECT
+                {document.*},
+                form.DESCRIPTION as description
+            FROM
+                BUSINESS_DOCUMENTS  document
+                JOIN PAYMENTFORMS form ON form.ID = document.FORM_ID
+                JOIN DEPARTMENTS department on department.ID = document.DEPARTMENT_ID
+                WHERE department.TB = :TB  
+                AND document.STATE_CODE in ('SENDED','DISPATCH','DISPATCHED','PARTLY_EXECUTED')
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.operations.monitoring.documents.GetMonitoredDocumentsOperation.DELAYED_DOCUMENT_COUNT">
+        <return alias="document"        class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <return-scalar column="description" type="string"/>
+        <![CDATA[
+            SELECT
+				{document.*},
+				form.DESCRIPTION as description
+            FROM
+		        BUSINESS_DOCUMENTS  document
+                JOIN PAYMENTFORMS form ON form.ID = document.FORM_ID
+                JOIN DEPARTMENTS department on department.ID = document.DEPARTMENT_ID
+                WHERE department.TB = :TB
+                AND document.STATE_CODE in ('SENDED','DISPATCH','DISPATCHED','PARTLY_EXECUTED')
+                AND document.OPERATION_DATE < sysdate - INTERVAL '30' MINUTE               
+        ]]>
+    </sql-query>
+</hibernate-mapping>

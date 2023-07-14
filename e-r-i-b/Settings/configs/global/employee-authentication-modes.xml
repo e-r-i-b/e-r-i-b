@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<access-rules xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../schemas/authenticationModes.xsd">
+
+	<employee-rule>
+		<description>Политика безопасности сотрудников банка</description>
+		<authentication-mode>
+			<stage>
+				<key>lp</key>
+				<allow-action>/login.do</allow-action>
+                <allow-action>/PostCSALogin.do</allow-action>
+			</stage>
+			<stage>
+				<key>forceChangePassword</key>
+				<allow-action>/passwordchange.do</allow-action>
+				<allow-action>/logoff.do</allow-action>
+				<allow-action>/help.do</allow-action>
+				<allow-operation>
+                    <operation-class>ChangeEmployeePasswordOperation</operation-class>
+                </allow-operation>
+				<demand-if>
+					<class>com.rssl.phizic.business.security.auth.NeedChangePasswordVerifier</class>
+				</demand-if>
+			</stage>
+			<on-complete>
+                <action>com.rssl.phizic.business.security.auth.EmployeeAthenticationCompleteAction</action>
+                <action>com.rssl.phizic.web.employees.CheckManagerInfoAction</action>
+                <action>com.rssl.phizic.operations.employees.authentication.CSAAdminEmployeeContextInitializer</action>
+            </on-complete>
+
+		</authentication-mode>
+		
+		<confirmation-mode>
+			<strategy>
+				<key>not</key>
+				<class>com.rssl.phizic.auth.modes.NotConfirmStrategy</class>
+			</strategy>
+		</confirmation-mode>
+	</employee-rule>
+</access-rules>

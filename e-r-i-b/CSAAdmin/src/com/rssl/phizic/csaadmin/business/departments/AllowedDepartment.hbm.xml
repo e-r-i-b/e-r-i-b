@@ -1,0 +1,101 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.csaadmin.business.departments.AllowedDepartment" table="ALLOWED_DEPARTMENTS">
+        <id  type="long" name="id" access="field">
+            <generator class="native">
+                <param name="sequence">S_ALLOWED_DEPARTMENTS</param>
+            </generator>
+        </id>
+        <many-to-one name="login"    class="com.rssl.phizic.csaadmin.business.login.Login" column="LOGIN_ID" lazy="false"/>
+        <component name="department" class="com.rssl.phizic.csaadmin.business.departments.Department" lazy="false">
+            <property name="tb"  type="string" column="TB"  not-null="true"/>
+            <property name="osb" type="string" column="OSB" not-null="false"/>
+            <property name="vsp" type="string" column="VSP" not-null="false"/>
+        </component>
+    </class>
+
+    <class name="com.rssl.phizic.csaadmin.business.departments.Department">
+        <id name="id" access="field"/>
+        <property name="tb"  type="string"/>
+        <property name="osb" type="string"/>
+        <property name="vsp" type="string"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.csaadmin.business.departments.queries.list">
+        <return alias="employee" class="com.rssl.phizic.csaadmin.business.departments.Department">
+            <return-property name="id"  column="ID"/>
+            <return-property name="tb"  column="TB"/>
+            <return-property name="osb" column="OSB"/>
+            <return-property name="vsp" column="VSP"/>
+        </return>
+        SELECT
+            departments.ID as ID,
+            departments.TB as TB,
+            departments.OSB as OSB,
+            departments.VSP as VSP
+        FROM
+            ALLOWED_DEPARTMENTS departments
+        WHERE :extra_loginId = departments.LOGIN_ID
+    </sql-query>
+
+    <query name="com.rssl.phizic.csaadmin.business.departments.queries.remove">
+        delete from com.rssl.phizic.csaadmin.business.departments.AllowedDepartment departments
+        where departments.login = :login and (departments.department.tb || '|' || departments.department.osb || '|' || departments.department.vsp) in (:allowedDepartments)
+    </query>
+
+    <query name="com.rssl.phizic.csaadmin.business.departments.queries.removeAll">
+        delete from com.rssl.phizic.csaadmin.business.departments.AllowedDepartment departments
+        where departments.login = :login
+    </query>
+
+    <sql-query name="com.rssl.phizic.csaadmin.business.departments.queries.checkTb">
+        <return-scalar column="count" type="integer"/>
+        SELECT
+            count(case when ad.TB != '*' then 1 end) * count(case when ad.TB = '*' then 1 end) COUNT
+        FROM
+            ALLOWED_DEPARTMENTS ad
+        WHERE
+            LOGIN_ID = :loginId
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.csaadmin.business.departments.queries.checkOsb">
+        <return-scalar column="count" type="integer"/>
+        SELECT
+            sum(count(case when ad.OSB != '*' then 1 end) * count(case when ad.OSB = '*' then 1 end)) COUNT
+        FROM
+            ALLOWED_DEPARTMENTS ad
+        WHERE
+            ad.LOGIN_ID = :loginId
+        GROUP BY
+            ad.TB
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.csaadmin.business.departments.queries.checkVsp">
+        <return-scalar column="count" type="integer"/>
+        SELECT
+            sum(count(case when ad.VSP != '*' then 1 end) * count(case when ad.VSP = '*' then 1 end)) COUNT
+        FROM
+            ALLOWED_DEPARTMENTS ad
+        WHERE
+            ad.LOGIN_ID = :loginId
+        GROUP BY
+            ad.TB, ad.OSB
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.csaadmin.business.departments.queries.isAllTBAccess">
+        <return-scalar column="count" type="long"/>
+        <![CDATA[
+            SELECT
+                count(*) as count
+            FROM
+                ALLOWED_DEPARTMENTS ad
+            WHERE
+                ad.LOGIN_ID = :loginId
+            AND
+                ad.TB ='*'
+        ]]>
+    </sql-query>
+</hibernate-mapping>

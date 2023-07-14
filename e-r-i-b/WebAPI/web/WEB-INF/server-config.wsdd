@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment name="defaultClientConfig"
+            xmlns="http://xml.apache.org/axis/wsdd/"
+            xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+            xmlns:handler="http://xml.apache.org/axis/wsdd/providers/handler">
+
+ <globalConfiguration>
+   <parameter name="disablePrettyXML" value="true"/>
+   <parameter name="dotNetSoapEncFix" value="true"/>
+   <parameter name="enableNamespacePrefixOptimization" value="false"/>
+ </globalConfiguration>
+
+ <handler type="java:org.apache.axis.handlers.http.URLMapper" name="URLMapper"/>
+ <handler type="java:org.apache.axis.transport.local.LocalResponder" name="LocalResponder"/>
+ <handler type="java:org.apache.axis.handlers.SimpleAuthenticationHandler" name="Authenticate"/>
+
+  <service name="ERIBClientServicePort" provider="java:RPC" style="document" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://erib.web.services.org/"/>
+      <parameter name="wsdlServiceElement" value="ERIBClientService"/>
+      <parameter name="schemaUnqualified" value="http://erib.web.services.org/"/>
+      <parameter name="wsdlServicePort" value="ERIBClientServicePort"/>
+      <parameter name="className" value="com.rssl.phizic.ws.webAPI.generated.ERIBClientServiceSoapBindingImpl"/>
+      <parameter name="wsdlPortType" value="ERIBClientServicePortType"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="process" qname="process" returnQName="retNS:XmlOutputString" xmlns:retNS="http://erib.web.services.org/" returnType="rtns:string" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="http://erib.web.services.org/ERIBClientService/process" >
+        <parameter qname="pns:XmlInputString" xmlns:pns="http://erib.web.services.org/" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <parameter name="allowedMethods" value="process"/>
+
+  </service>
+
+ <transport name="http">
+  <parameter name="qs:list"
+             value="org.apache.axis.transport.http.QSListHandler"/>
+  <parameter name="qs:method"
+             value="org.apache.axis.transport.http.QSMethodHandler"/>
+  <parameter name="qs:wsdl"
+             value="org.apache.axis.transport.http.QSWSDLHandler"/>
+  <requestFlow>
+   <handler type="URLMapper"/>
+   <handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+  </requestFlow>
+ </transport>
+
+ <transport name="local">
+  <responseFlow>
+   <handler type="LocalResponder"/>
+  </responseFlow>
+ </transport>
+
+</deployment>

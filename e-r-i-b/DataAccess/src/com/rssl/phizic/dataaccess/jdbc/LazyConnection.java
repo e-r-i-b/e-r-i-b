@@ -1,0 +1,222 @@
+package com.rssl.phizic.dataaccess.jdbc;
+
+import java.sql.*;
+import java.util.Map;
+import javax.sql.DataSource;
+
+/**
+ * Ленивый коннектор
+ * Собственно коннектор берется из датасорса при первом использовании (кроме закрытия)
+ * @author Puzikov
+ * @ created 25.09.14
+ * @ $Author$
+ * @ $Revision$
+ */
+
+public class LazyConnection implements Connection
+{
+	private final DataSource dataSource;
+	private Connection connection;
+
+	/**
+	 * ctor
+	 * @param ds датасорс
+	 */
+	public LazyConnection(DataSource ds)
+	{
+		this.dataSource = ds;
+	}
+
+	public Connection getConnection() throws SQLException
+	{
+		if (connection == null)
+		{
+			connection = dataSource.getConnection();
+		}
+
+		return connection;
+	}
+
+	public void close() throws SQLException
+	{
+		if (connection != null)
+		{
+			connection.close();
+		}
+	}
+
+	public Statement createStatement() throws SQLException
+	{
+		return getConnection().createStatement();
+	}
+
+	public PreparedStatement prepareStatement(String sql) throws SQLException
+	{
+		return getConnection().prepareStatement(sql);
+	}
+
+	public CallableStatement prepareCall(String sql) throws SQLException
+	{
+		return getConnection().prepareCall(sql);
+	}
+
+	public String nativeSQL(String sql) throws SQLException
+	{
+		return getConnection().nativeSQL(sql);
+	}
+
+	public void setAutoCommit(boolean autoCommit) throws SQLException
+	{
+		getConnection().setAutoCommit(autoCommit);
+	}
+
+	public boolean getAutoCommit() throws SQLException
+	{
+		return getConnection().getAutoCommit();
+	}
+
+	public void commit() throws SQLException
+	{
+		getConnection().commit();
+	}
+
+	public void rollback() throws SQLException
+	{
+		getConnection().rollback();
+	}
+
+	public boolean isClosed() throws SQLException
+	{
+		return getConnection().isClosed();
+	}
+
+	public DatabaseMetaData getMetaData() throws SQLException
+	{
+		return getConnection().getMetaData();
+	}
+
+	public void setReadOnly(boolean readOnly) throws SQLException
+	{
+		getConnection().setReadOnly(readOnly);
+	}
+
+	public boolean isReadOnly() throws SQLException
+	{
+		return getConnection().isReadOnly();
+	}
+
+	public void setCatalog(String catalog) throws SQLException
+	{
+		getConnection().setCatalog(catalog);
+	}
+
+	public String getCatalog() throws SQLException
+	{
+		return getConnection().getCatalog();
+	}
+
+	public void setTransactionIsolation(int level) throws SQLException
+	{
+		getConnection().setTransactionIsolation(level);
+	}
+
+	public int getTransactionIsolation() throws SQLException
+	{
+		return getConnection().getTransactionIsolation();
+	}
+
+	public SQLWarning getWarnings() throws SQLException
+	{
+		return getConnection().getWarnings();
+	}
+
+	public void clearWarnings() throws SQLException
+	{
+		getConnection().clearWarnings();
+	}
+
+	public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException
+	{
+		return getConnection().createStatement(resultSetType, resultSetConcurrency);
+	}
+
+	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException
+	{
+		return getConnection().prepareStatement(sql, resultSetType, resultSetConcurrency);
+	}
+
+	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException
+	{
+		return getConnection().prepareCall(sql, resultSetType, resultSetConcurrency);
+	}
+
+	public Map<String, Class<?>> getTypeMap() throws SQLException
+	{
+		return getConnection().getTypeMap();
+	}
+
+	public void setTypeMap(Map<String, Class<?>> map) throws SQLException
+	{
+		getConnection().setTypeMap(map);
+	}
+
+	public void setHoldability(int holdability) throws SQLException
+	{
+		getConnection().setHoldability(holdability);
+	}
+
+	public int getHoldability() throws SQLException
+	{
+		return getConnection().getHoldability();
+	}
+
+	public Savepoint setSavepoint() throws SQLException
+	{
+		return getConnection().setSavepoint();
+	}
+
+	public Savepoint setSavepoint(String name) throws SQLException
+	{
+		return getConnection().setSavepoint(name);
+	}
+
+	public void rollback(Savepoint savepoint) throws SQLException
+	{
+		getConnection().rollback(savepoint);
+	}
+
+	public void releaseSavepoint(Savepoint savepoint) throws SQLException
+	{
+		getConnection().releaseSavepoint(savepoint);
+	}
+
+	public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
+	{
+		return getConnection().createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
+	}
+
+	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
+	{
+		return getConnection().prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+	}
+
+	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
+	{
+		return getConnection().prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+	}
+
+	public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException
+	{
+		return getConnection().prepareStatement(sql, autoGeneratedKeys);
+	}
+
+	public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException
+	{
+		return getConnection().prepareStatement(sql, columnIndexes);
+	}
+
+	public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException
+	{
+		return getConnection().prepareStatement(sql, columnNames);
+	}
+}

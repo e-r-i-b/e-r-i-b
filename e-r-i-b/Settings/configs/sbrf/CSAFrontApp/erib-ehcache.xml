@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<ehcache>
+	<!-- Sets the path to the directory where cache .data files are created.
+
+         If the path is a Java System Property it is replaced by
+         its value in the running VM.
+
+         The following properties are translated:
+         user.home - User's home directory
+         user.dir - User's current working directory
+         java.io.tmpdir - Default temp file path -->
+	<diskStore path="java.io.tmpdir/CSAFront"/>
+	<!--Default Cache configuration. These will applied to caches programmatically created through
+        the CacheManager.
+
+        The following attributes are required for defaultCache:
+
+        maxInMemory       - Sets the maximum number of objects that will be created in memory
+        eternal           - Sets whether elements are eternal. If eternal,  timeouts are ignored and the element
+                            is never expired.
+        timeToIdleSeconds - Sets the time to idle for an element before it expires. Is only used
+                            if the element is not eternal. Idle time is now - last accessed time
+        timeToLiveSeconds - Sets the time to live for an element before it expires. Is only used
+                            if the element is not eternal. TTL is now - creation time
+        overflowToDisk    - Sets whether elements can overflow to disk when the in-memory cache
+                            has reached the maxInMemory limit.
+
+        -->
+	<defaultCache maxElementsInMemory="100"
+	              eternal="false"
+	              timeToIdleSeconds="120"
+	              timeToLiveSeconds="120"
+	              overflowToDisk="true"/>
+
+	<!--Predefined caches.  Add your cache configuration settings here.
+        If you do not have a configuration for your cache a WARNING will be issued when the
+        CacheManager starts
+
+        The following attributes are required for defaultCache:
+
+        name              - Sets the name of the cache. This is used to identify the cache. It must be unique.
+        maxInMemory       - Sets the maximum number of objects that will be created in memory
+        eternal           - Sets whether elements are eternal. If eternal,  timeouts are ignored and the element
+                            is never expired.
+        timeToIdleSeconds - Sets the time to idle for an element before it expires. Is only used
+                            if the element is not eternal. Idle time is now - last accessed time
+        timeToLiveSeconds - Sets the time to live for an element before it expires. Is only used
+                            if the element is not eternal. TTL is now - creation time
+        overflowToDisk    - Sets whether elements can overflow to disk when the in-memory cache
+                            has reached the maxInMemory limit.
+
+        -->
+
+    <!-- настройка провайдера для кластреного кэша.
+
+     Если указана настройка peerDiscovery = automatic, то необходимо заполнить следующие параметры:
+        multicastGroupAddress = мультикаст адрес.
+        multicastGroupPort = порт мульткаста.
+        timeToLive = время жизни.
+
+     Если указан параметр peerDiscovery = manual, то необходимо заполнить следующие параметры:
+        rmiUrls=//<адрес другого компьютера в кластере>:<порт>/<имя кеша для прослушивания>|//<адрес другого компьютера в кластере>:<порт>/<имя кеша для прослушивания>|...
+
+     Автоматический поиск компьютеров с кешем для обмена возможен только при выключенном VPN соединении.
+     Для автоматического поиска должен быть разрешен протокол IGMP в фаерволах или мультикаст трафик.
+    -->
+    <cacheManagerPeerProviderFactory
+            class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory"
+            properties="peerDiscovery=automatic, multicastGroupAddress=225.28.75.35, multicastGroupPort=49324, timeToLive=32"/>
+
+    <!-- прослушивание для кластреного кеша. -->
+    <cacheManagerPeerListenerFactory
+            class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"
+            properties="socketTimeoutMillis=10000"/>
+
+     <cache name="news-client-csa-cache"
+		   maxElementsInMemory="1"
+		   eternal="false"
+		   timeToIdleSeconds="60"
+		   timeToLiveSeconds="60"
+		   overflowToDisk="false"/>
+
+    <!-- кеш для списка локалей -->
+    <cache name="locales-cache"
+           maxElementsInMemory="1"
+           eternal="false"
+           timeToIdleSeconds="900"
+           timeToLiveSeconds="900"
+           overflowToDisk="false"/>
+
+     <cache name="one-news-client-csa-cache"
+		   maxElementsInMemory="50"
+		   eternal="false"
+		   timeToIdleSeconds="60"
+		   timeToLiveSeconds="60"
+		   overflowToDisk="false"/>
+
+     <cache name="list-news-client-csa-cache"
+		   maxElementsInMemory="100"
+		   eternal="false"
+		   timeToIdleSeconds="60"
+		   timeToLiveSeconds="60"
+		   overflowToDisk="false"/>
+    
+      <cache name="tabs-client-csa-cache"
+           maxElementsInMemory="50"
+           eternal="false"
+           timeToIdleSeconds="300"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+      <!-- кеш выбора региона -->
+      <cache name="region-client-csa-cache"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToIdleSeconds="300"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+    <cache name="regions-list-client-csa-cache"
+           maxElementsInMemory="1"
+           eternal="false"
+           timeToIdleSeconds="300"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+    <cache name="region-by-name-csa-cache"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToIdleSeconds="300"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+    <!-- кэш для глобальной блокировки входа -->
+    <cache name="global-bloking-rule-csa-cache"
+           maxElementsInMemory="1"
+           eternal="false"
+           timeToIdleSeconds="60"
+           timeToLiveSeconds="60"
+           overflowToDisk="false"/>
+
+    <!-- Кеш оповещений о блокировке входа -->
+    <cache name="bloking-rule-notification-csa-cache"
+           maxElementsInMemory="1"
+           eternal="false"
+           timeToIdleSeconds="60"
+           timeToLiveSeconds="60"
+           overflowToDisk="false"/>
+
+      <cache name="unallowed-client-browser-cache"
+           maxElementsInMemory="50"
+           eternal="false"
+           timeToIdleSeconds="300"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+    <!-- список доверенных ip-адресов, с которых выполнялся вход в CSAFront -->
+	<cache name="com.rssl.auth.csa.front.security.IPSecurityManager.ipToLastVisitingTime"
+	       maxElementsInMemory="100000"
+	       eternal="true"
+	       overflowToDisk="true">
+        <cacheEventListenerFactory
+            class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+            properties="replicateAsynchronously=true, replicatePuts=true, replicateUpdates=true, replicateUpdatesViaCopy=true, replicateRemovals=true "/>
+    </cache>
+
+    <!-- список недоверенных ip-адресов, с которых выполнялся вход в CSAFront -->
+    <cache name="com.rssl.auth.csa.front.security.IPSecurityManager.nonTrustedIpToLastVisitingTime"
+	       maxElementsInMemory="100000"
+	       eternal="true"
+	       overflowToDisk="true">
+        <cacheEventListenerFactory
+            class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+            properties="replicateAsynchronously=true, replicatePuts=true, replicateUpdates=true, replicateUpdatesViaCopy=true, replicateRemovals=true "/>
+    </cache>
+
+    <!-- список доверенных логинов, с которых выполнялся восстановление пароля в CSAFront -->
+	<cache name="com.rssl.auth.csa.front.security.LoginSecurityManager.loginToLastVisitingTime"
+	       maxElementsInMemory="100000"
+	       eternal="true"
+	       overflowToDisk="true">
+        <cacheEventListenerFactory
+            class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+            properties="replicateAsynchronously=true, replicatePuts=true, replicateUpdates=true, replicateUpdatesViaCopy=true, replicateRemovals=true "/>
+    </cache>
+
+    <!-- список недоверенных логинов, с которых выполнялся восстановление пароля в CSAFront -->
+    <cache name="com.rssl.auth.csa.front.security.LoginSecurityManager.nonTrustedLoginToLastVisitingTime"
+	       maxElementsInMemory="100000"
+	       eternal="true"
+	       overflowToDisk="true">
+        <cacheEventListenerFactory
+            class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+            properties="replicateAsynchronously=true, replicatePuts=true, replicateUpdates=true, replicateUpdatesViaCopy=true, replicateRemovals=true "/>
+    </cache>
+
+    <!-- список доверенных ip-адресов, с которых выполнялся вход в CSAFront -->
+    <cache name="com.rssl.auth.csa.front.security.IPSecurityManager.ipToPhones"
+           maxElementsInMemory="100000"
+           eternal="false"
+           overflowToDisk="true">
+        <cacheEventListenerFactory
+            class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+            properties="replicateAsynchronously=true, replicatePuts=true, replicateUpdates=true, replicateUpdatesViaCopy=true, replicateRemovals=true "/>
+    </cache>
+
+    <cache name="com.rssl.auth.csa.front.security.NewRegistrationSecurityManager.time"
+           maxElementsInMemory="100000"
+           eternal="true"
+           overflowToDisk="true">
+        <cacheEventListenerFactory
+                class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+                properties="replicateAsynchronously=true, replicatePuts=true, replicateUpdates=true, replicateUpdatesViaCopy=true, replicateRemovals=true "/>
+    </cache>
+
+    <cache name="com.rssl.auth.csa.front.security.NewRegistrationSecurityManager.attempts"
+           maxElementsInMemory="100000"
+           eternal="true"
+           overflowToDisk="true">
+        <cacheEventListenerFactory
+                class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+                properties="replicateAsynchronously=true, replicatePuts=true, replicateUpdates=true, replicateUpdatesViaCopy=true, replicateRemovals=true "/>
+    </cache>
+
+    <!--
+      - Method: BusinessPropertyService.findProperties
+      - Description: Бизнес-настройки
+    -->
+    <cache name="BusinessPropertyService.getBusinessProperties"
+        maxElementsInMemory="300"
+        eternal="false"
+        overflowToDisk="true"
+        timeToIdleSeconds="1800"
+        timeToLiveSeconds="1800" />
+    
+</ehcache>

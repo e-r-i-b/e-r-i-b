@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<sql-query name="com.rssl.phizic.operations.internetshop.FnsListOperation.list">
+        <return alias="fns" class="com.rssl.phizic.business.shop.FNS"/>
+        <return-scalar column="PAYMENT_ID" type="long"/>
+        <![CDATA[
+	    SELECT {fns.*},
+	        (SELECT bdto.BUSINESS_DOCUMENT_ID FROM BUSINESS_DOCUMENTS_TO_ORDERS bdto WHERE ordr.UUID = bdto.ORDER_UUID) as PAYMENT_ID
+	    FROM FNS_FIELDS fns, ORDERS ordr
+	    WHERE ordr.user_id = :extra_person_id and ordr.ID = fns.ORDER_ID and
+           ordr.ORDER_DATE >= :extra_logon_date
+        ]]>
+	</sql-query>
+</hibernate-mapping>

@@ -1,0 +1,215 @@
+import rcw, rsd, deprintr;
+import "rt_ib_xml.mac";
+
+
+// ────────────────────────────────────────────────────────────────
+// Проводка списания платы за обслуживание
+// ────────────────────────────────────────────────────────────────
+class(cBaseDeposit) 
+    cCalcServiceFee( inXml, outXml ) 
+
+/* 
+        Макрос списывает плату за обслуживание
+        (проводит переданную операцию)
+        автор - Пахомова Ю.В.
+        дата создания - январь 2009.
+
+    ───────────────────
+      ИСХОДНЫЕ ДАННЫЕ  
+    ───────────────────
+
+Элемент сообщения          Тип             Комментарий                             Кратность
+──────────────────────────┼───────────────┼───────────────────────────────────────┼──────────────
+request                 
+├─id                       string(32)      Идентификатор запроса в системе  ИКФЛ        
+└─serviceFeePayment_q                       
+    ├─dateCreated          date            Дата операции (когда операция должна была произойти)
+    ├─chargeOffAccount     string(25)      Номер счета - плательщика.
+    ├─ground               string(210)     Назначение платежа   
+    ├─type                 int16           Номер (код) операции
+    ├─subType              int16           Номер подоперации
+    ├─chargeOffAmount                      Сумма платежа (списания)
+      ├─value              lmoney          Сумма        
+      └─currencyCode       string(3)       Валюта
+ 
+
+    ───────────────────
+          ОТВЕТ
+    ───────────────────
+Элемент сообщения       Тип             Комментарий
+───────────────────────┼───────────────┼──────────────────────────────────────────────────────────────────────
+response                        
+├─parentId              string(32)      Идентификатор запроса в системе  ИКФЛ   
+├─id                    string(32)      Идентификатор ответа    
+└─serviceFeePayment_a
+  ├─errorCode           int             Код ошибки ( 0 - нормальное завершение )
+  ├─errorText           string(80)      Текст ошибки (if errorCode==0 - errorText не вставляется в ответный док)
+  ├─applicationKind     int             Идентификатор документа
+  └─applicationKey      string(29)      Идентификатор документа  
+
+*/
+
+//file depositr (depositr);
+
+
+  /* ──────────────────────────────────────────────────────  
+  // Формируем выходной XML при успешном снятии платы
+  // errorCode = 0, если проведение операции осуществилось
+  // успешно. Иначе содержит код ошибки.
+  --------------------------------------------------------*/
+  private macro CreateTagData( outXml, errorCode, applicationKind, applicationKey )
+
+    var errortxt = "";
+    if (errorCode != 0 )
+        errortxt = getErrorString(errorCode);
+    end;
+
+    outXML = AddError2OutXml(outXML, errorCode, errortxt);
+
+    node = nodeAnswer.appendChild( outXML.createNode(1, "applicationKind", "") ); 
+    node.text = applicationKind;
+
+    node = nodeAnswer.appendChild( outXML.createNode(1, "applicationKey", "" ) );
+    node.text = applicationKey;
+
+    SetParm( 1, outXml );
+  end;//CreateTagData( outXml, commission, currency )
+                                                                            
+
+  /* ----------------------------------------------------------
+  //  Списываем плату за обслуживание
+  -------------------------------------------------------------*/
+  private macro carryFeePayment (outXml)
+        record operprm  ("oper_prm.1");
+        record sbdepdoc ("sbdepdoc.dbt");
+
+    var stat = 0;
+
+    var cmd_operation;
+    var rs_account, date_cmd, rs_date, fnCash, flagCur;
+
+    record r_sbdepdoc( "sbdepdoc.dbt", "sbbank.def" );
+
+    if(( chargeOffAccount == null ) or ( chargeOffAccount == "" ))
+      outXML = AddError2OutXml(outXML, -1, "Не задан счет");
+      return outXML; 
+    end;
+
+    if( dateCreated == null )
+      outXML = AddError2OutXml(outXML, -1, "Не задана дата операции");
+      return outXML; 
+    end;
+
+    if( chargeOffAmount == null )
+      outXML = AddError2OutXml(outXML, -1, "Не задана сумма опрерации");
+      return outXML; 
+    end;
+
+    if( type == null )
+      /*выставляем значения по умолчанию*/ 
+      type = 62;
+      subType = 7;
+    end;
+
+    if( not findAccount( outXML, rs_account, chargeOffAccount, chargeOffAmountCurrency, true ) ) 
+      return outXML;
+    end;
+
+        OpenDepFiles();
+
+        date_cmd = RsdCommand(
+          "select t_operdate  " +
+          "from ddepparm_dbt  " +
+          "where t_fncash = ? " +
+          " and t_flagcur = ? "
+        );
+        date_cmd.addParam("fncash", RSDBP_IN);  date_cmd.value("fncash") = rs_account.value("t_fncash");
+        date_cmd.addParam("flagcur", RSDBP_IN); date_cmd.value("flagcur") = rs_account.value("t_iscur");
+          
+        date_cmd.execute;
+        rs_date = RsdRecordSet(date_cmd);
+        rs_date.moveNext;
+
+        fncash = setFnCash(rs_account.value("T_FNCASH"));
+        flagCur = setFlagCur(rs_account.value("T_ISCUR"));
+
+        ClearRecord(sbdepdoc);
+        sbdepdoc.Referenc         = rs_account.value("T_REFERENC");
+        sbdepdoc.IsCur            = rs_account.value("T_ISCUR");;
+        sbdepdoc.FNCash           = rs_account.value("T_FNCASH");
+        sbdepdoc.Account          = chargeOffAccount;
+        sbdepdoc.Oper             = 0;
+        sbdepdoc.Type_Account     = rs_account.value("T_TYPE_ACCOUNT");
+        sbdepdoc.Code_Currency    = rs_account.value("T_CODE_CURRENCY");
+        sbdepdoc.CodClient        = rs_account.value("T_CODCLIENT");
+        sbdepdoc.YesSbook         = strFor(0);
+        sbdepdoc.Date_Document    = rs_date.value("t_operdate");
+        sbdepdoc.DepDate_Document = rs_date.value("t_operdate");
+        sbdepdoc.TypeComplexOper  = type;
+        sbdepdoc.TypeOper         = type;     // операция
+        sbdepdoc.ApplType         = subType;  //подоперация   
+        sbdepdoc.OutSum           = chargeOffAmount;
+        sbdepdoc.Ground           = ground;  
+        sbdepdoc.SignAccount      = "";//strFor(0);
+        sbdepdoc.iApplicationKind = 1;
+        sbdepdoc.ApplicationKey   = FormApplicationKey(1);
+        sbdepdoc.IsControl        = "";//strFor(0); /* Признак главного документа */
+        
+       
+        ClearRecord(operprm);
+        operprm.Account           = chargeOffAccount;
+        operprm.Type_Account      = rs_account.value("T_TYPE_ACCOUNT");
+        operprm.Code_Currency     = rs_account.value("T_CODE_CURRENCY");
+        operprm.Type_Oper         = type;
+        operprm.Show_Panel        = 0;
+        operprm.UseMaxDate        = 1;
+        operprm.NoPrint           = 1;
+        operprm.NonCashCommission = 0;
+        operprm.TypeComplexOper   = type;
+        
+        OpenDepFiles();
+        stat = Выполнение_Операции( operprm, sbdepdoc );  
+        CloseDepFiles();
+    CreateTagData(outXml, stat, sbdepdoc.iApplicationKind, sbdepdoc.ApplicationKey);
+        setFnCash(fncash);
+ 	setFlagCur(flagCur);
+    return outXML;
+
+  end;
+
+
+  macro start( inXml, outXml )
+
+    var nodeParentElement;
+    var stat = 0;
+
+    if(not outXml )
+      outXml = CreateXMLObject();
+      if(not outXml) return; end;
+
+      nodeParentElement = inXml.documentElement.selectSingleNode( "//serviceFeePayment_q" );
+      CreateBeginTag( outXml );
+
+      if ( nodeParentElement )
+        getParameters( nodeParentElement );
+        carryFeePayment( outXML );
+      end;
+
+    end;//if(not outXml )
+
+    return outXml;
+  end;//macro start( inXml, outXml )
+
+end;//class(cBaseDeposit) 
+
+
+// ───────────────────────────────────────
+// Взятие платы за обслуживание (по номеру операции)
+// ───────────────────────────────────────
+macro CalcServiceFee( inXml, outXml ) 
+
+  var t = cCalcServiceFee;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;

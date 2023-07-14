@@ -1,0 +1,46 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="FavouriteTypeLink" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.FavouriteTypeLink</param>
+        <param name="identifierMethod">toValue</param>
+        <param name="valueOfMethod">fromValue</param>
+    </typedef>
+    <class name="com.rssl.phizic.business.favouritelinks.FavouriteLink" table="FAVOURITE_LINKS">
+        <id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_FAVOURITE_LINKS</param>
+			</generator>
+		</id>
+
+        <property name="loginId"    type="long"     not-null="true" column="LOGIN_ID"/>
+        <property name="name"       type="string"   not-null="true" column="NAME"/>
+        <property name="link"       type="string"   not-null="true" column="LINK"/>
+        <property name="orderInd"   type="integer"  not-null="true" column="ORDER_IND"/>
+        <property name="pattern"    type="string"   not-null="false" column="PATTERN_NAME"/>
+        <property name="onclickFunction"    type="string"   not-null="false" column="ONCLICK_FUNCTION"/>
+        <property name="typeLink"   type="FavouriteTypeLink"   not-null="true" column="TYPE_LINK"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.favouritelinks.FavouriteLink.getUserLinks">
+        select favouriteLink
+		from com.rssl.phizic.business.favouritelinks.FavouriteLink as favouriteLink
+    	where favouriteLink.loginId = :loginId
+        order by favouriteLink.orderInd
+    </query>
+
+    <!--Удалить Любимую ссылку по id
+        Опорный объект: PK_FAVOURITE_LINKS
+        Предикаты доступа: "ID"=TO_NUMBER(:ID)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.favouritelinks.FavouriteLink.removeById">
+        delete
+		from com.rssl.phizic.business.favouritelinks.FavouriteLink as favouriteLink
+        where favouriteLink.id = :id
+    	and favouriteLink.loginId = :loginId
+    </query>
+
+</hibernate-mapping>

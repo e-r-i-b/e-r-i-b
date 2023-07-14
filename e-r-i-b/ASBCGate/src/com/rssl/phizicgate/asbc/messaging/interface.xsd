@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="cp866"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="request" type="RequestType" />
+
+    <xs:element name="response" type="ResponseType" />
+
+    <xs:complexType name="RequestType">
+        <xs:choice>
+            <xs:element name="findCredits" type="FindCreditsRequestType"/>
+            <xs:element name="makePayment" type="MakePaymentRequestType"/>
+            <xs:element name="paymentStatus" type="PaymentStatusRequestType"/>
+            <xs:element name="reversePayment" type="ReversePaymentRequestType"/>
+            <xs:element name="findServiceProviders" type="FindServiceProvidersRequestType"/>
+            <xs:element name="findGibdd" type="FindGibddRequestType"/>
+            <xs:element name="findPU" type="FindPURequestType"/>
+        </xs:choice>
+        <xs:attribute name="key" use="required" type="KeyType"/>
+        <xs:attribute name="expectedEncoding" use="optional" type="EncodingType"/>
+    </xs:complexType>
+
+    <xs:complexType name="ResponseType">
+        <xs:choice>
+            <xs:element name="findCredits" type="FindCreditsResponseType"/>
+            <xs:element name="makePayment" type="MakePaymentResponseType"/>
+            <xs:element name="paymentStatus" type="PaymentStatusResponseType"/>
+            <xs:element name="reversePayment" type="ReversePaymentResponseType"/>
+            <xs:element name="findServiceProviders" type="FindServiceProvidersResponseType"/>
+            <xs:element name="findGibdd" type="FindGibddResponseType"/>
+            <xs:element name="findPU" type="FindPUResponseType"/>
+            <xs:element name="exception">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="message" type="MessageType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="FindCreditsRequestType">
+        <xs:sequence>
+            <xs:element name="providerId" type="ProviderIdType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="account" type="PersonalAccountType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="periodBeginningDate" type="NullableDate" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="periodEndDate" type="NullableDate" minOccurs="0" maxOccurs="1"/>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:any processContents="skip"/>
+            </xs:sequence>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="FindCreditsResponseType">
+        <xs:choice>
+            <xs:element name="invalidAccount" minOccurs="1" maxOccurs="1" type="MessageType"/>
+            <xs:element name="dataNotFound" minOccurs="1" maxOccurs="1" type="MessageType"/>
+            <xs:element name="result" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="result_element" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:sequence minOccurs="12" maxOccurs="unbounded">
+                                <xs:choice>
+                                    <xs:element name="creditId" type="CreditIdType"/>
+                                    <xs:element name="uicPu" type="PersonalAccountType"/>
+                                    <xs:element name="sum" type="MoneyType"/>
+                                    <xs:element name="minSum" type="MoneyType"/>
+                                    <xs:element name="maxSum" type="MoneyType"/>
+                                    <xs:element name="paid" type="MoneyType"/>
+                                    <xs:element name="beginDate" type="xs:date"/>
+                                    <xs:element name="bic" type="BICType"/>
+                                    <xs:element name="correspondentAccount" type="CorrespondentAccountType"/>
+                                    <xs:element name="settlementAccount" type="AccountType"/>
+                                    <xs:element name="serviceProviderId" type="ProviderIdType"/>
+                                    <xs:element name="divisionId" type="DepartmentIdType"/>
+                                    <xs:element name="endDate" type="NullableDate"/>
+                                    <xs:element name="inn" type="INNType"/>
+                                    <xs:element name="kpp" type="KPPType"/>
+                                    <xs:element name="kbk" type="KBKType"/>
+                                    <xs:element name="okato" type="OKATOType"/>
+                                    <xs:element name="providerName" type="xs:string"/>
+                                    <xs:element name="infoPu" type="xs:string"/>
+                                    <xs:element name="balance" type="MoneyType"/>
+                                    <xs:element name="docNum" type="xs:string"/>
+                                    <xs:element name="address" type="xs:string"/>
+                                    <xs:element name="balanceAtBeginning" type="MoneyType"/>
+                                    <xs:element name="code4000" type="Code4000Type"/>
+                                    <xs:element name="dopId" type="xs:string"/>
+                                    <xs:element name="fio" type="xs:string"/>
+                                    <xs:element name="inRegNum" type="xs:string"/>
+                                    <xs:element name="insurance" type="MoneyType"/>
+                                    <xs:element name="penaltyStartDate" type="NullableDate"/>
+                                    <xs:element name="regNum" type="xs:string"/>
+                                    <xs:element name="uicBc" type="xs:string"/>
+                                    <xs:element name="transactionId" type="TransactionType" minOccurs="0" maxOccurs="1"/>
+                                    <xs:any processContents="skip"/>
+                                </xs:choice>
+                              </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="MakePaymentRequestType">
+        <xs:sequence>
+            <xs:element name="creditId" type="CreditIdType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="paymentDate" type="xs:date" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="paymentTime" type="xs:time" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="osb" type="BranchType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="filial" type="FilialType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="paymentType" type="PaymentTypeType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="docNumber" type="DocNumberType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="sum" type="MoneyType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="commission" type="MoneyType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="payerCommission" type="MoneyType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="sumPu" type="MoneyType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="sumSt" type="MoneyType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="additionalRequisites" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="cashierId" type="CashierIdType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="serviceId" type="ServiceIdType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="bic" type="BICType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="correspondentAccount" type="CorrespondentAccountType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="settlementAccount" type="AccountType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="inn" type="INNType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="kpp" type="KPPType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="kbk" type="KBKType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="okato" type="OKATOType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="providerId" type="ProviderIdType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="transactionId" type="TransactionType" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="providerInfo" type="ProviderInfoType" minOccurs="0" maxOccurs="1"/>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:any processContents="skip"/>
+            </xs:sequence>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="MakePaymentResponseType">
+        <xs:restriction base="xs:long" />
+    </xs:simpleType>
+
+    <xs:complexType name="PaymentStatusRequestType">
+        <xs:sequence>
+         <xs:element name="id" minOccurs="1" maxOccurs="1" type="xs:long"/>
+        </xs:sequence>        
+    </xs:complexType>
+    
+    <xs:complexType name="PaymentStatusResponseType">
+        <xs:sequence>
+            <xs:element name="paymentStatus" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence minOccurs="2" maxOccurs="unbounded">
+                        <xs:choice>
+                            <xs:element name="id" type="xs:long"/>
+                            <xs:element name="status" type="xs:int"/>
+                            <xs:any processContents="skip"/>
+                        </xs:choice>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:simpleType name="ReversePaymentRequestType">
+        <xs:restriction base="xs:long"/>
+    </xs:simpleType>
+    
+    <xs:complexType name="ReversePaymentResponseType">
+        <xs:choice>
+            <xs:element name="dataNotFound" minOccurs="1" maxOccurs="1" type="MessageType" />            
+            <xs:element name="invalidPaymentStatus" minOccurs="1" maxOccurs="1" type="MessageType" />
+            <xs:element name="result" type="OKType" minOccurs="1" maxOccurs="1"/>
+        </xs:choice>
+    </xs:complexType>
+    
+    <xs:complexType name="FindServiceProvidersRequestType">
+        <xs:sequence>
+            <xs:element name="terbank" minOccurs="0" maxOccurs="1" type="TerbankType"/>
+            <xs:element name="branch" minOccurs="0" maxOccurs="1" type="BranchType"/>
+            <xs:element name="subbranch" minOccurs="0" maxOccurs="1" type="FilialType"/>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:any processContents="skip"/>
+            </xs:sequence>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="FindServiceProvidersResponseType">
+        <xs:choice>
+            <xs:element name="result" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="result_element" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:sequence minOccurs="6" maxOccurs="unbounded">
+                                <xs:choice>
+                                     <xs:element name="providerID" type="ProviderIdType"/>
+                                     <xs:element name="procType" type="xs:int"/>
+                                     <xs:element name="fullName" type="xs:string"/>
+                                     <xs:element name="shortName" type="xs:string"/>
+                                     <xs:element name="codSpec" type="SpecialClientCodeOfServiceProviderType"/>
+                                     <xs:element name="pattern" type="SpecialClientCodePatternType"/>
+                                     <xs:element name="billProc" type="NullablePercentType"/>
+                                     <xs:element name="sumProc" type="NullablePercentType"/>
+                                     <xs:element name="billSum" type="NullableMoneyType"/>
+                                     <xs:element name="commisType" type="NullableIntegerType"/>
+                                     <xs:element name="BIK" type="NullableBICType"/>
+                                     <xs:element name="beginDate" type="NullableDate"/>
+                                     <xs:element name="correspondentAccount" type="NullableCorrespondentAccountType"/>
+                                     <xs:element name="dogovorNum" type="xs:string"/>
+                                     <xs:element name="address" type="xs:string"/>
+                                     <xs:element name="email" type="xs:string"/>
+                                     <xs:element name="endDate" type="NullableDate"/>
+                                     <xs:element name="fax" type="xs:string"/>
+                                     <xs:element name="inn" type="NullableINNType"/>
+                                     <xs:element name="phone" type="xs:string"/>
+                                     <xs:element name="settlementAccount" type="NullableAccountType"/>
+                                     <xs:element name="webSite" type="xs:string"/>
+                                     <xs:element name="actID" type="NullableLongType"/>
+                                     <xs:any processContents="skip"/>
+                                </xs:choice>
+                              </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+    
+    <xs:complexType name="FindGibddRequestType">
+        <xs:sequence>
+            <xs:element name="providerId" type="ProviderIdType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="inn" type="INNType" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="okato" type="OKATOType" minOccurs="1" maxOccurs="1"/>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:any processContents="skip"/>
+            </xs:sequence>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="FindGibddResponseType">
+        <xs:choice>
+            <xs:element name="dataNotFound" minOccurs="1" maxOccurs="1" type="MessageType"/>
+            <xs:element name="result" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence minOccurs="12" maxOccurs="unbounded">
+                        <xs:choice>
+                             <xs:element name="bik" type="BICType"/>
+                             <xs:element name="code4000" type="Code4000Type"/>
+                             <xs:element name="correspondentAccount" type="CorrespondentAccountType"/>
+                             <xs:element name="departmentId" type="DepartmentIdType"/>
+                             <xs:element name="inn" type="INNType"/>
+                             <xs:element name="kbk" type="KBKType"/>
+                             <xs:element name="kpp" type="KPPType"/>
+                             <xs:element name="name" type="xs:string"/>
+                             <xs:element name="okato" type="OKATOType"/>
+                             <xs:element name="providerId" type="ProviderIdType"/>
+                             <xs:element name="settlementAccount" type="AccountType"/>
+                             <xs:element name="shortName" type="xs:string"/>
+                             <xs:element name="specialClientCode" type="SpecialClientCodeOfServiceProviderType"/>
+                             <xs:any processContents="skip"/>
+                        </xs:choice>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+    
+    <xs:complexType name="FindPURequestType">
+        <xs:sequence minOccurs="1" maxOccurs="unbounded">
+            <xs:choice>
+                 <xs:element name="bik" type="BICType"/>
+                 <xs:element name="code4000" type="Code4000Type"/>
+                 <xs:element name="correspondentAccount" type="CorrespondentAccountType"/>
+                 <xs:element name="departmentId" type="DepartmentIdType"/>
+                 <xs:element name="inn" type="INNType"/>
+                 <xs:element name="kpp" type="KPPType"/>
+                 <xs:element name="name" type="xs:string"/>
+                 <xs:element name="providerId" type="ProviderIdType"/>
+                 <xs:element name="settlementAccount" type="AccountType"/>
+                 <xs:element name="shortName" type="xs:string"/>
+                 <xs:element name="specialClientCode" type="SpecialClientCodeOfServiceProviderType"/>
+                 <xs:element name="okato" type="OKATOType"/>
+                 <xs:element name="personalAccount" type="xs:string"/>
+                 <xs:any processContents="skip"/>
+            </xs:choice>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="FindPUResponseType">
+        <xs:choice>
+            <xs:element name="dataNotFound" minOccurs="1" maxOccurs="1" type="MessageType"/>
+            <xs:element name="result" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+	            	<xs:sequence>
+		            	<xs:element name="result_element" minOccurs="1" maxOccurs="unbounded">
+			                <xs:complexType>
+			                    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+			                        <xs:choice>
+			                             <xs:element name="bik" type="BICType"/>
+			                             <xs:element name="code4000" type="Code4000Type"/>
+			                             <xs:element name="correspondentAccount" type="CorrespondentAccountType"/>
+			                             <xs:element name="departmentId" type="DepartmentIdType"/>
+			                             <xs:element name="inn" type="INNType"/>
+			                             <xs:element name="kpp" type="KPPType"/>
+			                             <xs:element name="name" type="xs:string"/>
+			                             <xs:element name="providerId" type="ProviderIdType"/>
+			                             <xs:element name="settlementAccount" type="AccountType"/>
+			                             <xs:element name="shortName" type="xs:string"/>
+			                             <xs:element name="specialClientCode" type="SpecialClientCodeOfServiceProviderType"/>
+			                             <xs:any processContents="skip"/>
+			                        </xs:choice>
+			                    </xs:sequence>
+			                </xs:complexType>
+			            </xs:element>
+	                </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:simpleType name="DocNumberType">
+        <xs:restriction base="xs:string">
+            <xs:length value="6" fixed="true" />
+            <xs:pattern value="\d{6}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PaymentTypeType">
+        <xs:restriction base="xs:int">
+            <xs:enumeration value="0" />
+            <xs:enumeration value="7" />
+            <xs:enumeration value="9" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="MessageType">
+          <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:whiteSpace value="preserve" />
+          </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="TerbankType">
+        <xs:restriction base="xs:string">
+            <xs:length value="3" fixed="true" />
+            <xs:pattern value="\d{3}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BranchType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\d{4}" />
+            <xs:length value="4" fixed="true"></xs:length>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="FilialType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\d{1,5}" />
+            <xs:minLength value="1"></xs:minLength>
+            <xs:maxLength value="5"></xs:maxLength>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CreditIdType">
+        <xs:restriction base="xs:long" />
+    </xs:simpleType>
+
+    <xs:simpleType name="MoneyType">
+        <xs:restriction base="xs:long"/>
+    </xs:simpleType>
+
+    <xs:simpleType name="ServiceIdType">
+        <xs:restriction base="xs:int">
+            <xs:minInclusive value="0" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="BICType">
+        <xs:restriction base="xs:string">
+            <xs:length value="9" fixed="true" />
+            <xs:pattern value="\d{9}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CorrespondentAccountType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:maxLength value="25" />
+            <xs:pattern value="0|\d{20}|\d{25}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PersonalAccountType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:pattern value=".+" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="AccountType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="20" />
+            <xs:maxLength value="25" />
+            <xs:pattern value="\d{20}|\d{25}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="INNType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:length value="10" fixed="true" />
+                    <xs:pattern value="\d{10}" />
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:length value="12" fixed="true" />
+                    <xs:pattern value="\d{12}" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+
+    <xs:simpleType name="KPPType">
+        <xs:restriction base="xs:string">
+            <xs:length value="9" fixed="true" />
+            <xs:pattern value="\d{9}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="KBKType">
+        <xs:restriction base="xs:string">
+            <xs:length value="20" fixed="true" />
+            <xs:pattern value="\d{20}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="OKATOType">
+        <xs:restriction base="xs:string">
+            <xs:length value="11" fixed="true" />
+            <xs:pattern value="\d{11}" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="NullableDate">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:date" />
+            </xs:simpleType>            
+            <xs:simpleType>
+                <xs:restriction base="EmptyString"/>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    
+    <xs:simpleType name="EmptyString">
+        <xs:restriction base="xs:string">
+            <xs:length value="0" fixed="true" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ProviderIdType">
+        <xs:restriction base="xs:int">
+            <xs:minInclusive value="-1" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="DepartmentIdType">
+        <xs:restriction base="xs:int">
+            <xs:minInclusive value="-1" />
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Code4000Type">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="0" />
+            <xs:maxLength value="5" />
+            <xs:pattern value="\d*" />
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="SpecialClientCodeOfServiceProviderType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+            <xs:maxLength value="5" />
+            <xs:pattern value="\d+" />
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="SpecialClientCodePatternType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="5" />
+            <xs:maxLength value="5" />
+            <xs:pattern value="\d+x*" />
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="TransactionType">
+    	<xs:restriction base="xs:string"></xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CashierIdType">
+    	<xs:restriction base="xs:string">
+    		<xs:minLength value="0"></xs:minLength>
+    		<xs:maxLength value="5"></xs:maxLength>
+    		<xs:pattern value="\d*"></xs:pattern>
+    	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="NullablePercentType">
+        <xs:union>
+            <xs:simpleType>
+	            <xs:restriction base="xs:double"/>
+             </xs:simpleType>
+             <xs:simpleType>
+                 <xs:restriction base="EmptyString"/>
+	         </xs:simpleType>
+	    </xs:union>
+    </xs:simpleType>
+    
+    <xs:simpleType name="NullableMoneyType">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="MoneyType"/>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="EmptyString"/>
+            </xs:simpleType>
+       </xs:union>
+    </xs:simpleType>
+
+    <xs:simpleType name="NullableIntegerType">
+        <xs:union>
+           <xs:simpleType>
+               <xs:restriction base="xs:int"/>
+           </xs:simpleType>
+           <xs:simpleType>
+               <xs:restriction base="EmptyString"/>
+           </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+     
+    <xs:simpleType name="NullableBICType">
+        <xs:union>
+           <xs:simpleType>
+               <xs:restriction base="BICType"/>
+           </xs:simpleType>
+           <xs:simpleType>
+               <xs:restriction base="EmptyString"/>
+           </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+     
+     <xs:simpleType name="NullableCorrespondentAccountType">
+         <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="CorrespondentAccountType"/>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="EmptyString"/>
+            </xs:simpleType>
+         </xs:union>
+     </xs:simpleType>
+     
+     <xs:simpleType name="NullableINNType">
+         <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="INNType"/>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="EmptyString"/>
+            </xs:simpleType>
+         </xs:union>
+     </xs:simpleType>
+     
+     <xs:simpleType name="NullableAccountType">
+         <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="AccountType"/>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="EmptyString"/>
+            </xs:simpleType>
+         </xs:union>
+     </xs:simpleType>     
+     
+     <xs:simpleType name="NullableLongType">
+         <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:long"/>
+            </xs:simpleType>
+            <xs:simpleType>
+                <xs:restriction base="EmptyString"/>
+            </xs:simpleType>
+         </xs:union>
+     </xs:simpleType>
+     
+    <xs:simpleType name="OKType">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="OK"/>
+      </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="KeyType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="EncodingType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1" />
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="ProviderInfoType">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="254"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+</xs:schema>

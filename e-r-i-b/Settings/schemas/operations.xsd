@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by  () -->
+<!-- edited with XMLSPY v2004 rel. 4 U (http://www.xmlspy.com) by qwe (ORiON) -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xsd:element name="operations-config">
+		<xsd:annotation>
+			<xsd:documentation>Настройки ресурсов \ операций \ схем</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="resources">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="resource" type="Resource" minOccurs="0" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="operations">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="operation" type="Operation" minOccurs="0" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="services">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="service" type="Service" minOccurs="0" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="schemes">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="scheme" type="Scheme" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="default-client-scheme" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="scheme-ref" type="SchemeRef"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="anonymous-client-scheme" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="scheme-ref" type="SchemeRef"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="default-admin-scheme" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="scheme-ref" type="SchemeRef"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="buildin-admin-scheme" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="scheme-ref" type="SchemeRef"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="sms-banking-scheme" minOccurs="0">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="scheme-ref" type="SchemeRef"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:complexType name="Operation">
+		<xsd:annotation>
+			<xsd:documentation>Опперации</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="methods" minOccurs="0" maxOccurs="1">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="remove" minOccurs="1" maxOccurs="unbounded">
+							<xsd:complexType>
+								<xsd:attribute name="name" type="xsd:string"/>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="restriction" minOccurs="0">
+				<xsd:complexType>
+					<xsd:attribute name="interface" use="required"/>
+					<xsd:attribute name="default" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="key" type="xsd:ID" use="required"/>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="class" type="xsd:string" use="required"/>
+        <xsd:attribute name="strategy" type="xsd:string" use="optional"/>
+		<xsd:attribute name="tag" type="xsd:normalizedString" use="optional"/>
+	</xsd:complexType>
+	<xsd:complexType name="Service">
+		<xsd:annotation>
+			<xsd:documentation>"Услуги"</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="operation-ref" type="OperationRef" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="key" type="xsd:ID" use="required"/>
+		<xsd:attribute name="category" type="operationKind" use="required"/>
+        <xsd:attribute name="caadmin" type="xsd:boolean" use="optional" default="false"/>
+	</xsd:complexType>
+	<xsd:complexType name="Scheme">
+		<xsd:annotation>
+			<xsd:documentation>Схемы прав доступа</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="services">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="service-ref" type="ServiceRef" minOccurs="0" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="key" type="xsd:ID" use="required"/>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="category" type="operationKind" use="optional"/>
+        <xsd:attribute name="caadmin" type="xsd:boolean" use="optional" default="false"/>
+	</xsd:complexType>
+	<xsd:complexType name="OperationRef">
+		<xsd:annotation>
+			<xsd:documentation>Ссылка на операцию</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="key" type="xsd:IDREF" use="required"/>
+		<xsd:attribute name="spread" type="xsd:boolean" use="optional" default="true">
+			<xsd:annotation>
+				<xsd:documentation>Если задан то операция не может быть использована в другом сервисе.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="ServiceRef">
+		<xsd:annotation>
+			<xsd:documentation>Ссылка на услугу</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="key" type="xsd:IDREF" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="SchemeRef">
+		<xsd:annotation>
+			<xsd:documentation>Ссылка на схему прав</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="key" type="xsd:IDREF" use="required"/>
+	</xsd:complexType>
+	<xsd:complexType name="Resource">
+		<xsd:annotation>
+			<xsd:documentation>Ресурс</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="key" type="xsd:string" use="required"/>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="class" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<xsd:simpleType name="operationKind">
+		<xsd:annotation>
+			<xsd:documentation>тип операции</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="admin"/>
+			<xsd:enumeration value="client"/>
+			<xsd:enumeration value="system"/>
+			<xsd:enumeration value="general"/>
+			<xsd:enumeration value="employee"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

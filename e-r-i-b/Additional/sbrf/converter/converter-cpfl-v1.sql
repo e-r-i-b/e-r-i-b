@@ -1,0 +1,99 @@
+
+--изменение структуры б.д.
+alter table SERVICE_PROVIDERS add (CODE_RECIPIENT_SBOL  varchar2(20))
+go
+alter table SERVICE_PROVIDERS modify (CODE_SERVICE	varchar2(50))
+go
+alter table SERVICE_PROVIDERS add (NAME_SERVICE 		varchar2(150))
+go
+alter table SERVICE_PROVIDERS add (ALIAS varchar2(250))
+go
+alter table SERVICE_PROVIDERS add (LEGAL_NAME	varchar2(250))
+go
+alter table SERVICE_PROVIDERS add (NAME_ON_BILL	varchar2(250))
+go
+alter table SERVICE_PROVIDERS add (NOT_VISIBLE_IN_HIERARCHY	char(1) default '0')
+go
+alter table SERVICE_PROVIDERS add (IS_FEDERAL	char(1) default '0')
+go
+
+ALTER TABLE SERVICE_PROVIDERS RENAME COLUMN DEPT_AVAILABLE TO IS_DEPT_AVAILABLE
+go
+ALTER TABLE SERVICE_PROVIDERS RENAME COLUMN POPULAR TO IS_POPULAR
+go
+ALTER TABLE SERVICE_PROVIDERS RENAME COLUMN PROPS_ONLINE TO IS_PROPS_ONLINE
+go
+ALTER TABLE SERVICE_PROVIDERS RENAME COLUMN BANK_DETAILS TO IS_BANK_DETAILS
+go
+ALTER TABLE SERVICE_PROVIDERS RENAME COLUMN MOBILEBANK TO IS_MOBILEBANK
+go
+ALTER TABLE SERVICE_PROVIDERS RENAME COLUMN ALLOW_PAYMENTS TO IS_ALLOW_PAYMENTS
+go
+
+alter table FIELD_DESCRIPTIONS add (NUMBER_PRECISION integer default 0)
+go
+alter table FIELD_DESCRIPTIONS add (IS_INCLUDE_IN_SMS char(1) default '0')
+go
+alter table FIELD_DESCRIPTIONS add (IS_SAVE_IN_TEMPLATE char(1) default '0')
+go
+alter table FIELD_DESCRIPTIONS add (IS_FOR_BILL char(1) default '0')
+go
+alter table FIELD_DESCRIPTIONS add (IS_HIDE_IN_CONFIRMATION char(1) default '0')
+go
+alter table REGIONS add CODE_TB varchar2(2)
+go
+
+create table SERV_PROVIDER_PAYMENT_SERV
+(
+   PAYMENT_SERVICE_ID   INTEGER                         not null,
+   SERVICE_PROVIDER_ID  INTEGER                         not null,
+   LIST_INDEX		INTEGER,
+   constraint PK_SERV_PROVIDER_PAYMENT_SERV primary key (PAYMENT_SERVICE_ID, SERVICE_PROVIDER_ID)
+)
+go
+
+alter table SERV_PROVIDER_PAYMENT_SERV
+   add constraint FK_PROV_PAY_TO_PAY foreign key (PAYMENT_SERVICE_ID)
+      references PAYMENT_SERVICES (ID)
+go
+
+alter table SERV_PROVIDER_PAYMENT_SERV
+   add constraint FK_PAY_TO_PROV_PAY foreign key (SERVICE_PROVIDER_ID)
+      references SERVICE_PROVIDERS(ID)
+go
+
+--изменение synchKey поставщика услуг (id услуги@код п.у.|инф. маршр. -> код услуги@код п.у.|инф. маршр.)
+UPDATE SERVICE_PROVIDERS sp SET sp.EXTERNAL_ID = CONCAT(sp.CODE_SERVICE, SUBSTR(sp.EXTERNAL_ID, (INSTR(sp.EXTERNAL_ID, '@', -1)), LENGTH(sp.EXTERNAL_ID))) WHERE sp.KIND = 'B'
+go
+--обновляем поле ALIAS, т.к. оно не заполнено 
+UPDATE SERVICE_PROVIDERS sp SET sp.ALIAS = sp.NAME WHERE sp.KIND = 'B'
+go
+--обновляем поле LEGAL_NAME, т.к. оно не заполнено
+UPDATE SERVICE_PROVIDERS sp SET sp.LEGAL_NAME = sp.NAME WHERE sp.KIND = 'B'
+go
+--обновляем поле NAME_ON_BILL, т.к. оно не заполнено
+UPDATE SERVICE_PROVIDERS sp SET sp.NAME_ON_BILL = sp.NAME WHERE sp.KIND = 'B'
+go
+--обновляем поле CODE_RECIPIENT_SBOL, т.к. оно не заполнено
+UPDATE SERVICE_PROVIDERS sp SET sp.CODE_RECIPIENT_SBOL = sp.CODE WHERE sp.KIND = 'B'
+go
+alter table SERVICE_PROVIDERS modify (TRANSIT_ACCOUNT varchar(25) NULL)
+go
+
+--устанавлваем связь поставщика услуг с группами услуг
+DECLARE
+       
+BEGIN
+
+	FOR sp IN (SELECT * FROM SERVICE_PROVIDERS WHERE KIND = 'B') LOOP
+    
+		INSERT INTO SERV_PROVIDER_PAYMENT_SERV VALUES (sp.SERVICE_ID, sp.ID, 0); 		
+    
+    	END LOOP;
+	
+EXCEPTION WHEN NO_DATA_FOUND THEN NULL;
+END;
+go
+
+ALTER TABLE SERVICE_PROVIDERS DROP (SERVICE_ID)
+go

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.groups.GetEmployeeListDictionaryOperation.list">
+      <return alias="employee"
+        class="com.rssl.phizic.business.employees.EmployeeImpl"/>
+      <return alias="scheme"
+        class="com.rssl.phizic.business.schemes.SharedAccessScheme"/>
+      <return-scalar column="BRANCH" type="string"/>
+      <return-scalar column="DEPARTMENT" type="string"/>
+     <![CDATA[
+        SELECT departments.BRANCH as BRANCH,
+               departments.DEPARTMENT as DEPARTMENT,
+               {employee.*},
+               {scheme.*}
+        FROM   EMPLOYEES employee
+               JOIN LOGINS login ON employee.LOGIN_ID = login.ID
+               LEFT JOIN LOGIN_BLOCK loginBlock ON loginBlock.LOGIN_ID = login.ID AND
+                                (
+                                 (:blocked IS NULL OR :blocked = -1 )
+                                 OR (:blocked = 0 AND (loginBlock.DATE_UNTIL IS NULL OR :blockedUntil > loginBlock.DATE_UNTIL))
+                                 OR (:blocked = 1 AND :blockedUntil <= loginBlock.DATE_UNTIL)
+                                )
+               LEFT JOIN PASSWORDS pass ON employee.LOGIN_ID=pass.LOGIN_ID
+               LEFT JOIN SCHEMEOWNS schemeOwn ON employee.LOGIN_ID = schemeOwn.LOGIN_ID
+               LEFT JOIN ACCESSSCHEMES scheme ON schemeOwn.SCHEME_ID = scheme.ID
+               LEFT JOIN DEPARTMENTS departments ON employee.DEPARTMENT_ID = departments.ID
+        WHERE (:extra_firstName      is null or  employee.FIRST_NAME    like :extra_like_firstName )
+          AND (:extra_patrName       is null or  employee.PATR_NAME     like :extra_like_patrName )
+          AND (:extra_surName        is null or  employee.SUR_NAME      like :extra_like_surName )
+          AND (:extra_info           is null or  employee.INFO          like :extra_like_info )
+          AND (:extra_branchCode     is null or  :extra_branchCode = ''     or departments.BRANCH     = :extra_branchCode )
+          AND (:extra_departmentCode is null or  :extra_departmentCode = '' or departments.DEPARTMENT = :extra_departmentCode )
+          AND (
+                (
+				  NOT EXISTS(select LOGIN_ID
+				  from GROUP_ELEMENTS element
+				  inner join LOGINS innerLogin on element.LOGIN_ID = innerLogin.id
+				  inner join UGROUP grouped on element.GROUP_ID=grouped.id
+				  where grouped.id=:groupId)
+				)
+				OR
+				(
+				  NOT employee.LOGIN_ID = ANY(select LOGIN_ID
+				  from GROUP_ELEMENTS element 
+				  inner join LOGINS innerLogin on element.LOGIN_ID = innerLogin.ID
+				  inner join UGROUP grouped on element.GROUP_ID=grouped.ID
+				  where grouped.ID=:groupId)
+				)
+			   )
+          ORDER BY employee.SUR_NAME,employee.FIRST_NAME,employee.PATR_NAME ASC
+     ]]>
+    </sql-query>
+</hibernate-mapping>

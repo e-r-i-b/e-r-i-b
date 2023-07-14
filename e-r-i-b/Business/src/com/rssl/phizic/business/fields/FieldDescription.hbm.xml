@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="FieldDataType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.payments.systems.recipients.FieldDataType</param>
+	</typedef>
+
+    <typedef name="FieldValidatorRuleType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.payments.systems.recipients.FieldValidationRuleType</param>
+	</typedef>
+
+    <typedef name="RequisiteType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.RequisiteType</param>
+    </typedef>
+
+    <typedef name="BusinessFieldSubType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.BusinessFieldSubType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.fields.FieldDescription" table="FIELD_DESCRIPTIONS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_FIELD_DESCRIPTIONS</param>
+            </generator>
+        </id>
+
+        <property name="uuid"                       not-null="true"  type="string"          column="UUID" update="false"/>
+        <property name="externalId"                 not-null="true"  type="string"          column="EXTERNAL_ID"/>
+        <property name="name"                       not-null="true"  type="string"          column="NAME"/>
+        <property name="description"                not-null="false" type="string"          column="DESCRIPTION"/>
+        <property name="hint"                       not-null="false" type="string"          column="HINT"/>
+        <property name="type"                       not-null="false" type="FieldDataType"   column="TYPE"/>
+        <property name="maxLength"                  not-null="false" type="long"            column="MAX_LENGTH"/>
+        <property name="minLength"                  not-null="false" type="long"            column="MIN_LENGTH"/>
+        <property name="required"                   not-null="true"  type="boolean"         column="IS_REQUIRED"/>
+        <property name="editable"                   not-null="true"  type="boolean"         column="IS_EDITABLE"/>
+        <property name="visible"                    not-null="true"  type="boolean"         column="IS_VISIBLE"/>
+        <property name="mainSum"                    not-null="true"  type="boolean"         column="IS_SUM"/>
+        <property name="key"                        not-null="true"  type="boolean"         column="IS_KEY"/>
+        <property name="defaultValue"               not-null="false" type="string"          column="INITIAL_VALUE"/>
+        <property name="holderId"                   not-null="false" type="long"            column="RECIPIENT_ID" insert="false" update="false"/>
+        <property name="numberPrecision"            not-null="false" type="integer"         column="NUMBER_PRECISION"/>
+        <property name="requiredForConformation"    not-null="true"  type="boolean"         column="IS_INCLUDE_IN_SMS"/>
+        <property name="saveInTemplate"             not-null="true"  type="boolean"         column="IS_SAVE_IN_TEMPLATE"/>
+        <property name="requiredForBill"            not-null="true"  type="boolean"         column="IS_FOR_BILL"/>
+        <property name="hideInConfirmation"         not-null="true"  type="boolean"         column="IS_HIDE_IN_CONFIRMATION"/>
+        <property name="mask"                       not-null="false" type="string"          column="MASK"/>
+        <property name="extendedDescId"             not-null="false" type="string"          column="EXTENDED_DESC_DATA_ID"/>
+        <property name="businessSubType"            not-null="false" type="BusinessFieldSubType"       column="BUSINESS_SUB_TYPE"/>
+
+        <list name="listValues" table="FIELD_VALUES_DESCR" cascade="all-delete-orphan" lazy="false">
+            <key column="FIELD_ID" not-null="true"/>
+			<list-index column="LIST_INDEX"/>
+			<element column="VALUE" type="string" not-null="true"/>
+        </list>
+
+        <list name="fieldValidationRules" table="FIELD_VALIDATORS_DESCR" cascade="all-delete-orphan" lazy="false">
+            <key column="FIELD_ID" not-null="true"/>
+			<list-index column="LIST_INDEX"/>
+			<one-to-many class="com.rssl.phizic.business.fields.FieldValidationRuleImpl"/>
+        </list>
+
+        <list name="requisiteTypes" table="FIELD_REQUISITE_TYPES" cascade="all-delete-orphan" lazy="false">
+            <key column="FIELD_ID" not-null="true"/>
+            <list-index column="LIST_INDEX"/>
+            <element column="REQUISITE_TYPE" type="RequisiteType" not-null="true"/>
+        </list>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.fields.FieldValidationRuleImpl" table="FIELD_VALIDATORS_DESCR">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_FIELD_VALIDATORS_DESCR</param>
+            </generator>
+        </id>
+
+        <property name="fieldValidationRuleType" not-null="true"  type="FieldValidatorRuleType" column="TYPE"/>
+        <property name="errorMessage"            not-null="true"  type="string"                 column="MESSAGE"/>
+        <property name="fieldId" not-null="false" type="long" formula="FIELD_ID"/>
+
+        <map name="fieldValidators" lazy="false" cascade="all-delete-orphan">
+			<key column="FIELD_ID" not-null="true"/>
+			<map-key column="NAME" type="string"/>
+			<one-to-many class="com.rssl.phizic.business.fields.FieldValidationParameterBase"/>
+		</map>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.fields.FieldValidationParameterBase" table="FIELD_VALIDATORS_PARAM">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_FIELD_VALIDATORS_PARAM</param>
+            </generator>
+        </id>
+
+        <discriminator column="TYPE" type="string"/>
+
+        <subclass name="com.rssl.phizic.business.fields.StringFieldValidationParameter" discriminator-value="STRING">
+			<property name="value" type="string" column="VALUE"/>
+		</subclass>
+    </class>
+
+    <class name="com.rssl.phizic.business.fields.FieldDescriptionShortcut" mutable="false">
+        <id name="id"                   type="long"     column="ID"/>
+        <property name="name"           type="string"   column="NAME"/>
+        <property name="defaultValue"   type="string"   column="DEFAULT_VALUE"/>
+        <property name="externalId"     type="string"   column="EXTERNAL_ID"/>
+        <property name="recipientId"    type="long"     column="RECIPIENT_ID"/>
+    </class>
+
+    <!--Получить список полей поставщика услуг
+        Опорный элемент: DXFIELD_DESC_TO_PROVIDERS
+        Предикаты доступа: access("FIELD"."RECIPIENT_ID"=TO_NUMBER(:RECIPIENT_ID))
+        Кардинальность: 0 - количество полей поставщика услуг
+    -->
+    <sql-query name="com.rssl.phizic.business.fields.FieldDescriptionShortcut.getByRecipientId">
+        <return class="com.rssl.phizic.business.fields.FieldDescriptionShortcut"/>
+        <![CDATA[
+            select
+                description.ID              ID,
+                description.NAME            NAME,
+                description.INITIAL_VALUE   DEFAULT_VALUE,
+                description.EXTERNAL_ID     EXTERNAL_ID,
+                description.RECIPIENT_ID    RECIPIENT_ID
+            from
+                FIELD_DESCRIPTIONS description
+            where
+                description.RECIPIENT_ID = :recipient_id
+        ]]>
+    </sql-query>
+    
+</hibernate-mapping>

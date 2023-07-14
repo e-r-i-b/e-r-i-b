@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:sb="http://sbrf.srb.ru/erib/rates" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns="http://schemas.xmlsoap.org/soap/encoding/" name="ERIBRatesWService" targetNamespace="http://sbrf.srb.ru/erib/rates">
+	<wsdl:types>
+		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://sbrf.srb.ru/erib/rates" elementFormDefault="qualified"/>
+	</wsdl:types>
+	<wsdl:message name="IFXRqMsq">
+		<wsdl:part name="req" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:message name="IFXRsMsq">
+		<wsdl:part name="resp" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:portType name="eribRates">
+		<wsdl:operation name="DoIFX">
+			<wsdl:input message="sb:IFXRqMsq"/>
+			<wsdl:output message="sb:IFXRsMsq"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="eribRates" type="sb:eribRates">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="DoIFX">
+			<soap:operation soapAction="http://sbrf.srb.ru/erib/rates/DoIFX"/>
+			<wsdl:input>
+				<soap:body use="encoded"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="encoded"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="eribRates">
+		<wsdl:port name="eribRates" binding="sb:eribRates">
+			<soap:address location="http://localhost:8080/services/EribRates"/>
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

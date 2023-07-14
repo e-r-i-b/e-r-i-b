@@ -1,0 +1,138 @@
+import DeprIntr, QueryRes, Pf52Body, ALG_VARS;
+
+file   Link ( "sb_casln.dbt", "sbbank.def" );
+record Head ( "sb_casln.dbt", "sbbank.def" );
+
+const
+  SB_DEPOSIT = 1;
+
+var
+  RecFound,
+  Found = false,
+  RefName = "sb_edref.dbt";
+
+var
+   RegPath0 = "RS-RETAIL\\ПЕЧАТИ\\ВКЛАДЫ\\ОРДЕР_51_52",
+   Type0 = V_STRING,
+   Value0,
+   ErrCode0;
+
+
+macro Check( Ref )
+
+  var                                            /* __а_┐_--л_ */
+    TxtDir=GetRegVal( "RS-RETAIL\\INI\\ДИРЕКТОРИИ\\TEXTDIR", true ),
+    CNum = GetCNum;
+
+  const
+     SIGNORDER = 2;    /* - з_-Ё_ ЇR<п sb_edref.sign   */
+
+  Open (Ref, "sb_edref.dbt");
+
+  ClearRecord(Ref);
+  Ref.IsCur = NumFlagCur;
+  Ref.oper  = CNum;
+  Ref.SignRec = SIGNORDER;
+  if ( ( not GetGE( Ref ) )
+     or ( Ref.IsCur   != NumFlagCur )
+     or ( Ref.oper    != CNum )
+     or ( Ref.SignRec != SIGNORDER ) )
+     ALG_RESULT = SKIP_RES;
+     Exit( 1 );
+  end;
+end;
+
+IF((ALG_SBDEPDOC.oper == 0) or ({oper} == 0))
+  ALG_RESULT = OK_RES;
+  exit(1);
+END;
+ALG_RESULT = ERR_RES;
+
+if ( ALG_PARAM.prmC == "" )
+
+  if ( Open( СсылкиПоКонцуДня, RefName ) )
+    Check( СсылкиПоКонцуДня );
+  end;
+
+/*    Create( СсылкиПоКонцуДня, RefName );
+    Open( СсылкиПоКонцуДня, RefName );
+
+    KeyNum( ТипыВкладовСбербанка, 3 );
+    KeyNum( Link, 1 );
+    Link.ApplicationKind2 = ALG_SBDEPDOC.iApplicationKind;
+    Link.ApplicationKey2 = ALG_SBDEPDOC.ApplicationKey;
+    if ( GetEQ( Link ) )
+      Copy( Head, Link );
+      KeyNum( Link, 0 );
+      RecFound = GetGE( Link );
+      while ( RecFound
+        and( Link.ApplicationKind1 == Head.ApplicationKind1 )
+        and( Link.ApplicationKey1 == Head.ApplicationKey1 ) )
+        if ( Link.ApplicationKind2 == SB_DEPOSIT )
+          ТипыВкладовСбербанка.iApplicationKind = Link.ApplicationKind2;
+          ТипыВкладовСбербанка.ApplicationKey = Link.ApplicationKey2;
+          if ( GetEQ( ТипыВкладовСбербанка ) and ( ТипыВкладовСбербанка.YesForm == "" ) )
+            СсылкиПоКонцуДня.IsCur = ТипыВкладовСбербанка.IsCur;
+            СсылкиПоКонцуДня.oper  = {CNum};
+            СсылкиПоКонцуДня.PosRec = GetPos( ТипыВкладовСбербанка );
+            СсылкиПоКонцуДня.SignRec = SIGNORDER;
+            Insert( СсылкиПоКонцуДня );
+            Found = true;
+          end;
+        end;
+        RecFound = Next( Link );
+      end;
+    end;
+    if ( not Found )
+      ALG_RESULT = OK_RES;
+      Exit( 1 );
+    end;
+*/
+  else
+    appKind = ALG_SBDEPDOC.iApplicationKind;
+    appKey  = ALG_SBDEPDOC.ApplicationKey;
+  end;
+
+  СИМВОЛОВ_В_СТРОКЕ = 60;  /* размер строки выходного потока */
+
+  IF( GetBankStandart( ) ) /* 0 - Сбербанк, 1 - коммерческий банк */
+
+    /* ЭТА ВЕТКА ДЛЯ КОМБАНКОВ */
+    ExecMacroFile( "pf52bdkb.mac",
+                      "printForm52OrdersPack_Kb",
+                         СсылкиПоКонцуДня,
+                           ТипыВкладовСбербанка,
+                               СправочникВалют,
+                                 TRUE );
+
+  ELSE
+    /* ЭТА ВЕТКА ДЛЯ СБЕРБАНКА */
+    printForm52OrdersPack(СсылкиПоКонцуДня,
+                           ТипыВкладовСбербанка,
+                               СправочникВалют,
+                                 TRUE);
+  END;
+
+/*
+  if ( ALG_PARAM.prmC == "" )
+    Close( СсылкиПоКонцуДня );
+    DelFile( RefName );
+  end;
+*/
+
+  ALG_RESULT = OK_RES;
+  QueryResult( "Ордер был напечатан?" );
+  if ( MacroOutput == "PRN" )
+    if ( ( GetRegistryValue( RegPath0, Type0, Value0, ErrCode0 ) == V_STRING )  AND
+         ( Value0 != "CON" ) )  /* Вывод ордера на принтер */
+      Exit( 2 );
+    else
+      Exit( 1 );
+    end;
+  else
+    if ( ( GetRegistryValue( RegPath0, Type0, Value0, ErrCode0 ) == V_STRING )  AND
+         ( Value0 != "CON" ) )  /* Вывод ордера на принтер */
+      Exit( 2 );
+    end;
+  end;
+end;

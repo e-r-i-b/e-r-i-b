@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.bki.PersonCreditProfile" table="USER_CREDIT_PROFILE">
+        <id name="id" type="long" column="USER_ID">
+            <generator class="foreign">
+                <param name="property">person</param>
+            </generator>
+        </id>
+
+        <property name="connected"          type="boolean"  column="CONNECTED"          not-null="true"/>
+        <property name="lastCheckRequest"   type="calendar" column="LAST_CHECK_REQUEST" not-null="true"/>
+        <property name="lastPayment"        type="calendar" column="LAST_PAYMENT"       not-null="false"/>
+        <property name="lastReport"         type="calendar" column="LAST_REPORT"        not-null="false"/>
+        <property name="lastGetError"       type="calendar" column="LAST_GET_ERROR"     not-null="false"/>
+        <property name="report"             type="text"     column="REPORT_XML"         not-null="false"/>
+    </class>
+
+    <!--
+      Запрос на получение информации по кредитной истории клиента
+      Опорный объект: USER_CREDIT_PROFILE
+      Предикаты доступа: "USER_ID"=:USER_ID
+      Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.bki.findByPersonId">
+        select profile
+        from PersonCreditProfile as profile
+        where profile.id = :personId
+    </query>
+
+    <!--Создать кредитные по клиентам с соответствующей схемой прав-->
+    <!--
+        Опорный объект: UK_4
+        Предикаты доступа: INDEX FAST FULL SCAN
+        Кардинальность: стоп условие com.rssl.iccs.loanreport.bureau.job.process.pack.size
+    -->
+    <sql-query name="com.rssl.phizic.business.bki.PersonCreditProfile.createCreditProfiles">
+        <![CDATA[
+                insert into USER_CREDIT_PROFILE(USER_ID, CONNECTED, LAST_CHECK_REQUEST)
+
+                select
+                    person.id,
+                    '0',
+                    TO_TIMESTAMP('01.01.1970','DD.MM.YYYY')
+                from
+                    USERS person
+                    join SCHEMEOWNS so on so.LOGIN_ID = person.LOGIN_ID
+                    join SCHEMESSERVICES ss on ss.SCHEME_ID = so.SCHEME_ID
+                    join SERVICES s on s.ID = ss.SERVICE_ID
+                where
+                    s.SERVICE_KEY = :extra_service_key
+                    and person.STATUS = 'A'
+                    and not exists
+                        (
+                            select
+                                1
+                            from
+                                USER_CREDIT_PROFILE
+                            where
+                                USER_ID = person.ID
+                        )
+                    and rownum <= :extra_max_results
+        ]]>
+    </sql-query>
+
+    <!--Запрос получения клиентов, по которым нужно отослать запрос на кредитную историю в этом месяце-->
+    <!--
+        Опорный объект: I_USER_CREDIT_PROFILE_RQ_TIME
+        Предикаты доступа: "UCP"."CONNECTED"='0' AND "UCP"."LAST_CHECK_REQUEST"<TO_TIMESTAMP(:RQTIME)
+        Кардинальность: стоп условие com.rssl.iccs.loanreport.bureau.job.process.pack.size
+    -->
+    <sql-query name="com.rssl.phizic.business.bki.PersonCreditProfile.queryBKIUncheckedPersons">
+        <return alias="person" class="com.rssl.phizic.business.persons.ActivePerson"/>
+        <![CDATA[
+                select
+                    {person.*}
+                from
+                    USERS person
+                    join USER_CREDIT_PROFILE ucp on ucp.USER_ID = person.ID
+                where
+                    CONNECTED = '0'
+                    and LAST_CHECK_REQUEST < :rqTime
+                    and STATUS = 'A'
+        ]]>
+    </sql-query>
+
+    <!--Обновить время отправки запрос в БКИ в кредитном профиле клиента-->
+    <!--
+        Опорный объект: UNIQ_USER_CREDIT_PROFILE
+        Предикаты доступа: "USER_ID"=TO_NUMBER(:ID)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.bki.PersonCreditProfile.updateLastCheckRequestTime">
+        update
+            com.rssl.phizic.business.bki.PersonCreditProfile
+        set
+            lastCheckRequest = :rqTime
+        where
+            id = :id
+    </query>
+
+</hibernate-mapping>

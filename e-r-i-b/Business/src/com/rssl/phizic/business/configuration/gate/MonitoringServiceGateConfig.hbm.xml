@@ -1,0 +1,51 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="MonitoringGateState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.gate.monitoring.MonitoringGateState</param>
+    </typedef>
+
+    <typedef name="InactiveType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.gate.monitoring.InactiveType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.gate.monitoring.MonitoringServiceGateConfig" table="MONITORING_SERVICE_CONFIGS">
+	    <id name="serviceName" type="string"              column="SERVICE"/>
+	    <property name="state" type="MonitoringGateState" column="STATE"   not-null="true"/>
+
+        <many-to-one name="degradationConfig"
+                     class="com.rssl.phizic.gate.monitoring.MonitoringServiceGateStateConfig"
+                     lazy="false"
+                     column="DEGRADATION_CONFIG_ID"
+                     not-null="true"
+                     cascade="save-update"/>
+        <many-to-one name="inaccessibleConfig"
+                     class="com.rssl.phizic.gate.monitoring.MonitoringServiceGateStateConfig"
+                     lazy="false"
+                     column="INACCESSIBLE_CONFIG_ID"
+                     not-null="true"
+                     cascade="save-update"/>
+    </class>
+
+    <class name="com.rssl.phizic.gate.monitoring.MonitoringServiceGateStateConfig" table="MONITORING_STATE_CONFIGS" polymorphism="explicit">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_MONITORING_STATE_CONFIGS</param>
+            </generator>
+        </id>
+        <property name="available"                      type="boolean"      column="AVAILABLE"                      not-null="true"/>
+        <property name="useMonitoring"                  type="boolean"      column="USE"                            not-null="false"/>
+        <property name="timeout"                        type="long"         column="TIMEOUT"                        not-null="true"/>
+        <property name="monitoringTime"                 type="long"         column="MONITORING_TIME"                not-null="true"/>
+        <property name="monitoringCount"                type="integer"      column="MONITORING_COUNT"               not-null="true"/>
+        <property name="messageText"                    type="string"       column="MESSAGE"                        not-null="false"/>
+        <property name="recoveryTime"                   type="long"         column="RECOVERY_TIME"                  not-null="false"/>
+        <property name="deteriorationTime"              type="calendar"     column="DETERIORATION_TIME"             not-null="false"/>
+        <property name="availableChangeInactiveType"    type="boolean"      column="AVAILABLE_CHANGE_INACTIVE_TYPE" not-null="true"/>
+        <property name="inactiveType"                   type="InactiveType" column="INACTIVE_TYPE"                  not-null="false"/>
+        <property name="monitoringErrorPercent"         type="integer"      column="MONITORING_ERROR_PERCENT"       not-null="true"/>
+
+    </class>
+</hibernate-mapping>

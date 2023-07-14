@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="PaymentType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.filters.FilterParametersType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.filters.FilterParametersByUrl"
+           table="FILTER_PARAMETERS">
+        <id name="id" type="long" column="ID">
+         <generator class="native">
+          <param name="sequence">S_FILTER_PARAMETERS</param>
+         </generator>
+        </id>
+
+	    <property name="sessionId" type="not-null-string" column="SESSION_ID" not-null="true"/>
+        <property name="url" type="string" column="URL" not-null="true"/>
+
+	    <map name="fields" table="FILTER_PARAMETERS_FIELDS"
+		     cascade="all-delete-orphan"  lazy="false" batch-size="5">
+			<key column="FILTER_ID" not-null="true"/>
+			<map-key column="PARAMETER" type="string"/>
+			<one-to-many entity-name="FilterParametersField"/>
+		</map>
+    </class>
+
+	<class name="com.rssl.phizic.business.filters.FilterParametersField"
+	       entity-name="FilterParametersField" table="FILTER_PARAMETERS_FIELDS">
+
+		<id name="id" type="long" node="id">
+			<generator class="native">
+				<param name="sequence">S_FILTER_PARAMETERS_FIELDS</param>
+			</generator>
+		</id>
+
+		<property name="parameter" type="string" column="PARAMETER" not-null="true" insert="false" update="false"/>
+		<property name="value" type="string" column="VALUE"/>
+        <property name="type" type="PaymentType" column="TYPE"/>
+
+	</class>
+
+    <query name="com.rssl.phizic.business.filters.FilterParameterService.deleteAllForSession">
+		delete com.rssl.phizic.business.filters.FilterParametersByUrl fp
+		where
+		    fp.sessionId=:sessionId
+	</query>
+
+</hibernate-mapping>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsV55.demand.ContactDocument" table="pstrans_dbt">
+
+	    <composite-id name="id" class="com.rssl.phizicgate.rsV55.demand.ClaimId">
+		   <key-property name="applicationKind" column="iApplicationKind"/>
+	       <key-property name="applicationKey" column="ApplicationKey"/>
+	    </composite-id>
+	    <property name="applicationKind" column="iApplicationKind" insert="false" update="false"/>
+        <property name="applicationKey" column="ApplicationKey" insert="false" update="false"/>
+	    <property name="referenc" column="Referenc"/>
+	    <property name="autoKey" column="AutoKey" generated="insert"/>
+	    <property name="department" column="FNCash"/>
+	    <property name="paymentSystemNumber" column="psNum"/>
+	    <property name="transferenceDate" column="DateTrans"/>
+	    <property name="transferenceTime" column="TimeTrans"/>
+	    <property name="transferenceDateEnd" column="EndDateTrans"/>
+	    <property name="transferenceNumber" column="NumTrans"/>
+	    <property name="transferenceNumberStr" column="NumTransStr"/><!--TODO: смотри в fields.dbf и в pscntfld.dbt-->
+	    <property name="isCurr" column="IsCur"/>
+	    <property name="summa" column="Summa"/>
+	    <property name="commission" column="Com"/>
+	    <property name="receiverCurrencyCode" column="sumCodCur"/>
+	    <property name="commissionCurrencyCode" column="comCodCur"/>
+	    <property name="oper" column="Oper"/>
+	    <property name="payerCode" column="CodClientPay"/>
+        <property name="payerPoint" column="PointPay"/>
+	    <property name="receiverPoint" column="PointReceiv"/>
+	    <property name="payerLastName" column="LastNamePay"/>
+		<property name="payerFirstName" column="FirstNamePay"/>
+		<property name="payerSecondName" column="SecondNamePay"/>
+		<property name="payerBornDate" column="BornDatePay"/>
+		<property name="payerCountry" column="CountryPay"/>
+		<property name="payerAddress" column="AddressPay"/>
+		<property name="payerPhone" column="PhonePay"/>
+		<property name="payerPaperSeries" column="PaperSeriesPay"/>
+		<property name="payerPaperNumber" column="PaperNumberPay"/>
+	    <property name="payerPaperIssuedDate" column="PaperIssuedDatePay"/>
+		<property name="payerPaperIssuer" column="PaperIssuerPay"/>
+	    <property name="receiverLastName" column="LastNameReceiv"/>
+	    <property name="receiverFirstName" column="FirstNameReceiv"/>
+        <property name="receiverSecondName" column="SecondNameReceiv"/>
+	    <property name="receiverBornDate" column="BornDateReceiv"/>
+	    <property name="state" column="State"/>
+		<property name="additionalIinformation" column="AddInfo"/>
+	    <property name="statusType" column="codType"/>
+	    <property name="sent" column="Sent"/>
+
+	    <join table="rt_paym_2">
+		   <key >
+			   <column name="iApplicationKind"/>
+			   <column name="ApplicationKey"/>
+		   </key>
+
+		   <component name="ReceiverBos" class="com.rssl.phizicgate.rsV55.demand.TransferBos">
+			   <property name="applicationKind" column="iApplicationKind" insert="false" update="false"/>
+		       <property name="applicationKey" column="ApplicationKey" insert="false" update="false"/>
+	           <property name="attributID" column="AttrID"/>
+		       <property name="refValue" column="RefValue"/>
+			   <property name="branch" column="Branch"/>
+			   <property name="direction" column="direction"/>
+		   </component>
+	    </join>
+    </class>
+
+	<query name="GetContactPayment">
+		select trans from com.rssl.phizicgate.rsV55.demand.ContactDocument as trans
+			where trans.applicationKind = :appKind AND
+	              trans.applicationKey = :appKey AND
+	              trans.paymentSystemNumber = :psNum
+	</query>
+
+    <sql-query name="GetContactCodeCurrentBank">
+	    <return-scalar column="PointCode" type="string" />
+
+	   <![CDATA[
+		select psbranch.PointCode from  psbranch_dbt as psbranch
+		   where psbranch.FNCash = :FNCash AND psbranch.psNum = :psNum
+	    ]]>
+
+	</sql-query>
+
+	<sql-query name="GetMaxReference">
+	  <return-scalar column="referenc" type="long"/>
+	    SELECT max(contact.Referenc) as referenc FROM pstrans_dbt as contact
+		where contact.FNCash = :branch and contact.psNum = :psNum
+	</sql-query>
+
+	<sql-query name="GetMaxDocumentNumber">
+	  <return-scalar column="numTrans" type="long"/>
+        SELECT max(contact.NumTrans) as numTrans FROM pstrans_dbt as contact
+        where contact.FNCash = :branch and contact.psNum = :psNum and contact.Incoming = 0
+              and contact.DateTrans >= :dateStart and :dateEnd > contact.DateTrans
+	</sql-query>
+
+</hibernate-mapping>

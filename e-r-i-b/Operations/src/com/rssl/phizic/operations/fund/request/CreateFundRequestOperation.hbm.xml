@@ -1,0 +1,23 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+     <!--Получить количество участников всех запросов клиента за сутки (текущая дата - 24 часа)
+        Опорный объект: I_FUND_I_REQUESTS_LOGIN
+        Предикаты доступа: access("REQUEST"."LOGIN_ID"=TO_NUMBER(:LOGIN_ID) AND "REQUEST"."CREATED_DATE">=CURRENT_DATE-1 AND
+                           "REQUEST"."CREATED_DATE"<=CURRENT_DATE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.operations.fund.request.CreateFundRequestOperation.getCountSendersForDay">
+        <return-scalar column="count" type="java.lang.Integer"/>
+        <return-scalar column="maxDate" type="java.util.Calendar"/>
+            <![CDATA[
+                select sum(request.SENDERS_COUNT) as count, max(request.CREATED_DATE) as maxDate
+                from FUND_INITIATOR_REQUESTS request
+                where request.LOGIN_ID = :extra_login_id
+                    and current_date-1 <= request.CREATED_DATE and request.CREATED_DATE <= current_date
+            ]]>
+    </sql-query>
+
+</hibernate-mapping>

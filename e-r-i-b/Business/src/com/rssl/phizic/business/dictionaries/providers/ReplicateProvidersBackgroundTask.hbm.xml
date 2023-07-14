@@ -1,0 +1,40 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="StateType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.operations.background.TaskState</param>
+	</typedef>
+    <class name="com.rssl.phizic.business.dictionaries.providers.ReplicateProvidersBackgroundTask"
+           table="PROVIDER_REPLICA_TASKS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PROVIDER_REPLICA_TASKS</param>
+            </generator>
+        </id>                                                                                                       
+
+        <property name="ownerId"  type="long"   column="OWNER_ID"  not-null="true"/>
+        <property name="ownerFIO" type="string" column="OWNER_FIO" not-null="false"/>
+        <property name="creationDate" type="calendar" column="CREATION_DATE" not-null="true"/>
+        <property name="state" type="StateType" column="STATE_CODE" not-null="true"/>
+        <component name="result" class="com.rssl.phizic.business.operations.background.ReplicationTaskResult">
+            <property name="startDate" type="calendar" column="REPORT_START_DATE"/>
+            <property name="endDate" type="calendar" column="REPORT_END_DATE"/>
+            <property name="sourceFailedRecordsCount" type="long" column="SOURCE_ERRORS"/>
+            <property name="sourceProcessedRecordsCount" type="long" column="SOURCE_SUCCESS"/>
+            <property name="destinationInseredRecordsCount" type="long" column="DEST_INSERED"/>
+            <property name="destinationUpdatedRecordsCount" type="long" column="DEST_UPDATED"/>
+            <property name="destinationDeletedRecordsCount" type="long" column="DEST_DELETED"/>
+            <property name="report" type="text" column="DETAILED_REPORT"/>
+        </component>
+
+        <property name="billingIdsInternal" type="string" column="BILLINGS"/>
+        <property name="fileInternal" type="com.rssl.phizic.dataaccess.hibernate.BlobType" column="CONTENT"/>
+        <property name="internalProperties" type="com.rssl.phizic.dataaccess.hibernate.BlobType" column="PROPERTIES" />
+    </class>
+
+    <query name="com.rssl.phizic.business.dictionaries.providers.ReplicateProvidersBackgroundTask.updateStatus">
+        update com.rssl.phizic.business.dictionaries.providers.ReplicateProvidersBackgroundTask task set task.state = :state, task.result.report = :report where task.id = :taskId
+    </query>
+</hibernate-mapping>

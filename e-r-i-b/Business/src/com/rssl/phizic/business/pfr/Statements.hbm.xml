@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.pfr.PFRStatement" table="STATEMENTS" abstract="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_STATEMENTS</param>
+            </generator>
+        </id>
+
+        <property name="claimId"      type="long"    column="CLAIM_ID"      not-null="true"/>
+	    <property name="statementXml" type="text"    column="STATEMENT_XML" not-null="true"/>
+        <property name="valid"        type="boolean" column="IS_VALID"      not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.pfr.PFRStatementService.findByClaimId">
+        select statement
+        from PFRStatement as statement
+        where claimId = :claimId
+    </query>
+
+</hibernate-mapping>

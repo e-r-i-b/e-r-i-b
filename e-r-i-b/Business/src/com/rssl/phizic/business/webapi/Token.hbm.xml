@@ -1,0 +1,22 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.webapi.Token" table="WEBAPI_TOKENS">
+        <id name="token" type="string" column="TOKEN"/>
+        <many-to-one name="login" class="com.rssl.phizic.auth.LoginImpl" column="LOGIN_ID" lazy="false" update="false"/>
+        <property name="creationDate" type="calendar" column="CREATION_DATE"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.webapi.Token.findToken">
+        <return class="com.rssl.phizic.business.webapi.Token" alias="token"/>
+        <![CDATA[
+            select {token.*}
+            from   WEBAPI_TOKENS token
+            where  token.TOKEN = :token and token.CREATION_DATE >= :life_time
+            for update nowait
+		]]>
+	</sql-query>
+</hibernate-mapping>

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v5 rel. 2 U (http://www.xmlspy.com) by Grishin A.P. (SBRF) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" version="0">
+	<xs:element name="POSGATE_MSG">
+		<xs:annotation>
+			<xs:documentation>Обмен сообщениями с PosGate</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="POSGATE_MSGType">
+					<xs:attribute name="VERSION" type="xs:int" use="optional" default="0"/>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="REQUESTType">
+		<xs:annotation>
+			<xs:documentation>Запрос к PosGate</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="PAN" type="CardNumber">
+				<xs:annotation>
+					<xs:documentation>Номер банковской карты</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="DIG_CODE" type="CardControlKey">
+				<xs:annotation>
+					<xs:documentation>Цифровой код идентификации клиента</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="PRO_CODE" type="ReqCodeType">
+				<xs:annotation>
+					<xs:documentation>Код запроса</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="POSGATE_MSGType">
+		<xs:annotation>
+			<xs:documentation>Тип сообщения PG</xs:documentation>
+		</xs:annotation>
+		<xs:choice>
+			<xs:element name="WAY4_REQUEST" type="REQUESTType">
+				<xs:annotation>
+					<xs:documentation>Запрос Системы</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="WAY4_ERROR" type="ERRORType">
+				<xs:annotation>
+					<xs:documentation>Отказ на Запрос</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="WAY4_BALANCE" type="BALANCEType">
+				<xs:annotation>
+					<xs:documentation>Остаток по Счету</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="WAY4_HISTORY" type="HISTORYType">
+				<xs:annotation>
+					<xs:documentation>История счета</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="WAY4_LOCK_OK" type="LOCK_OKType">
+				<xs:annotation>
+					<xs:documentation>Успешная блокировка</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:complexType>
+	<xs:complexType name="ERRORType">
+		<xs:annotation>
+			<xs:documentation>Тип сообщения об ошибке</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="DATE_TIME" type="xs:dateTime">
+				<xs:annotation>
+					<xs:documentation>Дата - Время</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="ERR_MESS">
+				<xs:annotation>
+					<xs:documentation>Сообщение об ошибке</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="250"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="ERR_CODE" type="Er_code">
+				<xs:annotation>
+					<xs:documentation>Код ошибки</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="BALANCEType">
+		<xs:annotation>
+			<xs:documentation>Тип ответа с остатком</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="DATE_TIME" type="xs:dateTime">
+				<xs:annotation>
+					<xs:documentation>Дата - Время</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AMOUNT" type="MoneyType">
+				<xs:annotation>
+					<xs:documentation>Остаток</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CUR_ISO" type="CurrencyIso">
+				<xs:annotation>
+					<xs:documentation>Код валюты</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CARD_LIM" type="CARD_LIMType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CARD_LIMType">
+		<xs:annotation>
+			<xs:documentation>Тип лимитов по карте</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="CASH" type="MoneyType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Лимит на наличные</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="PURCHASE" type="MoneyType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Лимит на покупки</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="HISTORYType">
+		<xs:annotation>
+			<xs:documentation>Тип сообщения с историей по счету</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="DATE_TIME" type="xs:dateTime">
+				<xs:annotation>
+					<xs:documentation>Дата - Время</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="AMOUNT" type="MoneyType">
+				<xs:annotation>
+					<xs:documentation>Остаток</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CUR_ISO" type="CurrencyIso">
+				<xs:annotation>
+					<xs:documentation>Номер валюты</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CARD_LIM" type="CARD_LIMType" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Лимиты списания</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="OPERATION" type="OPERATIONType" maxOccurs="10">
+				<xs:annotation>
+					<xs:documentation>Операции по карте</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="MoneyType">
+		<xs:annotation>
+			<xs:documentation>Тип Суммы</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:decimal">
+			<xs:totalDigits value="12"/>
+			<xs:fractionDigits value="2"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="OPERATIONType">
+		<xs:annotation>
+			<xs:documentation>Тип операции</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="DATE" type="xs:date">
+				<xs:annotation>
+					<xs:documentation>Дата операции</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="NAME">
+				<xs:annotation>
+					<xs:documentation>Название операции</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="512"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="DB_CR">
+				<xs:annotation>
+					<xs:documentation>Дебет / Кредит</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="C"/>
+						<xs:enumeration value="D"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element name="AMOUNT" type="MoneyType">
+				<xs:annotation>
+					<xs:documentation>Сумма</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="CUR_ISO" type="CurrencyIso">
+				<xs:annotation>
+					<xs:documentation>Код валюты</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="ReqCodeType">
+		<xs:annotation>
+			<xs:documentation>Тип запроса</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BALANCE"/>
+			<xs:enumeration value="HISTORY"/>
+			<xs:enumeration value="LOCK_LOST"/>
+			<xs:enumeration value="LOCK_STEAL"/>
+			<xs:enumeration value="LOCK_ATM"/>
+			<xs:enumeration value="LOCK_OTHER"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CurrencyIso">
+		<xs:annotation>
+			<xs:documentation>ISO код валюты</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="3"/>
+			<xs:maxLength value="3"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CardNumber">
+		<xs:annotation>
+			<xs:documentation>Номер банковской карты</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="16"/>
+			<xs:maxLength value="18"/>
+			<xs:pattern value="\d+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CardControlKey">
+		<xs:annotation>
+			<xs:documentation>Закодированная контрольная информация</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="3"/>
+			<xs:maxLength value="6"/>
+			<xs:pattern value="\d+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Er_code">
+		<xs:annotation>
+			<xs:documentation>Код ошибки</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ERROR_VALIDATE"/>
+			<xs:enumeration value="ERROR_CLIENT"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="LOCK_OKType">
+		<xs:annotation>
+			<xs:documentation> Время блокировки</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="DATE_TIME" type="xs:dateTime">
+				<xs:annotation>
+					<xs:documentation>Дата - время блокировки</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

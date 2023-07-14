@@ -1,0 +1,94 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="GenderType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+   		<param name="enumClass">com.rssl.phizicgate.mdm.business.profiles.Gender</param>
+   	</typedef>
+
+    <typedef name="DocumentType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+   		<param name="enumClass">com.rssl.phizic.common.types.client.ClientDocumentType</param>
+   	</typedef>
+
+
+    <class name="com.rssl.phizicgate.mdm.business.profiles.Document" table="MDM_PROFILE_DOCUMENTS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_MDM_PROFILE_DOCUMENTS</param>
+            </generator>
+        </id>
+
+        <property name="type"       type="DocumentType" column="TYPE"        not-null="true"/>
+        <property name="series"     type="string"       column="DOC_SERIES"  not-null="false"/>
+        <property name="number"     type="string"       column="DOC_NUMBER"  not-null="true"/>
+        <property name="issuedBy"   type="string"       column="ISSUED_BY"   not-null="false"/>
+        <property name="issuedDate" type="calendar"     column="ISSUED_DATE" not-null="false"/>
+    </class>
+
+
+    <class name="com.rssl.phizicgate.mdm.business.profiles.Profile" table="MDM_PROFILES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_MDM_PROFILES</param>
+            </generator>
+        </id>
+
+        <property name="mdmId"       type="string"      column="MDM_ID"        not-null="true" update="false"/>
+
+        <set name="profileIds" table="MDM_PROFILE_INNER_IDS" lazy="false" cascade="all-delete-orphan">
+            <key     column="MDM_ID"     property-ref="mdmId"/>
+            <element column="CSA_PROFILE_ID" type="long" not-null="true"/>
+        </set>
+
+        <property name="lastName"    type="string"      column="LAST_NAME"     not-null="true"/>
+        <property name="firstName"   type="string"      column="FIRST_NAME"    not-null="true"/>
+        <property name="middleName"  type="string"      column="MIDDLE_NAME"   not-null="false"/>
+        <property name="gender"      type="GenderType"  column="GENDER"        not-null="false"/>
+        <property name="birthday"    type="calendar"    column="BIRTHDAY"      not-null="false"/>
+        <property name="birthPlace"  type="string"      column="BIRTH_PLACE"   not-null="false"/>
+
+        <set name="documents" table="MDM_PROFILE_DOCUMENTS" lazy="false" cascade="all-delete-orphan">
+            <key         column="PROFILE_ID"/>
+            <one-to-many class="com.rssl.phizicgate.mdm.business.profiles.Document"/>
+        </set>
+
+        <property name="taxId"       type="string"      column="TAX_ID"        not-null="false"/>
+        <property name="resident"    type="boolean"     column="RESIDENT"      not-null="true"/>
+        <property name="employee"    type="boolean"     column="EMPLOYEE"      not-null="true"/>
+        <property name="shareholder" type="boolean"     column="SHAREHOLDER"   not-null="true"/>
+        <property name="insider"     type="boolean"     column="INSIDER"       not-null="true"/>
+        <property name="citizenship" type="string"      column="CITIZENSHIP"   not-null="false"/>
+        <property name="literacy"    type="boolean"     column="LITERACY"      not-null="true"/>
+    </class>
+
+    <!--
+       Опорный объект: I_MDM_PROFILE_IDS_ID
+       Предикаты доступа: access("PROFILE_ID"=TO_NUMBER(:PROFILEID))
+       Кардинальность: 0-1
+     -->
+    <sql-query name="com.rssl.phizicgate.mdm.business.profiles.ProfileService.findMdmId">
+        <return-scalar column="MDM_ID" type="string"/>
+
+        select MDM_ID
+        from MDM_PROFILE_INNER_IDS
+        where CSA_PROFILE_ID = :profileId
+
+    </sql-query>
+
+    <!--
+       Опорный объект: I_MDM_PROFILE_IDS_ID
+       Предикаты доступа: access("PROFILE"."MDM_ID"=:MDMID)
+       Кардинальность: 0-1
+     -->
+    <sql-query name="com.rssl.phizicgate.mdm.business.profiles.ProfileService.findProfile">
+        <return alias="profile" class="com.rssl.phizicgate.mdm.business.profiles.Profile"/>
+
+        select {profile.*}
+        from MDM_PROFILES profile
+        where profile.MDM_ID = :mdmId
+
+    </sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="ru.softlab.phizicgate.rsloansV64.money.CurrencyImpl" table="DFININSTR_DBT">
+
+	    <cache usage="read-only"/>
+
+        <id name="id" column="T_FIID"/>
+
+	    <property name="number" column="T_ISO_NUMBER"/>
+	    <property name="code"   column="T_CCY"/>
+        <property name="name"   column="T_NAME"/>
+    </class>
+
+	<sql-query name="ru.softlab.phizicgate.rsloansV64.money.CurrencyHelper.GetCurrencies">
+		<return alias="Currency" class="ru.softlab.phizicgate.rsloansV64.money.CurrencyImpl">
+			<return-property name="id" column="id"/>
+			<return-property name="number" column="tnumber"/>
+			<return-property name="code"   column="code"/>
+			<return-property name="name"   column="tname"/>
+		</return>
+		<![CDATA[
+	    SELECT
+        	currency.T_FIID            AS id,
+        	currency.T_ISO_NUMBER      AS tnumber,
+	        currency.T_CCY             AS code,
+	        currency.T_NAME            AS tname
+	    FROM DFININSTR_DBT currency
+	    ORDER BY id
+        ]]>
+	</sql-query>
+
+	<query name="ru.softlab.phizicgate.rsloansV64.money.CurrencyHelper.getCurrencyById">
+		select currency from ru.softlab.phizicgate.rsloansV64.money.CurrencyImpl currency
+		where currency.id = :currencyId
+	</query>
+	<query name="ru.softlab.phizicgate.rsloansV64.money.CurrencyHelper.getCurrencyByCode">
+		select currency from ru.softlab.phizicgate.rsloansV64.money.CurrencyImpl currency
+		where currency.code = :code
+	</query>
+
+	<sql-query name="GetCurrentRate">
+        <return-scalar type="double" column="rate"/>
+	    <![CDATA[
+	        SELECT * FROM(
+				SELECT t_cbrate AS rate
+				FROM dcur_rate_dbt
+				WHERE t_curr_ref = :currencyId
+				ORDER BY t_change_ref DESC
+			)WHERE ROWNUM<2
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

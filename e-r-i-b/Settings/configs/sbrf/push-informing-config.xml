@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<!-- key должно соответствовать полю key для sms сообщения для корректного добавления sms текста к push-сообщению-->
+
+<push-password-config>
+    <message>
+		<key>com.rssl.iccs.user.logon.text</key>
+		<shortMessage>Выполнен вход в Сбербанк Онлайн %s.</shortMessage>
+		<text>Выполнен вход в Сбербанк Онлайн %s. Не вводите пароль для отмены операций/шаблонов, не подтверждайте операции, которые Вы не совершали. При подозрении на мошенничество, обратитесь в Банк.</text>
+	    <description>Оповещение о входе в Сбербанк Онлайн</description>
+        <code>1</code>
+        <privacyType>PUBLIC</privacyType>
+        <publicityType>PERSON</publicityType>
+        <smsBackup>0</smsBackup>
+        <variables>%s</variables>
+        <priority>0</priority>
+    </message>
+    <message>
+		<key>com.rssl.iccs.user.mail.text</key>
+		<shortMessage>%s Вам отправлено письмо из службы помощи Сбербанк Онлайн.</shortMessage>
+		<text>%s Вам отправлено письмо из службы помощи Сбербанк Онлайн.</text>
+	    <description>Оповещение о получении письма из службы помощи</description>
+        <code>2</code>
+        <privacyType>PUBLIC</privacyType>
+        <publicityType>PERSON</publicityType>
+        <smsBackup>0</smsBackup>
+        <variables>%s</variables>
+        <priority>0</priority>
+    </message>
+    <message>
+        <shortMessage>Сообщение об операции</shortMessage>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    <#list entries as info>
+                        <#if info.documentType == "CardReportDeliveryClaim">
+                            <#if info.documentState == 'EXECUTED'>
+                                <#if info.nameOrType?has_content>
+                                    Параметры подписки по карте ${getCutCardNumber(info.accountNumber)} изменены успешно. Новый адрес подписки – ${info.nameOrType}.
+                                <#else>
+                                    Подписка на рассылку выписки по карте ${getCutCardNumber(info.accountNumber)} отменена успешно.
+                                </#if>
+                            <#elseif info.documentState == 'REFUSED'>
+                                Сбербанк Онлайн. Параметры подписки не были применены. Повторите попытку позже.
+                            </#if>
+                        <#elseif info.documentType == "LoanTransfer">
+                            <#if isCard(info.accountType) >
+                                ${getCutCardNumber(info.accountNumber)}:
+                            <#else>
+                                ${info.accountNumber}:
+                            </#if>
+                            ${reportTime.time?string("dd.MM.yyyy HH:mm:ss")}
+                            <#if info.documentState == 'WAIT_CONFIRM'>
+                                операцию
+                            <#else>
+                                операция
+                            </#if>
+                            погашения кредита на сумму ${info.transactionSum} ${info.currency}
+                            <#if info.documentState == 'WAIT_CONFIRM'>
+                                необходимо подтвердить в Контактном центре банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                            <#elseif info.documentState == 'REFUSED'>
+                                отклонена банком.
+                            <#else>
+                                выполнена успешно.
+                            </#if>
+                        <#elseif info.documentType == "InternalCardsTransferLongOffer"
+                                    || info.documentType == "ExternalCardsTransferToOurBankLongOffer"
+                                    || info.documentType == "ExternalCardsTransferToOtherBankLongOffer">
+                            <#if info.documentState == 'EXECUTED'>
+                                Регулярный платеж по карте ${info.accountNumber} создан.
+                            <#elseif info.documentState == 'REFUSED'>
+                                В создании регулярного платежа по карте ${info.accountNumber} отказано банком.
+                            <#elseif info.documentState == 'WAIT_CONFIRM'>
+                                Создание регулярного платежа по карте ${info.accountNumber} необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                            </#if>
+                        <#elseif info.documentType == "CloseCardToCardLongOffer">
+                            <#if info.documentState == 'EXECUTED'>
+                                Регулярный платеж по карте ${info.accountNumber} отменен.
+                            <#elseif info.documentState == 'REFUSED'>
+                                В отмене регулярного платежа по карте ${info.accountNumber} отказано банком.
+                            <#elseif info.documentState == 'WAIT_CONFIRM'>
+                                Отмену регулярного платежа по карте ${info.accountNumber} необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                            </#if>
+                        <#elseif info.documentType != "LossPassbookApplicationClaim">
+                            <#if info.isLongOffer == "true">
+
+                                <#if info.documentState == 'WAIT_CONFIRM'>
+                                    <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                                        Отмену
+                                    <#else>
+                                        Создание
+                                    </#if>
+                                    регулярного платежа по
+                                <#elseif info.documentState == 'REFUSED'>
+                                    <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                                        В отмене
+                                    <#else>
+                                        В создании
+                                    </#if>
+                                    регулярного платежа по
+                                <#else>
+                                    Регулярный платеж по
+                                </#if>
+
+                                <#if isCard(info.accountType) >
+                                    карте ${getCutCardNumber(info.accountNumber)}
+                                <#else>
+                                    счету ${info.accountNumber}
+                                </#if>
+
+                                <#if info.documentState == 'WAIT_CONFIRM'>
+                                    необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                                <#elseif info.documentState == 'REFUSED'>
+                                    отказано банком.
+                                <#else>
+                                     <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                                         отменен.
+                                     <#else>
+                                         создан.
+                                     </#if>
+                                </#if>
+
+                            <#else>
+                                <#if info.documentState == 'WAIT_CONFIRM'>
+                                    Платеж с
+                                <#elseif info.documentState == 'REFUSED'>
+                                    В исполнении платежа с
+                                <#else>
+                                    С
+                                </#if>
+
+                                <#if isCard(info.accountType) >
+                                    Вашей карты ${getCutCardNumber(info.accountNumber)}
+                                <#else>
+                                    Вашего счета ${info.accountNumber}
+                                </#if>
+
+                                <#if info.documentState != 'WAIT_CONFIRM' && info.documentState != 'REFUSED'>
+                                    произведен платеж
+                                </#if>
+                                <#if info.recipientAccountNumber?if_exists != "">
+                                    <#if isCard(info.recipientAccountType) >
+                                        на карту ${getCutCardNumber(info.recipientAccountNumber)}
+                                    <#else>
+                                        на счет ${info.recipientAccountNumber}
+                                    </#if>
+                                </#if>
+
+                                <#if info.documentState == 'WAIT_CONFIRM'>
+                                    на сумму ${info.transactionSum} ${info.currency} необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+                                <#elseif info.documentState == 'REFUSED'>
+                                    на сумму ${info.transactionSum} ${info.currency} отказано банком.
+                                <#else>
+                                    на сумму ${info.transactionSum} ${info.currency}.
+                                </#if>
+
+                            </#if>
+                        <#else>
+                            <#if info.documentState == 'REFUSED'>
+                                Заявление об утере сберкнижки ${info.accountNumber} отклонено банком.
+                            <#else>
+                                Ваше заявление об утере сберкнижки ${info.accountNumber} обработано. Остаток получите наличными в банке.
+                            </#if>
+                        </#if>
+                    </#list>
+                </@compress>
+            ]]>
+        </text>
+        <key>PaymentExecute</key>
+        <description>Push-уведомление отправляемое клиенту при исполнении операций</description>
+        <code>3</code>
+        <variables>bankContext.bankPhone,bankContext.bankAddress,bankContext.bankName,reportTime.time?string("dd.MM.yyyy HH:mm:ss"),bankContext.systemName,
+            info.accountNumber,info.currency,info.transactionSum,getCutCardNumber(info.accountNumber),
+            isCard(info.accountType),info.recipientAccountNumber?if_exists,isCard(info.recipientAccountType),getCutCardNumber(info.recipientAccountNumber), info.recipientAccountNumber, info.documentState,info.documentType,info.isLongOffer,fullName,entries
+        </variables>
+        <privacyType>PUBLIC</privacyType>
+        <publicityType>PERSON</publicityType>
+        <smsBackup>0</smsBackup>
+        <priority>0</priority>
+    </message>
+    <message>
+        <shortMessage>Вам прислали запрос на перевод. Подтвердить?</shortMessage>
+        <text>
+            <![CDATA[
+                Запрос от клиента ${fullName} на перевод
+                <#if reccomendSum?has_content>
+                    ${reccomendSum} руб.
+                <#else>
+                      денег
+                </#if>
+            ]]>
+        </text>
+        <key>fundCreateRequest</key>
+        <description>Push-уведомление, отправляемое клиенту-отправителю при создании запроса клиентом-инициатором</description>
+        <code>6</code>
+        <variables>
+            fullName,requestId,phones,state,requiredSum,reccomendSum,closedDate,closedDate.time,date,
+            string("dd.MM.yyyy"),createdDate,createdDate.time,message,avatarAvailable,avatarUrl
+        </variables>
+        <privacyType>PUBLIC</privacyType>
+        <publicityType>PERSON</publicityType>
+        <smsBackup>1</smsBackup>
+        <priority>0</priority>
+        <attributes>
+            <![CDATA[
+                <subType>createRequest</subType>
+                <id>${requestId}</id>
+                <fullName>${fullName}</fullName>
+                <phones>${phones}</phones>
+                <state>${state}</state>
+                <#if requiredSum?has_content>
+                    <requiredSum>${requiredSum}</requiredSum>
+                </#if>
+                <#if reccomendSum?has_content>
+                    <reccomendSum>${reccomendSum}</reccomendSum>
+                </#if>
+                <createdDate>${createdDate.time?date?string("dd.MM.yyyy")}</createdDate>
+                <#if closedDate??>
+                    <closedDate>${closedDate.time?date?string("dd.MM.yyyy")}</closedDate>
+                </#if>
+                <message>${message}</message>
+                <#if avatarAvailable == "true">
+                    <avatar>${avatarUrl}</avatar>
+                </#if>
+            ]]>
+        </attributes>
+    </message>
+    <message>
+        <shortMessage>По вашему запросу собрана необходимая сумма</shortMessage>
+        <text>
+            <![CDATA[
+                Собрали ${accumulatedSum} по запросу ${message}
+            ]]>
+        </text>
+        <key>fundAccumulatedRequest</key>
+        <description>Push-уведомление, отправляемое клиенту-инициатору, когда необходимая сумма собрана</description>
+        <code>6</code>
+        <variables>accumulatedSum,message,requestId,state,requiredSum</variables>
+        <privacyType>PUBLIC</privacyType>
+        <publicityType>PERSON</publicityType>
+        <smsBackup>1</smsBackup>
+        <priority>0</priority>
+        <attributes>
+            <![CDATA[
+                <subType>accumulatedRequest</subType>
+                <id>${requestId}</id>
+                <state>${state}</state>
+                <requiredSum>${requiredSum}</requiredSum>
+                <accumulatedSum>${accumulatedSum}</accumulatedSum>
+            ]]>
+        </attributes>
+    </message>
+    <message>
+        <shortMessage>Запрос подтвержден одним из участников</shortMessage>
+        <text>
+            <![CDATA[
+                ${name} перевел(а) ${sum}.
+                <#if message != "">
+                    Сообщение: ${message}
+                </#if>
+            ]]>
+        </text>
+        <key>fundPayRequest</key>
+        <description>Push-уведомление, отправляемое клиенту-инициатору, если отправитель средств удовлетворил запрос</description>
+        <code>6</code>
+        <variables>
+            name,message,requestId,state,requiredSum,reccomendSum,accumulatedSum,
+            sum,senderPhone,fullName,avatarAvailable,avatarUrl
+        </variables>
+        <privacyType>PUBLIC</privacyType>
+        <publicityType>PERSON</publicityType>
+        <smsBackup>1</smsBackup>
+        <priority>0</priority>
+        <attributes>
+            <![CDATA[
+                <subType>payRequest</subType>
+                <id>${requestId}</id>
+                <state>${state}</state>
+                <#if requiredSum?has_content>
+                    <requiredSum>${requiredSum}</requiredSum>
+                </#if>
+                <#if reccomendSum?has_content>
+                    <reccomendSum>${reccomendSum}</reccomendSum>
+                </#if>
+                <accumulatedSum>${accumulatedSum}</accumulatedSum>
+                <sum>${sum}</sum>
+                <senderPhone>${senderPhone}</senderPhone>
+                <fullName>${fullName}</fullName>
+                <#if avatarAvailable == "true">
+                    <avatar>${avatarUrl}</avatar>
+                </#if>
+                <#if message != "">
+                    <message>${message}</message>
+                </#if>
+            ]]>
+        </attributes>
+    </message>
+    <message>
+        <shortMessage>Запрос отклонен одним из участников</shortMessage>
+        <text>
+            <![CDATA[
+                ${name} отклонил(а) запрос. Сообщение: ${message}
+            ]]>
+        </text>
+        <key>fundRejectRequest</key>
+        <description>Push-уведомление, отправляемое клиенту-инициатору, если отправитель средств отклонил запрос</description>
+        <code>6</code>
+        <variables>
+            name,message,requestId,state,requiredSum,reccomendSum,
+            accumulatedSum,senderPhone,fullName,avatarUrl,avatarAvailable
+        </variables>
+        <privacyType>PUBLIC</privacyType>
+        <priority>0</priority>
+        <publicityType>PERSON</publicityType>
+        <smsBackup>1</smsBackup>
+        <attributes>
+            <![CDATA[
+                <subType>rejectRequest</subType>
+                <id>${requestId}</id>
+                <state>${state}</state>
+                <#if requiredSum?has_content>
+                    <requiredSum>${requiredSum}</requiredSum>
+                </#if>
+                <#if reccomendSum?has_content>
+                    <reccomendSum>${reccomendSum}</reccomendSum>
+                </#if>
+                <accumulatedSum>${accumulatedSum}</accumulatedSum>
+                <senderPhone>${senderPhone}</senderPhone>
+                <fullName>${fullName}</fullName>
+                <#if avatarAvailable == "true">
+                    <avatar>${avatarUrl}</avatar>
+                </#if>
+                <message>${message}</message>
+            ]]>
+        </attributes>
+    </message>
+</push-password-config>

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.rssl.phizicgate.rsretailV6r4.bankroll">
+    <class name="CardImpl">
+        <id name="longId"/>
+
+        <property name="description"/>
+        <property name="number"/>
+        <property name="issueDate"/>
+        <property name="expireDate"/>
+	    <property name="main"/>
+    </class>
+
+	<sql-query name="GetCard">
+        <return alias="cards" class="CardImpl">
+	        <return-property name="longId"          column="id"/>
+            <return-property name="description"     column="description"/>
+            <return-property name="number"          column="tnumber"/>
+            <return-property name="issueDate"       column="issueDate"/>
+            <return-property name="expireDate"      column="expireDate"/>
+	        <return-property name="main"            column="main"/>
+        </return>
+	    <![CDATA[
+			SELECT cards.t_cardRef             AS id
+                  ,cardTypes.t_codName         AS description
+                  ,RTRIM(cards.t_cardNumber)   AS tnumber
+                  ,to_char(to_date(cards.t_cardRecDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS issueDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,to_char(to_date(cards.t_cardMaturityDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS expireDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,1                           AS main
+            FROM  dscCard_dbt cards, dscCodif_dbt cardTypes
+            WHERE cards.t_cardRef = :cardId
+              AND cards.t_CodClient = :clientId
+              AND cardTypes.t_codType = 7
+              AND cardTypes.t_codCode = cards.t_cardTypeCode
+              AND ((cards.t_psRef = cardTypes.t_psRef) OR (cardTypes.t_psRef =0))
+
+                UNION
+
+            -- Получить дополнительные карты клиента
+            -- Пока считаем, что для дополнительных карт клиент не является владельцем, иначе получим дубликаты
+            SELECT cards.t_cardRef             AS id
+                  ,cardTypes.t_codName         AS description
+                  ,RTRIM(cards.t_cardNumber)   AS tnumber
+                  ,to_char(to_date(cards.t_cardRecDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS issueDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,to_char(to_date(cards.t_cardMaturityDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS expireDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,0                         AS main
+            FROM  dscCard_dbt    cards
+                , dscLink_dbt    links
+                , ddepositr_dbt  accounts
+                , dscCodif_dbt   cardTypes
+            WHERE cards.t_cardRef = :cardId
+              AND cards.t_cardRef = links.t_cardRef
+              AND links.t_mainCard = ' '
+              AND links.t_cardAccRef = accounts.t_Referenc
+              AND cardTypes.t_codType = 7
+              AND cardTypes.t_codCode = cards.t_cardTypeCode
+              AND accounts.t_CodClient = :clientId
+              AND accounts.t_UserTypeAccount like '%К%'
+              
+	    ]]>
+    </sql-query>
+
+
+	<sql-query name="GetClientCards">
+        <return alias="cards" class="CardImpl">
+            <return-property name="longId"          column="id"/>
+            <return-property name="number"          column="cardNumber"/>
+	        <return-property name="main"            column="main"/>
+			<return-property name="description"     column="description"/>
+			<return-property name="issueDate"       column="issueDate"/>
+			<return-property name="expireDate"      column="expireDate"/>
+        </return>
+
+	    <![CDATA[
+	    SELECT cards.t_cardRef             AS id
+                  ,RTRIM(cards.t_cardNumber)   AS cardnumber
+                  ,1                           AS main
+                  ,cardTypes.t_codname         AS description
+                  ,to_char(to_date(cards.t_cardRecDate , 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS issueDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,to_char(to_date(cards.t_cardMaturityDate , 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS expireDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+
+            FROM  dscCard_dbt cards, dscCodif_dbt cardTypes, dscLink_dbt links, ddepositr_dbt accounts
+            WHERE cards.t_CodClient = :clientId
+              AND cards.t_cardRef = links.t_cardRef
+              AND cardTypes.t_codType = 7
+              AND cardTypes.t_codCode = cards.t_cardTypeCode
+              AND ((cards.t_psRef = cardTypes.t_psRef) OR (cardTypes.t_psRef =0))
+              AND links.t_mainCard = 'X'
+              AND links.t_fncash=cards.t_fncash
+              and links.t_cardaccref=accounts.t_referenc
+
+                UNION
+
+            -- Получить дополнительные карты клиента
+            -- Пока считаем, что для дополнительных карт клиент не является владельцем, иначе получим дубликаты
+            SELECT cards.t_cardRef             AS id
+                  ,RTRIM(cards.t_cardNumber)   AS cardnumber
+                  ,0                           AS main
+                  ,cardTypes.t_codname         AS description
+                  ,to_char(to_date(cards.t_cardRecDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS issueDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,to_char(to_date(cards.t_cardMaturityDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS expireDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+
+                  FROM dscCard_dbt   cards
+                  RIGHT JOIN (dsclink_dbt links INNER JOIN ddepositr_dbt accounts ON
+                  accounts.t_referenc = links.t_cardaccref
+                  AND accounts.t_codclient = :clientId
+                  AND accounts.t_UserTypeAccount like '%К%') ON
+                  cards.t_cardref = links.t_cardref and links.t_mainCard = ' '
+                  AND cards.t_fncash = accounts.t_fncash
+                  , dscCodif_dbt  cardTypes
+
+                WHERE
+                cardTypes.t_codType = 7
+                AND cardTypes.t_codCode = cards.t_cardTypeCode
+	    ]]>
+    </sql-query>
+
+	<sql-query name="GetCardOwnerId">
+        <return-scalar column="CodClient" type="long"/>
+	    <![CDATA[
+	        SELECT * FROM(
+                SELECT dscCard_dbt.t_CodClient AS CodClient
+                FROM dscCard_dbt
+                WHERE t_CardRef = :cardId
+			)WHERE ROWNUM<2
+        ]]>
+    </sql-query>
+
+	<sql-query name="GetAdditionalCards">
+        <return alias="cards" class="CardImpl">
+	        <return-property name="longId"          column="id"/>
+            <return-property name="description"     column="cardType"/>
+            <return-property name="number"          column="tnumber"/>
+            <return-property name="issueDate"       column="issueDate"/>
+            <return-property name="expireDate"      column="expireDate"/>
+	        <return-property name="main"            column="main"/>
+        </return>
+	    <![CDATA[
+			SELECT cards.t_cardRef             AS id
+				  ,cards.t_cardNumber          AS tnumber
+				  ,to_char(to_date(cards.t_cardRecDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS issueDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                  ,to_char(to_date(cards.t_cardMaturityDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS expireDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				  ,types.t_codName             AS cardType
+				  ,0                           AS main
+			FROM  dscCard_dbt   cards
+				, dscLink_dbt   links
+				, dscCodif_dbt  types
+			WHERE cards.t_cardRef = links.t_cardRef
+			  AND links.t_mainCard  = CHR(0)
+			  AND links.t_cardAccRef = :accId
+			  AND types.t_codType = 7
+			  AND types.t_codCode = cards.t_cardTypeCode
+			  AND cards.t_psRef = types.t_psRef
+	    ]]>
+    </sql-query>
+
+	<sql-query name="GetCardType">
+	    <return-scalar column="cardType" type="string" />
+	    <![CDATA[
+	        select * from(
+				select
+					case when types.t_identchar like '%CC%'
+					then 'c'
+					else case when deposits.t_limit = 0
+						then 'd' else 'o' end
+					end as cardType
+				from dsccard_dbt   cards
+					,ddepositr_dbt deposits
+					,dsb_dtyp_dbt  types
+					,dsclink_dbt   links
+				where cards.t_cardnumber = :cardNumber
+				and types.t_kind = deposits.t_type_account
+				and links.t_cardaccref = deposits.t_referenc
+				and links.t_cardref = cards.t_cardref
+
+			)WHERE ROWNUM<2
+	    ]]>
+	</sql-query>
+
+</hibernate-mapping>

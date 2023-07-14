@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://csa.sbrf.ru/AuthService" xmlns:s1="http://www.contoso.com" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" targetNamespace="http://csa.sbrf.ru/AuthService" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+    <wsdl:types>
+        <s:schema elementFormDefault="qualified" targetNamespace="http://csa.sbrf.ru/AuthService">
+            <s:element name="CheckSessionRq" type="tns:CheckSessionRqType" />
+            <s:complexType name="CheckSessionRqType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthToken" type="tns:AuthTokenType" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Service" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthContext" type="tns:GetPutListType" />
+                </s:sequence>
+            </s:complexType>
+            <s:complexType name="AuthTokenType">
+                <s:simpleContent>
+                    <s:extension base="s:string">
+                        <s:attribute name="Type" type="s:string" />
+                    </s:extension>
+                </s:simpleContent>
+            </s:complexType>
+            <s:complexType name="GetPutListType">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="unbounded" form="unqualified" name="Get">
+                        <s:complexType>
+                            <s:simpleContent>
+                                <s:extension base="s:string">
+                                    <s:attribute name="Name" type="s:string" />
+                                    <s:attribute name="Type" type="s:string" />
+                                </s:extension>
+                            </s:simpleContent>
+                        </s:complexType>
+                    </s:element>
+                    <s:element minOccurs="0" maxOccurs="unbounded" form="unqualified" name="Put">
+                        <s:complexType>
+                            <s:simpleContent>
+                                <s:extension base="s:string">
+                                    <s:attribute name="Name" type="s:string" />
+                                    <s:attribute name="Type" type="s:string" />
+                                </s:extension>
+                            </s:simpleContent>
+                        </s:complexType>
+                    </s:element>
+                </s:sequence>
+                <s:attribute name="Type" type="s:string" />
+            </s:complexType>
+            <s:element name="CheckSessionRs" type="tns:CheckSessionRsType" />
+            <s:complexType name="CheckSessionRsType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Status" type="tns:StatusType" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="SID" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Alias" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthData" type="tns:ArrayOfParamListTypeParam" />
+                </s:sequence>
+            </s:complexType>
+            <s:complexType name="StatusType">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="StatusCode" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="StatusDesc" type="s:string" />
+                </s:sequence>
+            </s:complexType>
+            <s:complexType name="ArrayOfParamListTypeParam">
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="unbounded" form="unqualified" name="Param">
+                        <s:complexType>
+                            <s:simpleContent>
+                                <s:extension base="s:string">
+                                    <s:attribute name="Name" type="s:string" />
+                                    <s:attribute name="Type" type="s:string" />
+                                </s:extension>
+                            </s:simpleContent>
+                        </s:complexType>
+                    </s:element>
+                </s:sequence>
+            </s:complexType>
+            <s:element name="AuthSessionCancelRq" type="tns:AuthSessionCancelRqType" />
+            <s:complexType name="AuthSessionCancelRqType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="SID" type="s:string" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="AuthSessionCancelRs" type="tns:AuthSessionCancelRsType" />
+            <s:complexType name="AuthSessionCancelRsType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Status" type="tns:StatusType" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="SID" type="s:string" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="PrepareAuthenticationRq" type="tns:PrepareAuthenticationRqType" />
+            <s:complexType name="PrepareAuthenticationRqType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="SID" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthContext" type="tns:GetPutListType" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="PrepareAuthenticationRs" type="tns:PrepareAuthenticationRsType" />
+            <s:complexType name="PrepareAuthenticationRsType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+            <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Status" type="tns:StatusType" />
+            <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="SID" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthToken" type="tns:AuthTokenType" />
+            </s:sequence>
+            </s:complexType>
+            <s:element name="CheckAuthenticationRq" type="tns:CheckAuthenticationRqType" />
+            <s:complexType name="CheckAuthenticationRqType">
+            <s:annotation>
+                <s:appinfo>
+                    <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                </s:appinfo>
+            </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthToken" type="tns:AuthTokenType" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Service" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthContext" type="tns:GetPutListType" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="CheckAuthenticationRs" type="tns:CheckAuthenticationRsType" />
+            <s:complexType name="CheckAuthenticationRsType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Status" type="tns:StatusType" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Service" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthData" type="tns:ArrayOfParamListTypeParam" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="MoveSessionRq" type="tns:MoveSessionRqType" />
+            <s:complexType name="MoveSessionRqType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="SID" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthTokenRq" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="NextService" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthContext" type="tns:GetPutListType" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="MoveSessionRs" type="tns:MoveSessionRsType" />
+            <s:complexType name="MoveSessionRsType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Status" type="tns:StatusType" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="SID" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthToken" type="tns:AuthTokenType" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthContext" type="tns:GetPutListType" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="SetAliasRq" type="tns:SetAliasRqType" />
+            <s:complexType name="SetAliasRqType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="SID" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="UserId" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Alias" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="NewAlias" type="s:string" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="SetAliasRs" type="tns:SetAliasRsType" />
+            <s:complexType name="SetAliasRsType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Status" type="tns:StatusType" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="PrepareSessionRq" type="tns:PrepareSessionRqType" />
+            <s:complexType name="PrepareSessionRqType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="UserId" type="s:string" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Password" type="s:string" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="PrepareSessionRs" type="tns:PrepareSessionRsType" />
+            <s:complexType name="PrepareSessionRsType">
+                <s:annotation>
+                    <s:appinfo>
+                        <keepNamespaceDeclarations>csaNameSpase</keepNamespaceDeclarations>
+                    </s:appinfo>
+                </s:annotation>
+                <s:sequence>
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="Status" type="tns:StatusType" />
+                    <s:element minOccurs="0" maxOccurs="1" form="unqualified" name="AuthToken" type="s:string" />
+                </s:sequence>
+            </s:complexType>
+            <s:element name="inpXml" type="s:string" />
+        </s:schema>
+        <s:schema elementFormDefault="qualified" targetNamespace="http://www.contoso.com">
+            <s:element name="TestResult" type="s:string" />
+        </s:schema>
+    </wsdl:types>
+    <wsdl:message name="CheckSessionSoapIn">
+        <wsdl:part name="CheckSessionRq" element="tns:CheckSessionRq" />
+    </wsdl:message>
+    <wsdl:message name="CheckSessionSoapOut">
+        <wsdl:part name="CheckSessionResult" element="tns:CheckSessionRs" />
+    </wsdl:message>
+    <wsdl:message name="AuthSessionCancelSoapIn">
+        <wsdl:part name="AuthSessionCancelRq" element="tns:AuthSessionCancelRq" />
+    </wsdl:message>
+    <wsdl:message name="AuthSessionCancelSoapOut">
+        <wsdl:part name="AuthSessionCancelResult" element="tns:AuthSessionCancelRs" />
+    </wsdl:message>
+    <wsdl:message name="PrepareAuthenticationSoapIn">
+        <wsdl:part name="PrepareAuthenticationRq" element="tns:PrepareAuthenticationRq" />
+    </wsdl:message>
+    <wsdl:message name="PrepareAuthenticationSoapOut">
+        <wsdl:part name="PrepareAuthenticationResult" element="tns:PrepareAuthenticationRs" />
+    </wsdl:message>
+    <wsdl:message name="CheckAuthenticationSoapIn">
+        <wsdl:part name="CheckAuthenticationRq" element="tns:CheckAuthenticationRq" />
+    </wsdl:message>
+    <wsdl:message name="CheckAuthenticationSoapOut">
+        <wsdl:part name="CheckAuthenticationResult" element="tns:CheckAuthenticationRs" />
+    </wsdl:message>
+    <wsdl:message name="MoveSessionSoapIn">
+        <wsdl:part name="MoveSessionRq" element="tns:MoveSessionRq" />
+    </wsdl:message>
+    <wsdl:message name="MoveSessionSoapOut">
+        <wsdl:part name="MoveSessionResult" element="tns:MoveSessionRs" />
+    </wsdl:message>
+    <wsdl:message name="SetAliasSoapIn">
+        <wsdl:part name="SetAliasRq" element="tns:SetAliasRq" />
+    </wsdl:message>
+    <wsdl:message name="SetAliasSoapOut">
+        <wsdl:part name="SetAliasResult" element="tns:SetAliasRs" />
+    </wsdl:message>
+    <wsdl:message name="PrepareSessionSoapIn">
+        <wsdl:part name="PrepareSessionRq" element="tns:PrepareSessionRq" />
+    </wsdl:message>
+    <wsdl:message name="PrepareSessionSoapOut">
+        <wsdl:part name="PrepareSessionResult" element="tns:PrepareSessionRs" />
+    </wsdl:message>
+    <wsdl:message name="TestSoapIn">
+        <wsdl:part name="inpXml" element="tns:inpXml" />
+    </wsdl:message>
+    <wsdl:message name="TestSoapOut">
+        <wsdl:part name="TestResult" element="s1:TestResult" />
+    </wsdl:message>
+
+    <wsdl:portType name="AuthServicePortType">
+        <wsdl:operation name="CheckSession">
+            <wsdl:input message="tns:CheckSessionSoapIn" />
+            <wsdl:output message="tns:CheckSessionSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="AuthSessionCancel">
+            <wsdl:input message="tns:AuthSessionCancelSoapIn" />
+            <wsdl:output message="tns:AuthSessionCancelSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="PrepareAuthentication">
+            <wsdl:input message="tns:PrepareAuthenticationSoapIn" />
+            <wsdl:output message="tns:PrepareAuthenticationSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="CheckAuthentication">
+            <wsdl:input message="tns:CheckAuthenticationSoapIn" />
+            <wsdl:output message="tns:CheckAuthenticationSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="MoveSession">
+            <wsdl:input message="tns:MoveSessionSoapIn" />
+            <wsdl:output message="tns:MoveSessionSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="SetAlias">
+            <wsdl:input message="tns:SetAliasSoapIn" />
+            <wsdl:output message="tns:SetAliasSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="PrepareSession">
+            <wsdl:input message="tns:PrepareSessionSoapIn" />
+            <wsdl:output message="tns:PrepareSessionSoapOut" />
+        </wsdl:operation>
+        <wsdl:operation name="Test">
+            <wsdl:input message="tns:TestSoapIn" />
+            <wsdl:output message="tns:TestSoapOut" />
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="AuthServicePort" type="tns:AuthServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+        <wsdl:operation name="CheckSession">
+            <soap:operation soapAction="CheckSession" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="AuthSessionCancel">
+            <soap:operation soapAction="AuthSessionCancel" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="PrepareAuthentication">
+            <soap:operation soapAction="PrepareAuthentication" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CheckAuthentication">
+            <soap:operation soapAction="CheckAuthentication" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="MoveSession">
+            <soap:operation soapAction="MoveSession" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SetAlias">
+            <soap:operation soapAction="SetAlias" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="PrepareSession">
+            <soap:operation soapAction="PrepareSession" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="Test">
+            <soap:operation soapAction="http://csa.sbrf.ru/AuthService/Test" style="document" />
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:binding name="AuthServicePort12" type="tns:AuthServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+        <wsdl:operation name="CheckSession">
+            <soap12:operation soapAction="CheckSession" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="AuthSessionCancel">
+            <soap12:operation soapAction="AuthSessionCancel" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="PrepareAuthentication">
+            <soap12:operation soapAction="PrepareAuthentication" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CheckAuthentication">
+            <soap12:operation soapAction="CheckAuthentication" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="MoveSession">
+            <soap12:operation soapAction="MoveSession" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SetAlias">
+            <soap12:operation soapAction="SetAlias" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="PrepareSession">
+            <soap12:operation soapAction="PrepareSession" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="Test">
+            <soap12:operation soapAction="http://csa.sbrf.ru/AuthService/Test" style="document" />
+            <wsdl:input>
+                <soap12:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="AuthService">
+        <wsdl:port name="AuthServicePort" binding="tns:AuthServicePort">
+            <soap:address location="http://esk3:8060/CODListener/csa.asmx" />
+        </wsdl:port>
+        <!-- поддержка формата SOAP 1.2 -->
+        <wsdl:port name="AuthServicePort12" binding="tns:AuthServicePort12">
+            <soap12:address location="http://esk3:8060/CODListener/csa.asmx" />
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

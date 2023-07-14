@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<access-rules xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:noNamespaceSchemaLocation="./../../schemas/authenticationModes.xsd">
+	<simple-rule>
+		<description>Политика доступа клиентов в мобильный API v7.0</description>
+		<authentication-mode>
+			<stage>
+				<key>lp</key>
+                <allow-action>/postCSALogin.do</allow-action>
+                <allow-action>/registerApp.do</allow-action>
+			</stage>
+            <stage>
+                <key>agreements</key>
+                <allow-action>/login/chooseAgreement.do</allow-action>
+                <demand-if>
+                    <class>com.rssl.phizic.auth.modes.ChooseDepartmentStageVerifier</class>
+                </demand-if>
+            </stage>
+            <stage>
+                <key>smsp</key>
+                <allow-action>/confirm/login.do</allow-action>
+                <demand-if>
+                    <class>com.rssl.phizic.auth.modes.MobilePlatformPasswordConfirmVerifier</class>
+                    <parameter>
+                        <name>property</name>
+                        <value>simple-auth-choice</value>
+                    </parameter>
+                </demand-if>
+            </stage>
+            <stage>
+                <key>regionp</key>
+                <allow-action>/login/chooseRegion.do</allow-action>
+                <allow-action>/private/dictionary/regions.do</allow-action>
+                <allow-operation>
+                    <operation-class>RegionsListOperation</operation-class>
+                </allow-operation>
+                <allow-operation>
+                    <operation-class>UpdateRegionFromCSAOperation</operation-class>
+                </allow-operation>
+                <demand-if>
+                    <class>com.rssl.phizic.business.persons.NeedToSelectRegionVerifier</class>
+                </demand-if>
+            </stage>
+			<on-complete>
+                <action>com.rssl.phizic.web.common.mobile.security.ClientAthenticationCompleteMobileAction</action>
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.resources.AddOrUpdateClientResourcesAction</action>
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.resources.AddOrUpdateClientTarifPlanCodeType</action>
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.limits.ReplicateDocumentOperationsCompleteAction</action>
+            </on-complete>
+
+		</authentication-mode>
+
+		<confirmation-mode>
+			<key-property>secure-confirm-choice</key-property>
+            <strategy>
+                <key>smsp</key>
+                <compas>
+                    <default>true</default>
+                    <strategy>com.rssl.phizic.auth.modes.iPasSmsPasswordConfirmStrategy</strategy>
+                </compas>
+                <compas>
+                    <strategy>com.rssl.phizic.auth.modes.PushPasswordConfirmStrategy</strategy>
+                </compas>
+            </strategy>
+            <strategy>
+				<key>cryptoLike</key>
+                <class>com.rssl.phizic.auth.modes.NotConfirmStrategy</class>
+			</strategy>
+		</confirmation-mode>
+
+		<authentication-choice>
+			<property>simple-auth-choice</property>
+			<option>
+				<name>Без подтверждения</name>
+				<value>lp</value>
+			</option>
+			<option>
+				<name>смс-пароль или пароль с чека</name>
+				<value>smsp</value>
+			</option>
+		</authentication-choice>
+
+		<confirmation-choice>
+			<property>secure-confirm-choice</property>
+            <option>
+                <name>смс-пароль или пароль с чека</name>
+                <value>smsp</value>
+            </option>
+		</confirmation-choice>
+	</simple-rule>
+
+    <anonymous-rule>
+		<description>Анонимный доступ</description>
+		<confirmation-mode>
+			<strategy>
+				<key>cap</key>
+				<class>com.rssl.phizic.auth.modes.NotConfirmStrategy</class>
+			</strategy>
+		</confirmation-mode>
+	</anonymous-rule>
+
+    <mobileLimited-rule>
+        <description>Политика ограниченного доступа клиентов в мобильный API v7.0</description>
+        <authentication-mode>
+			<stage>
+				<key>lp</key>
+				<allow-action>/login.do</allow-action>
+			</stage>
+            <stage>
+                <key>agreements</key>
+                <allow-action>/login/chooseAgreement.do</allow-action>
+                <demand-if>
+                    <class>com.rssl.phizic.auth.modes.ChooseDepartmentStageVerifier</class>
+                </demand-if>
+            </stage>
+            <stage>
+                <key>smsp</key>
+                <allow-action>/confirm/login.do</allow-action>
+                <allow-operation>
+                    <operation-class>CheckPushConfirmAccessOperation</operation-class>
+                    <allow-if>com.rssl.phizic.operations.access.verifier.PushAllowOperationVerifier</allow-if>
+                </allow-operation>
+                <demand-if>
+                    <class>com.rssl.phizic.auth.modes.MobilePlatformPasswordConfirmVerifier</class>
+                    <parameter>
+                        <name>property</name>
+                        <value>simple-auth-choice</value>
+                    </parameter>
+                </demand-if>
+            </stage>
+            <!--<stage>-->
+                <!--<key>notify</key>-->
+                <!--<allow-action>/login/notify.do</allow-action>-->
+            <!--</stage>-->
+            <stage>
+                <key>regionp</key>
+                <allow-action>/login/chooseRegion.do</allow-action>
+                <allow-action>/private/dictionary/regions.do</allow-action>
+                <allow-operation>
+                    <service-key>RegionsList</service-key>
+                    <operation-class>RegionsListOperation</operation-class>
+                </allow-operation>
+                <allow-operation>
+                    <operation-class>UpdateRegionFromCSAOperation</operation-class>
+                </allow-operation>
+                <demand-if>
+                    <class>com.rssl.phizic.business.persons.NeedToSelectRegionVerifier</class>
+                </demand-if>
+            </stage>
+			<on-complete>
+                <action>com.rssl.phizic.web.common.mobile.security.ClientAthenticationCompleteMobileAction</action>
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.resources.AddOrUpdateClientResourcesAction</action>
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.resources.AddOrUpdateClientTarifPlanCodeType</action>
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.limits.ReplicateDocumentOperationsCompleteAction</action>
+            </on-complete>
+		</authentication-mode>
+
+        <confirmation-mode>
+            <key-property>secure-confirm-choice</key-property>
+            <strategy>
+                <key>smsp</key>
+                <compas>
+                    <default>true</default>
+                    <strategy>com.rssl.phizic.auth.modes.iPasSmsPasswordConfirmStrategy</strategy>
+                </compas>
+                <compas>
+                    <strategy>com.rssl.phizic.auth.modes.PushPasswordConfirmStrategy</strategy>
+                </compas>
+                <compas>
+                    <strategy>com.rssl.phizic.auth.modes.DenyAllConfirmStrategy</strategy>
+                </compas>
+            </strategy>
+			<strategy>
+				<key>nc</key>
+                <compas>
+                    <default>true</default>
+                    <strategy>com.rssl.phizic.auth.modes.DenyAllConfirmStrategy</strategy>
+                </compas>
+			</strategy>
+		</confirmation-mode>
+
+        <authentication-choice>
+			<property>simple-auth-choice</property>
+			<option>
+				<name>Без подтверждения</name>
+				<value>lp</value>
+			</option>
+            <option>
+                <name>смс-пароль или пароль с чека</name>
+                <value>smsp</value>
+            </option>
+		</authentication-choice>
+
+		<confirmation-choice>
+			<property>secure-confirm-choice</property>
+            <option>
+                <name>Без подтверждения</name>
+                <value>nc</value>
+            </option>
+            <option>
+                <name>смс-пароль или пароль с чека</name>
+                <value>smsp</value>
+            </option>
+		</confirmation-choice>
+
+    </mobileLimited-rule>
+
+</access-rules>

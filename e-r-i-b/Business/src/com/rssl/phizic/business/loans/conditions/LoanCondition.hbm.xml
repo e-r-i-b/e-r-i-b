@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="AmountType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.loans.conditions.AmountType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.loans.conditions.LoanCondition" table="LOAN_PRODUCT_CONDITIONS" abstract="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_LOAN_PRODUCT_CONDITIONS</param>
+            </generator>
+        </id>
+
+        <property name="productId" type="long" column="PRODUCT_ID" not-null="true" insert="false" update="false"/>
+        <property name="currency"  type="currency" column="CURRENCY" not-null="true"/>
+        <property name="minAmount" type="money" not-null="false">
+            <column name="MIN_AMOUNT"/>
+            <column name="MIN_AMOUNT_CURRENCY"/>
+        </property>
+        <property name="maxAmount" type="money" not-null="false">
+            <column name="MAX_AMOUNT"/>
+            <column name="MAX_AMOUNT_CURRENCY"/>
+        </property>
+        <property name="maxAmountInclude"       type="boolean"     column="IS_MAX_AMOUNT_INCL"   not-null="true" />
+        <property name="maxAmountPercent"       type="big_decimal" column="MAX_AMOUNT_PERCENT"   not-null="false"/>
+        <property name="amountType"             type="AmountType"  column="MAX_AMOUNT_TYPE"      not-null="true"/>
+        <property name="minInterestRate"        type="big_decimal" column="MIN_INTEREST_RATE"    not-null="false"/>
+        <property name="maxInterestRate"        type="big_decimal" column="MAX_INTEREST_RATE"    not-null="false"/>
+        <property name="maxInterestRateInclude" type="boolean"     column="IS_MAX_INT_RATE_INCL" not-null="true"/>
+    </class>
+</hibernate-mapping>

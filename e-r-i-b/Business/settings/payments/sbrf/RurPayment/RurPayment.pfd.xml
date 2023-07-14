@@ -1,0 +1,1198 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RurPayment"
+              description="Перевод частному лицу"
+              detailedDescription="На данной странице Вы можете перевести деньги частному лицу, у которого открыт счет или карта в Сбербанке или другом российском банке. Для этого заполните поля формы и нажмите на кнопку «Перевести»."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.payments.RurPayment"/>
+    <template-implementation class="com.rssl.phizic.business.documents.templates.impl.IndividualTransferTemplate"/>
+    <extended-metadata-loader class="com.rssl.phizic.business.documents.metadata.SimpleExtendedMetadataLoader"/>
+
+	<fields>
+		<field  name="documentNumber"
+                description="Номер документа"
+                type="string"
+			    source="document-number"
+			    signable="true">
+		</field>
+
+        <field  name="documentDate"
+                description="Дата документа"
+			    type="date"
+			    source="document-date"
+			    signable="true">
+        </field>
+
+        <field  name="documentTime"
+			    description="Время документа"
+			    source="document-time"
+			    type="string">
+        </field>
+
+        <field  name="operationDate"
+			    description="Дата отправки платежа"
+			    source="operation-date-short-year"
+                type="string">
+        </field>
+
+        <field  name="operationTime"
+			    description="Время исполнения платежа"
+                source="operation-time"
+			    type="string">
+        </field>
+
+        <field  name="receiverType"
+				description="Тип получателя платежа"
+				type="string"
+                subType="static"
+				source="extra-parameters/parameter[@name='receiver-type']/@value">
+		</field>
+
+        <field  name="receiverSubType"
+			    description="Подтип получателя платежа"
+			    type="string"
+                subType="static"
+			    source="extra-parameters/parameter[@name='receiver-subtype']/@value">
+
+            <validators>
+                <validator mode="draft-template|template|pre-template|by-template|document|prepare-long-offer|long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="draft-template|template|pre-template|by-template|document|prepare-long-offer|long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Некорректно выбран тип получателя платежа"/>
+                    <parameter name="regexp">ourCard|ourAccount|externalAccount|ourPhone|masterCardExternalCard|visaExternalCard|social</parameter>
+                </validator>
+                <validator mode="draft-template|template|pre-template|by-template|document|prepare-long-offer|long-offer"
+                           class="com.rssl.phizic.business.payments.forms.validators.RightForReceiverCardTypeValidator"/>
+            </validators>
+		</field>
+
+        <field name="dictFieldId"
+               description="Получатель"
+               type="string"
+               source="extra-parameters/parameter[@name='dict-field-id']/@value">
+        </field>
+
+        <field  name="externalCard"
+                description="Перевод на чужую карту"
+                type="boolean"
+                subType="static"
+                source="extra-parameters/parameter[@name='is-external-card']/@value"
+                value="form.receiverSubType == 'ourCard' || form.receiverSubType == 'ourPhone' || form.receiverSubType == 'social' || form.receiverSubType == 'visaExternalCard' || form.receiverSubType == 'masterCardExternalCard' ? 'true' : 'false'"
+                signable="true">
+        </field>
+
+ 		<field  name="isOurBankCard"
+                description="Перевод на чужую карту (но является сберовской)"
+                type="boolean"
+                source="extra-parameters/parameter[@name='isOurBankCard']/@value"
+                signable="true"/>
+
+       <field  name="fromResource"
+                description="Источник списания средств: счет, карта"
+                type="resource"
+                source="extra-parameters/parameter[@name='from-resource']/@value">
+
+            <validators>
+                <validator mode="by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="draft-template|by-template|document|prepare-long-offer|long-offer" class="com.rssl.phizic.business.documents.AllowedExternalPhizAccountPaymentValidator"/>
+            </validators>
+        </field>
+
+        <field  name="fromResourceType"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+        <field  name="fromAccountSelect"
+                description="Счет/карта списания"
+                type="string"
+                source="payer-account"
+                value="form.fromResource==null?null:form.fromResource.getNumber()"
+                signable="true">
+		</field>
+
+        <field  name="fromAccountType"
+                description="Тип (описание) источника списания"
+                type="string"
+                source="extra-parameters/parameter[@name='from-account-type']/@value"
+                value="form.fromResource==null?null:form.fromResource.getValue().getDescription()"
+                signable="true">
+        </field>
+
+        <field  name="fromAccountName"
+                description="Наименование источника списания"
+                type="string"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                value="form.fromResource==null?null:form.fromResource.getName()"
+                signable="true">
+        </field>
+
+        <field  name="fromResourceCurrency"
+                description="Валюта"
+                type="string"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+                signable="true">
+        </field>
+
+        <field  name="authorizeCode"
+                description="Код авторизации"
+                type="string"
+                source="extra-parameters/parameter[@name='AUTHORIZE_CODE']/@value">
+        </field>
+        
+        <field name="isFundPayment"
+               description="Является ли перевод оплатой сбора средств"
+               source="extra-parameters/parameter[@name='is-fund-payment']/@value"
+               type="boolean"
+               signable="true">
+        </field>
+
+        <field name="fundResponseId"
+               description="Идентификатор ответа на сбор средств"
+               source="extra-parameters/parameter[@name='fund-response-id']/@value"
+               type="string"
+               signable="true">
+        </field>
+
+        <field  name="externalCardNumber"
+                description="Номер карты получателя"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='external-card-number']/@value"
+                enabled="form.fundResponseId == null || form.fundResponseId == ''">
+
+            <validators>
+                <validator mode="pre-template|template|by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                           enabled="(form.receiverSubType == 'ourCard' || form.receiverSubType == 'visaExternalCard' || form.receiverSubType == 'masterCardExternalCard') &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')"/>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.receiverSubType == 'ourCard' || form.receiverSubType == 'visaExternalCard' || form.receiverSubType == 'masterCardExternalCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+                    <message text="Вы неправильно указали номер карты. Пожалуйста, введите 15, 16, 18 или 19 цифр."/>
+                    <parameter name="regexp">(\d{16})|(\d{18})|(\d{15})|(\d{19})</parameter>
+                </validator>
+                <validator class="com.rssl.phizic.business.payments.forms.validators.CardNumberChecksumFieldValidator"
+                           enabled="form.receiverSubType == 'ourCard' || form.receiverSubType == 'visaExternalCard' || form.receiverSubType == 'masterCardExternalCard'">
+                    <message text="Вы указали неверный номер карты получателя. Пожалуйста, проверьте номер карты."/>
+                </validator>
+                <validator mode="pre-template|template|by-template|document|mobile" class="com.rssl.phizic.business.payments.forms.validators.FindExternalCardByNumberFieldValidator"
+                           enabled="form.receiverSubType == 'ourCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+                    <message text="Карта с таким номером не найдена в системе. Пожалуйста, проверьте номер карты получателя."/>
+                </validator>
+                <validator mode="pre-template|template|by-template|document|mobile" class="com.rssl.phizic.business.payments.forms.validators.CheckCurConditionByCardNumValidator"
+                        enabled="form.receiverSubType == 'ourCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')"/>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator" enabled="form.receiverSubType == 'visaExternalCard'&amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+                    <message text="Вы неправильно ввели номер карты. Номер карты Visa должен начинаться с цифры «4»."/>
+                    <parameter name="regexp">([4]{1}\d*)</parameter>
+                </validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator" enabled="form.receiverSubType == 'masterCardExternalCard'&amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+                    <message text="Вы неправильно ввели номер карты. Номер карты MasterCard должен начинаться с цифры «5» или «6»."/>
+                    <parameter name="regexp">([5|6]{1}\d*)</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="buyAmountCurrency"
+                description="Валюта счета получателя"
+                type="string"
+                source="destination-amount-currency"
+                signable="true">
+
+            <validators>
+                <validator mode="by-template|document|prepare-long-offer" enabled="(form.receiverSubType == 'ourCard' || form.receiverSubType == 'visaExternalCard' || form.receiverSubType == 'masterCardExternalCard') &amp;&amp; form.externalCardNumber != null"
+                           class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Вы не можете выполнить перевод по данной карте. Пожалуйста, повторите попытку позже."/>
+                </validator>
+                <validator mode="by-template|document|prepare-long-offer" enabled="form.isErrorCurrency == 'false'"
+                           class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Вы неправильно ввели номер карты получателя. Пожалуйста, проверьте номер карты."/>
+                </validator>
+            </validators>
+       </field>
+
+        <field  name="receiverSurname"
+			    description="Фамилия"
+			    type="string"
+                subType="static"
+			    source="extra-parameters/parameter[@name='receiver-surname']/@value"
+			    signable="true">
+
+			<validators>
+				<validator mode="pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+					<message text="Вы ввели слишком длинную фамилию"/>
+					<parameter name="regexp">^.{0,50}$</parameter>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+        <field  name="receiverFirstName"
+			    description="Имя"
+			    type="string"
+                subType="static"
+			    source="extra-parameters/parameter[@name='receiver-first-name']/@value"
+			    signable="true">
+
+			<validators>
+				<validator mode="pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+					<message text="Вы ввели слишком длинное имя"/>
+					<parameter name="regexp">^.{0,50}$</parameter>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+        <field  name="receiverPatrName"
+			    description="Отчество"
+			    type="string"
+                subType="static"
+			    source="extra-parameters/parameter[@name='receiver-patr-name']/@value"
+			    signable="true">
+
+			<validators>
+				<validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+					<message
+					    text="Вы ввели слишком длинное отчество."/>
+					<parameter name="regexp">^.{0,50}$</parameter>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+        <field  name="receiverName"
+                description="Наименование"
+                type="string"
+                source="receiver-name"
+                signable="true"
+                value="form.receiverSubType == 'ourCard' || form.receiverSubType == 'ourAccount' || form.receiverSubType == 'externalAccount' || form.receiverSubType == 'ourPhone' || form.receiverSubType == 'social' ? form.receiverSurname + ' '+ form.receiverFirstName + (form.receiverPatrName == null ? '' : ' ' + form.receiverPatrName) : ''">
+        </field>
+
+        <field  name="receiverAddress"
+			    description="Адрес"
+			    type="string"
+                subType="static"
+			    source="extra-parameters/parameter[@name='receiver-address']/@value"
+			    signable="true">
+
+			<validators>
+				<validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="((form.receiverSubType == 'ourAccount') || (form.receiverSubType == 'externalAccount'))">
+					<message text="Вы ввели слишком длинный адрес."/>
+					<parameter name="regexp">^.{0,200}$</parameter>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+        <field  name="longOfferSumType"
+                source="extra-parameters/parameter[@name='long-offer-sum-type']/@value"
+                description="Тип суммы исполения регулярного платежа"
+                type="string"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field  name="receiverAccountInternal"
+			    description="Номер счета"
+			    type="string"
+                subType="static"
+			    source="extra-parameters/parameter[@name='receiver-account-internal']/@value">
+
+			<validators>
+				<validator mode="pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')"/>
+                <validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+					<message text="Вы неправильно указали номер счета получателя перевода. Пожалуйста, введите не менее 20, но и не более 25 цифр без точек и пробелов."/>
+					<parameter name="regexp">^\d{20,25}$</parameter>
+				</validator>
+				<validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.phizic.business.payments.forms.validators.AccountCurrencyValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+					<message text="Вы неправильно указали счет получателя перевода. Пожалуйста, проверьте номер счета."/>
+				</validator>
+                <validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+					<message text="Вы не можете перевести деньги на указанный счет. Погасить задолженность по кредиту можно на странице «Погашение кредита» («Переводы и платежи» – «Операции по вкладам, картам, кредитам и ОМС»)."/>
+                    <parameter name="regexp">^(?!(455))\d*$</parameter>
+				</validator>
+                <!--Для платежа с карты валютой операции считается валюта счета зачисления. Для операции с вклада - валюта списания-->
+                <validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.fromResourceType=='com.rssl.phizic.business.resources.external.CardLink' &amp;&amp; form.receiverSubType!='ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+					<message text="Перевод  возможен только на счета открытые в валюте рубль, доллар США, евро."/>
+                    <parameter name="regexp">^\d{5}(810|840|978|643)\d*$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+        <field  name="receiverAccount"
+                description="Счет(карта) зачисления"
+                type="string"
+                subType="static"
+			    source="receiver-account"
+                value="(form.receiverSubType == 'ourCard' || form.receiverSubType == 'visaExternalCard' || form.receiverSubType == 'masterCardExternalCard') ? form.externalCardNumber : form.receiverAccountInternal"
+                signable="true">
+        </field>
+
+        <field  name="receiverINN"
+			    description="ИНН"
+			    type="string"
+                subType="static"
+			    source="extra-parameters/parameter[@name='receiver-inn']/@value"
+			    signable="true">
+
+			<validators>
+				<validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="((form.receiverSubType == 'ourAccount') || (form.receiverSubType == 'externalAccount'))">
+					<message    text="Вы неправильно указали ИНН. Пожалуйста, введите 12 цифр."/>
+					<parameter  name="regexp">^\d{12}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field  name="receiverBIC"
+			    description="БИК"
+			    type="string"
+                subType="static"
+			    source="extra-parameters/parameter[@name='receiver-bic']/@value"
+			    signable="true">
+
+			<validators>
+				<validator mode="pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')"/>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+					<message text="Вы неправильно указали БИК. Пожалуйста, введите ровно 9 цифр."/>
+					<parameter name="regexp">^\d{9}$</parameter>
+				</validator>
+				<validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.phizic.business.payments.forms.validators.BICFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+					<message text="БИК банка получателя не найден в справочнике банков."/>
+				</validator>
+			</validators>
+		</field>
+
+        <field  name="bank"
+			    source="extra-parameters/parameter[@name='receiver-bank']/@value"
+		        description="Наименование банка"
+			    type="string"
+                signable="true"
+			    value="(form.$this != null &amp; form.$this != '') ? form.$this :
+							((form.receiverBIC != null  &amp; form.receiverBIC != '')? bankService.findByBIC(form.receiverBIC).getName() : '')">
+		</field>
+
+		<field  name="receiverCorAccount"
+			    description="Кор.счет банка получателя"
+			    type="string"
+			    source="extra-parameters/parameter[@name='receiver-cor-account']/@value"
+			    signable="true"
+                value="(form.$this != null &amp; form.$this != '') ? form.$this :
+							((form.receiverBIC != null  &amp; form.receiverBIC != '')? bankService.findByBIC(form.receiverBIC).getAccount() : '')">
+
+            <validators>
+                <validator mode="draft-template|by-template|document|pre-template|template|prepare-long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Корреспондентский счет должен состоять из 20 цифр без точек и пробелов"/>
+                    <parameter name="regexp">^\d{20}$</parameter>
+                </validator>
+            </validators>
+		</field>
+
+        <field  name="dictionaryRreceiverCorAccount"
+			    description="Кор.счет банка получателя"
+			    type="string"
+			    source="ignored"
+                value="((form.receiverBIC != null  &amp; form.receiverBIC != '')? bankService.findByBIC(form.receiverBIC).getAccount() : '')">
+		</field>
+
+        <field  name="isOurBank"
+		        description="Признак того, что платеж внутри банка"
+			    type="boolean"
+                signable="true"
+			    source="extra-parameters/parameter[@name='is-our-bank']/@value"
+                value="((form.receiverSubType == 'visaExternalCard' || form.receiverSubType == 'masterCardExternalCard') ? Boolean(false) :
+			                (form.receiverSubType == 'ourCard' || form.receiverSubType == 'ourPhone' ? Boolean(true) :
+			                    (form.$this != null &amp; form.$this != '') ? Boolean(form.$this) :
+							        ((form.receiverBIC != null  &amp; form.receiverBIC != '')? bankService.findByBIC(form.receiverBIC).isOur() : null)))">
+		</field>
+
+		<field  name="admissionDate"
+			    description="Плановая дата исполнения платежа"
+			    type="date"
+                source="admission-date"
+			    signable="false">
+        </field>
+
+		<field  name="operationCode"
+			    description="Код валютной операции"
+			    type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='operation-code']/@value"
+			    signable="true"
+                value="((form.receiverAccount != null &amp;&amp; (form.receiverAccount.substring(0,5) == '40820' || form.receiverAccount.substring(0,3) == '426')) || (form.fromAccountSelect != null &amp;&amp; (form.fromAccountSelect.substring(0,5) == '40820' || form.fromAccountSelect.substring(0,3) == '426'))) ? '{VO99090}' : ''"/>
+
+        <field  name="commission"
+                description="Сумма коммисии"
+                type="money"
+                source="commission"
+                value="'Значение только для чтения: не должно приходить от клиента и сеттиться в БД'"
+                signable="true">
+        </field>
+
+        <field  name="commissionCurrency"
+                description="Сумма коммисии"
+                type="string"
+                source="commission-currency"
+                value="'Значение только для чтения: не должно приходить от клиента и сеттиться в БД'"
+                signable="true">
+        </field>
+
+		<field  name="ground"
+			    description="Назначение платежа"
+			    type="string"
+                source="ground"
+			    signable="true">
+
+			<validators>
+				<validator mode="by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'"/>
+				<validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+					<message text="Пожалуйста, введите не более 210 символов."/>
+					<parameter name="regexp">^(.|\s){1,210}$</parameter>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+<!--
+				<validator enabled="(form.operationCode != '') &amp;&amp; (form.operationCode != null)"
+								class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Назначение платежа должно заканчиваться кодом вида валютной операции: {VOкод}, где код - 5 цифр."/>
+					<parameter name="regexp">.*\{VO\d{5}\}</parameter>
+				</validator>
+-->
+			</validators>
+		</field>
+
+        <!-- имя поля, в котором хранится точное значение суммы.
+             Иначе говоря, в поле exactAmount ссылка на поле, в котором сумма, введённая пользователем -->
+        <field  name="exactAmount"
+                description="Сумма списания (зачисления)"
+                type="string"
+                source="exact-amount">
+
+            <validators>
+                <validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field  name="state"
+		        description="Статус платежа"
+                type="string"
+                source="state">
+        </field>
+
+        <field  name="longOfferEventType"
+                description="Тип события исполнения регулярного платежа"
+                type="string"
+                source="extra-parameters/parameter[@name='long-offer-event-type']/@value"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="sellAmount"
+                description="Сумма"
+                type="money"
+                source="amount"
+                signable="true">
+
+			<validators>
+				<validator mode="by-template|document|prepare-long-offer" enabled="form.exactAmount == 'charge-off-field-exact'"
+                           class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+                    <message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+                <validator mode="long-offer" enabled="(form.exactAmount == 'charge-off-field-exact') &amp;&amp; ((form.longOfferSumType == 'FIXED_SUMMA') || (form.longOfferSumType == 'REMAIND_OVER_SUMMA'))"
+                           class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" enabled="(form.exactAmount == 'charge-off-field-exact') &amp;&amp; ((form.longOfferSumType == 'FIXED_SUMMA') || (form.longOfferSumType == 'REMAIND_OVER_SUMMA'))"
+                           class="com.rssl.common.forms.validators.MoneyFieldValidator">
+                    <message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+		</field>
+
+        <!--валюта суммы списания - всегда валюта продукта списания-->
+        <field  name="sellAmountCurrency"
+                description="Валюта"
+                type="string"
+                source="amount-currency"
+                value="form.sellAmount==null?null:form.fromResourceCurrency"
+                signable="true">
+        </field>
+
+        <field  name="buyAmount"
+                description="Сумма"
+                type="money"
+                source="destination-amount"
+                signable="true">
+
+            <validators>
+				<validator mode="by-template|document|prepare-long-offer" enabled="form.exactAmount == 'destination-field-exact'"
+                           class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+                <validator mode="long-offer" enabled="(form.exactAmount == 'destination-field-exact') &amp;&amp; ((form.longOfferSumType == 'FIXED_SUMMA_IN_RECIP_CURR') || (form.longOfferSumType == 'REMAIND_IN_RECIP'))"
+                           class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" enabled="(form.exactAmount == 'destination-field-exact') &amp;&amp; ((form.longOfferSumType == 'FIXED_SUMMA_IN_RECIP_CURR') || (form.longOfferSumType == 'REMAIND_IN_RECIP'))"
+                           class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="isErrorCurrency"
+                description="Ошибка при получении валюты"
+                source="ignored"
+                type="string">
+        </field>
+
+        <field  name="isSumModify"
+                description="Тип суммы исполения регулярного платежа"
+                type="boolean"
+                source="extra-parameters/parameter[@name='is-sum-modify']/@value">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="isPeriodic"
+                description="Периодический регулярный платеж (раз в месяц, ежеквартально, раз в полгода, раз в год)"
+                source="ignored"
+                value="(form.longOfferEventType=='ONCE_IN_MONTH') || (form.longOfferEventType=='ONCE_IN_QUARTER') || (form.longOfferEventType=='ONCE_IN_HALFYEAR') || (form.longOfferEventType=='ONCE_IN_YEAR')">
+        </field>
+
+        <field  name="longOfferPercent"
+                description="Процент от суммы исполнения"
+                type="string"
+                source="extra-parameters/parameter[@name='long-offer-percent']/@value"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" enabled="form.isSumModify == true &amp;&amp; form.longOfferSumType == 'PERCENT_OF_REMAIND'"
+                           class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" enabled="form.isSumModify == true &amp;&amp; form.longOfferSumType == 'PERCENT_OF_REMAIND'"
+                           class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Пожалуйста, укажите процент от суммы исполнения в диапазоне от 0,01 до 100. Например, 15,65."/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">100</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="longOfferPrioritySelect"
+                source="extra-parameters/parameter[@name='long-offer-priority']/@value"
+                description="Приоритет исполнения регулярного платежа"
+                type="long"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Вы неправильно указали приоритет исполнения платежа. Пожалуйста, выберите из выпадающего списка другое значение."/>
+                    <parameter name="regexp">^\d$</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="longOfferStartDate"
+                source="extra-parameters/parameter[@name='long-offer-start-date']/@value"
+                description="Дата начала действия регулярного платежа"
+                type="date"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="firstPaymentDate"
+                source="extra-parameters/parameter[@name='long-offer-first-payment-date']/@value"
+                description="Дата начала действия регулярного платежа"
+                type="date"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" enabled="form.longOfferEventType=='ONCE_IN_MONTH'" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Введите значение в поле Число месяца"/>
+                </validator>
+                <validator mode="long-offer" enabled="form.longOfferEventType!='ONCE_IN_MONTH'" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Введите значение в поле Дата оплаты"/>
+                </validator>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="longOfferEndDate"
+                source="extra-parameters/parameter[@name='long-offer-end-date']/@value"
+                description="Дата окончания действия регулярного платежа"
+                type="date"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="longOfferPayDay"
+                source="extra-parameters/parameter[@name='long-offer-pay-day']/@value"
+                description="День месяца, в который производится списание по регулярному платежу"
+                type="long"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" enabled="form.isPeriodic"
+                           class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="isStartDateChanged"
+                description="Изменилась ли дата ближайшего платежа"
+                type="boolean"
+                source="extra-parameters/parameter[@name='is-long-offer-start-date-changed']/@value">
+        </field>
+
+        <field  name="cardAccountFrom"
+                description="Номер счета карты"
+                source="cardAccountFrom"
+                value="xpath:phiz:document('active-cards.xml')/entity-list/entity[@key=$fromAccountSelect]/field[@name='cardAccount']">
+        </field>
+
+        <field  name="fromAccountNumber"
+                description="Номер счета списания"
+                source="fromAccountNumber"
+                value="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink' ? form.cardAccountFrom : form.fromAccountSelect">
+        </field>
+
+        <field  name="isCardTransfer"
+                description="Является ли операция переводом с карты на карту"
+                type="boolean"
+                subType="static"
+                source="extra-parameters/parameter[@name='is-card-transfer']/@value">
+        </field>
+
+        <field  name="externalPhoneNumber"
+                source="extra-parameters/parameter[@name='mobile-number']/@value"
+                type="string"
+                subType="static"
+                description="Мобильный номер">
+
+               <validators>
+				   <validator mode="pre-template|template|by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.receiverSubType == 'ourPhone' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')"/>
+                   <validator class="com.rssl.common.forms.validators.RegexpFieldValidator" enabled="form.receiverSubType == 'ourPhone' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+					    <message text="Укажите номер телефона – ровно 10 цифр. Например, 9115108989."/>
+					    <parameter name="regexp">(\((\d{3})\) (\d{3}-\d{2}-\d{2}))|(\d{10})</parameter>
+				   </validator>
+               </validators>
+        </field>
+
+        <field  name="externalSocialId"
+                source="extra-parameters/parameter[@name='social-id']/@value"
+                type="string"
+                subType="static"
+                description="Идентификатор клиента во внешнем приложении">
+
+               <validators>
+				   <validator mode="pre-template|template|by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.receiverSubType == 'social' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')"/>
+               </validators>
+        </field>
+
+        <field  name="recipient"
+                source="extra-parameters/parameter[@name='recipient']/@value"
+                type="string"
+                description="Поставщик, в пользу которого настроен шаблон МБ карта-карта">
+        </field>
+
+        <field  name="messageToReceiver"
+                description="Сообщение получателю"
+                source="extra-parameters/parameter[@name='message-to-receiver']/@value"
+                fromApi="5.0">
+
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.receiverSubType == 'ourCard' || form.receiverSubType == 'ourPhone' || form.receiverSubType == 'social' || form.receiverSubType == 'visaExternalCard' || form.receiverSubType == 'masterCardExternalCard'">
+                    <message text="Длина сообщения должна быть не более 40 символов"/>
+                    <parameter name="regexp">.{0,40}</parameter>
+                </validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+            </validators>
+        </field>
+
+        <field  name="messageToReceiverStatus"
+                description="Статус SMS-сообщения"
+                source="extra-parameters/parameter[@name='message-to-receiver-status']/@value"
+                fromApi="5.0">
+        </field>
+
+        <field  name="fromResourceLink"
+                description="Ссылка на ресурс списания"
+                type="string"
+                source="extra-parameters/parameter[@name='from-resource-link']/@value"
+                value="form.fromResource==null?null:form.fromResource.getCode()">
+        </field>
+
+        <field  name="reasonForAdditionalConfirm"
+                description="Причина дополнительного подтверждения платежа в КЦ"
+                type="string"
+                source="extra-parameters/parameter[@name='reason-for-additional-confirm']/@value">
+        </field>
+
+        <field  name="checkStatusCountResult"
+                description="Признак превышения допустимого значения проверок статуса платежа во ВС"
+                source="extra-parameters/parameter[@name='check-status-count-result']/@value"
+                type="boolean">
+        </field>
+
+        <field name="tariffPlanESB"
+               description="Название тарифного плана из КСШ"
+               type="string"
+               source="extra-parameters/parameter[@name='tariff-plan-esb']/@value"
+               signable="true">
+		</field>
+    </fields>
+
+	<form-validators>
+        <form-validator mode="by-template|document" enabled="form.exactAmount == 'charge-off-field-exact'"
+                        class="com.rssl.phizic.business.payments.forms.validators.UserResourceAmountValidator">
+			<field-ref name="resource">fromResource</field-ref>
+			<field-ref name="amount">sellAmount</field-ref>
+		</form-validator>
+
+        <form-validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer" class="com.rssl.phizic.business.payments.forms.validators.TransferToCreditCardValidator"
+                enabled="(form.receiverSubType == 'ourCard') &amp;&amp;(form.externalCardNumber != null) &amp;&amp; (form.externalCardNumber != '') ">
+            <message text="Вы не можете перевести деньги со счета на кредитную карту. Пожалуйста, выберите другую карту или счет зачисления."/>
+            <field-ref name="fromResource">fromResource</field-ref>
+            <field-ref name="toResource">externalCardNumber</field-ref>
+        </form-validator>
+
+		<form-validator mode="by-template|document" class="com.rssl.phizic.business.payments.forms.validators.AccountMinDemandBalanceWriteValidator"
+                enabled="form.fromResourceType=='com.rssl.phizic.business.resources.external.AccountLink' &amp;&amp; form.exactAmount == 'charge-off-field-exact'">
+			<message text="Остаток на счете после совершения операции не может быть меньше неснижаемого."/>
+			<field-ref name="account">fromResource</field-ref>
+			<field-ref name="amount">sellAmount</field-ref>
+		</form-validator>
+
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountsNotEqualValidator">
+			<field-ref name="fromAccount">fromAccountSelect</field-ref>
+			<field-ref name="toAccount">receiverAccount</field-ref>
+		</form-validator>
+
+       	<form-validator mode="pre-template|template|by-template|document|prepare-long-offer|mobile" class="com.rssl.phizic.business.payments.forms.validators.AccountKeyValidator" enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+			<message text="Вы неправильно указали счет получателя. Пожалуйста, проверьте номер счета."/>
+			<field-ref name="receiverBIC">receiverBIC</field-ref>
+			<field-ref name="receiverAccount">receiverAccount</field-ref>
+		</form-validator>
+
+        <form-validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer|long-offer" class="com.rssl.phizic.business.payments.forms.validators.TransferToOwnAccountValidator"
+            enabled="form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+            <field-ref name="receiverAccount">receiverAccount</field-ref>
+            <field-ref name="fromResource">fromResource</field-ref>
+            <field-ref name="isOurBank">isOurBank</field-ref>
+            <field-ref name="exactAmountField">exactAmount</field-ref>
+            <field-ref name="sellAmount">sellAmount</field-ref>
+            <field-ref name="buyAmount">buyAmount</field-ref>
+        </form-validator>
+
+        <!--При внешних переводах выполнение операции в разных валютах возможно только на свои счета-->
+        <form-validator mode="draft-template|by-template|document|prepare-long-offer|long-offer" class="com.rssl.phizic.business.payments.forms.validators.PayerReceiverFIOValidator"
+                        enabled="(form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.fromResourceCurrency != 'RUB' &amp;&amp; form.fromResourceCurrency != 'RUR')
+                         &amp;&amp; form.fromResourceType=='com.rssl.phizic.business.resources.external.AccountLink' ">
+            <message text="Переводить валюту отличную от рублей можно только на свои валютные счета (карты)."/>
+            <field-ref name="receiverSurname">receiverSurname</field-ref>
+            <field-ref name="receiverFirstName">receiverFirstName</field-ref>
+            <field-ref name="receiverPatrName">receiverPatrName</field-ref>
+        </form-validator>
+
+        <!--При внешних переводах выполнение операции в разных валютах возможно только на свои счета-->
+        <form-validator mode="pre-template|template" class="com.rssl.phizic.business.payments.forms.validators.PayerReceiverFIOValidator"
+                       enabled="(form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.fromResource != null &amp;&amp; form.receiverAccount != null &amp;&amp; form.receiverAccount.length > 0
+                       &amp;&amp; (form.fromResourceCurrency != 'RUB') &amp;&amp; (form.fromResourceCurrency != 'RUR')) &amp;&amp; form.fromResourceType=='com.rssl.phizic.business.resources.external.AccountLink'">
+            <message text="Переводить валюту отличную от рублей можно только на свои валютные счета (карты)."/>
+            <field-ref name="receiverSurname">receiverSurname</field-ref>
+            <field-ref name="receiverFirstName">receiverFirstName</field-ref>
+            <field-ref name="receiverPatrName">receiverPatrName</field-ref>
+        </form-validator>
+
+        <!--Для перевода с карт валюта перевода определяется валютой счета зачисления!-->
+        <!--При внешних переводах выполнение операции в разных валютах возможно только на свои счета-->
+        <form-validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer|long-offer"
+                        class="com.rssl.phizic.business.payments.forms.validators.PayerReceiverFIOValidator"
+                        enabled="(form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social'
+                        &amp;&amp;((form.exactAmount == 'charge-off-field-exact' &amp;&amp; form.sellAmountCurrency != 'RUB')||(form.exactAmount == 'destination-field-exact' &amp;&amp; form.buyAmountCurrency != 'RUB'))
+                        &amp;&amp; form.fromResourceCurrency != 'RUR')
+                         &amp;&amp; form.fromResourceType=='com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Переводить валюту отличную от рублей можно только на свои валютные счета (карты)."/>
+            <field-ref name="receiverSurname">receiverSurname</field-ref>
+            <field-ref name="receiverFirstName">receiverFirstName</field-ref>
+            <field-ref name="receiverPatrName">receiverPatrName</field-ref>
+        </form-validator>
+
+        <!--При внешних переводах выполнение операции в разных валютах возможно только на свои счета-->
+        <form-validator mode="pre-template|template" class="com.rssl.phizic.business.payments.forms.validators.PayerReceiverFIOValidator"
+                       enabled="(form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.fromResource != null &amp;&amp; form.receiverAccount != null &amp;&amp; form.receiverAccount.length > 0
+                       &amp;&amp; (form.buyAmountCurrency != 'RUB') &amp;&amp; (form.fromResourceCurrency != 'RUR')) &amp;&amp; form.fromResourceType=='com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Переводить валюту отличную от рублей можно только на свои валютные счета (карты)."/>
+            <field-ref name="receiverSurname">receiverSurname</field-ref>
+            <field-ref name="receiverFirstName">receiverFirstName</field-ref>
+            <field-ref name="receiverPatrName">receiverPatrName</field-ref>
+        </form-validator>
+
+        <!-- Перевод с карты на карту в другом банке только в рублях -->
+        <form-validator mode="draft-template|pre-template|template|ba-template|document" class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator"
+                       enabled="form.receiverSubType == 'visaExternalCard' || form.receiverSubType == 'masterCardExternalCard'">
+            <message text="Переводить валюту отличную от рублей можно только на свои валютные счета (карты)."/>
+            <field-ref name="parameterName">buyAmountCurrency</field-ref>
+			<parameter name="param1">RUB</parameter>
+        </form-validator>
+
+        <!--При внешних переводах выполнение операции в разных валютах возможно только на свои карты-->
+        <form-validator mode="by-template|document|prepare-long-offer|long-offer" class="com.rssl.phizic.business.payments.forms.validators.CardOwnValidator"
+                        enabled="form.receiverSubType == 'ourCard' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; form.buyAmountCurrency != 'RUB'">
+            <message text="Пожалуйста, укажите рублевый счет или карту, на которую хотите перевести деньги."/>
+            <field-ref name="externalCardNumber">externalCardNumber</field-ref>
+        </form-validator>
+
+        <!--При внешних переводах выполнение операции в разных валютах возможно только на свои карты-->
+        <form-validator mode="draft-template|pre-template|template" class="com.rssl.phizic.business.payments.forms.validators.CardOwnValidator"
+                        enabled="form.receiverSubType == 'ourCard' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard' &amp;&amp; form.externalCardNumber!=null &amp;&amp; form.externalCardNumber.length > 0 &amp;&amp; form.buyAmountCurrency != null &amp;&amp; form.buyAmountCurrency != 'RUB'">
+            <message text="Пожалуйста, укажите рублевый счет или карту, на которую хотите перевести деньги."/>
+            <field-ref name="externalCardNumber">externalCardNumber</field-ref>
+        </form-validator>
+
+        <!--ЕРМБ. Проверка карты отправителя: Проверка принадлежности карты списания клиенту-->
+        <form-validator mode="sms" class="com.rssl.phizic.business.payments.forms.validators.CardOwnValidator"
+                        enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Операция не выполнена. Для проведения перевода укажите в запросе другую карту для списания."/>
+            <field-ref name="externalCardNumber">fromAccountSelect</field-ref>
+        </form-validator>
+
+        <!--ЕРМБ. Проверка карты отправителя: Карта не должна быть кредитной-->
+        <form-validator mode="sms" class="com.rssl.phizic.business.payments.forms.validators.CheckCreditCardValidator"
+                        enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Операция не выполнена. Для проведения перевода укажите в запросе другую карту для списания, отличную от кредитной."/>
+            <field-ref name="resource">fromResource</field-ref>
+        </form-validator>
+
+        <!--ЕРМБ. Проверка карты отправителя: Карта не должна быть виртуальной-->
+        <form-validator mode="sms" class="com.rssl.phizic.business.payments.forms.validators.CheckVirualCardValidator"
+                        enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Операция не выполнена. Была указана виртуальная карта. Для совершения операции укажите в запросе другую карту для списания."/>
+            <field-ref name="resource">fromResource</field-ref>
+        </form-validator>
+
+        <form-validator mode="pre-template|template|by-template|document|prepare-long-offer|long-offer" class="com.rssl.phizic.business.payments.forms.validators.CardNotBlockedValidator"
+                        enabled="form.receiverSubType == 'ourCard' &amp;&amp; form.externalCardNumber!=null &amp;&amp; form.externalCardNumber.length > 0">
+            <message text="Вы не можете выполнить платеж, потому что карта получателя заблокирована. Пожалуйста, укажите другую карту."/>
+            <field-ref name="externalCardNumber">externalCardNumber</field-ref>
+        </form-validator>
+
+        <form-validator mode="draft-template|pre-template|template|by-templatedocument|prepare-long-offer|long-offer" class="com.rssl.common.forms.validators.CompareValidator">
+            <message text="Данный корреспондентский счет не найден в справочнике. Пожалуйста, введите другой корр. счет или воспользуйтесь справочником банков, щелкнув по ссылке «Выбрать из справочника»."/>
+            <field-ref name="obj1">receiverCorAccount</field-ref>
+            <field-ref name="obj2">dictionaryRreceiverCorAccount</field-ref>
+            <parameter name="operator">eq</parameter>
+        </form-validator>
+
+         <form-validator mode="long-offer" class="com.rssl.phizic.business.payments.forms.validators.CloseDateResourceValidator">
+            <message text="Срок действия платежа не может быть больше срока действия вклада(карты), указанного счетом списания."/>
+            <field-ref name="resource">fromResource</field-ref>
+            <field-ref name="longOfferEndDate">longOfferEndDate</field-ref>
+        </form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.common.forms.validators.CompareValidator">
+            <message text="Дата начала действия регулярного платежа не должна превышать дату окончания действия регулярного платежа."/>
+            <field-ref name="obj1">longOfferEndDate</field-ref>
+            <field-ref name="obj2">longOfferStartDate</field-ref>
+            <parameter name="operator">gt</parameter>
+        </form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.common.forms.validators.CompareValidator">
+            <message text="Ближайшая дата выполнения не должна превышать дату окончания действия регулярного платежа."/>
+            <field-ref name="obj1">longOfferEndDate</field-ref>
+            <field-ref name="obj2">firstPaymentDate</field-ref>
+            <parameter name="operator">gt</parameter>
+        </form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.common.forms.validators.DateTimeCompareValidator">
+            <message text="Дата начала действия регулярного платежа не может быть меньше текущей даты. Укажите другую дату начала действия"/>
+            <field-ref name="from_date">longOfferStartDate</field-ref>
+            <field-ref name="from_time"/>
+            <field-ref name="to_date"/>
+            <field-ref name="to_time"/>
+            <parameter name="curDate">to_cleartime</parameter>
+            <parameter name="operator">ge</parameter>
+        </form-validator>
+
+        <!--
+            проверка соответствия типа события для типа получателя платежа:
+            платеж вклад - физ. лицо на счет в Сбербанке
+                -->
+        <form-validator mode="long-offer" enabled="(form.fromResourceType=='com.rssl.phizic.business.resources.external.AccountLink') &amp;&amp; (form.receiverSubType == 'ourAccount')"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный режим платежа."/>
+			<field-ref name="parameterName">longOfferEventType</field-ref>
+			<parameter name="param1">ONCE_IN_MONTH</parameter>
+			<parameter name="param2">ONCE_IN_QUARTER</parameter>
+			<parameter name="param3">ONCE_IN_HALFYEAR</parameter>
+			<parameter name="param4">ONCE_IN_YEAR</parameter>
+			<parameter name="param5">BY_ANY_RECEIPT</parameter>
+			<parameter name="param6">BY_CAPITAL</parameter>
+			<parameter name="param7">BY_PERCENT</parameter>
+			<parameter name="param8">ON_REMAIND</parameter>
+			<parameter name="param9">ON_OVER_DRAFT</parameter>
+		</form-validator>
+
+        <!--
+            проверка соответствия типа события для типа получателя платежа:
+            платеж карта - физ. лицо на счет в Сбербанке
+                -->
+        <form-validator mode="long-offer" enabled="(form.fromResourceType=='com.rssl.phizic.business.resources.external.CardtLink') &amp;&amp; (form.receiverSubType == 'ourAccount')"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный режим платежа."/>
+			<field-ref name="parameterName">longOfferEventType</field-ref>
+			<parameter name="param1">ONCE_IN_MONTH</parameter>
+			<parameter name="param2">ONCE_IN_QUARTER</parameter>
+			<parameter name="param3">ONCE_IN_HALFYEAR</parameter>
+			<parameter name="param4">ONCE_IN_YEAR</parameter>
+			<parameter name="param5">BY_ANY_RECEIPT</parameter>
+			<parameter name="param6">BY_PENSION</parameter>
+			<parameter name="param7">BY_SALARY</parameter>
+			<parameter name="param8">ON_REMAIND</parameter>
+			<parameter name="param9">ON_OVER_DRAFT</parameter>
+		</form-validator>
+
+        <!--
+            проверка соответствия типа события для типа получателя платежа:
+            платеж вклад - физ. лицо на счет в другом ком. банке
+                -->
+        <form-validator mode="long-offer" enabled="(form.fromResourceType=='com.rssl.phizic.business.resources.external.AccountLink') &amp;&amp; (form.receiverSubType == 'externalAccount')"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный режим платежа."/>
+			<field-ref name="parameterName">longOfferEventType</field-ref>
+			<parameter name="param1">ONCE_IN_MONTH</parameter>
+			<parameter name="param2">ONCE_IN_QUARTER</parameter>
+			<parameter name="param3">ONCE_IN_HALFYEAR</parameter>
+			<parameter name="param4">ONCE_IN_YEAR</parameter>
+			<parameter name="param5">BY_ANY_RECEIPT</parameter>
+			<parameter name="param6">BY_CAPITAL</parameter>
+			<parameter name="param7">BY_PERCENT</parameter>
+			<parameter name="param8">ON_REMAIND</parameter>
+		</form-validator>
+
+        <!--
+            проверка соответствия типа события для типа получателя платежа:
+            платеж карта - физ. лицо на счет в другом ком. банке
+                -->
+        <form-validator mode="long-offer" enabled="(form.fromResourceType=='com.rssl.phizic.business.resources.external.CardtLink') &amp;&amp; (form.receiverSubType == 'externalAccount')"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный режим платежа."/>
+			<field-ref name="parameterName">longOfferEventType</field-ref>
+			<parameter name="param1">ONCE_IN_MONTH</parameter>
+			<parameter name="param2">ONCE_IN_QUARTER</parameter>
+			<parameter name="param3">ONCE_IN_HALFYEAR</parameter>
+			<parameter name="param4">ONCE_IN_YEAR</parameter>
+			<parameter name="param5">BY_ANY_RECEIPT</parameter>
+			<parameter name="param6">BY_PENSION</parameter>
+			<parameter name="param7">BY_SALARY</parameter>
+			<parameter name="param8">ON_REMAIND</parameter>
+		</form-validator>
+
+        <!--
+            проверка типа суммы:
+            периодический платеж или повторяется по любому событию
+            для платежа вклад - физ. лицо на счет в Сбербанке
+            переводим всегда в одной валюте
+                -->
+        <form-validator mode="long-offer" enabled="(form.fromResourceType=='com.rssl.phizic.business.resources.external.AccountLink') &amp;&amp; (form.receiverSubType == 'ourAccount') &amp;&amp; ((form.longOfferEventType=='BY_ANY_RECEIPT') || form.isPeriodic)"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+			<field-ref name="parameterName">longOfferSumType</field-ref>
+			<parameter name="param1">FIXED_SUMMA</parameter>
+			<parameter name="param2">REMAIND_OVER_SUMMA</parameter>
+			<parameter name="param3">PERCENT_OF_REMAIND</parameter>
+			<parameter name="param4">REMAIND_IN_RECIP</parameter>
+			<parameter name="param5">SUMMA_OF_RECEIPT</parameter>
+			<parameter name="param6">OVER_DRAFT</parameter>
+		</form-validator>
+
+        <!--
+            проверка типа суммы:
+            периодический платеж или повторяется по любому событию
+            платежа карта - физ. лицо на счет в Сбербанке
+            переводим с карты всегда в валюте счета зачисления
+                -->
+        <form-validator mode="long-offer" enabled="(form.fromResourceType=='com.rssl.phizic.business.resources.external.CardLink') &amp;&amp; (form.receiverSubType == 'ourAccount') &amp;&amp; ((form.longOfferEventType=='BY_ANY_RECEIPT') || form.isPeriodic)"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+			<field-ref name="parameterName">longOfferSumType</field-ref>
+			<parameter name="param1">FIXED_SUMMA_IN_RECIP_CURR</parameter>
+			<parameter name="param2">PERCENT_OF_REMAIND</parameter>
+			<parameter name="param3">REMAIND_IN_RECIP</parameter>
+			<parameter name="param4">SUMMA_OF_RECEIPT</parameter>
+			<parameter name="param5">OVER_DRAFT</parameter>
+		</form-validator>
+
+        <!--
+            проверка типа суммы:
+            периодический платеж или повторяется по любому событию
+            для платежа вклад - физ. лицо на счет в другом ком. банке
+            переводим всегда в одной валюте
+                -->
+        <form-validator mode="long-offer" enabled="(form.fromResourceType=='com.rssl.phizic.business.resources.external.AccountLink') &amp;&amp; (form.receiverSubType == 'externalAccount') &amp;&amp; ((form.longOfferEventType=='BY_ANY_RECEIPT') || form.isPeriodic)"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+			<field-ref name="parameterName">longOfferSumType</field-ref>
+			<parameter name="param1">FIXED_SUMMA</parameter>
+			<parameter name="param2">REMAIND_OVER_SUMMA</parameter>
+			<parameter name="param3">PERCENT_OF_REMAIND</parameter>
+			<parameter name="param4">SUMMA_OF_RECEIPT</parameter>
+		</form-validator>
+
+        <!--
+            проверка типа суммы:
+            периодический платеж или повторяется по любому событию
+            для платежа карта - физ. лицо на счет в другом ком. банке
+            переводим всегда в валюте счета зачисления
+                -->
+        <form-validator mode="long-offer" enabled="(form.fromResourceType=='com.rssl.phizic.business.resources.external.CardLink') &amp;&amp; (form.receiverSubType == 'externalAccount') &amp;&amp; ((form.longOfferEventType=='BY_ANY_RECEIPT') || form.isPeriodic)"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+			<field-ref name="parameterName">longOfferSumType</field-ref>
+			<parameter name="param1">FIXED_SUMMA_IN_RECIP_CURR</parameter>
+			<parameter name="param2">PERCENT_OF_REMAIND</parameter>
+			<parameter name="param3">SUMMA_OF_RECEIPT</parameter>
+		</form-validator>
+
+        <!--
+            проверка типа суммы:
+            повторяется по зачислению пенсии/зарплаты
+            платеж карта - физ. лицо на счет в Сбербанке
+                -->
+        <form-validator mode="long-offer" enabled="((form.longOfferEventType=='BY_PENSION') || (form.longOfferEventType=='BY_SALARY')) &amp;&amp; (form.receiverSubType == 'ourAccount')"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+            <message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+            <field-ref name="parameterName">longOfferSumType</field-ref>
+            <parameter name="param1">FIXED_SUMMA_IN_RECIP_CURR</parameter>
+            <parameter name="param2">PERCENT_OF_REMAIND</parameter>
+            <parameter name="param3">REMAIND_IN_RECIP</parameter>
+            <parameter name="param4">SUMMA_OF_RECEIPT</parameter>
+            <parameter name="param5">OVER_DRAFT</parameter>
+        </form-validator>
+
+        <!--
+            проверка типа суммы:
+            повторяется по зачислению пенсии/зарплаты
+            платеж карта - физ. лицо на счет в другом ком.банке
+                -->
+        <form-validator mode="long-offer" enabled="((form.longOfferEventType=='BY_PENSION') || (form.longOfferEventType=='BY_SALARY')) &amp;&amp; (form.receiverSubType == 'externalAccount')"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+            <message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+            <field-ref name="parameterName">longOfferSumType</field-ref>
+            <parameter name="param1">FIXED_SUMMA_IN_RECIP_CURR</parameter>
+            <parameter name="param2">PERCENT_OF_REMAIND</parameter>
+            <parameter name="param3">SUMMA_OF_RECEIPT</parameter>
+        </form-validator>
+
+        <!--проверка типа суммы: повторяется по зачислению процентов-->
+        <form-validator mode="long-offer" enabled="form.longOfferEventType=='BY_PERCENT'"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+			<field-ref name="parameterName">longOfferSumType</field-ref>
+			<parameter name="param1">SUMMA_OF_RECEIPT</parameter>
+		</form-validator>
+
+        <!--проверка типа суммы: повторяется по капитализации-->
+        <form-validator mode="long-offer" enabled="form.longOfferEventType=='BY_CAPITAL'"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+			<field-ref name="parameterName">longOfferSumType</field-ref>
+			<parameter name="param1">PERCENT_OF_CAPITAL</parameter>
+		</form-validator>
+
+        <!--проверка типа суммы: повторяется при остатке на счете списания больше указанного остатка-->
+        <form-validator mode="long-offer" enabled="form.longOfferEventType=='ON_REMAIND'"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+			<field-ref name="parameterName">longOfferSumType</field-ref>
+			<parameter name="param1">REMAIND_OVER_SUMMA</parameter>
+		</form-validator>
+
+        <form-validator mode="long-offer" enabled="form.longOfferEventType=='ON_REMAIND'"
+                        class="com.rssl.phizic.business.payments.forms.validators.MininmumBalanceValidator">
+            <message text="Указанная сумма  не может быть меньше суммы установленного минимального остатка на счете"/>
+            <field-ref name="fromResource">fromResource</field-ref>
+            <field-ref name="sellAmount">sellAmount</field-ref>
+        </form-validator>
+
+        <!--проверка типа суммы: повторяется при овердрафте-->
+        <form-validator mode="long-offer" enabled="form.longOfferEventType=='ON_OVER_DRAFT'"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный тип суммы."/>
+			<field-ref name="parameterName">longOfferSumType</field-ref>
+			<parameter name="param1">OVER_DRAFT</parameter>
+		</form-validator>
+
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.FailureValidator"
+                enabled="form.externalCard=='true' &amp;&amp; form.fromResourceType == 'com.rssl.phizic.business.resources.external.AccountLink'">
+                <message text="Вы можете перевести деньги на карту другого клиента Сбербанка только с Вашей карты. Пожалуйста, укажите карту, с которой хотите выполнить перевод."/>
+        </form-validator>
+
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.BannedAccountListValidator"
+            enabled="form.receiverSubType != 'ourCard' &amp;&amp; form.receiverSubType != 'ourPhone' &amp;&amp; form.receiverSubType != 'social' &amp;&amp; form.receiverSubType != 'visaExternalCard' &amp;&amp; form.receiverSubType != 'masterCardExternalCard'">
+            <message text="Вы указали недопустимый счет получателя, перевод на который запрещен. Пожалуйста, укажите корректный счет получателя."/>
+			<field-ref name="receiverBIC">receiverBIC</field-ref>
+			<field-ref name="receiverAccount">receiverAccount</field-ref>
+            <parameter name="banType">PHIZ</parameter>
+        </form-validator>
+
+
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.CheckPhoneLimitForMobileValidator"
+                        enabled="form.receiverSubType == 'ourPhone' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+            <message text="$5$Превышен кумулятивный лимит запросов по номеру телефона. Используйте перевод по номеру карты."/>
+            <field-ref name="externalPhoneNumber">externalPhoneNumber</field-ref>
+        </form-validator>
+
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.CheckPhoneLimitValidator"
+                        enabled="form.receiverSubType == 'ourPhone' &amp;&amp; (form.dictFieldId==null || form.dictFieldId=='')">
+            <message text="Переводы по номеру телефона заблокированы до 00:00 по московскому времени"/>
+            <field-ref name="externalPhoneNumber">externalPhoneNumber</field-ref>
+        </form-validator>
+
+        <form-validator mode="draft-template|document|pre-template|template" class="com.rssl.phizic.business.payments.forms.validators.ColdPeriodAvailableOperationForRurPaymentValidator">
+            <message text="Сбербанк Онлайн работает с ограниченным функционалом. Полный перечень операций будет доступен вам позже."/>
+            <field-ref name="isOurBank">isOurBank</field-ref>
+            <field-ref name="externalCard">externalCard</field-ref>
+        </form-validator>
+	</form-validators>
+</payment-form>

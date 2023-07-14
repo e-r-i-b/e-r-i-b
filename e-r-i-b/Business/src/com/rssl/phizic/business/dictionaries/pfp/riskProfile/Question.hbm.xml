@@ -1,0 +1,65 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="SegmentCodeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.SegmentCodeType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.Answer"
+           table="PFP_ANSWERS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_ANSWERS</param>
+            </generator>
+        </id>
+        <property name="uuid"       type="string" column="UUID"        not-null="true" update="false"/>
+        <property name="text"       type="string" column="TEXT"        not-null="false"/>
+        <property name="holderId"   type="long"   column="QUESTION_ID" not-null="false"/>
+        <property name="weight"     type="long"   column="WEIGHT"      not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.Question"
+           table="PFP_QUESTIONS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_QUESTIONS</param>
+            </generator>
+        </id>
+        <property name="uuid"    type="string"          column="UUID"       not-null="true" update="false"/>
+        <property name="segment" type="SegmentCodeType" column="SEGMENT"    not-null="true"/>
+        <property name="text"    type="string"          column="TEXT"       not-null="true"/>
+        <property name="deleted" type="boolean"         column="IS_DELETED" not-null="true" access="field"/>
+        <list name="answers" table="PFP_ANSWERS" cascade="all-delete-orphan" lazy="false">
+            <key column="QUESTION_ID" not-null="false"/>
+			<list-index column="LIST_INDEX"/>
+			<one-to-many class="com.rssl.phizic.business.dictionaries.pfp.riskProfile.Answer"/>
+        </list>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.Question.calculateAnswersWeight">
+        <return-scalar column="answersWeight" type="int"/>
+        SELECT
+            SUM(WEIGHT) as answersWeight
+        FROM
+            PFP_ANSWERS 
+        WHERE
+            ID IN (:answerIds)
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.Question.markDeleted">
+        UPDATE Question SET deleted = 1 WHERE id = :questionId
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.Question.isMutable">
+        <return-scalar column="IS_MUTABLE" type="boolean"/>
+        SELECT
+            DECODE(count(*), 0, 1, 0) IS_MUTABLE
+        FROM
+            PERSON_PROFILE_RP_QUESTION
+        WHERE
+            QUESTION_ID  = :questionId
+    </sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE xsl:stylesheet [
+<!ENTITY nbsp "&#160;">
+]>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:phizic="java://com.rssl.phizic.utils.StringUtils" extension-element-prefixes="phizic">
+	<xsl:output method="html" version="1.0" indent="yes"/>
+	<xsl:param name="webRoot" select="'webRoot'"/>
+	<xsl:param name="resourceRoot" select="'resourceRoot'"/>
+
+	<xsl:template match="/form-data">
+    </xsl:template>
+
+</xsl:stylesheet>

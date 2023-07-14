@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="UECWebService" 
+	xmlns:ns="http://sbrf.ru/e-invoicing/uec/1" 
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+	targetNamespace="http://sbrf.ru/e-invoicing/uec/1">
+
+	<wsdl:types>
+		<xsd:schema>
+			<xsd:import namespace="http://sbrf.ru/e-invoicing/uec/1" schemaLocation="uec.xsd" />
+		</xsd:schema>
+	</wsdl:types>
+
+	<wsdl:message name="UECDocStatNotRqMsg">
+		<wsdl:part element="ns:UECDocStatNotRq" name="UECDocStatNotRq" />
+	</wsdl:message>
+	<wsdl:message name="UECDocStatNotRsMsg">
+		<wsdl:part element="ns:UECDocStatNotRs" name="UECDocStatNotRs" />
+	</wsdl:message>
+
+	<wsdl:portType name="UECService">
+		<wsdl:operation name="UECDocStatNotRq">
+			<wsdl:input message="ns:UECDocStatNotRqMsg" />
+			<wsdl:output message="ns:UECDocStatNotRsMsg" />
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<wsdl:binding name="UECServiceSoapBinding" type="ns:UECService">
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="UECDocStatNotRq">
+			<soap:operation style="document" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<wsdl:service name="UECServiceImpl">
+		<wsdl:port binding="ns:UECServiceSoapBinding" name="UECServicePort">
+			<soap:address location="http://localhost:8080/services/UECServiceImpl" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

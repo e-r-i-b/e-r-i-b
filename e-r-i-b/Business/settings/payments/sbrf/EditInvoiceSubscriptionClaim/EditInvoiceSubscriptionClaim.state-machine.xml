@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/state-machine.xsd">
+
+    <states inital-state="INITIAL" description="Машина состояний заявки на редактирование автоподписки на инвойсы в корзине платежей" saveNodeInfo="true">
+        <state id="INITIAL" description="Вы сохранили, но еще не подтвердили завку."
+               client-form="/private/payments/payment.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="SAVE" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.SetChannelTypeHandler">
+                            <parameter name="channel-type" value="IB"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SimpleBusinessDocumentDateAction"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CacheClearHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.basket.subscription.SetWaitInvoiceSubscriptionStateHandler">
+                            <parameter name="status" value="ACTIVE"/>
+                        </handler>
+                    </handlers>
+                    <next-states default="DISPATCHED"/>
+                </event>
+                <event name="DOUNKNOW" type="client">
+                    <next-states default="UNKNOW"/>
+                </event>
+                <event name="ERROR" description="При работе с документом произошла ошибка" type="client">
+                    <next-states default="ERROR"/>
+                </event>
+            </events>
+        </state>
+
+
+        <state id="DISPATCHED" description="Заявка на редактирование услуги подтверждена и передана на обработку в банк."
+               client-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="EXECUTE" description="Подтверждение документа системой" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.basket.subscription.UpdateEditInvoiceSubscriptionStateHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED"/>
+                </event>
+                <event name="EXECUTE" description="Подтверждение документа сотрудником" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.TestClientBlockedHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.basket.subscription.UpdateEditInvoiceSubscriptionStateHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED"/>
+                </event>
+                <event name="REFUSE" description="Отказ документа системой" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.RefuseEditInvoiceSubscriptionClaimHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.basket.subscription.UpdateEditInvoiceSubscriptionStateHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.UpdateErrorInvoiceSubscriptionEntityAction"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ документа сотрудником" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.TestClientBlockedHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.RefuseEditInvoiceSubscriptionClaimHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.basket.subscription.UpdateEditInvoiceSubscriptionStateHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.UpdateErrorInvoiceSubscriptionEntityAction"/>
+                        </handlers>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+
+        <state id="UNKNOW" description="Статус документа не определен. Пожалуйста, обратитесь в контактный центр банка."
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="SPECIFY" description="Уточнение состояния документа" type="employee" lock="true">
+                    <next-states default="UNKNOW">
+                        <next-state condition="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.AutoSubscriptionCondition" state="DISPATCHED"
+                                    description="Заявка на редактирование автоплатежа подтверждена и передана на обработку в банк.">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                             </handlers>
+                            <!--фильтруем документы, отправленные в подразделение, обслуживаемое шиной-->
+                            <enabled class="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.DocumentOfficeESBSupportedFilter"/>
+                        </next-state>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+
+        <state id="EXECUTED" description="Заявка успешно принята на исполнение в банке."
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <handlers>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+            </handlers>
+        </state>
+
+        <state id="REFUSED" description="Вам отказано в исполнении операции по какой-либо причине."
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+        </state>
+
+        <state id="ERROR" description="Документ не может быть исполнен, Вам необходимо обратиться в банк."
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+        </state>
+    </states>
+</config>

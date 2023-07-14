@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="state">
+        <param name="enumClass">com.rssl.phizic.gate.depo.DepoAccountState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.resources.external.StoredDepoAccount" table="STORED_DEPO_ACCOUNT">
+        <id name="storedId" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_STORED_DEPO_ACCOUNT</param>
+            </generator>
+        </id>
+
+        <many-to-one name="resourceLink"  class="com.rssl.phizic.business.resources.external.DepoAccountLink" column="RESOURCE_ID"   lazy="false" unique="true"/>
+
+        <property name="state"              type="state"    column="STATE"/>
+        <property name="agreementNumber"    type="string"   column="AGREEMENT_NUMBER"/>
+        <property name="agreementDate"      type="calendar" column="AGREEMENT_DATE"/>
+        <property name="isOperationAllowed" type="boolean"  column="IS_OPERATION_ALLOWED"/>
+        <property name="entityUpdateTime"   type="calendar" column="ENTITY_UPDATE_TIME"/>
+
+        <property name="departmentId"       type="long"     column="DEPARTMENT_ID"/>
+
+        <property name="officeOSB"          type="string"   column="OFFICE_OSB"/>
+        <property name="officeTB"           type="string"   column="OFFICE_TB"/>
+        <property name="officeVSP"          type="string"   column="OFFICE_VSP"/>
+
+        <property name="debt"               type="money">
+            <column  name="DEBT_AMOUNT"/>
+            <column  name="DEBT_CURRENCY"/>
+        </property>
+        
+    </class>
+</hibernate-mapping>

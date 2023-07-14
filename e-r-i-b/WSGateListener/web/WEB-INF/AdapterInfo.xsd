@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:simpleType name="StringType">
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+
+ 	<xsd:simpleType name="LongType">
+	    <xsd:restriction base="xsd:long"/>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="StatusCodeType">
+	    <xsd:annotation>
+	        <xsd:documentation>Код ошибки</xsd:documentation>
+	    </xsd:annotation>
+	    <xsd:restriction base="LongType"/>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="StatusDescType">
+	    <xsd:annotation>
+	        <xsd:documentation>Текст ошибки</xsd:documentation>
+	    </xsd:annotation>
+	    <xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+
+    <xsd:complexType name="StatusType">
+        <xsd:sequence>
+            <xsd:element name="StatusCode" type="StatusCodeType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="StatusDescription" type="StatusDescType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+	<xsd:complexType name="AdapterInfoRq">
+        <xsd:annotation>
+            <xsd:documentation>Запрос адреса обработчика сообщений от ВС для адаптера по его uuid</xsd:documentation>
+        </xsd:annotation>
+	    <xsd:sequence>
+            <xsd:element name="uuid" type="StringType" minOccurs="1" maxOccurs="1"/>
+	    </xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="AdapterInfoRq" type="AdapterInfoRq"/>
+
+	<xsd:complexType name="AdapterInfoRs">
+        <xsd:annotation>
+            <xsd:documentation>Ответ на запрос информации по платежу с использованием идентификатора платежа и заказа</xsd:documentation>
+        </xsd:annotation>
+	    <xsd:sequence>
+	        <xsd:element name="Address" type="StringType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Status" type="StatusType" minOccurs="1" maxOccurs="1"/>
+	    </xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="AdapterInfoRs" type="AdapterInfoRs"/>
+</xsd:schema>

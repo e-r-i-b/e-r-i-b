@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RefuseLongOffer"
+              description="Отмена выполнения регулярной операции"
+              detailedDescription="С помощью данной страницы Вы можете
+              &lt;b&gt;отменить выполнение&lt;/b&gt; автоплатежа (регулярной операции).
+              Для этого проверьте реквизиты заявки и нажмите на кнопку «Продолжить»."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.RefuseLongOfferClaim"/>
+	<statemachine name="PaymentStateMachine"/>
+    <extended-metadata-loader
+            class="com.rssl.phizic.business.payments.forms.meta.RefuseLongOfferMetadataLoader"/>
+
+	<fields>
+		<field  name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"
+				signable="true">
+		</field>
+
+        <field  name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+        </field>
+
+        <field name="operationDate"
+			source="operation-date-short-year"
+			description="Дата отправки платежа"
+			type="string"/>
+
+        <field name="operationTime"
+			source="operation-time"
+			description="Время исполнения платежа"
+			type="string"/>
+
+        <field
+                name="longOfferId"
+                source="extra-parameters/parameter[@name='long-offer-id']/@value"
+                description="Id длительного поручения"
+                type="string"
+                signable="true">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field
+                name="longOfferType"
+                source="extra-parameters/parameter[@name='long-offer-type']/@value"
+                description="тип платежа"
+                type="string"
+                signable="true"/>
+
+        <field  name="receiverResource"
+                source="extra-parameters/parameter[@name='receiver-resource']/@value"
+                description="Номер источника зачисления средств получателя"
+                signable="true"
+                type="string"/>
+
+        <field  name="receiverResourceType"
+                source="extra-parameters/parameter[@name='receiver-resource-type']/@value"
+                description="Название источника зачисления"
+                signable="true"
+                type="string"/>
+
+        <field  name="receiverResourceName"
+                source="extra-parameters/parameter[@name='receiver-resource-name']/@value"
+                description="Тип источника зачисления"
+                signable="true"
+                type="string"/>
+
+        <field  name="payerResource"
+                source="extra-parameters/parameter[@name='payer-resource']/@value"
+                description="Номер источника списания средств"
+                signable="true"
+                type="string"/>
+
+        <field  name="payerResourceType"
+                source="extra-parameters/parameter[@name='payer-resource-type']/@value"
+                description="Тип источника списания средств"
+                signable="true"
+                type="string"/>
+
+        <field  name="payerResourceName"
+                source="extra-parameters/parameter[@name='payer-resource-name']/@value"
+                description="Название источника списания средств"
+                signable="true"
+                type="string"/>
+
+        <field  name="amount"
+                source="extra-parameters/parameter[@name='amount']/@value"
+                description="Сумма перевода"
+                signable="true"
+                type="money"/>
+
+        <field  name="amountCurrency"
+                source="extra-parameters/parameter[@name='amount-currency']/@value"
+                description="Валюта суммы"
+                signable="true"
+                type="string"/>
+
+        <field  name="startDate"
+                source="extra-parameters/parameter[@name='start-date']/@value"
+                description="Дата начала"
+                signable="true"
+                type="string"/>
+
+        <field  name="endDate"
+                source="extra-parameters/parameter[@name='end-date']/@value"
+                description="Дата окончания"
+                signable="true"
+                type="string"/>
+
+        <field  name="executionEventType"
+                source="extra-parameters/parameter[@name='execution-event-type']/@value"
+                description="Тип повторений"
+                signable="true"
+                type="string"/>
+
+        <field  name="longOfferOffice"
+                source="extra-parameters/parameter[@name='long-offer-office']/@value"
+                description="Место оформления"
+                signable="true"
+                type="string"/>
+
+        <field  name="longOfferName"
+                source="extra-parameters/parameter[@name='long-offer-name']/@value"
+                description="Название поручения"
+                signable="true"
+                type="string"/>
+    </fields>
+
+    <dictionaries>
+        <entity-list name="operationDictionary">
+            <entity key="PaymentSystemPayment">Оплата коммунальных услуг</entity>
+            <entity key="ClientAccountsTransfer">Перевод на счет</entity>
+            <entity key="AccountToCardTransfer">Перевод на карту</entity>
+            <entity key="CardToAccountTransfer">Перевод на счет</entity>
+            <entity key="CardsTransfer">Перевод на карту</entity>
+            <entity key="CardJurIntraBankTransfer">Перевод юридическому лицу на счет в другой банк внутри Сбербанка России</entity>
+            <entity key="CardJurTransfer">Перевод юридическому лицу на счет в другой банк через платежную систему России</entity>
+            <entity key="AccountJurIntraBankTransfer">Перевод юридическому лицу на счет в другой банк внутри Сбербанка России</entity>
+            <entity key="AccountJurTransfer">Перевод юридическому лицу на счет в другой банк через платежную систему России</entity>
+            <entity key="CardIntraBankPayment">Перевод физическому лицу на счет в другой банк внутри Сбербанка России</entity>
+            <entity key="CardRUSPayment">Перевод физическому лицу на счет в другой банк через платежную систему России</entity>
+            <entity key="AccountIntraBankPayment">Перевод физическому лицу в другой банк внутри Сбербанка России</entity>
+            <entity key="AccountRUSPayment">Перевод физическому лицу на счет в другой банк через платежную систему России</entity>
+            <entity key="LoanTransfer">Погашение кредита</entity>
+        </entity-list>
+    </dictionaries>
+</payment-form>

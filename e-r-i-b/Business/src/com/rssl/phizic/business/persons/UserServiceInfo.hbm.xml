@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+								   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.rssl.phizic.business.persons.UserServiceInfo" table="USER_SERVICE_INFO">
+		<id name="id" column="ID" type="long">
+			<generator class="native">
+				<param name="sequence">S_USER_SERVICE_INFO</param>
+			</generator>
+		</id>
+
+		<property name="loginId" type="long"   column="LOGIN_ID" not-null="true"/>
+		<property name="data"    type="string" column="DATA"     not-null="false"/>
+	</class>
+
+	<!--
+	   - Опорный элемент: USER_SERVICE_INFO
+	   - Предикаты доступа: access("USERSERVICEINFO"."LOGIN_ID"=TO_NUMBER(:LOGINID))
+	   - Кардинальность: Поиск осуществляется по LOGIN_ID. Будет получено не более одного значения.
+	   -->
+	<sql-query name="com.rssl.phizic.business.persons.UserServiceInfoService.findByLoginId">
+		<return alias="userServiceInfo" class="com.rssl.phizic.business.persons.UserServiceInfo"/>
+
+		<![CDATA[
+			SELECT {userServiceInfo.*} FROM USER_SERVICE_INFO userServiceInfo
+			 WHERE userServiceInfo.LOGIN_ID = :loginId
+		]]>
+	</sql-query>
+</hibernate-mapping>

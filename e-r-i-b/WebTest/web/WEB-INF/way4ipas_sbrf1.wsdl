@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+                  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" 
+                  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
+                  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" 
+                  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" 
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+                  xmlns:s="http://www.w3.org/2001/XMLSchema" 
+                  xmlns:tns="http://www.openwaygroup.com/iPAS/WS" 
+                  targetNamespace="http://www.openwaygroup.com/iPAS/WS">
+ <wsdl:types>
+  <s:schema targetNamespace="http://www.openwaygroup.com/iPAS/WS"
+            elementFormDefault="qualified">
+
+   <s:complexType name="CommonRqType">
+    <s:sequence>
+     <s:element name="STAN" type="s:string" minOccurs="1"/>
+    </s:sequence>
+   </s:complexType>
+
+   <s:complexType name="CommonRsType">
+    <s:sequence>
+     <s:element name="STAN"   type="s:string" minOccurs="1"/>
+     <s:element name="Status" type="s:string" minOccurs="1"/>
+    </s:sequence>
+   </s:complexType>
+
+   <s:complexType name="UserInfoType">
+    <s:sequence>
+     <s:element name="LastName" type="s:string" minOccurs="0"/>
+     <s:element name="FirstName" type="s:string" minOccurs="0"/>
+     <s:element name="MiddleName" type="s:string" minOccurs="0"/>
+     <s:element name="PassportNo" type="s:string" minOccurs="0"/>
+     <s:element name="ClientRegNum" type="s:string" minOccurs="0"/>
+     <s:element name="CB_CODE" type="s:string" minOccurs="0"/>
+     <s:element name="DL" type="s:string" minOccurs="0"/>
+     <s:element name="BirthDate" type="s:string" minOccurs="0"/>
+     <s:element name="MB" type="s:string" minOccurs="0"/>
+     <s:element name="PasswordsLeft" type="s:string" minOccurs="0"/>
+     <s:element name="CardNumber" type="s:string" minOccurs="0"/>
+    </s:sequence>
+   </s:complexType>
+
+   <s:complexType name="VerifyRsType">
+    <s:complexContent>
+    <s:extension base="tns:CommonRsType">
+      <s:sequence>
+       <s:element name="UserInfo" type="tns:UserInfoType" minOccurs="0"/>
+       <s:element name="Token" type="s:string" minOccurs="0"/>
+      </s:sequence>
+     </s:extension>
+    </s:complexContent>
+   </s:complexType>
+
+   <s:complexType name="VerifyAttRsType">
+    <s:complexContent>
+    <s:extension base="tns:CommonRsType">
+      <s:sequence>
+       <s:element name="UserInfo" type="tns:UserInfoType" minOccurs="0"/>
+       <s:element name="Token" type="s:string" minOccurs="0"/>
+       <s:element name="Attempts" type="s:int" minOccurs="0"/>
+      </s:sequence>
+     </s:extension>
+    </s:complexContent>
+   </s:complexType>
+
+   <s:complexType name="VerifyPasswordRqType">
+    <s:complexContent>
+    <s:extension base="tns:CommonRqType">
+      <s:sequence>
+       <s:element name="UserId" type="s:string" minOccurs="1"/>
+       <s:element name="Password" type="s:string" minOccurs="1"/>
+      </s:sequence>
+     </s:extension>
+    </s:complexContent>
+   </s:complexType>
+
+   <s:element name="VerifyPasswordRq" type="tns:VerifyPasswordRqType"/>
+
+   <s:element name="VerifyPasswordRs" type="tns:VerifyRsType"/>
+
+   <s:element name="PrepareOTPRq" type="tns:PrepareOTPRqType"/>
+
+   <s:complexType name="PrepareOTPRqType">
+    <s:complexContent>
+    <s:extension base="tns:CommonRqType">
+    <s:sequence>
+     <s:element name="UserId" type="s:string" minOccurs="1"/>
+    </s:sequence>
+    </s:extension>
+    </s:complexContent>
+   </s:complexType>
+
+   <s:element name="PrepareOTPRs" type="tns:PrepareOTPRsType"/>
+
+   <s:complexType name="PrepareOTPRsType">
+    <s:complexContent>
+    <s:extension base="tns:CommonRsType">
+    <s:sequence>
+     <s:element name="SID" type="s:string" minOccurs="0"/>
+     <s:element name="PasswordNo" type="s:string" minOccurs="0"/>
+     <s:element name="ReceiptNo" type="s:string" minOccurs="0"/>
+     <s:element name="PasswordsLeft" type="s:int" minOccurs="0"/>
+    </s:sequence>
+    </s:extension>
+    </s:complexContent>
+   </s:complexType>
+
+   <s:element name="VerifyOTPRq" type="tns:VerifySPRqType"/>
+
+   <s:complexType name="VerifySIDRqType">
+    <s:complexContent>
+    <s:extension base="tns:CommonRqType">
+    <s:sequence>
+     <s:element name="SID" type="s:string" minOccurs="1"/>
+    </s:sequence>
+    </s:extension>
+    </s:complexContent>
+   </s:complexType>
+
+   <s:complexType name="VerifySPRqType">
+    <s:complexContent>
+    <s:extension base="tns:VerifySIDRqType">
+    <s:sequence>
+     <s:element name="Password" type="s:string" minOccurs="1"/>
+    </s:sequence>
+    </s:extension>
+    </s:complexContent>
+   </s:complexType>
+
+   <s:element name="VerifyOTPRs" type="tns:VerifyAttRsType"/>
+
+
+   <s:element name="GeneratePasswordRq" type="tns:VerifyPasswordRqType"/>
+   <s:element name="GeneratePasswordRs" type="tns:GeneratePasswordRsType"/>
+
+   <s:complexType name="GeneratePasswordRsType">
+    <s:complexContent>
+    <s:extension base="tns:CommonRsType">
+    <s:sequence>
+     <s:element name="Password" type="s:string" minOccurs="0"/>
+    </s:sequence>
+    </s:extension>
+    </s:complexContent>
+   </s:complexType>
+
+  </s:schema>
+ </wsdl:types>
+
+    <!-- Messages: -->
+	<wsdl:message name="VerifyPasswordRq">
+		<wsdl:part name="parameters" element="tns:VerifyPasswordRq"/>
+	</wsdl:message>
+	<wsdl:message name="VerifyPasswordRs">
+		<wsdl:part name="parameters" element="tns:VerifyPasswordRs"/>
+	</wsdl:message>
+
+	<wsdl:message name="PrepareOTPRq">
+		<wsdl:part name="parameters" element="tns:PrepareOTPRq"/>
+	</wsdl:message>
+	<wsdl:message name="PrepareOTPRs">
+		<wsdl:part name="parameters" element="tns:PrepareOTPRs"/>
+	</wsdl:message>
+
+	<wsdl:message name="VerifyOTPRq">
+		<wsdl:part name="parameters" element="tns:VerifyOTPRq"/>
+	</wsdl:message>
+	<wsdl:message name="VerifyOTPRs">
+		<wsdl:part name="parameters" element="tns:VerifyOTPRs"/>
+	</wsdl:message>
+
+	<wsdl:message name="GeneratePasswordRq">
+		<wsdl:part name="parameters" element="tns:GeneratePasswordRq"/>
+	</wsdl:message>
+
+	<wsdl:message name="GeneratePasswordRs">
+		<wsdl:part name="parameters" element="tns:GeneratePasswordRs"/>
+	</wsdl:message>
+
+    <!-- Ports: -->
+
+	<wsdl:portType name="iPASWSSoap">
+
+		<wsdl:operation name="VerifyPassword">
+			<wsdl:input message="tns:VerifyPasswordRq"/>
+			<wsdl:output message="tns:VerifyPasswordRs"/>
+		</wsdl:operation>
+		<wsdl:operation name="PrepareOTP">
+			<wsdl:input message="tns:PrepareOTPRq"/>
+			<wsdl:output message="tns:PrepareOTPRs"/>
+		</wsdl:operation>
+		<wsdl:operation name="VerifyOTP">
+			<wsdl:input message="tns:VerifyOTPRq"/>
+			<wsdl:output message="tns:VerifyOTPRs"/>
+		</wsdl:operation>
+		<wsdl:operation name="GeneratePassword">
+			<wsdl:input message="tns:GeneratePasswordRq"/>
+			<wsdl:output message="tns:GeneratePasswordRs"/>
+		</wsdl:operation>
+	</wsdl:portType>
+
+	<wsdl:binding name="iPASWSSoap" type="tns:iPASWSSoap">
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+
+		<wsdl:operation name="VerifyPassword">
+			<soap:operation soapAction="http://www.openwaygroup.com/iPAS/WS/VerifyPassword" style="document"/>
+			<wsdl:input><soap:body use="literal"/></wsdl:input>
+			<wsdl:output><soap:body use="literal"/></wsdl:output>
+		</wsdl:operation>
+
+		<wsdl:operation name="PrepareOTP">
+			<soap:operation soapAction="http://www.openwaygroup.com/iPAS/WS/PrepareOTP" style="document"/>
+			<wsdl:input><soap:body use="literal"/></wsdl:input>
+			<wsdl:output><soap:body use="literal"/></wsdl:output>
+		</wsdl:operation>
+
+		<wsdl:operation name="VerifyOTP">
+			<soap:operation soapAction="http://www.openwaygroup.com/iPAS/WS/VerifyOTP" style="document"/>
+			<wsdl:input><soap:body use="literal"/></wsdl:input>
+			<wsdl:output><soap:body use="literal"/></wsdl:output>
+		</wsdl:operation>
+
+		<wsdl:operation name="GeneratePassword">
+			<soap:operation soapAction="http://www.openwaygroup.com/iPAS/WS/GeneratePassword" style="document"/>
+			<wsdl:input><soap:body use="literal"/></wsdl:input>
+			<wsdl:output><soap:body use="literal"/></wsdl:output>
+		</wsdl:operation>
+
+	</wsdl:binding>
+
+	<wsdl:service name="iPASWS">
+		<wsdl:port name="iPASWSSoap" binding="tns:iPASWSSoap">
+			<soap:address location="http://localhost:12501/iPAS/WS"/>
+		</wsdl:port>
+	</wsdl:service>
+
+</wsdl:definitions>
+

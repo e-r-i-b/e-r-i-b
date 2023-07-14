@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsV51.contact.StatusContactDocumentChange" table="stattrans_1">
+	    <cache usage="read-only"/>
+
+        <id name="id" type="string"/>
+
+	    <property name="applicationKind" type="long" column="iApplicationKind"/>
+		<property name="applicationKey" type="string" column="ApplicationKey"/>
+		<property name="status" type="string" column="Status"/>
+		<property name="error" type="string" column="Error"/>
+    </class>
+
+	<sql-query name="GetStatusContactDocumentChange" >
+	  <return alias="status" class="com.rssl.phizicgate.rsV51.contact.StatusContactDocumentChange">
+		<return-property name="id" column="id"/>
+	    <return-property name="applicationKind" column="iApplicationKind"/>
+		<return-property name="applicationKey" column="ApplicationKey"/>
+		<return-property name="status" column="Status"/>
+		<return-property name="error" column="Error"/>
+      </return>
+	 <![CDATA[
+	SELECT
+            pstrans2.Reference       as id,
+            max(pstrans2.DateRec)    as dt,
+            pstrans.iApplicationKind as iApplicationKind,
+            pstrans.ApplicationKey   as ApplicationKey,
+            pstrans.State            as Status,
+            ''                       as Error,
+            max(pstrans2.TimeRec)    as timeRec
+
+        FROM "stattrans_1" as pstrans2, "pstrans_dbt" as pstrans
+        where pstrans2.NumFile = 515 and pstrans2.Oper = :oper
+              and (pstrans2.DateRec > :startDate and pstrans2.DateRec < :endDate)
+              or (pstrans2.DateRec = :startDate and pstrans2.TimeRec >= :startTime)
+              or (pstrans2.DateRec = :endDate and pstrans2.TimeRec <= :endTime)
+              and pstrans.AutoKey = CONVERT (pstrans2.Reference, SQL_INTEGER)
+
+        GROUP BY pstrans2.Reference, pstrans.ApplicationKey,
+                 pstrans.iApplicationKind, pstrans.State
+     ]]>
+	</sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+
+<project name="install">
+
+	<import id="configs" file="configs.ant"/>
+	<import id="common"  file="common.ant" />
+
+	<target name="CreateDB" depends="init_current_config" description="Создание баз данных для приложения">
+		<echo message="start create DB's"/>
+		<antcall target="CreateShadowDB">
+		</antcall>
+		<antcall target="CreateMainDB">
+		</antcall>
+		<echo message="end create DB's"/>
+	</target>
+
+	<target name="CreateMainDB" description="Создание основной БД">
+		<echo message="Start create main DB"/>
+		<antcall target="CreateDbInner">
+		</antcall>
+		<echo message="End create main DB"/>
+	</target>
+
+	<target name="CreateShadowDB" description="Создание вспомогательной БД" if="shadow.database.on">
+		<echo message="Start create shadow DB"/>
+		<antcall target="CreateDbInner">
+			<param name="dbserver.username" value="${dbserver.shadow.username}"/>
+			<param name="dbserver.password" value="${dbserver.shadow.password}"/>
+		</antcall>
+		<echo message="End create shadow DB"/>
+	</target>
+
+	<target name="CreateDbInner" description="Таск для непосредственного создания БД" depends="create_db_data">
+		<echo level="info" message="Подготовка данных для создания БД"/>
+		<path id="jdbc.classpath">
+			<fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+		</path>
+		<property name="dbserver.sql.delimiter.string" value="go"/>
+		<property name="dbserver.sql.delimiter.type"   value="row"/>
+
+		<copy file="${basedir}/db-data/create-${dbserver.type}.sql"
+		      tofile="${basedir}/db-data/create.sql" overwrite="true">
+			<filterset refid="current.dbdata.filterset"/>
+		</copy>
+		<echo level="info" message="Создание базы данных ${dbserver.database}"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.url.lite}"
+		     src="${basedir}/db-data/create.sql" onerror="continue"
+		     userid="${dbserver.admin.username}" password="${dbserver.admin.password}"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}"/>
+		<echo level="info" message="Создание структуры таблиц (onerror=abort)"/>
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.url.full}"
+		     userid="${dbserver.table.username}" password="${dbserver.table.password}" onerror="continue"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+			<fileset dir="${basedir}/db-data"
+			         includes="tables-${dbserver.type}.sql,quartz-${dbserver.type}.sql"/>
+		</sql>
+		<echo level="info" message="Завершено создание БД"/>
+	</target>
+
+	<target name=".set.paths" depends="init_current_config">
+		<path id="project.tasks.classpath">
+			<fileset dir="${project.root}/Libraries" includes="*/*.jar"/>
+			<dirset dir="${project.root}" includes="*/bin"/>
+		</path>
+	</target>
+
+	<target name=".set.paymentspath" unless="payments.path">
+		<property name="payments.path" value="payments/${current.config.name}"/>
+	</target>
+
+	<target name=".set.depositspath" unless="deposits.path">
+		<property name="deposits.path" value="deposits/${current.config.name}"/>
+	</target>
+
+	<target name=".set.loanspath" unless="loans.path">
+		<property name="loans.path" value="loans/${current.config.name}"/>
+	</target>
+
+	<target name="_Load2_Operations" description="Загрузка ресурсов, операций">
+		<!--
+			При необходимости удаления неизвестных (старых) услуг и операций просетьте эти свойства в true
+			для преопределенbя изпользуйте настроечные файлы или параметры запуска ANT
+			login
+			password
+			initByParams
+		-->
+		<property name="update-operations.deleteUknownOperations" value="false"/>
+		<property name="update-operations.deleteUknownServices"   value="false"/>
+		<antcall target="LoadMainOperations">
+			<param name="update-operations.deleteUknownOperations" value="${update-operations.deleteUknownOperations}"/>
+			<param name="update-operations.deleteUknownServices" value="${update-operations.deleteUknownServices}"/>
+		</antcall>
+	</target>
+
+	<target name="LoadMainOperations">
+		<echo message="**start** LoadMainOperations"/>
+		<antcall target="LoadOperationsInternal">
+			<param name="update-operations.deleteUknownOperations" value="${update-operations.deleteUknownOperations}"/>
+			<param name="update-operations.deleteUknownServices" value="${update-operations.deleteUknownServices}"/>
+			<param name="initByParams" value="false"/>
+			<param name="login" value=""/>
+			<param name="password" value=""/>
+		</antcall>
+		<echo message="**stop** LoadMainOperations"/>
+	</target>
+
+	<target name="LoadShadowOperations" depends="init_current_config" if="shadow.database.on">
+		<echo message="**start** LoadShadowOperations"/>
+		<antcall target="LoadOperationsInternal">
+			<param name="update-operations.deleteUknownOperations" value="${update-operations.deleteUknownOperations}"/>
+			<param name="update-operations.deleteUknownServices" value="${update-operations.deleteUknownServices}"/>
+			<param name="initByParams" value="true"/>
+			<param name="login" value="${dbserver.shadow.username}"/>
+			<param name="password" value="${dbserver.shadow.password}"/>
+		</antcall>
+		<echo message="**stop** LoadShadowOperations"/>
+	</target>
+
+	<target name="LoadOperationsInternal" depends=".set.paths">
+		<taskdef name="update-operations" classname="com.rssl.phizic.business.ant.UpdateOperationsTask"
+		         classpathref="project.tasks.classpath"/>		
+		<update-operations deleteUknownOperations="${update-operations.deleteUknownOperations}"
+		                   deleteUknownServices="${update-operations.deleteUknownServices}"
+						   initByParams="${initByParams}"
+						   login="${login}"
+						   password="${password}"/>
+	</target>
+
+	<target name="_InitCommissions" depends=".set.paths" description="Инициализация комиссий">
+		<taskdef name="init-commissions" classname="com.rssl.phizic.business.ant.InitCommissionsTask"
+		         classpathref="project.tasks.classpath"/>
+		<init-commissions/>
+	</target>
+
+	<target name="_PrepareDictionaryData" depends=".set.paths" description="Подготовка данных для репликации">
+		<unjar src="${project.root}\Libraries\configs\russlav.jar" dest="${java.io.tmpdir}">
+			<patternset includes="*.dbf"/>
+		</unjar>
+		<propertyfile file="${project.root}/Settings/bin/iccs.properties">
+			<entry key="com.rssl.iccs.dictionaries.contact.path" value="${java.io.tmpdir}"/>
+		</propertyfile>
+	</target>
+
+	<!-- для РусСлава выполнить предварительно _PrepareDictionaryData -->
+	<target name="_Load3_Dictionaries" description="Репликация справочников">
+		<antcall target="LoadMainDictionaries"/>
+
+		<antcall target="LoadShadowDictionaries"/>
+	</target>
+
+	<target name="LoadDictionariesInternal" depends=".set.paths">
+			<taskdef name="load-dictionaries" classname="com.rssl.phizic.business.ant.DictionariesLoaderTask"
+		         classpathref="project.tasks.classpath"/>
+			<load-dictionaries initByParams="${initByParams}"
+						       login="${login}"
+						       password="${password}"/>
+	</target>
+
+	<target name="LoadMainDictionaries">
+		<antcall target="LoadDictionariesInternal">
+			<param name="initByParams" value="false"/>
+			<param name="login" value=""/>
+			<param name="password" value=""/>
+		</antcall>
+	</target>
+
+	<target name="LoadShadowDictionaries" depends="init_current_config" if="shadow.database.on">
+		<antcall target="LoadDictionariesInternal">
+			<param name="initByParams" value="true"/>
+			<param name="login" value="${dbserver.shadow.username}"/>
+			<param name="password" value="${dbserver.shadow.password}"/>
+		</antcall>
+	</target>
+
+	<target name="_CreateDefaultAdmin" depends=".set.paths" description="Создание дефолтового админа">
+		<taskdef name="create-default-admin" classname="com.rssl.phizic.business.ant.CreateAdminTask"
+		         classpathref="project.tasks.classpath"/>
+		<create-default-admin/>
+	</target>
+
+	<target name="_CreateAnonymousClient" depends=".set.paths" description="Создание дефолтового админа">
+		<taskdef name="create-anonymous-client" classname="com.rssl.phizic.business.ant.CreateAnonymousClientTask"
+		         classpathref="project.tasks.classpath"/>
+		<create-anonymous-client/>
+	</target>
+
+	<target name="_Load4_PaymentForms" depends=".set.paths,.set.paymentspath"
+	        description="Загрузка форм платежей">
+		<taskdef name="load-payments-forms" classname="com.rssl.phizic.business.ant.PaymentFormLoaderTask"
+		         classpathref="project.tasks.classpath"/>
+		<load-payments-forms root="${project.root}/Business/settings/${payments.path}"/>
+	</target>
+
+	<target name="_Load5_DepositGlobal" depends=".set.paths,.set.depositspath"
+	        description="Загрузка общих данных о депозитах">
+		<taskdef name="load-deposit-global" classpathref="project.tasks.classpath"
+		         classname="com.rssl.phizic.business.ant.deposits.DepositGlobalLoaderTask"/>
+		<load-deposit-global root="${project.root}/Business/settings/${deposits.path}"/>
+	</target>
+
+	<target name="_Load6_Distributions" depends=".set.paths" description="Загрузка рассылок">
+		<taskdef name="load-distributions" classpathref="project.tasks.classpath"
+		         classname="com.rssl.phizic.messaging.info.ant.DistributionLoaderTask"/>
+		<load-distributions root="${project.root}/Settings/configs/${current.config.name}"/>
+	</target>
+
+	<target name="_Load7_ErrorMessages" depends=".set.paths" description="Загрузка справочника ошибок">
+		<taskdef name="load-errors" classpathref="project.tasks.classpath"
+				 classname="com.rssl.phizic.business.ant.ErrorMessagesLoaderTask"/>
+		<load-errors root="${project.root}/Settings/configs/${current.config.name}"/>
+	</target>
+
+	<target name="_Load10_LoanGlobal" depends=".set.paths,.set.loanspath"
+	        description="Загрузка общих данных о кредитах">
+		<taskdef name="load-loan-global" classpathref="project.tasks.classpath"
+		         classname="com.rssl.phizic.business.ant.LoanGlobalLoaderTask"/>
+		<load-loan-global root="${project.root}/Business/settings/${loans.path}"/>
+	</target>
+
+	<target name="_CreatePIN" depends=".set.paths" description="Создание pin-конверта">
+		<taskdef name="create-pin" classname="com.rssl.phizic.operations.security.CreatePINTask"
+		         classpathref="project.tasks.classpath"/>
+		<create-pin departmentId="${departmentId}" number="${number}" all="${isAll}"/>
+	</target>
+
+	<target name="_ShowAvailablePINs" depends=".set.paths"
+	        description="Список подготовленных pin-конвертов">
+		<taskdef name="show-pins" classname="com.rssl.phizic.operations.security.ShowAvailablePINsTask"
+		         classpathref="project.tasks.classpath"/>
+		<show-pins departmentId="${departmentId}"/>
+	</target>
+
+	<target name="LoadData" description="Инициализация системы первичными данными">
+		<antcall target="_Load2_Operations"/>
+		<antcall target="_CreateDefaultAdmin"/>
+		<antcall target="_CreateAnonymousClient"/>
+		<antcall target="_Load3_Dictionaries"/>
+		<antcall target="_Load4_PaymentForms"/>
+		<antcall target="_Load5_DepositGlobal"/>
+		<antcall target="_Load6_Distributions"/>
+		<antcall target="_Load7_ErrorMessages"/>
+		<antcall target="_InitCommissions"/>
+		<antcall target="_Load10_LoanGlobal"/> 
+	</target>
+
+</project>

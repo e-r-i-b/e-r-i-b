@@ -1,0 +1,48 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.AgeCategory"
+           table="PFP_AGE_CATEGORIES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_AGE_CATEGORIES</param>
+            </generator>
+        </id>
+        <property name="uuid"   type="string" column="UUID"    not-null="true" update="false"/>
+        <property name="minAge" type="long"   column="MIN_AGE" not-null="true"/>
+        <property name="maxAge" type="long"   column="MAX_AGE" not-null="false"/>
+        <property name="weight" type="long"   column="WEIGHT"  not-null="true"/>
+    </class>
+
+    <!-- есть ли дыры в интервалах -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.AgeCategory.isConcerted">
+        <return-scalar column="IS_CONCERTED" type="boolean"/>
+        SELECT
+            DECODE(ALL_AC.AC_COUNT - PAIR_AC.AC_COUNT - DECODE(ZERO_AC.ZERO_COUNT, 1, 1, 0), 0, 1, 0) IS_CONCERTED
+        FROM
+           (SELECT count(*) AC_COUNT FROM PFP_AGE_CATEGORIES) ALL_AC ,
+           (SELECT count(*) AC_COUNT
+            FROM PFP_AGE_CATEGORIES ac1
+                JOIN PFP_AGE_CATEGORIES ac2 ON ac1.MIN_AGE = ac2.MAX_AGE + 1) PAIR_AC,
+           (SELECT count(*) ZERO_COUNT
+            FROM PFP_AGE_CATEGORIES
+            WHERE MIN_AGE = 0) ZERO_AC
+    </sql-query>
+
+    <!-- есть ли пересечения в интервалах -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.AgeCategory.isExistCrossing">
+        <return-scalar column="IS_EXIST" type="boolean"/>
+        <![CDATA[
+            SELECT
+                DECODE(count(*), 0, 0, 1) IS_EXIST
+            FROM
+                PFP_AGE_CATEGORIES
+            WHERE
+                (:id IS NULL OR :id <> ID) AND
+                ((:minAge <= MIN_AGE AND (:maxAge IS NULL OR :maxAge = '' OR :maxAge >= MIN_AGE)) OR
+                (:minAge >= MIN_AGE AND (MAX_AGE IS NULL OR :minAge <= MAX_AGE)))
+		]]>
+    </sql-query>
+</hibernate-mapping>

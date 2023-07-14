@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+    <xsd:element name="services-groups">
+        <xsd:annotation>
+            <xsd:documentation>Список групп сервисов</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="services-group" type="servicesGroupType" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="servicesGroupType">
+        <xsd:annotation>
+            <xsd:documentation>Группа сервисов</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:sequence>
+                    <xsd:element name="services-group-list" type="serviceGroupListType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="action-list" type="actionListType" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+                <xsd:element name="services-list" type="serviceListType" maxOccurs="1"/>
+            </xsd:choice>
+        </xsd:sequence>
+        <xsd:attribute name="key"       type="keyType"      use="required"/>
+        <xsd:attribute name="name"      type="nameType"     use="required"/>
+        <xsd:attribute name="category"  type="categoryType" use="optional"/>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="serviceListType">
+        <xsd:sequence>
+            <xsd:element name="service-ref" type="serviceType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="actionType">
+        <xsd:sequence>
+            <xsd:element name="service-ref" type="serviceType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="nameType"     use="required"/>
+        <xsd:attribute name="key"       type="keyType"      use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="serviceGroupListType">
+        <xsd:sequence>
+            <xsd:element name="services-group" type="servicesGroupType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="actionListType">
+        <xsd:sequence>
+            <xsd:element name="action" type="actionType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="serviceType">
+        <xsd:annotation>
+            <xsd:documentation>Сервис</xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="key"       type="xsd:string"   use="required"/>
+        <xsd:attribute name="mode"      type="modeType"     use="required"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="keyType">
+        <xsd:annotation>
+            <xsd:documentation>Ключ</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:ID">
+            <xsd:maxLength value="60"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="nameType">
+        <xsd:annotation>
+            <xsd:documentation>Название</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="100"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="orderType">
+        <xsd:annotation>
+            <xsd:documentation>Порядок</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:nonNegativeInteger"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="modeType">
+        <xsd:annotation>
+            <xsd:documentation>Тип доступа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="view"/>
+            <xsd:enumeration value="edit"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="categoryType">
+        <xsd:annotation>
+            <xsd:documentation>Категория</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="admin"/>
+            <xsd:enumeration value="employee"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

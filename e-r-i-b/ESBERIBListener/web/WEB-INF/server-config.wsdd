@@ -1,0 +1,964 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment name="defaultClientConfig"
+            xmlns="http://xml.apache.org/axis/wsdd/"
+            xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+            xmlns:handler="http://xml.apache.org/axis/wsdd/providers/handler">
+
+ <globalConfiguration>
+   <parameter name="disablePrettyXML" value="true"/>
+   <parameter name="dotNetSoapEncFix" value="true"/>
+   <parameter name="enableNamespacePrefixOptimization" value="false"/>
+   <requestFlow>
+     <handler type="java:org.apache.axis.handlers.JWSHandler">
+        <parameter name="scope" value="session"/>
+     </handler>
+     <handler type="java:org.apache.axis.handlers.JWSHandler">
+        <parameter name="scope" value="request"/>
+        <parameter name="extension" value=".jwr"/>
+     </handler>
+     <!-- uncomment this if you want the SOAP monitor -->
+     <!--
+     <handler type="java:org.apache.axis.handlers.SOAPMonitorHandler"/>
+     -->
+   </requestFlow>
+   <!-- uncomment this if you want the SOAP monitor -->
+   <!--
+   <responseFlow>
+     <handler type="java:org.apache.axis.handlers.SOAPMonitorHandler"/>
+   </responseFlow>
+   -->
+ </globalConfiguration>
+
+ <handler type="java:org.apache.axis.handlers.http.URLMapper" name="URLMapper"/>
+ <handler type="java:org.apache.axis.transport.local.LocalResponder" name="LocalResponder"/>
+ <handler type="java:org.apache.axis.handlers.SimpleAuthenticationHandler" name="Authenticate"/>
+
+ <service name="AdminService" provider="java:MSG">
+  <namespace>http://xml.apache.org/axis/wsdd/</namespace>
+  <parameter name="allowedMethods" value="AdminService"/>
+  <parameter name="enableRemoteAdmin" value="false"/>
+  <parameter name="className" value="org.apache.axis.utils.Admin"/>
+ </service>
+
+ <service name="Version" provider="java:RPC">
+  <parameter name="allowedMethods" value="getVersion"/>
+  <parameter name="className" value="org.apache.axis.Version"/>
+ </service>
+
+    <service name="backService" provider="java:RPC" style="rpc" use="encoded">
+      <parameter name="wsdlTargetNamespace" value="http://sbrf.srb.ru/erib/backService"/>
+      <parameter name="wsdlServiceElement" value="backService"/>
+      <parameter name="schemaQualified" value="http://sbrf.srb.ru/erib/backService"/>
+      <parameter name="wsdlServicePort" value="backService"/>
+      <parameter name="className" value="com.rssl.phizic.ws.esberiblistener.depo.generated.BackServiceImpl"/>
+      <parameter name="wsdlPortType" value="backService"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="doIFX" qname="DoIFX" returnQName="resp" returnType="rtns:string" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="http://sbrf.srb.ru/erib/backService/DoIFX" >
+        <parameter qname="req" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <parameter name="allowedMethods" value="doIFX"/>
+
+        <requestFlow>
+            <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.ESBERIBExtendLogger"/>
+        </requestFlow>
+        <responseFlow>
+            <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.ESBERIBExtendLogger"/>
+        </responseFlow>
+
+  </service>
+
+    <service name="PfrDoneServicePort" provider="java:RPC" style="document" use="literal">
+        <parameter name="wsdlTargetNamespace" value="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"/>
+        <parameter name="wsdlServiceElement" value="PfrDoneServiceImpl"/>
+        <parameter name="schemaUnqualified" value="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"/>
+        <parameter name="wsdlServicePort" value="PfrDoneServicePort"/>
+        <parameter name="className" value="com.rssl.phizic.ws.esberiblistener.pfr.generated.PfrDoneServiceSoapBindingImpl"/>
+        <parameter name="wsdlPortType" value="PfrDoneService"/>
+        <parameter name="typeMappingVersion" value="1.2"/>
+        <operation name="pfrDone" qname="pfrDone" returnQName="retNS:PfrDoneRs" xmlns:retNS="http://generated.pfr.esberiblistener.ws.phizic.rssl.com" returnType="rtns:PfrDoneRsType" xmlns:rtns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com" >
+          <parameter qname="pns:PfrDoneRq" xmlns:pns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com" type="tns:PfrDoneRqType" xmlns:tns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"/>
+        </operation>
+        <parameter name="allowedMethods" value="pfrDone"/>
+
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:PfrDoneRsType"
+          type="java:com.rssl.phizic.ws.esberiblistener.pfr.generated.PfrDoneRsType"
+          serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:DateTimeType"
+          type="java:java.lang.String"
+          serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:StatusCodeType"
+          type="java:long"
+          serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:StatusDescType"
+          type="java:java.lang.String"
+          serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:ResponseExistsType"
+          type="java:boolean"
+          serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:ResultType"
+          type="java:com.rssl.phizic.ws.esberiblistener.pfr.generated.ResultType"
+          serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:PfrDoneRqType"
+          type="java:com.rssl.phizic.ws.esberiblistener.pfr.generated.PfrDoneRqType"
+          serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:StatusType"
+          type="java:com.rssl.phizic.ws.esberiblistener.pfr.generated.StatusType"
+          serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:OperationIdType"
+          type="java:java.lang.String"
+          serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:OUUIDType"
+          type="java:java.lang.String"
+          serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:UUIDType"
+          type="java:java.lang.String"
+          serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+          encodingStyle=""
+        />
+        <typeMapping
+          xmlns:ns="http://generated.pfr.esberiblistener.ws.phizic.rssl.com"
+          qname="ns:SPNameType"
+          type="java:java.lang.String"
+          serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+          deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+          encodingStyle=""
+        />
+
+        <requestFlow>
+            <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.PFRLogger"/>
+        </requestFlow>
+        <responseFlow>
+            <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.PFRLogger"/>
+        </responseFlow>
+        
+    </service>
+
+  <service name="eribMDMService" provider="java:RPC" style="document" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://sbrf.srb.ru/erib/mdm"/>
+      <parameter name="wsdlServiceElement" value="eribMDM"/>
+      <parameter name="schemaUnqualified" value="http://sbrf.srb.ru/erib/mdm"/>
+      <parameter name="wsdlServicePort" value="eribMDMService"/>
+      <parameter name="className" value="com.rssl.phizic.ws.esberiblistener.mdm.generated.EribMDMBindingImpl"/>
+      <parameter name="wsdlPortType" value="eribMDM"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="doIFX" qname="DoIFX" returnQName="retNS:DoIFXRs" xmlns:retNS="http://sbrf.srb.ru/erib/mdm" returnType="rtns:IFXRs_Type" xmlns:rtns="http://sbrf.srb.ru/erib/mdm" soapAction="http://sbrf.srb.ru/erib/mdm/DoIFX" >
+        <parameter qname="pns:DoIFXRq" xmlns:pns="http://sbrf.srb.ru/erib/mdm" type="tns:IFXRq_Type" xmlns:tns="http://sbrf.srb.ru/erib/mdm"/>
+      </operation>
+      <parameter name="allowedMethods" value="doIFX"/>
+
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:IdType_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:IFXRs_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.IFXRs_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:TaxId_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:ContactData_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.ContactData_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:EribCustId_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:IdSeries_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:RbBrchType"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:RbTbBrchType"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:UUID"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:DateTime"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:StatusDesc_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:FirstName_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:String"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:BranchId_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:ServerStatusDesc_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:FullAddress_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.FullAddress_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:MDMClientInfoUpdateRs_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.MDMClientInfoUpdateRs_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:PostalCode_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:Gender_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:OperUID_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:BankInfo_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.BankInfo_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:IFXRq_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.IFXRq_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:RqUID_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:SPName_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.SPName_Type"
+        serializer="org.apache.axis.encoding.ser.EnumSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.EnumDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:MDMClientInfoUpdateRq_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.MDMClientInfoUpdateRq_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:PersonInfo_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.PersonInfo_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:Identifier"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:>IntegrationInfo_Type>IntegrationID"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.IntegrationInfo_TypeIntegrationID"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:RegionId_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:AgencyId_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:IdentityCard_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.IdentityCard_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:IdNum_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:StatusCode_Type"
+        type="java:long"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:IntegrationInfo_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.IntegrationInfo_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:CustRec_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.CustRec_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:LastName_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:CreditRole_Type"
+        type="java:long"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:PersonName_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.PersonName_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:MiddleName_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:Status_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.Status_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:FieldName_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:ServiceInfo_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.ServiceInfo_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:Long"
+        type="java:long"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:SPDefField_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.SPDefField_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:MessageDeliveryType_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.MessageDeliveryType_Type"
+        serializer="org.apache.axis.encoding.ser.EnumSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.EnumDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:Date"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:CustInfo_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.CustInfo_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:AddressType_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:ContactInfo_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.mdm.generated.ContactInfo_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:IssuedBy_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.srb.ru/erib/mdm"
+        qname="ns:StatusType_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+
+      <requestFlow>
+          <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.MDMLogger"/>
+      </requestFlow>
+      <responseFlow>
+          <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.MDMLogger"/>
+      </responseFlow>
+  </service>
+
+  <service name="EsbEribBackService" provider="java:RPC" style="document" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://sbrf.ru/baseproduct/erib/adapter/1"/>
+      <parameter name="wsdlServiceElement" value="EsbEribBackService"/>
+      <parameter name="schemaUnqualified" value="http://sbrf.ru/baseproduct/erib/adapter/1"/>
+      <parameter name="wsdlServicePort" value="EsbEribBackService"/>
+      <parameter name="className" value="com.rssl.phizic.ws.esberiblistener.esberib.generated.EsbEribBackService_BindingImpl"/>
+      <parameter name="wsdlPortType" value="EsbEribBackService"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="doIFX" qname="DoIFX" returnQName="retNS:DoIFXRs" xmlns:retNS="http://sbrf.ru/baseproduct/erib/adapter/1" returnType="rtns:IFXRs_Type" xmlns:rtns="http://sbrf.ru/baseproduct/erib/adapter/1" soapAction="http://sbrf.ru/baseproduct/erib/adapter/DoIFX" >
+        <parameter qname="pns:DoIFXRq" xmlns:pns="http://sbrf.ru/baseproduct/erib/adapter/1" type="tns:IFXRq_Type" xmlns:tns="http://sbrf.ru/baseproduct/erib/adapter/1"/>
+      </operation>
+      <parameter name="allowedMethods" value="doIFX"/>
+
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:RbBrchType"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:UUID"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:SecDicInfoRq_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.SecDicInfoRq_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:Boolean"
+        type="java:boolean"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:RqUID_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:DictRec_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.DictRec_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:Status_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.Status_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:C"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:StatusType_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:AutoSubscriptionId_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.AutoSubscriptionId_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:AgencyId_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:BankInfo_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.BankInfo_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:SecDicInfoRs_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.SecDicInfoRs_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:IFXRq_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.IFXRq_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:SPName_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.SPName_Type"
+        serializer="org.apache.axis.encoding.ser.EnumSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.EnumDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:RegionId_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:DateTime"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:SecurityName_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:InsideCode_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:SystemId_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:DocStateUpdateRs_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.DocStateUpdateRs_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:StatusDesc_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:Decimal"
+        type="java:java.math.BigDecimal"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:Long"
+        type="java:long"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:DocStateUpdateRq_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.DocStateUpdateRq_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:>Document_Type>DocNumber"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:SecurityNumber_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:SecurityType_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:StatusCode_Type"
+        type="java:long"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:String"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:RbTbBrchType"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:IFXRs_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.IFXRs_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:CurrencyCodeType"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:ServerStatusDesc_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:Issuer_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:Document_Type"
+        type="java:com.rssl.phizic.ws.esberiblistener.esberib.generated.Document_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:BranchId_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/baseproduct/erib/adapter/1"
+        qname="ns:OperUID_Type"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+
+      <requestFlow>
+        <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.EsbEribBackLogger"/>
+      </requestFlow>
+      <responseFlow>
+        <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.EsbEribBackLogger"/>
+      </responseFlow>
+  </service>
+
+ <transport name="http">
+  <parameter name="qs:list"
+               value="org.apache.axis.transport.http.QSListHandler"/>
+  <parameter name="qs:method"
+               value="org.apache.axis.transport.http.QSMethodHandler"/>
+  <parameter name="qs:wsdl"
+               value="org.apache.axis.transport.http.QSWSDLHandler"/>
+  <requestFlow>
+   <handler type="URLMapper"/>
+   <handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+  </requestFlow>
+ </transport>
+
+ <transport name="local">
+  <responseFlow>
+   <handler type="LocalResponder"/>
+  </responseFlow>
+ </transport>
+
+</deployment>

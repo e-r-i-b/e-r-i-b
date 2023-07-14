@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.userSettings.UserProperty" table="USER_PROPERTIES">
+
+        <id name="id" type="long">
+         <generator class="native">
+          <param name="sequence">S_USER_PROPERTIES</param>
+         </generator>
+        </id>
+
+        <property name="key"      type="string" column="PROPERTY_KEY" not-null="true"/>
+        <property name="value"    type="string" column="PROPERTY_VALUE"/>
+	    <property name="loginId"   type="java.lang.Long" column="LOGIN_ID" not-null="true"/>
+
+    </class>
+
+    <!--
+       Опорный объект: IDX_LOGIN_USER_PROPERTIES
+       Предикаты доступа: access("USERPROPER0_"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "USERPROPER0_"."PROPERTY_KEY"=:KEY)
+       Кардинальность: 1 настройка.
+    -->
+    <query name="com.rssl.phizic.userSettings.UserProperty.remove">
+        delete from com.rssl.phizic.userSettings.UserProperty property
+        where property.key = :key and property.loginId = :loginId
+    </query>
+
+    <!--
+       Опорный объект: IDX_LOGIN_USER_PROPERTIES
+       Предикаты доступа: access("USERPROPER0_"."LOGIN_ID"=TO_NUMBER(:LOGINID))
+       Кардинальность: количество настроек для клиента.
+    -->
+    <query name="com.rssl.phizic.userSettings.UserProperty.getAll">
+        select property from com.rssl.phizic.userSettings.UserProperty property
+        where property.loginId = :loginId
+    </query>
+
+    <!--
+       Опорный объект: IDX_LOGIN_USER_PROPERTIES
+       Предикаты доступа: access("USERPROPER0_"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "USERPROPER0_"."PROPERTY_KEY"=:KEY)
+       Кардинальность: 1 настройка.
+    -->
+    <query name="com.rssl.phizic.userSettings.UserProperty.get">
+        select property from com.rssl.phizic.userSettings.UserProperty property
+        where property.key = :key and property.loginId = :loginId
+    </query>
+</hibernate-mapping>

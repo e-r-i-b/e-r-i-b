@@ -1,0 +1,60 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="CategoryPaymentType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.payment.services.CategoryServiceType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.payment.services.api.PaymentServiceOld" table="PAYMENT_SERVICES_OLD">
+
+        <id name="id" type="long" column="ID">
+            <generator class="com.rssl.phizic.dataaccess.common.counters.AssignedOrSequenceGenerator">
+                <param name="sequence">S_PAYMENT_SERVICES_OLD</param>
+            </generator>
+        </id>
+        <property name="description" type="string"  column="DESCRIPTION" not-null="false"/>
+        <property name="synchKey"  type="string" column="CODE" not-null="true" unique="true"/>
+        <property name="name"  type="string" column="NAME" not-null="true"/>
+        <property name="imageId"  type="long"    column="IMAGE_ID" not-null="false"/>
+        <property name="popular"  type="boolean" column="POPULAR"  not-null="true"/>
+        <property name="system"  type="boolean" column="SYSTEM"  not-null="true"/>
+        <property name="priority" type="long"  column="PRIORITY" not-null="false"/>
+        <property name="visibleInSystem"  type="boolean" column="VISIBLE_IN_SYSTEM"  not-null="true"/>
+        <property name="defaultImage"  type="string" column="IMAGE_NAME"  not-null="true"/>
+
+        <set name="categories" table="PAYMENT_SERVICE_CATEGORIES" cascade="none" lazy="false">
+           <key column="PAYMENT_SERVICES_ID"/>
+           <element column="CATEGORY" type="CategoryPaymentType" />
+        </set>
+
+        <many-to-one name="parent" column="PARENT_ID" class="com.rssl.phizic.business.dictionaries.payment.services.api.PaymentServiceOld" lazy="false"/>
+    </class>
+
+     <query name="com.rssl.phizic.business.dictionaries.payment.services.api.getPaymentServiceChildren">
+        select paymentService
+        from com.rssl.phizic.business.dictionaries.payment.services.api.PaymentServiceOld as paymentService
+        where paymentService.visibleInSystem = true and paymentService.parent =:parent ORDER BY paymentService.name
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.api.PaymentServiceOld.getCountOfProvider">
+        <![CDATA[
+            SELECT COUNT (serv_prov.SERVICE_PROVIDER_ID)
+            FROM SERV_PROV_PAYM_SERV_OLD serv_prov
+            WHERE serv_prov.PAYMENT_SERVICE_ID = :id
+        ]]>
+    </sql-query>
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.api.PaymentServiceOld.getLevelOfHierarchy">
+        SELECT max(level)
+        FROM PAYMENT_SERVICES_OLD service
+        START WITH service.ID = :id
+        CONNECT BY service.ID  = prior service.PARENT_ID
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.dictionaries.payment.services.countPaymentServiceChildren">
+        select count(paymentService) from com.rssl.phizic.business.dictionaries.payment.services.api.PaymentServiceOld as paymentService
+        where paymentService.parent.id = :id
+    </query>
+    
+</hibernate-mapping>

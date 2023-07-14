@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="TaxPayment" description="Оплата налогов" detailedDescription="Перечисление денежных средств с вашего счета в счет уплаты налогов и сборов"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.RurPayment"/>
+	<statemachine name="PaymentStateMachine"/>
+	<withdraw-options>
+	   <form name="RecallPayment"/>
+	   <check class="com.rssl.phizic.business.documents.metadata.checkers.DocumentStateChecker">
+		   <parameter name="state">dispatched</parameter>
+	   </check>
+	</withdraw-options>
+
+	<fields>
+		<field
+				name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+		       type="string"/>
+
+		<field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="admissionDate"
+		       source="admission-date"
+		       type="date"
+		       description="Дата приема плaтежа банком">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="payerName"
+				description="ФИО плательщика"
+				type="string"
+				source="payer-name"
+				signable="true">
+		</field>
+
+		<field
+				name="currency"
+				description="Валюта перевода"
+				source="amount-currency"
+				type="string"
+				signable="true"
+				value="'RUB'">
+		</field>
+
+		<field
+				name="payerAccountSelect"
+				description="Счет списания"
+				type="account"
+				source="payer-account"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="amount"
+				description="Сумма"
+				source="amount"
+				type="money"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение суммы к оплате должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение суммы перевода должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="commissionAmount"
+				description="Сумма комиссии"
+				source="commission"
+				type="money"
+				signable="true">
+		</field>
+
+		<field
+				name="receiverName"
+				description="Наименование получателя платежа"
+				source="receiver-name"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverINN"
+				description="ИНН получателя платежа"
+				source="extra-parameters/parameter[@name='receiver-inn']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="ИНН получателя платежа должен состоять из 10 цифр"/>
+					<parameter name="regexp">^\d{10}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="receiverKPP"
+				description="КПП получателя платежа"
+				source="extra-parameters/parameter[@name='receiver-kpp']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="КПП получателя платежа должен состоять из 9 цифр"/>
+					<parameter name="regexp">^\d{9}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="receiverAccount"
+				description="Счет получателя"
+				type="string"
+				source="receiver-account"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Счет получателя должен состоять из 20 цифр"/>
+					<parameter name="regexp">^\d{20}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="receiverBIC"
+				description="БИК банка получателя"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-bic']/@value"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="БИК должен состоять из 9 цифр"/>
+					<parameter name="regexp">^\d{9}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="receiverBank"
+				description="Наименование банка получателя"
+				source="extra-parameters/parameter[@name='receiver-bank']/@value"
+				type="string"
+				signable="true"
+				value="(form.$this != null &amp; form.$this != '') ? form.$this :
+							((form.receiverBIC != null  &amp; form.receiverBIC != '')? bankService.findByBIC(form.receiverBIC).getName() : '')">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverCorAccount"
+				description="Кор.счет банка получателя"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-cor-account']/@value"
+				signable="true"
+				value="(form.$this != null &amp; form.$this != '') ? form.$this :
+							((form.receiverBIC != null  &amp; form.receiverBIC != '')? bankService.findByBIC(form.receiverBIC).getAccount() : '')">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Кор.Счет должен состоять из 20 цифр"/>
+					<parameter name="regexp">^\d{20}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="ground"
+				description="Назначение платежа"
+				source="ground"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Назначение платежа не должно превышать 200 символов"/>
+					<parameter name="regexp">^.{1,200}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="taxStatus"
+				description="Статус"
+				source="extra-parameters/parameter[@name='tax-status']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator" mode="document"/>
+			</validators>
+		</field>
+
+		<field
+				name="taxKBK"
+				description="Код КБК"
+				source="extra-parameters/parameter[@name='tax-kbk']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="КБК должно содержать 20 цифр"/>
+					<parameter name="regexp">^\d{20}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="taxOKATO"
+				description="ОКАТО"
+				source="extra-parameters/parameter[@name='tax-okato']/@value"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="ОКАТО содержит от 2 до 11 цифр"/>
+					<parameter name="regexp">^\d{2,11}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="taxGround"
+				description="Показатель основания платежа"
+				source="extra-parameters/parameter[@name='tax-ground']/@value"
+				type="string"
+				signable="true">
+		</field>
+
+		<field
+				name="taxType"
+				description="Показатель типа платежа"
+				source="extra-parameters/parameter[@name='tax-type']/@value"
+				type="string"
+				signable="true">
+		</field>
+
+		<field
+				name="taxDocumentDate"
+				description="Дата налогового документа"
+				source="extra-parameters/parameter[@name='tax-document-date']/@value"
+				type="string"
+				signable="true">
+
+            <validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="taxDocumentNumber"
+				description="Номер налогового документа"
+				source="extra-parameters/parameter[@name='tax-document-number']/@value"
+				type="string"
+				signable="true">
+		</field>
+
+		<field
+				name="taxPeriod1"
+				description="Период: Число"
+				source="extra-parameters/parameter[@name='tax-period1']/@value"
+				type="string"
+				signable="true">
+		</field>
+
+		<field
+				name="taxPeriod2"
+				description="Период: Месяц"
+				source="extra-parameters/parameter[@name='tax-period2']/@value"
+				type="string"
+				signable="true">
+		</field>
+
+		<field
+				name="taxPeriod3"
+				description="Период: Год"
+				source="extra-parameters/parameter[@name='tax-period3']/@value"
+				type="string"
+				signable="true">
+		</field>
+
+		<field
+				name="payerAccountType"
+				description="Тип счета списания"
+				source="extra-parameters/parameter[@name='payer-account-type']/@value"
+				type="string"
+				signable="true">
+		</field>
+
+	</fields>
+
+	<form-validators>
+		<form-validator mode="document" class="com.rssl.common.forms.validators.TaxPeriodValidator">
+			<message text="Проверьте правильность заполнения периода"/>
+			<field-ref name="day">taxPeriod1</field-ref>
+			<field-ref name="month">taxPeriod2</field-ref>
+			<field-ref name="year">taxPeriod3</field-ref>
+			<field-ref name="ground">taxGround</field-ref>
+		</form-validator>
+		<form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">payerAccountSelect</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountKeyValidator">
+			<message text="Неверный ключ счета получателя"/>
+			<field-ref name="receiverBIC">receiverBIC</field-ref>
+			<field-ref name="receiverAccount">receiverAccount</field-ref>
+		</form-validator>
+        <form-validator mode="document" class="com.rssl.common.forms.validators.KBKValidator">
+			<message text="Проверьте правильность заполнения КБК"/>
+			<field-ref name="taxKBK">taxKBK</field-ref>
+			<field-ref name="taxType">taxType</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

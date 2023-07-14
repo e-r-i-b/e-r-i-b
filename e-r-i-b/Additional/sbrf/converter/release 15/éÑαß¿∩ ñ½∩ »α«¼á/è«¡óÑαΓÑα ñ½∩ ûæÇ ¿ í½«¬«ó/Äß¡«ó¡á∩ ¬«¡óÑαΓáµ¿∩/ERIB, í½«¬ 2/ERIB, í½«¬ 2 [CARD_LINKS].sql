@@ -1,0 +1,91 @@
+alter session set CURRENT_SCHEMA = SRB_IKFL2;
+
+alter table SRB_IKFL2.CARD_LINKS rename to FORDEL$CARD_LINKS;
+
+alter table SRB_IKFL2.FORDEL$CARD_LINKS rename constraint PK_CARD_LINKS to FORDEL$CARD_LINKS_C_1;
+alter table SRB_IKFL2.FORDEL$CARD_LINKS rename constraint FK_CARD_LIN_FK_CARDLI_LOGINS to FORDEL$CARD_LINKS_C_5;
+
+alter table SRB_IKFL2.ERMB_PROFILE drop constraint FK_FOREG_PRODUCT;
+alter table SRB_IKFL2.SENDED_ABSTRACTS drop constraint FK_SENDED_A_TO_CARD_LIN;
+alter table SRB_IKFL2.STORED_CARD drop constraint FK_STORED_C_TO_LINK_REF;
+
+alter index SRB_IKFL2.DXFK_CARDLINKS_TO_LOGINS rename to FORDEL$CARD_LINKS_IDX_2;
+alter index SRB_IKFL2.UNIQ_CARD_NUMBER rename to FORDEL$CARD_LINKS_IDX_3;
+alter index SRB_IKFL2.PK_CARD_LINKS rename to FORDEL$CARD_LINKS_IDX_4;
+
+alter session force parallel ddl parallel 32;
+
+create table SRB_IKFL2.CARD_LINKS tablespace USER_DATA nologging as 
+select /*+parallel(cl, 32)*/
+  ID,
+  EXTERNAL_ID,
+  LOGIN_ID,
+  CARD_NUMBER,
+  CARD_NAME,
+  SHOW_IN_MAIN,
+  SHOW_IN_SYSTEM,
+  EXPIRE_DATE,
+  SHOW_OPERATIONS,
+  CARD_PRIMARY_ACCOUNT,
+  IS_MAIN,
+  MAIN_CARD_NUMBER,
+  SHOW_IN_MOBILE,
+  OTP_GET,
+  OTP_USE,
+  DESCRIPTION,
+  CURRENCY,
+  KIND,
+  SUB_KIND,
+  SHOW_IN_ATM,
+  SHOW_IN_MOBILE SHOW_IN_SOCIAL,
+  ERMB_NOTIFICATION,
+  ERMB_SMS_ALIAS,
+  GFL_TB,
+  GFL_OSB,
+  GFL_VSP,
+  MB_USER_ID,
+  SMS_AUTO_ALIAS,
+  ADDITIONAL_CARD_TYPE,
+  POSITION_NUMBER,
+  SHOW_IN_SMS,
+  USE_REPORT_DELIVERY,
+  EMAIL_ADDRESS,
+  REPORT_DELIVERY_TYPE,
+  REPORT_DELIVERY_LANGUAGE,
+  CLIENT_ID,
+  to_timestamp('01.12.2014 00:00:00', 'dd.mm.yyyy hh24:mi:ss') CREATION_DATE
+from SRB_IKFL2.FORDEL$CARD_LINKS cl;
+
+-- Номер ревизии 68530
+-- Комментарий: ЗНИ 179118 исправление ошибки по бизнес логике изменения параметров подписки отчётов по картам
+alter table SRB_IKFL2.CARD_LINKS add CONTRACT_NUMBER varchar2(64);
+
+alter table SRB_IKFL2.CARD_LINKS modify SHOW_IN_SOCIAL not null novalidate;
+alter table SRB_IKFL2.CARD_LINKS modify CREATION_DATE not null novalidate;
+
+create unique index SRB_IKFL2.PK_CARD_LINKS on SRB_IKFL2.CARD_LINKS (ID) parallel 32 tablespace USER_DATA_IDX;
+
+alter table SRB_IKFL2.CARD_LINKS add constraint PK_CARD_LINKS primary key (ID) using index SRB_IKFL2.PK_CARD_LINKS enable novalidate;
+
+create index SRB_IKFL2.DXFK_CARDLINKS_TO_LOGINS on SRB_IKFL2.CARD_LINKS (LOGIN_ID) parallel 32 tablespace USER_DATA_IDX ;
+create unique index SRB_IKFL2.UNIQ_CARD_NUMBER on SRB_IKFL2.CARD_LINKS (CARD_NUMBER, LOGIN_ID) parallel 32 tablespace USER_DATA_IDX ;
+
+alter table SRB_IKFL2.CARD_LINKS 
+	add constraint FK_CARD_LIN_FK_CARDLI_LOGINS foreign key (LOGIN_ID)
+		references SRB_IKFL2.LOGINS (ID) enable novalidate;
+
+alter table SRB_IKFL2.ERMB_PROFILE 
+	add constraint FK_FOREG_PRODUCT foreign key (FOREG_PRODUCT_ID)
+		references SRB_IKFL2.CARD_LINKS (ID) on delete set null enable novalidate;
+
+alter table SRB_IKFL2.SENDED_ABSTRACTS 
+	add constraint FK_SENDED_A_TO_CARD_LIN foreign key (CARDLINK_ID)
+		references SRB_IKFL2.CARD_LINKS (ID) enable novalidate;
+
+alter table SRB_IKFL2.STORED_CARD 
+	add constraint FK_STORED_C_TO_LINK_REF foreign key (RESOURCE_ID)
+		references SRB_IKFL2.CARD_LINKS (ID) on delete cascade enable novalidate;
+		
+alter index SRB_IKFL2.DXFK_CARDLINKS_TO_LOGINS noparallel;
+alter index SRB_IKFL2.UNIQ_CARD_NUMBER noparallel;
+alter index SRB_IKFL2.PK_CARD_LINKS noparallel;		

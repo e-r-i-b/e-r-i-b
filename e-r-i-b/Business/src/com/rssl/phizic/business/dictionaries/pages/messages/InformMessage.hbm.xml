@@ -1,0 +1,82 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="InformMessageState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.pages.messages.InformMessageState</param>
+	</typedef>
+
+    <typedef name="Importance" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.pages.messages.Importance</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef name="ViewType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.pages.messages.ViewType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.pages.messages.InformMessage" table="INFORM_MESSAGES">
+        
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_INFORM_MESSAGES</param>
+            </generator>
+        </id>
+
+        <property name="name"              type="string"             column="NAME"                     not-null="false"/>
+        <property name="text"              type="string"             column="TEXT"                     not-null="true"/>
+        <property name="vievType"          type="ViewType"           column="VIEW_TYPE"                not-null="true"/>
+        <property name="state"             type="InformMessageState" column="STATE"                    not-null="true"/>
+        <property name="startPublishDate"  type="calendar"           column="START_PUBLISH_DATE"       not-null="true"/>
+        <property name="cancelPublishDate" type="calendar"           column="CANCEL_PUBLISH_DATE"      not-null="false"/>
+        <property name="importance"        type="Importance"         column="IMPORTANCE"               not-null="true"/>
+
+        <set name="departments" table="MESSAGES_DEPARTMENTS" lazy="false">
+            <key column="MESSAGE_ID"/>
+            <element column="TB" type="string" not-null="true"/>
+        </set>
+
+        <set name="pages" table="MESSAGES_PAGES" lazy="false" fetch="subselect">
+            <key column="MESSAGE_ID"/>
+            <many-to-many class="com.rssl.phizic.business.dictionaries.pages.Page" column="PAGE_ID"/>
+        </set>
+
+
+    </class>
+
+<!-- Ищет сообщения по страницам и департаменту и параметрам -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pages.messages.InformMessage.findMessagesByUrlAndParameters">
+           <return-scalar column="text"     type="string"/>
+           <return-scalar column="viewType" type="string"/>
+           <return-scalar column="importance" type="string"/>
+           <![CDATA[
+               SELECT message.text as text, message.VIEW_TYPE as viewType, message.importance as importance 
+               FROM
+                  INFORM_MESSAGES message
+               JOIN
+                  MESSAGES_DEPARTMENTS messages_departments ON message.ID = messages_departments.MESSAGE_ID
+               WHERE
+                  ( :date IS NULL OR message.START_PUBLISH_DATE <= :date
+               AND
+                  (:date <= message.CANCEL_PUBLISH_DATE OR message.CANCEL_PUBLISH_DATE IS NULL) )
+               AND
+                  message.STATE != 'TEMPLATE'
+               AND
+                  messages_departments.TB = :TB
+               AND
+                  message.ID in (select distinct MESSAGE_ID from MESSAGES_PAGES where PAGE_ID in (:page_ids))
+               ORDER BY message.importance
+           ]]>
+   </sql-query>
+
+    <query name="com.rssl.phizic.business.dictionaries.pages.messages.InformMessage.removeOldInformMessage">
+    <![CDATA[
+        delete from com.rssl.phizic.business.dictionaries.pages.messages.InformMessage as message
+        where message.cancelPublishDate <= :date
+        and message.state != 'TEMPLATE'
+    ]]>
+    </query>
+    
+</hibernate-mapping>

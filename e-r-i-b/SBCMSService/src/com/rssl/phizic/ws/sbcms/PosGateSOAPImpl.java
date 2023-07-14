@@ -1,0 +1,16 @@
+/**
+ * PosGateSOAPImpl.java
+ *
+ * This file was auto-generated from WSDL
+ * by the Apache Axis 1.4 Apr 22, 2006 (06:55:48 PDT) WSDL2Java emitter.
+ */
+
+package com.rssl.phizic.ws.sbcms;
+
+public class PosGateSOAPImpl implements com.rssl.phizic.ws.sbcms.PosGate_PortType{
+    public java.lang.String pqQuery(java.lang.String pqRequest) throws java.rmi.RemoteException{
+		com.rssl.phizic.ws.sbcms.mock.MockMessagingService messagingService = new com.rssl.phizic.ws.sbcms.mock.MockMessagingService();
+		return messagingService.makeResponse(pqRequest);
+    }
+
+}

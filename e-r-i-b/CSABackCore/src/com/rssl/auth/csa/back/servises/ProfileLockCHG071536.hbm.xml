@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.auth.csa.back.servises.ProfileLockCHG071536" table="CSA_PROFILES_LOCK_CHG071536">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CSA_PROFILES_LOCK_CHG071536</param>
+            </generator>
+        </id>
+        <property name="profileId" type="long" column="PROFILE_ID" not-null="true"/>
+
+        <property name="from" type="calendar" column="DATE_FROM" not-null="true"/>
+        <property name="to" type="calendar" column="DATE_TO"/>
+        <property name="reason" type="string" column="REASON"/>
+        <property name="lockerFIO" type="string" column="LOCKER_FIO"/>
+
+        <property name="creationDate" type="calendar" formula="CREATION_DATE" not-null="true" generated="insert"/>
+    </class>
+
+
+    <query name="com.rssl.auth.csa.back.servises.ProfileLockCHG071536.unlock">
+        update com.rssl.auth.csa.back.servises.ProfileLockCHG071536 locks
+        set to = current_date
+        where
+            profileId in (:profile_id) and
+            current_date  >= locks.from and
+            (locks.to is null or locks.to > current_date)
+    </query>
+
+</hibernate-mapping>

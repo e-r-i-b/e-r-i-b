@@ -1,0 +1,864 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<typedef name="CreationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.common.forms.doc.CreationType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef name="CreationSourceType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.common.forms.doc.CreationSourceType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef name="InputSumType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.documents.InputSumType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef name="LoginType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.client.LoginType</param>
+	</typedef>
+
+    <typedef name="ConfirmStrategyType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.ConfirmStrategyType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.documents.BusinessDocumentBase" table="BUSINESS_DOCUMENTS"
+           abstract="true" polymorphism="explicit">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_BUSINESS_DOCUMENTS</param>
+            </generator>
+        </id>
+	    <discriminator column="KIND" type="string"/>
+
+	    <timestamp name="changed" column="CHANGED"/>
+
+
+	    <many-to-one name="department" class="com.rssl.phizic.business.departments.Department"
+	                 column="DEPARTMENT_ID" lazy="false"
+	                 update="true" not-found="ignore"/>
+	    <many-to-one name="clientLogin" class="com.rssl.phizic.auth.LoginImpl" column="LOGIN_ID" lazy="false"
+	                 update="false" access="field"/>
+	    <many-to-one name="signature" column="SIGNATURE_ID"
+	                 class="com.rssl.common.forms.doc.DocumentSignature" unique="true"
+	                 cascade="save-update,delete" lazy="proxy"/>
+
+	    <property name="formId" type="long" column="FORM_ID" update="false"
+	              access="com.rssl.phizic.business.payments.forms.meta.FormIdPropertyAccessor"/>
+	    <property name="formName" type="string" insert="false" update="false">
+		    <formula>(SELECT form.NAME FROM PAYMENTFORMS form WHERE form.ID=FORM_ID)</formula>
+	    </property>
+
+	    <property name="documentNumber" type="string" column="DOC_NUMBER"/>
+
+	    <property name="state" type="com.rssl.phizic.business.hibernate.StateType" not-null="true">
+		    <column name="STATE_CODE"/>
+		    <column name="STATE_DESCRIPTION"/>
+	    </property>
+        <property name="systemName" type="string" column="SYSTEM_NAME"/>
+	    <property name="commission" type="money">
+		    <column name="COMMISSION"/>
+		    <column name="COMMISSION_CURRENCY"/>
+	    </property>
+	    <property name="archive"                type="boolean"      column="ARCHIVE"                not-null="true"/>
+	    <property name="creationType"           type="CreationType" column="CREATION_TYPE"          not-null="false"/>
+	    <property name="clientOperationChannel" type="CreationType" column="CLIENT_OPERATION_TYPE"  not-null="false"/>
+	    <property name="refusingReason"         type="string"       column="REFUSING_REASON"        not-null="false"/>
+
+	    <map name="attributes" table="DOCUMENT_EXTENDED_FIELDS"
+	         cascade="all-delete-orphan" lazy="false" batch-size="5">
+		    <key column="PAYMENT_ID" not-null="true"/>
+		    <map-key column="NAME" type="string"/>
+		    <one-to-many entity-name="DocumentAttributes"/>
+	    </map>
+
+	    <property name="dateCreated" type="calendar" column="CREATION_DATE"/>
+	    <property name="operationDate" type="calendar" column="OPERATION_DATE"/>
+	    <property name="admissionDate" type="calendar" column="ADMISSION_DATE"/>
+	    <property name="executionDate" type="calendar" column="EXECUTION_DATE"/>
+	    <property name="documentDate" type="calendar" column="DOCUMENT_DATE"/>
+	    <property name="stateMachineName" type="string" column="STATE_MACHINE_NAME"/>
+        <property name="templateId" type="long" column="TEMPLATE_ID"/>
+        <property name="countError" type="long" insert="false">
+            <column name="COUNT_ERROR" not-null="true" default="0"/>
+        </property>
+        <property name="creationSourceType" type="CreationSourceType" column="CREATION_SOURCE_TYPE"/>
+        <property name="confirmStrategyType" type="ConfirmStrategyType" column="CONFIRM_STRATEGY_TYPE"/>
+        <property name="operationUID" type="string" column="OPERATION_UID"/>
+        <property name="sessionId" type="string" column="SESSION_ID"/>
+        <property name="promoCode"    type="string" column="PROMO_CODE"/>
+
+        <property name="createdEmployeeLoginId"     type="long" column="CREATED_EMPLOYEE_LOGIN_ID"/>
+        <property name="confirmedEmployeeLoginId"   type="long" column="CONFIRMED_EMPLOYEE_LOGIN_ID"/>
+        <property name="codeATM" type="string" column="CODE_ATM" not-null="false"/>
+
+        <property name="additionalOperationChannel" type="CreationType" column="ADDITION_CONFIRM"   not-null="false"/>
+        <property name="loginType"          type="LoginType"    column="LOGIN_TYPE"         not-null="false"/>
+
+	    <property name="payerName" type="string" column="PAYER_NAME"/>
+
+        <filter name="templates"/>
+	    <filter name="payments"/>
+    </class>
+	<subclass name="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          extends="com.rssl.phizic.business.documents.BusinessDocumentBase">
+		<property name="externalId" column="EXTERNAL_ID"/>
+		<property name="externalOfficeId" type="string" column="EXTERNAL_OFFICE_ID"/>
+        <property name="externalOwnerId" type="string" column="EXTERNAL_OWNER_ID"/>
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument">
+		<property name="chargeOffAccount" type="string" column="PAYER_ACCOUNT"/>
+
+		<property name="confirmEmployee" type="string" column="CONFIRM_EMPLOYEE"/>
+
+		<property name="chargeOffAmount" type="money">
+			<column name="AMOUNT"/>
+			<column name="CURRENCY"/>
+		</property>
+        <property name="destinationAmount" type="money">
+			<column name="DESTINATION_AMOUNT"/>
+			<column name="DESTINATION_CURRENCY"/>
+		</property>
+        <property name="inputSumType" type="InputSumType" column="SUMM_TYPE" not-null="false"/>
+		<property name="ground" type="string" column="GROUND"/>
+        <property name="receiverName" type="string" column="RECEIVER_NAME"/>
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.AbstractLongOfferDocument"
+              extends="com.rssl.phizic.business.documents.AbstractPaymentDocument">
+
+        <property name="longOffer" type="boolean" column="IS_LONG_OFFER" not-null="true"/>
+    </subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+	          extends="com.rssl.phizic.business.documents.AbstractLongOfferDocument">
+		<property name="receiverAccount" type="string" column="RECEIVER_ACCOUNT"/>
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.AbstractDepoAccountClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument">
+	</subclass>
+
+	<!--Конкретные классы-->
+
+	<subclass name="com.rssl.phizic.business.documents.DefaultClaim"
+	          extends="com.rssl.phizic.business.documents.BusinessDocumentBase"
+	          discriminator-value="A">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.DepositClosingClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="B"/>
+
+	<subclass name="com.rssl.phizic.business.documents.AccountClosingClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+	          discriminator-value="C">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.payments.ContactPayment"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+	          discriminator-value="D">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.InternalTransfer"
+	          extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+	          discriminator-value="E">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.payments.CurrencyPayment"
+	          extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+	          discriminator-value="F">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.AccountOpeningClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+	          discriminator-value="G">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.payments.RurPayment"
+	          extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+	          discriminator-value="H">
+        <property name="receiverPointCode" type="text" column="PROVIDER_EXTERNAL_ID"/>
+        <property name="receiverInternalId" type="long" column="RECIPIENT_ID"/>
+        <property name="extendedFieldsAsString" type="text" column="EXTENDED_FIELDS"/>
+        <property name="billingDocumentNumber" type="string" column="BILLING_DOCUMENT_NUMBER"/>
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.LoyaltyProgramRegistrationClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="I">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.payments.GKHPayment"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+	          discriminator-value="J">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.payments.GoodsAndServicesPayment"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+	          discriminator-value="K">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.DepositOpeningClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+	          discriminator-value="L">
+		<property name="fromAccount" type="string" column="PAYER_ACCOUNT" insert="false" update="false"/>
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.LoanClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="M">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.RecallDocument"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="N">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.LossPassbookApplication"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="O">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.payments.JurPayment"
+	          extends="com.rssl.phizic.business.documents.payments.RurPayment"
+	          discriminator-value="P">
+
+        <property name="autoPaySchemeAsString" type="text" column="ACCESS_AUTOPAY_SCHEMES"/>
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.BlockingCardClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="Q">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.payments.RefuseLongOfferClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="R">
+        <property name="longOffer" type="boolean" column="IS_LONG_OFFER" not-null="true"/>
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.payments.ChargeOffPaymentImpl"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+	          discriminator-value="S">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.payments.LoanPayment"
+	          extends="com.rssl.phizic.business.documents.AbstractLongOfferDocument"
+	          discriminator-value="T">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.SecuritiesTransferClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractDepoAccountClaim"
+	          discriminator-value="U">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.SecurityRegistrationClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractDepoAccountClaim"
+	          discriminator-value="V">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.DepositorFormClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractDepoAccountClaim"
+	          discriminator-value="W">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.RecallDepositaryClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="X">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.PFRStatementClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="Y">
+        <property name="receiverName" type="string" column="RECEIVER_NAME"/>
+	</subclass>
+
+     <subclass name="com.rssl.phizic.business.documents.payments.AutoPaymentBase"
+              extends="com.rssl.phizic.business.documents.payments.RurPayment"/>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.CreateAutoPaymentImpl"
+	          extends="com.rssl.phizic.business.documents.payments.AutoPaymentBase"
+	          discriminator-value="Z">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.AccountClosingPayment"
+	          extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+	          discriminator-value="1">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.EditAutoPaymentImpl"
+              extends="com.rssl.phizic.business.documents.payments.AutoPaymentBase"
+              discriminator-value="2">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.RefuseAutoPaymentImpl"
+              extends="com.rssl.phizic.business.documents.payments.AutoPaymentBase"
+              discriminator-value="3">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.LoanOfferClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+              discriminator-value="4">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.LoanCardOfferClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+              discriminator-value="5">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.LoanProductClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+              discriminator-value="6">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.LoanCardProductClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+              discriminator-value="7">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.VirtualCardClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+              discriminator-value="8">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.EditAutoSubscriptionPayment"
+	          extends="com.rssl.phizic.business.documents.payments.JurPayment"
+              discriminator-value="9">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.DelayAutoSubscriptionPayment"
+	          extends="com.rssl.phizic.business.documents.payments.JurPayment"
+              discriminator-value="0">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.RecoveryAutoSubscriptionPayment"
+	          extends="com.rssl.phizic.business.documents.payments.JurPayment"
+              discriminator-value=";">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.CloseAutoSubscriptionPayment"
+	          extends="com.rssl.phizic.business.documents.payments.JurPayment"
+              discriminator-value=":">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.IMAOpeningClaim"
+              extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+              discriminator-value="!">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.ReIssueCardClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="RE">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.RemoteConnectionUDBOClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+	          discriminator-value="UD">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.ReportByCardClaim"
+	          extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+	          discriminator-value="CE">
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.RollbackOrderClaim"
+	          extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+	          discriminator-value="RO">
+        <property name="chargeOffAmount" type="money">
+			<column name="AMOUNT"/>
+			<column name="CURRENCY"/>
+		</property>
+        <property name="billingDocumentNumber" type="string" column="BILLING_DOCUMENT_NUMBER"/>
+	</subclass>
+
+	<subclass name="com.rssl.phizic.business.documents.RefundGoodsClaim"
+	          extends="com.rssl.phizic.business.documents.RollbackOrderClaim"
+	          discriminator-value="RG">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.ChangeDepositMinimumBalanceClaim"
+              extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+              discriminator-value="CM">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.AccountChangeInterestDestinationClaim"
+              extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+              discriminator-value="CI">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.ShortLoanClaim"
+              extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+              discriminator-value="EM">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.PreapprovedLoanCardClaim"
+               extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+               discriminator-value="PC">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.CreateInvoiceSubscriptionPayment"
+               extends="com.rssl.phizic.business.documents.payments.JurPayment"
+               discriminator-value="CS">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.EditInvoiceSubscriptionClaim"
+              extends="com.rssl.phizic.business.documents.payments.JurPayment"
+              discriminator-value="ES">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.DelayInvoiceSubscriptionClaim"
+               extends="com.rssl.phizic.business.documents.payments.JurPayment"
+               discriminator-value="DS">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.RecoveryInvoiceSubscriptionClaim"
+               extends="com.rssl.phizic.business.documents.payments.JurPayment"
+               discriminator-value="RS">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.CloseInvoiceSubscriptionClaim"
+               extends="com.rssl.phizic.business.documents.payments.JurPayment"
+               discriminator-value="RI">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.GetPrivateOperationScanClaim"
+                  extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+                  discriminator-value="GP">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.CardReportDeliveryClaim"
+                  extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+                  discriminator-value="CD">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.InvoicePayment"
+              extends="com.rssl.phizic.business.documents.payments.JurPayment"
+              discriminator-value="IP">
+    </subclass>
+
+  	<subclass name="com.rssl.phizic.business.documents.payments.CreateP2PAutoTransferClaim"
+                  extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+                  discriminator-value="CA">
+	</subclass>
+
+  	<subclass name="com.rssl.phizic.business.documents.payments.EditP2PAutoTransferClaim"
+                  extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+                  discriminator-value="EA">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.RecoveryP2PAutoTransferClaim"
+                  extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+                  discriminator-value="RC">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.DelayP2PAutoTransferClaim"
+                  extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+                  discriminator-value="DC">
+	</subclass>
+    <subclass name="com.rssl.phizic.business.documents.payments.CloseP2PAutoTransferClaim"
+                  extends="com.rssl.phizic.business.documents.AbstractAccountsTransfer"
+                  discriminator-value="CC">
+	</subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.CreateMoneyBoxPayment"
+              extends="com.rssl.phizic.business.documents.InternalTransfer"
+              discriminator-value="MB">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.EditMoneyBoxClaim"
+              extends="com.rssl.phizic.business.documents.payments.CreateMoneyBoxPayment"
+              discriminator-value="ME">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.RefuseMoneyBoxPayment"
+              extends="com.rssl.phizic.business.documents.InternalTransfer"
+              discriminator-value="SB">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.CloseMoneyBoxPayment"
+              extends="com.rssl.phizic.business.documents.InternalTransfer"
+              discriminator-value="CB">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.RecoverMoneyBoxPayment"
+              extends="com.rssl.phizic.business.documents.InternalTransfer"
+              discriminator-value="RB">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.CreditReportPaymentImpl"
+	          extends="com.rssl.phizic.business.documents.payments.JurPayment"
+              discriminator-value="CR">
+    </subclass>
+        <subclass name="com.rssl.phizic.business.documents.ChangeCreditLimitClaim"
+                  extends="com.rssl.phizic.business.documents.GateExecutableDocument"
+                  discriminator-value="CL">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.payments.EarlyLoanRepaymentClaimImpl"
+              extends="com.rssl.phizic.business.documents.AbstractPaymentDocument"
+              discriminator-value="ER">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.documents.CancelEarlyLoanRepaymentClaimImpl"
+              extends="com.rssl.phizic.business.documents.RecallDocument"
+              discriminator-value="EL">
+    </subclass>
+
+	<class name="com.rssl.phizic.business.extendedattributes.ExtendedAttribute"
+	       entity-name="DocumentAttributes" table="DOCUMENT_EXTENDED_FIELDS">
+
+		<id name="id" type="long" node="id">
+			<generator class="native">
+				<param name="sequence">S_DOCUMENT_EXTENDED_FIELDS</param>
+			</generator>
+		</id>
+
+		<property name="type" type="string" column="TYPE" not-null="true"/>
+		<property name="name" type="string" column="NAME" not-null="true" insert="false" update="false"/>
+		<property name="stringValue" type="not-null-string" column="VALUE"/>
+		<property name="isChanged" type="boolean" column="IS_CHANGED"/>
+	</class>
+
+    <class name="com.rssl.phizic.business.extendedattributes.ClientHistoryExtendedAttribute">
+        <id name="id" type="long"/>
+        <property name="paymentId" type="long"/>
+        <property name="name" type="string"/>
+        <property name="type" type="string"/>
+        <property name="stringValue" type="not-null-string"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.documents.payments.BusinessDocumentToOrder" table="BUSINESS_DOCUMENTS_TO_ORDERS">
+        <id name="id" type="long">
+            <column name="BUSINESS_DOCUMENT_ID" />
+        </id>
+        <property name="orderUuid" column="ORDER_UUID" type="string"/>
+    </class>
+
+    <resultset name="com.rssl.phizic.internetshop.refundGoodInfo.resultset">
+        <return-scalar column="RefundGoodsInfos" type="string"/>
+        <return-scalar column="AMOUNT" type="big_decimal"/>
+        <return-scalar column="CURRENCY" type="string"/>
+    </resultset>
+
+    <resultset name="com.rssl.phizic.business.documents.BusinessDocumentService.getByStateForJobByDocumentIdTable.resultset">
+         <return-scalar column="document_id" type="long"/>
+    </resultset>
+
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.getByStateForJobByDocumentIdTable"/>
+
+	<query name="com.rssl.phizic.business.documents.BusinessDocumentService.getById">
+		select document
+		from
+		com.rssl.phizic.business.documents.BusinessDocumentBase document
+		left outer join fetch document.attributes
+		where document.id = :id
+	</query>
+
+	<query name="com.rssl.phizic.business.documents.BusinessDocumentService.getByExternalId">
+		select document
+		from
+		com.rssl.phizic.business.documents.GateExecutableDocument document
+		left outer join fetch document.attributes
+		where document.externalId = :externalId
+	</query>
+
+	<query name="com.rssl.phizic.business.documents.BusinessDocumentService.getByState">
+		select document
+        from
+        com.rssl.phizic.business.documents.GateExecutableDocument document
+        where document.state.code = :state
+   </query>
+
+    <!--Получить список биллитнговых платежей и платежей с заданными источниками списания и зачисления
+     для выбранных форм для проверки исполнения, исключив документы в адрес заданных поставщиков-->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findPaymentsExcludingProviders">
+        <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+            select {document.*} from BUSINESS_DOCUMENTS document join PAYMENTFORMS form on form.ID = document.FORM_ID
+            where document.STATE_CODE in (:states)
+                and document.OPERATION_DATE < :fromDate
+                and document.RECIPIENT_ID not in (:excludingProviders)
+                and exists (select login.ID from LOGINS login where login.ID = document.LOGIN_ID and login.DELETED = '0')
+                and document.EXTERNAL_ID like concat('%', :uid)
+                and form.NAME in (:formNames)
+        ]]>
+    </sql-query>
+
+     <!--Получить список биллитнговых платежей и платежей с заданными источниками списания и зачисления
+     для выбранных форм для проверки исполнения-->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findPayments">
+        <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+            select {document.*} from BUSINESS_DOCUMENTS document join PAYMENTFORMS form on form.ID = document.FORM_ID
+            where document.STATE_CODE in (:states)
+                and document.OPERATION_DATE < :fromDate
+                and exists (select login.ID from LOGINS login where login.ID = document.LOGIN_ID and login.DELETED = '0')
+                and document.EXTERNAL_ID like concat('%', :uid)
+                and form.NAME in (:formNames)
+        ]]>
+    </sql-query>
+
+    <!-- поиск документов по идентификаторам поставщиков -->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findPaymentsByProviderId">
+        <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+            select {document.*} from BUSINESS_DOCUMENTS document join PAYMENTFORMS form on form.ID = document.FORM_ID
+            where document.STATE_CODE in (:states)
+                and document.OPERATION_DATE < :fromDate
+                and document.RECIPIENT_ID in (:providerIds)
+                and exists (select login.ID from LOGINS login where login.ID = document.LOGIN_ID and login.DELETED = '0')
+                and form.NAME in (:formNames)
+        ]]>
+    </sql-query>
+
+    <!--Список документов для обработки джобом уточнения статуса операции-->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.getDocumentsByStateAndFormForJob">
+       <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+        select {document.*} from BUSINESS_DOCUMENTS document join PAYMENTFORMS form on form.ID = document.FORM_ID
+         where document.STATE_CODE in (:states)
+           and form.NAME in (:formNames)
+           and not exists
+               (select 1 from PROCESSED_DOCUMENT_ID processedDocument
+                 where processedDocument.JOB_NAME = :jobName
+                   and processedDocument.DOCUMENT_ID = document.ID)
+        order by dbms_random.value
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findByLoginAndState">
+        <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+        select {document.*} from BUSINESS_DOCUMENTS document
+        where document.login_id = :owner
+          and document.state_code = :state
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findAndUpdateLogin">
+        update BUSINESS_DOCUMENTS document
+        set login_id = :extra_mainOwner
+        where document.login_id in (:extra_owners)
+          and document.state_code not in (:extra_states)
+    </sql-query>
+
+	<sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.getByStateByTaxIndex">
+        <return-scalar column="VALUE" type="string"/>
+        <return-scalar column="STATE_CODE" type="string"/>
+        <![CDATA[
+            SELECT extended_fields.VALUE, business_document.STATE_CODE FROM  BUSINESS_DOCUMENTS business_document
+            INNER  JOIN DOCUMENT_EXTENDED_FIELDS extended_fields ON extended_fields.PAYMENT_ID = business_document.ID
+            INNER  JOIN PAYMENTFORMS form_id ON form_id.ID = business_document.FORM_ID
+            WHERE business_document.LOGIN_ID = :loginId and form_id.NAME = :form_name AND extended_fields.NAME = 'RecIdentifier' AND extended_fields.VALUE in (:taxDocumentNumbers)
+            ORDER BY extended_fields.VALUE
+		]]>
+	</sql-query>
+
+    <query name="com.rssl.phizic.business.documents.BusinessDocumentService.findPFRClaimByState">
+        select document
+        from com.rssl.phizic.business.documents.PFRStatementClaim document
+        where document.state.code = :stateCode
+    </query>
+
+    <query name="com.rssl.phizic.business.documents.BusinessDocumentService.getVirtualCardClaims">
+        <![CDATA[
+            select document
+            from com.rssl.phizic.business.documents.payments.VirtualCardClaim document
+            where document.state.code ='DISPATCHED'
+            and document.executionDate > :fromDate
+            and document.executionDate <= :toDate
+            order by document.executionDate
+        ]]>
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findDispatchedShortLoanClaimByLatestCreationDate">
+        <return alias="document" class="com.rssl.phizic.business.documents.payments.ShortLoanClaim"/>
+        <![CDATA[
+            select {document.*}
+              from business_documents document
+             where document.login_id   = :loginId
+               and document.state_code = 'DISPATCHED'
+               and document.form_id    = (select form.id from paymentforms form where form.NAME = 'ShortLoanClaim')
+            order by document.creation_date desc
+        ]]>
+    </sql-query>
+
+    <!-- поиск платежей, созданных в смс канале -->
+    <!--
+        Опорный объект: IDX_BD_LCDK
+        Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+        Кардинальность: количество документов клиента, созданных в смс канале
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findPaymentsInChannel">
+        <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+            select {document.*} from BUSINESS_DOCUMENTS document
+            where LOGIN_ID = :loginId AND document.CREATION_TYPE = 2
+            order by document.CREATION_DATE DESC
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.getPaymentStateById">
+        <return-scalar column="STATE_CODE" type="string"/>
+        <![CDATA[
+        select document.state_code
+        from business_documents document
+        where document.id = :id
+            and document.login_id = :loginId
+        ]]>
+    </sql-query>
+
+    <!-- Поиск документа по id -->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findByOrderUUID">
+        <return class="com.rssl.phizic.business.documents.BusinessDocumentBase" alias="document"/>
+        <![CDATA[
+            select {document.*} from BUSINESS_DOCUMENTS document, BUSINESS_DOCUMENTS_TO_ORDERS bdto
+            where document.ID = bdto.BUSINESS_DOCUMENT_ID and bdto.ORDER_UUID = :order_uuid and document.KIND = :type
+        ]]>
+    </sql-query>
+
+    <!-- Поиск связанного с документом заказа -->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findOrderUUID">
+        <return-scalar column="UUID" type="string"/>
+        <![CDATA[
+            select bdto.ORDER_UUID UUID from BUSINESS_DOCUMENTS_TO_ORDERS bdto
+            where bdto.BUSINESS_DOCUMENT_ID = :documentID
+        ]]>
+    </sql-query>
+
+    <!--Уточнение статуса документа оплаты заказа-->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.getOrderDocumentState">
+        <return-scalar column="STATE_CODE" type="string"/>
+        <return-scalar column="BILLING_DOCUMENT_NUMBER" type="string"/>
+        <![CDATA[
+            select document.STATE_CODE, document.BILLING_DOCUMENT_NUMBER
+              from BUSINESS_DOCUMENTS document
+              join BUSINESS_DOCUMENTS_TO_ORDERS bdto on bdto.BUSINESS_DOCUMENT_ID = document.ID and bdto.ORDER_UUID = :orderUuid
+              where document.KIND = 'P'
+        ]]>
+    </sql-query>
+
+	<!--Уточнение статуса документа отмен платежей/возвратов товара по заказам-->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.getRecallDocumentState">
+        <return-scalar column="STATE_CODE" type="string"/>
+        <return-scalar column="BILLING_DOCUMENT_NUMBER" type="string"/>
+        <![CDATA[
+            select document.STATE_CODE, document.BILLING_DOCUMENT_NUMBER
+              from BUSINESS_DOCUMENTS document
+              join BUSINESS_DOCUMENTS_TO_ORDERS bdto on bdto.BUSINESS_DOCUMENT_ID = document.ID and bdto.ORDER_UUID = :orderUuid
+              where document.KIND = :kind
+               and exists (select 1 from DOCUMENT_EXTENDED_FIELDS ext
+                            where ext.PAYMENT_ID=document.ID
+                            and ext.NAME = 'refund-uuid'
+                            and ext.VALUE = :recallUuid)
+        ]]>
+    </sql-query>
+
+    <!-- Получить список идентфикаторов платежей отправленных в АС "ЦОД" по статусу
+        Опорный элемент - I_KINDSTATE
+        Предикат доступа - "DOC"."STATE_CODE"=:EXTRA_STATE AND ("DOC"."KIND"='E' OR "DOC"."KIND"='H' OR "DOC"."KIND"='P')
+        Кардинальность - до полумиллиона записей.
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.getDepoCodDocuments">
+        <return-scalar column="document_id" type="long"/>
+        select doc.ID document_id
+        from BUSINESS_DOCUMENTS doc
+        where doc.STATE_CODE = :extra_state
+          and doc.KIND in ('P', 'H', 'E')
+          and doc.EXTERNAL_ID like '%DepoCOD%'
+          and not exists(select processedDocument.DOCUMENT_ID
+                           from PROCESSED_DOCUMENT_ID processedDocument
+                          where (processedDocument.JOB_NAME = :extra_jobName or processedDocument.JOB_NAME = concat(:extra_jobName, '.unexpected.error')) and
+                            doc.ID = processedDocument.DOCUMENT_ID)
+        order by doc.id ASC
+    </sql-query>
+
+    <!--
+    Опорный элемент: IDX_BD_LCDK
+    Предикат доступа: "DOCS"."LOGIN_ID"=TO_NUMBER(:EXTRA_LOGIN_ID) AND "DOCS"."CREATION_DATE">=TO_TIMESTAMP(:EXTRA_FROMDATE)
+                            AND "DOCS"."KIND"='CS' AND "DOCS"."CREATION_DATE" IS NOT NULL
+    Кардинальность: не превышает количество заявок на создание подписки для текущего клиента.
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.selectCreateInvoiceSubscriptionPayments">
+        <return class="com.rssl.phizic.business.documents.payments.CreateInvoiceSubscriptionPayment" alias="docs"/>
+        <return-scalar column="image_id" type ="long"/>
+        <![CDATA[
+        SELECT {docs.*},pr.IMAGE_ID image_id
+        FROM BUSINESS_DOCUMENTS docs
+        left join SERVICE_PROVIDERS pr on docs.RECIPIENT_ID = pr.ID
+        where docs.KIND = 'CS' AND docs.LOGIN_ID = :extra_login_id AND docs.CREATION_DATE >= :extra_fromDate and (docs.STATE_CODE in (:extra_state_codes))
+        ]]>
+    </sql-query>
+    <!--
+        Опорный элемент:  DXFK_DEF_TO_BD
+        Предикаты доступа:  access("FIELD"."PAYMENT_ID"=TO_NUMBER(:IDS))
+        Кардинальность: сумма количеств расширенных полей для каждого документа с идентификаторами из IDS
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.findExtendedFields" read-only="true">
+        <return alias="fields" class="com.rssl.phizic.business.extendedattributes.ClientHistoryExtendedAttribute">
+            <return-property name="id" column="ID"/>
+            <return-property name="paymentId" column="PAYMENT_ID"/>
+            <return-property name="name" column="NAME"/>
+            <return-property name="type" column="TYPE"/>
+            <return-property name="stringValue" column="VALUE"/>
+        </return>
+        <![CDATA[
+            select ID, PAYMENT_ID, NAME, TYPE, VALUE
+            from DOCUMENT_EXTENDED_FIELDS field
+            where field.PAYMENT_ID in (:ids)
+        ]]>
+    </sql-query>
+
+    <!--
+        Опорный элемент:  LOAN_CLAIM_FIELDS_CID_IDX
+        Предикаты доступа:  access("FIELD"."CLAIM_ID"=TO_NUMBER(:IDS))
+        Кардинальность: сумма количеств расширенных полей для каждой заявки с идентификаторами из IDS
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.ExtendedLoanClaim.findExtendedFields" read-only="true">
+        <return alias="fields" class="com.rssl.phizic.business.extendedattributes.ClientHistoryExtendedAttribute">
+            <return-property name="id" column="CLAIM_ID"/>
+            <return-property name="paymentId" column="CLAIM_ID"/>
+            <return-property name="name" column="NAME"/>
+            <return-property name="type" column="TYPE"/>
+            <return-property name="stringValue" column="VALUE"/>
+        </return>
+        <![CDATA[
+            select CLAIM_ID, NAME, TYPE, VALUE
+            from LOAN_CLAIM_FIELDS field
+            where field.CLAIM_ID in (:ids)
+            and field.CREATION_DATE between :fromDate and :toDate
+        ]]>
+    </sql-query>
+
+    <!--
+        Опорный элемент: IDX_BD_LCDK
+        Предикат доступа: access("LOGIN_ID"=TO_NUMBER(:LOGINID) AND "CREATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND "KIND"='CE' AND
+              "CREATION_DATE" IS NOT NULL)
+        Кардинальность: количество заказов выписки для одного клиента за последние 3 месяца
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.reportByCardClaim.history">
+        <return alias="bdoc" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+            select {bdoc.*} from (
+                select bd.* from BUSINESS_DOCUMENTS bd
+                where kind='CE' and CREATION_DATE >= :fromDate and LOGIN_ID = :loginId and PAYER_ACCOUNT=:cardNumber
+                order by CREATION_DATE desc
+            ) bdoc where ROWNUM <= 10
+        ]]>
+    </sql-query>
+
+	<filter-def name="templates" condition="STATE_CODE='TEMPLATE'"/>
+	<filter-def name="payments" condition="STATE_CODE NOT IN ('TEMPLATE')"/>
+</hibernate-mapping>

@@ -1,0 +1,29 @@
+<!-- Use this file to deploy some handlers/chains and services      -->
+<!-- Two ways to do this:                                           -->
+<!--   java org.apache.axis.client.AdminClient deploy.wsdd          -->
+<!--      after the axis server is running                          -->
+<!-- or                                                             -->
+<!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   -->
+<!--      from the same directory that the Axis engine runs         -->
+
+<deployment
+    xmlns="http://xml.apache.org/axis/wsdd/"
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from OfflineSrv WSDL service -->
+
+  <service name="OfflineSrvSoap" provider="java:RPC" style="wrapped" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://tempuri.org/"/>
+      <parameter name="wsdlServiceElement" value="OfflineSrv"/>
+      <parameter name="schemaQualified" value="http://tempuri.org/"/>
+      <parameter name="wsdlServicePort" value="OfflineSrvSoap"/>
+      <parameter name="className" value="com.rssl.phizic.ws.listener.sbrf.OfflineSrvSoap_BindingImpl"/>
+      <parameter name="wsdlPortType" value="OfflineSrvSoap"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="getXMLmessage" qname="operNS:getXMLmessage" xmlns:operNS="http://tempuri.org/" returnQName="retNS:getXMLmessageResult" xmlns:retNS="http://tempuri.org/" returnType="rtns:string" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="http://tempuri.org/getXMLmessage" >
+        <parameter qname="pns:xmlstr" xmlns:pns="http://tempuri.org/" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <parameter name="allowedMethods" value="getXMLmessage"/>
+
+  </service>
+</deployment>

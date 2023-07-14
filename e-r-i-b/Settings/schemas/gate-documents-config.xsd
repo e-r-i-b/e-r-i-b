@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="documents" type="documentsType">
+		<xs:annotation>
+			<xs:documentation>Список документов, которые могут "ходить" через гейт</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:complexType name="commission-calculatorType">
+		<xs:annotation>
+			<xs:documentation>
+				"Вычислитель" комиссии.
+				Класс, реализующий интерфес com.rssl.phizic.gate.documents.CommissionCalculator
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element type="parameterType" name="parameter" maxOccurs="unbounded" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute type="xs:string" name="class" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="senderType">
+		<xs:annotation>
+			<xs:documentation>
+				"Отправитль" платежа.
+				Класс, реализующий интерфес com.rssl.phizic.gate.documents.DocumentSender
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element type="parameterType" name="parameter" maxOccurs="unbounded" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute type="xs:string" name="class" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="updaterType">
+		<xs:annotation>
+			<xs:documentation>
+				Обновление статусов платежа.
+				Класс, реализующий интерфес com.rssl.phizic.gate.documents.DocumentUpdater
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element type="parameterType" name="parameter" maxOccurs="unbounded" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute type="xs:string" name="class"/>
+	</xs:complexType>
+
+	<xs:complexType name="documentsType">
+		<xs:sequence>
+			<xs:element type="documentType" name="document" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element type="revoke-paymentType" name="revoke-payment" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="documentType" mixed="true">
+		<xs:annotation>
+			<xs:documentation>
+				Документ.
+				Если не указан атрибут commission-calculator, то используется com.rssl.phizic.gate.impl.documents.NullCommissionCalculator(пустой вычислитель)
+				Если не указан атрибут sender, то используется com.rssl.phizic.gate.impl.documents.NullDocumentSender(пустой сендер)
+			</xs:documentation>
+		</xs:annotation>
+			<xs:all>
+				<xs:element type="commission-calculatorType" name="commission-calculator" minOccurs="0"
+				            maxOccurs="1"/>
+				<xs:element type="senderType" name="sender" minOccurs="0" maxOccurs="1"/>
+				<xs:element type="updaterType" name="updater" minOccurs="0" maxOccurs="1"/>
+			</xs:all>
+		<xs:attribute type="xs:string" name="description" use="optional"/>
+		<xs:attribute type="xs:string" name="class" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="revoke-paymentType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute type="xs:string" name="class" use="required"/>
+				<xs:attribute type="xs:string" name="document-type-field" use="required"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="parameterType">
+	  <xs:simpleContent>
+	    <xs:extension base="xs:string">
+	      <xs:attribute type="xs:string" name="name" use="required"/>
+	      <xs:attribute type="xs:string" name="value" use="required"/>
+	    </xs:extension>
+	  </xs:simpleContent>
+	</xs:complexType>
+
+</xs:schema>

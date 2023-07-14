@@ -1,0 +1,84 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class name="com.rssl.phizic.business.groups.Group" table="UGROUP">
+
+		<id name="id" type="long" node="id">
+			<generator class="native">
+				<param name="sequence">S_UGROUP</param>
+			</generator>
+		</id>
+
+		<many-to-one name="department" class="com.rssl.phizic.business.departments.Department" column="DEPARTMENT_ID"   lazy="false" fetch="join" not-null="false"/>
+        <many-to-one name="skin"       class="com.rssl.phizic.business.skins.Skin"             column="DEFAULT_SKIN_ID" lazy="false" fetch="join" not-null="false"/>
+
+		<property name="name" type="not-null-string" column="NAME"/>
+		<property name="description" type="not-null-string" column="DESCRIPTION"/>
+		<property name="category" type="string" not-null="true" column="CATEGORY"/>
+        <property name="priority" type="long"   not-null="true" column="PRIORITY"/>
+        <property name="systemName" type="string" not-null="false" column="SYSTEM_NAME"/>
+	</class>
+
+    <class name="com.rssl.phizic.business.groups.GroupElement" table="GROUP_ELEMENTS">
+        <composite-id>
+            <key-many-to-one name="group" column="GROUP_ID" class="com.rssl.phizic.business.groups.Group" lazy="false"/>
+            <key-many-to-one name="login" column="LOGIN_ID" class="com.rssl.phizic.auth.CommonLogin" lazy="false"/>
+        </composite-id>
+    </class>
+
+	<query name="com.rssl.phizic.business.groups.getLoginContainGroup">
+        SELECT groupElement.group
+		FROM com.rssl.phizic.business.groups.GroupElement as groupElement
+		WHERE groupElement.login.id = :loginId
+	</query>
+
+    <query name="com.rssl.phizic.business.groups.getGroups">
+        SELECT group from com.rssl.phizic.business.groups.Group as group
+        WHERE group.category in (:categories)
+    </query>
+
+	<query name="com.rssl.phizic.business.groups.getDepartmentGroups">
+        SELECT group from com.rssl.phizic.business.groups.Group as group
+		WHERE
+		      (:department is null or group.department = :department) 
+		and
+			  group.category = :category
+	</query>
+
+	<query name="com.rssl.phizic.business.groups.getGroupBySystemName">
+        SELECT group from com.rssl.phizic.business.groups.Group as group
+		WHERE group.systemName = :systemName
+	</query>
+
+    <!-- Ищет элемент по логину и группе -->
+    <query name="com.rssl.phizic.business.groups.findGroupElement">
+        SELECT groupElement from com.rssl.phizic.business.groups.GroupElement as groupElement
+        WHERE groupElement.group.id = :groupId and groupElement.login.id = :loginId
+    </query>
+
+    <!-- Удаляет элемент(ы) из группы -->
+    <query name="com.rssl.phizic.business.groups.deleteElementsFromGroup">
+        DELETE from com.rssl.phizic.business.groups.GroupElement as groupElement
+        WHERE groupElement.group.id = :groupId and groupElement.login.id in (:loginIds)
+    </query>
+
+    <!-- Удаляет элемент из всех групп -->
+    <query name="com.rssl.phizic.business.groups.deleteElements">
+        DELETE from com.rssl.phizic.business.groups.GroupElement as groupElement
+        WHERE groupElement.login.id in (:loginIds)
+    </query>
+
+    <!--есть ли в группе пользователи-->
+    <sql-query name="com.rssl.phizic.business.groups.GroupService.hasClients">
+	    <return-scalar type="long" column="login_id"/>
+        <![CDATA[
+                select login_id
+                from group_elements
+                where group_id=:groupId
+                and rownum<2
+        ]]>
+    </sql-query>
+</hibernate-mapping>

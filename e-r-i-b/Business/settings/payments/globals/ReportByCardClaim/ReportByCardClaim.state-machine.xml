@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/state-machine.xsd">
+
+    <states inital-state="INITIAL" description="Машина состояний заявки на выписку по карте на e-mail" saveNodeInfo="true">
+        <state id="INITIAL" description="Вы создали, но еще не сохранили документ."
+               client-form="/private/payments/payment.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="SAVE" type="client">
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="ERROR" type="client">
+                    <next-states default="REFUSED"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="EXECUTED" description="Заявка успешно выполнена в банке."
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+        </state>
+
+        <state id="REFUSED" description="Вам отказано в исполнении заявка по какой-либо причине."
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+        </state>
+    </states>
+</config>

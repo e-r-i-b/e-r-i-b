@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="config" type="Config"/>
+
+  <xs:complexType name="DublicateFilterType">
+    <xs:sequence>
+      <xs:element name="dublicate-expire-interval" type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="IncompletePaymentsRemover">
+    <xs:sequence>
+      <xs:element name="incomplete-payments-expire-interval" type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Config">
+    <xs:sequence>
+      <xs:element name="dublicate-filter" type="DublicateFilterType" minOccurs="0"/>
+      <xs:element name="preprocessor" type="Preprocessor" minOccurs="0"/>
+      <xs:element name="commands">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="command" type="Command" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="incomplete-payments-remover" type="IncompletePaymentsRemover"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Preprocessor">
+    <xs:sequence>
+      <xs:element name="replace-filter" type="ReplacementFilter" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="send-sms-filter" type="SendSmsFilter" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ReplacementFilter">
+    <xs:sequence>
+      <xs:element name="search-strings">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="string" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="replacement" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SendSmsFilter">
+    <xs:sequence>
+      <xs:element name="search-strings">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="string" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="sms-text" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Command">
+    <xs:sequence>
+      <xs:element name="codename" type="xs:string"/>
+      <xs:element name="enabled" type="xs:boolean"/>
+      <xs:element name="keywords">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="keyword" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="parseOrder" type="xs:int" default="99"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>
+

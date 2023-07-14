@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns              = "http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi          = "http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation = "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5">
+
+    <listener>
+        <listener-class>com.rssl.phizic.config.InitializerListener</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>com.rssl.phizic.web.common.CacheShootDownListener</listener-class>
+    </listener>
+
+    <filter>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>CSAFront</param-value>
+        </init-param>
+    </filter>
+
+    <filter>
+		<filter-name>ContextFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.ContextFilter</filter-class>
+	</filter>
+
+    <filter>
+		<filter-name>HeaderFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.HeaderFilter</filter-class>
+		<init-param>
+			<param-name>requestEncoding</param-name>
+			<param-value>Windows-1251</param-value>
+		</init-param>
+	</filter>
+
+    <filter>
+        <description>Удаляет лишние пробелы в http-ответе</description>
+        <filter-name>ClearOutputFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.common.ClearOutputFilter</filter-class>
+    </filter>
+
+    <filter>
+        <description>
+            Логирует http-запросы и http-ответы в журнал сообщений
+            Настраивает фабрику конфигов, а также выставляет в контекст логирования приложение
+        </description>
+        <filter-name>logMobileApiFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.common.LogMobileApiFilter</filter-class>
+    </filter>
+
+    <filter>
+		<filter-name>FraudMonitoringFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.FraudMonitoringFilter</filter-class>
+	</filter>
+
+    <filter-mapping>
+        <filter-name>FraudMonitoringFilter</filter-name>
+        <url-pattern>*.do</url-pattern>
+    </filter-mapping>
+
+    <context-param>
+		<param-name>resourcesRealPath</param-name>
+		<param-value>/CSAFront-res@additionl.path@</param-value>
+	</context-param>
+
+    <servlet>
+        <servlet-name>action</servlet-name>
+        <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+        <init-param>
+            <param-name>config</param-name>
+            <param-value>/WEB-INF/struts-config.xml</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>action</servlet-name>
+        <url-pattern>*.do</url-pattern>
+    </servlet-mapping>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+		<filter-name>ContextFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>HeaderFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+        <filter-name>logMobileApiFilter</filter-name>
+        <url-pattern>*.do</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ClearOutputFilter</filter-name>
+        <url-pattern>*.do</url-pattern>
+    </filter-mapping>
+
+    <jsp-config>
+        <taglib>
+            <taglib-uri>http://java.sun.com/jsp/jstl/core</taglib-uri>
+            <taglib-location>/WEB-INF/tld/customized-jstl.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://jakarta.apache.org/struts/tags-bean</taglib-uri>
+            <taglib-location>/WEB-INF/tld/struts-bean.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://java.sun.com/jsp/jstl/functions</taglib-uri>
+            <taglib-location>/WEB-INF/tld/fn.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://java.sun.com/jsp/jstl/fmt</taglib-uri>
+            <taglib-location>/WEB-INF/tld/fmt.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+			<taglib-uri>http://rssl.com/tags/csa</taglib-uri>
+			<taglib-location>/WEB-INF/tld/csa.tld</taglib-location>
+		</taglib>
+
+        <taglib>
+            <taglib-uri>http://jakarta.apache.org/struts/tags-tiles</taglib-uri>
+            <taglib-location>/WEB-INF/tld/struts-tiles.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://struts.application-servers.com/layout</taglib-uri>
+            <taglib-location>/WEB-INF/tld/customized-struts-layout.tld</taglib-location>
+        </taglib>
+    </jsp-config>
+</web-app>

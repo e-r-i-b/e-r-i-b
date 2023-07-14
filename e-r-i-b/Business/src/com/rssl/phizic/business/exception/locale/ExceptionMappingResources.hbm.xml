@@ -1,0 +1,82 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.exception.locale.ExceptionMappingResources" table="EXCEPTION_MAPPINGS_RES">
+        <composite-id>
+            <key-property name="hash"     column="HASH"      type="string" access="field"/>
+            <key-property name="group"    column="GROUP_ID"  type="long"   access="field"/>
+            <key-property name="localeId" column="LOCALE_ID" type="string" access="field"/>
+        </composite-id>
+        <property name="message" type="string" access="field" column="MESSAGE"/>
+    </class>
+
+    <!--Получить текстовку по хешу, группе и локали
+        Опорный элемент: PK_EXCEPTION_MAPPINGS_RES
+        Предикаты доступа: access("RESOURCES"."HASH"=:HASH AND "RESOURCES"."GROUP_ID"=TO_NUMBER(:GROUP_ID) AND
+                       "RESOURCES"."LOCALE_ID"=:LOCALE_ID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.exception.locale.ExceptionMappingResources.getByCompositeId">
+        <return alias="resources" class="com.rssl.phizic.business.exception.locale.ExceptionMappingResources"/>
+        <![CDATA[
+            select resources.*
+            from EXCEPTION_MAPPINGS_RES resources
+            where
+                resources.HASH = :hash and
+                resources.GROUP_ID = :group_id and
+                resources.LOCALE_ID = :locale_id
+        ]]>
+    </sql-query>
+
+    <!--Получить все сообщения об ошибках в зависимости от языка по группе и хешу
+        Опорный элемент: PK_EXCEPTION_MAPPINGS_RES
+        Предикаты доступа: access("RESOURCES"."HASH"=:HASH AND "RESOURCES"."GROUP_ID"=TO_NUMBER(:GROUP))
+        Кардинальность: 0 - количество заведенных локалей
+    -->
+    <sql-query name="com.rssl.phizic.business.exception.locale.ExceptionMappingResources.getByHashAndGroup">
+        <return alias="resources" class="com.rssl.phizic.business.exception.locale.ExceptionMappingResources"/>
+        <![CDATA[
+            select resources.*
+            from EXCEPTION_MAPPINGS_RES resources
+            where
+                resources.GROUP_ID in (:group) and
+                resources.HASH = :hash
+        ]]>
+    </sql-query>
+
+    <!--Получить все сообщения об ошибках в зависимости от языка по хешу
+        Опорный элемент: PK_EXCEPTION_MAPPINGS_RES
+        Предикаты доступа: access("RESOURCES"."HASH"=:HASH)
+        Кардинальность: 0 - количество заведенных локалей помноженное на общее количество сообщений с одинаковым хэшом
+    -->
+    <sql-query name="com.rssl.phizic.business.exception.locale.ExceptionMappingResources.getByHash">
+        <return alias="resources" class="com.rssl.phizic.business.exception.locale.ExceptionMappingResources"/>
+        <![CDATA[
+            select resources.*
+            from EXCEPTION_MAPPINGS_RES resources
+            where
+                resources.HASH = :hash
+        ]]>
+    </sql-query>
+
+    <!--
+      Опорный объект: EXC_MAP_RESTRICTION_UK
+      Предикаты доступа: access("RESTRICTION"."HASH"=:extra_hash AND "RESTRICTION"."APPLICATION"=:extra_application AND "RESTRICTION"."TB"=:extra_tb)
+      Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.exception.ExceptionMapping.getMessage.multilocale">
+        SELECT
+            decode(resources.message, null, mapping.MESSAGE, resources.message)
+        FROM
+            EXCEPTION_MAPPINGS mapping
+            left join EXCEPTION_MAPPING_RESTRICTIONS restriction on
+                mapping.hash = restriction.hash and mapping.group_id = restriction.group_id
+            left join EXCEPTION_MAPPINGS_RES resources on resources.hash = mapping.hash and mapping.group_id = resources.group_id and resources.locale_id = :extra_localeId
+        WHERE
+            restriction.hash = :extra_hash
+            AND restriction.application = :extra_application
+            AND restriction.tb = :extra_tb
+    </sql-query>
+</hibernate-mapping>

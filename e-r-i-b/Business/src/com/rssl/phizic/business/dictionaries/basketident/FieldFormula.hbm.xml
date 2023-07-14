@@ -1,0 +1,74 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.basketident.FieldFormula" table="FIELD_FORMULAS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_FIELD_FORMULAS</param>
+            </generator>
+        </id>
+
+        <property name="identifierId"       type="long"         column="IDENT_TYPE_ID"      not-null="true"/>
+        <property name="providerId"         type="long"         column="PROVIDER_ID"        not-null="true"/>
+        <property name="fieldExternalId"    type="string"       column="EXTERNAL_ID"        not-null="true"/>
+
+        <list name="attributes" table="FIELD_FORMULA_ATTRIBUTES" cascade="all-delete-orphan" lazy="false">
+            <key column="FORMULA_ID" not-null="true" update="false"/>
+            <list-index column="SERIAL"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.basketident.FieldFormulaAttribute"/>
+        </list>
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.basketident.FieldFormulaAttribute" table="FIELD_FORMULA_ATTRIBUTES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_FIELD_FORMULA_ATTRIBUTES</param>
+            </generator>
+        </id>
+
+        <property name="fieldFormulaId" type="long"         column="FORMULA_ID"             not-null="true" insert="false" update="false"/>
+        <property name="serial"         type="long"         column="SERIAL"                 not-null="true" update="false" insert="false"/>
+        <property name="value"          type="string"       column="VALUE"                  not-null="false"/>
+        <property name="systemId"       type="string"       column="ATTRIBUTE_SYSTEM_ID"    not-null="false"/>
+        <property name="last"           type="boolean"      column="LAST"                   not-null="true"/>
+    </class>
+
+
+    <!--Получить список формул по идентификатору документа и идентификатору ПУ
+        Опорный элемент: I_FIELD_FORMULAS
+        Предикаты доступа: access("IDENT_TYPE_ID"=TO_NUMBER(:IDENT_ID) AND "PROVIDER_ID"=TO_NUMBER(:PROVIDER_ID))
+        Кардинальность: минимум 0, максимум количество полей у ПУ
+    -->
+    <query name="com.rssl.phizic.business.dictionaries.basketident.FieldFormula.getByIdentIdAndProviderId">
+        select formula from com.rssl.phizic.business.dictionaries.basketident.FieldFormula formula
+        where
+            formula.identifierId = :ident_id and
+            formula.providerId = :provider_id
+    </query>
+
+    <!--Получить список формул с именами полей ПУ
+        Опорный элемент: I_FIELD_FORMULAS
+        Предикаты доступа:
+            1 - filter("FIELD"."EXTERNAL_ID"=:B1)
+            2 - access("FIELD"."RECIPIENT_ID"=:B1)
+            3 - filter("FORMULA"."IDENT_TYPE_ID"=TO_NUMBER(:IDENT_TYPE_ID))
+            4 - access(ROWID=ROWID)
+            5 - access("FORMULA"."IDENT_TYPE_ID"=TO_NUMBER(:IDENT_TYPE_ID))
+        Кардинальность: 1 - количество полей ПУ.
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.basketident.FieldFormula.getWithName">
+        <return alias="formula" class="com.rssl.phizic.business.dictionaries.basketident.FieldFormula"/>
+        <return-scalar column="name" type="string"/>
+        <![CDATA[
+            select
+                {formula.*},
+                field.name
+            from FIELD_FORMULAS formula
+            left join FIELD_DESCRIPTIONS field on field.recipient_id = formula.provider_id and field.external_id = formula.external_id
+            where
+                formula.IDENT_TYPE_ID = :ident_id
+        ]]>
+    </sql-query>
+</hibernate-mapping>

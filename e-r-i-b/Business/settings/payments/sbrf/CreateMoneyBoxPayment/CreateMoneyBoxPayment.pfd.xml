@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="CreateMoneyBoxPayment" description="Создание заявки на Копилку"
+              confirmDescription=""
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.payments.CreateMoneyBoxPayment"/>
+	<statemachine name="CreateMoneyBoxPayment"/>
+    <extended-metadata-loader class="com.rssl.phizic.business.documents.metadata.SimpleExtendedMetadataLoader"/>
+
+	<fields>
+        <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true">
+		</field>
+
+        <field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+        </field>
+
+        <field name="documentTime"
+				description="Время документа"
+				source="document-time"
+                type="string"/>
+
+		<field name="operationDate"
+               source="operation-date-short-year"
+               description="Дата отправки платежа"
+               type="string"/>
+
+        <field name="operationTime"
+			source="operation-time"
+			description="Время отправки платежа"
+			type="string"/>
+
+        <field
+                name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Источник списания средств: счет, карта"
+                type="resource">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="fromResourceLink"
+                description="Ссылка на ресурс списания"
+                type="string"
+                source="extra-parameters/parameter[@name='from-resource-link']/@value"
+                value="form.fromResource==null?null:form.fromResource.getCode()">
+        </field>
+
+        <field
+                name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+		<field
+                name="fromAccountSelect"
+                description="Карта списания"
+                type="string"
+                source="payer-account"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getNumber()">
+		</field>
+
+        <field
+                name="fromAccountType"
+                source="extra-parameters/parameter[@name='from-account-type']/@value"
+                description="Тип (описание) источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getValue().getDescription()">
+        </field>
+
+        <field
+                name="fromAccountName"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                description="Наименование источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getName()">
+        </field>
+
+        <field
+                name="fromResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                type="string"
+                value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+                signable="true"/>
+
+		<field
+                name="toResource"
+                description="Источник зачисления средств: счет, карта"
+                type="resource"
+                source="extra-parameters/parameter[@name='to-resource']/@value"
+                signable="true">
+			<validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+        <field  name="toResourceLink"
+                description="Ссылка на ресурс списания"
+                type="string"
+                source="extra-parameters/parameter[@name='to-resource-link']/@value"
+                value="form.toResource==null?null:form.toResource.getCode()">
+		</field>
+
+        <field
+                name="toResourceType"
+                source="extra-parameters/parameter[@name='to-resource-type']/@value"
+                description="Тип источника зачисления средств: счет, карта"
+                type="string"
+                value="form.toResource==null?null:form.toResource.getClass().getName()">
+        </field>
+
+        <field
+                name="toAccountSelect"
+                description="Счет/карта зачисления"
+                type="string"
+                source="receiver-account"
+                signable="true"
+                value="form.toResource==null?null:form.toResource.getNumber()">
+        </field>
+
+        <field  name="toAccountType"
+                source="extra-parameters/parameter[@name='to-account-type']/@value"
+                description="Тип (описание) источника зачисления"
+                type="string"
+                signable="true"
+                value="form.toResource==null?null:form.toResource.getValue().getDescription()">
+        </field>
+
+        <field  name="toAccountName"
+                source="extra-parameters/parameter[@name='to-account-name']/@value"
+                description="Наименование источника зачисления"
+                type="string"
+                signable="true"
+                value="form.toResource==null?null:form.toResource.getName()">
+        </field>
+
+        <field
+                name="toResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='to-resource-currency']/@value"
+                type="string"
+                value="form.toAccountSelect==null?null:form.toResource.getCurrency().getCode()"
+                signable="true"/>
+
+        <!-- имя поля, в котором хранится точное значение суммы.
+             Иначе говоря, в поле exactAmount ссылка на поле, в котором сумма, введённая пользователем -->
+        <field
+                name="exactAmount"
+                description="Сумма списания"
+                source="exact-amount"
+                value="'charge-off-field-exact'"
+                type="string">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+        <field  name="moneyBoxSumType"
+                source="extra-parameters/parameter[@name='money-box-sum-type']/@value"
+                description="Тип суммы исполения регулярного платежа"
+                type="string"
+                signable="true">
+
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="longOfferEventType"
+                source="extra-parameters/parameter[@name='long-offer-event-type']/@value"
+                description="Тип события исполнения регулярного платежа"
+                type="string"
+                signable="true"
+                enabled="form.moneyBoxSumType == 'FIXED_SUMMA'">
+
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field name="moneyBoxName"
+               source="extra-parameters/parameter[@name='money-box-name']/@value"
+               description="Название копилки">
+                <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                        <message   text="Наименование копилки не должно превышать 50 символов. Пожалуйста, введите другое название."/>
+                        <parameter name="regexp">^.{0,50}$</parameter>
+                    </validator>
+                </validators>
+        </field>
+
+        <field
+                name="sellAmount"
+                description="Сумма"
+                source="amount"
+                type="money"
+                signable="true">
+
+			<validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.moneyBoxSumType =='FIXED_SUMMA'"/>
+                <validator mode="document" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+                    <message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66."/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+		</field>
+
+<!--валюта суммы списания - всегда валюта продукта списания-->
+        <field  name="sellAmountCurrency"
+                description="Валюта"
+                source="amount-currency"
+                type="string"
+                signable="true"
+                value="form.sellAmount==null?null:form.fromResourceCurrency"/>
+
+        <field  name="percent"
+                source="extra-parameters/parameter[@name='long-offer-percent']/@value"
+                description="Процент от суммы"
+                type="string"
+                signable="true"
+                enabled="form.moneyBoxSumType !='FIXED_SUMMA'">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="document" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Вы неверно указали значение процента. Укажите целое число."/>
+                    <parameter name="regexp">(-?\d*)</parameter>
+                </validator>
+                <validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.MoneyBoxPercentValidator"/>
+            </validators>
+        </field>
+
+        <field  name="longOfferStartDate"
+                source="extra-parameters/parameter[@name='long-offer-start-date']/@value"
+                description="Дата ближайшего пополнения"
+                type="date"
+                signable="true"
+                enabled="form.moneyBoxSumType =='FIXED_SUMMA'">
+
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="document" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+                <validator mode="document" class="com.rssl.common.forms.validators.DateNotInPastValidator">
+                    <message text="Дата ближайшего автоплатежа должна быть больше либо равна текущей дате"/>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="reasonForAdditionalConfirm"
+                source="extra-parameters/parameter[@name='reason-for-additional-confirm']/@value"
+                description="Причина дополнительного подтверждения платежа в КЦ"
+                type="string">
+        </field>
+
+        <field name="cardAccountFrom"
+               source="cardAccountFrom"
+               description="Номер счета карты списания"
+               value="xpath:phiz:document('active-cards.xml')/entity-list/entity[@key=$fromAccountSelect]/field[@name='cardAccount']"/>
+
+        <field name="useDefaultName"
+               source="extra-parameters/parameter[@name='use-default-name']/@value"
+               description="Признак того что клиент не изменял название копилки и используем автоматически генерируемое"
+               inital="'true'"
+               type="string"/>
+
+    </fields>
+
+	<form-validators>
+        <!-- запрещается переводить деньги с кредитных карт-->
+        <form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.CheckCreditCardValidator">
+            <message text="Списание с кредитной карты запрещено"/>
+            <field-ref name="resource">fromResource</field-ref>
+        </form-validator>
+
+        <!-- запрещается переводить деньги с виртуальной карты на счет -->
+        <form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.VirtualCardTransferToValidator">
+            <message text="Вы не можете перевести деньги с виртуальной карты на вклад. Пожалуйста, выберите Вашу пластиковую карту."/>
+			<field-ref name="fromAccount">fromAccountSelect</field-ref>
+			<field-ref name="toAccount">toAccountSelect</field-ref>
+		</form-validator>
+
+        <form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.StartDateDistanceValidator" enabled="form.moneyBoxSumType =='FIXED_SUMMA'">
+            <field-ref name="startDate">longOfferStartDate</field-ref>
+            <field-ref name="eventType">longOfferEventType</field-ref>
+        </form-validator>
+
+        <!--проверка соответствия типа события для типа счета списания/зачисления-->
+        <form-validator mode="document" enabled="form.moneyBoxSumType =='FIXED_SUMMA'"
+                        class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для данного регулярного платежа нельзя выбрать данный режим платежа."/>
+			<field-ref name="parameterName">longOfferEventType</field-ref>
+			<parameter name="param1">ONCE_IN_MONTH</parameter>
+			<parameter name="param2">ONCE_IN_QUARTER</parameter>
+			<parameter name="param3">ONCE_IN_WEEK</parameter>
+			<parameter name="param4">ONCE_IN_YEAR</parameter>
+		</form-validator>
+
+        <form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.MoneyBoxConversionValidator">
+            <message text="Пополнение счета/вклада возможно с карты в той же валюте. Укажите другую карту или счет."/>
+			<field-ref name="fromResource">fromResource</field-ref>
+		    <field-ref name="toResource">toResource</field-ref>
+		</form-validator>
+
+        <form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.MoneyBoxResourcesValidator">
+            <message text="Карта и вклад для открытия копилки должны быть открыты в одном тербанке. Укажите другую карту или счет."/>
+            <field-ref name="fromResource">fromResource</field-ref>
+            <field-ref name="toResource">toResource</field-ref>
+        </form-validator>
+
+    </form-validators>
+</payment-form>

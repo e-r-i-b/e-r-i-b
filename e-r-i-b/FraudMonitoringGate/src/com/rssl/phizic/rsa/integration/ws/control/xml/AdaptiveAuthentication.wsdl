@@ -1,0 +1,2326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Product: Adaptive Authentication 7.0
+	Build Number: ${build.version}
+	Description: This is the main WSDL specification for Adaptive Authentication
+-->
+<wsdl:definitions xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:apachesoap="http://xml.apache.org/xml-soap"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://ws.csd.rsa.com" xmlns:rsa_csd="http://ws.csd.rsa.com" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns="http://schemas.xmlsoap.org/wsdl/" name="rsa_csd" targetNamespace="http://ws.csd.rsa.com">
+    <wsdl:types>
+        <!-- Following are restrictions for pattern types:
+              <xsd:simpleType name="IPAddress">
+              <xsd:annotation>
+              <xsd:documentation>This type describes a well-formed IP address</xsd:documentation>
+              </xsd:annotation>
+              <xsd:restriction base="xsd:string">
+              <xsd:pattern value="\d{1,3}-\d{1,3}-\d{1,3}-\d{1,3}"/>
+              </xsd:restriction>
+              </xsd:simpleType>
+              <xsd:simpleType name="Date">
+              <xsd:restriction base="xsd:string">
+              <xsd:pattern value="\d{4}-\d{2}-\d{2}"/>
+              </xsd:restriction>
+              </xsd:simpleType>
+              <xsd:simpleType name="DateTime">
+              <xsd:restriction base="xsd:string">
+              <xsd:pattern value="\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}"/>
+              </xsd:restriction>
+              </xsd:simpleType>
+          -->
+        <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://ws.csd.rsa.com" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:rsa_csd="http://ws.csd.rsa.com" xmlns:atm="http://ws.csd.rsa.com" elementFormDefault="qualified">
+            <xsd:include schemaLocation="ACSPImport.xsd"/>
+            <xsd:include schemaLocation="ACSPInternalImport.xsd"/>
+            <xsd:include schemaLocation="ACSP.xsd"/>
+            <xsd:include schemaLocation="RSA_main.xsd"/>
+            <xsd:include schemaLocation="ATM.xsd"/>
+            <complexType name="ActionTypeList">
+                <sequence />
+            </complexType>
+            <element name="notify">
+                <complexType>
+                    <sequence>
+                        <element name="request" type="rsa_csd:NotifyRequest" />
+                    </sequence>
+                </complexType>
+            </element>
+            <simpleType name="GenericActionType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates all available action types</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="GET_USER_STATUS" />
+                    <enumeration value="GET_USER_PREFERENCE" />
+                    <enumeration value="GET_USER_GROUP" />
+                    <enumeration value="GET_SYSTEM_CREDENTIAL" />
+                    <enumeration value="GET_USER_CREDENTIAL" />
+                    <enumeration value="GET_SYSTEM_CREDENTIAL_EXTENDED" />
+                    <enumeration value="GET_USER_CREDENTIAL_EXTENDED" />
+                    <enumeration value="BROWSE_USER_GROUP" />
+                    <enumeration value="SET_USER_GROUP" />
+                    <enumeration value="UPDATE_USER_NAME" />
+                    <enumeration value="SET_USER_STATUS" />
+                    <enumeration value="SET_USER_PREFERENCE" />
+                    <enumeration value="ADD_FAVORITE" />
+                    <enumeration value="DEL_FAVORITE" />
+                    <enumeration value="CLEAR_FAVORITES" />
+                    <enumeration value="GET_FAVORITES" />
+                    <enumeration value="OPEN_SESSION" />
+                    <enumeration value="CLOSE_SESSION" />
+                    <enumeration value="COMMIT" />
+                    <enumeration value="CANCEL" />
+                </restriction>
+            </simpleType>
+            <complexType name="GenericActionTypeList">
+                <complexContent>
+                    <extension base="rsa_csd:ActionTypeList">
+                        <sequence>
+                            <element name="genericActionTypes" type="rsa_csd:GenericActionType" minOccurs="0" maxOccurs="unbounded" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <simpleType name="APIType">
+                <xsd:annotation>
+                    <xsd:documentation>Defines the avaliable API that are used to communticate with the RSA System</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="WEB_REDIRECT" />
+                    <enumeration value="DIRECT_SOAP_API" />
+                    <enumeration value="ANALYZE_ONLY" />
+                </restriction>
+            </simpleType>
+            <complexType abstract="true" name="GenericRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the contents of an abstract Generic Request</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="actionTypeList"  minOccurs="0" type="rsa_csd:GenericActionTypeList" />
+                    <element name="configurationHeader"  minOccurs="0" type="rsa_csd:ConfigurationHeader" />
+                    <element name="deviceRequest"  minOccurs="0" type="rsa_csd:DeviceRequest" />
+                    <element name="identificationData" minOccurs="0" maxOccurs="1" type="rsa_csd:IdentificationData" />
+                    <element name="messageHeader" minOccurs="1" maxOccurs="1" type="rsa_csd:MessageHeader" />
+                    <element name="securityHeader" minOccurs="1" maxOccurs="1" type="rsa_csd:SecurityHeader" />
+                </sequence>
+            </complexType>
+            <complexType name="NotifyRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the contents of NOTIFY request</xsd:documentation>
+                </xsd:annotation>
+                <complexContent>
+                    <extension base="rsa_csd:GenericRequest">
+                        <sequence>
+                            <element name="autoCreateUserFlag"  minOccurs="0" type="xsd:boolean" />
+                            <element name="deviceManagementRequest"  minOccurs="0" type="rsa_csd:DeviceManagementRequestPayload" />
+                            <element name="eventDataList"  minOccurs="1" type="rsa_csd:EventDataList" />
+                            <element name="userData"  minOccurs="0" type="rsa_csd:UserData" />
+                            <element name="channelIndicator" minOccurs="0" type="rsa_csd:ChannelIndicatorType"/>
+                            <element name="clientDefinedChannelIndicator" minOccurs="0" type="xsd:string"/>
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="notifyResponse">
+                <complexType>
+                    <sequence>
+                        <element name="notifyReturn" type="rsa_csd:NotifyResponse" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType abstract="true" name="GenericResponse">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the contents of a Generic Response</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="deviceResult"  minOccurs="0" type="rsa_csd:DeviceResult" />
+                    <element name="identificationData" minOccurs="0" maxOccurs="1" type="rsa_csd:IdentificationData" />
+                    <element name="messageHeader" minOccurs="1" maxOccurs="1" type="rsa_csd:MessageHeader" />
+                    <element name="statusHeader" minOccurs="1" maxOccurs="1" type="rsa_csd:StatusHeader" />
+                </sequence>
+            </complexType>
+            <complexType name="NotifyResponse">
+                <complexContent>
+                    <extension base="rsa_csd:GenericResponse">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of NOTIFY response</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="deviceManagementResponse"  minOccurs="0" type="rsa_csd:DeviceManagementResponsePayload" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="query">
+                <complexType>
+                    <sequence>
+                        <element name="request" type="rsa_csd:QueryRequest" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="QueryRequest">
+                <complexContent>
+                    <extension base="rsa_csd:GenericRequest">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of QUERY request</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialManagementRequestList"  minOccurs="0" type="rsa_csd:CredentialManagementRequestList" />
+                            <element name="deviceManagementRequest"  minOccurs="0" type="rsa_csd:DeviceManagementRequestPayload" />
+							<element name="channelIndicator" minOccurs="0" type="rsa_csd:ChannelIndicatorType"/>
+                            <element name="clientDefinedChannelIndicator" minOccurs="0" type="xsd:string"/>
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="queryResponse">
+                <complexType>
+                    <sequence>
+                        <element name="queryReturn" type="rsa_csd:QueryResponse" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="QueryResponse">
+                <complexContent>
+                    <extension base="rsa_csd:GenericResponse">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of QUERY response</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="browsableGroupNames" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                            <element name="credentialManagementResponseList"  minOccurs="0" type="rsa_csd:CredentialManagementResponseList" />
+                            <element name="deviceManagementResponse"  minOccurs="0" type="rsa_csd:DeviceManagementResponsePayload" />
+                            <element name="systemCredentials"  minOccurs="0" type="rsa_csd:CredentialList" />
+                            <element name="userCredentials"  minOccurs="0" type="rsa_csd:CredentialList" />
+                            <element name="userPreference"  minOccurs="0" type="rsa_csd:UserPreference" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="analyze">
+                <complexType>
+                    <sequence>
+                        <element name="request" type="rsa_csd:AnalyzeRequest" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="AnalyzeRequest">
+                <complexContent>
+                    <extension base="rsa_csd:GenericRequest">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of ANALYZE request</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+		                    <element name="channel" type="rsa_csd:DeviceIdentifier" minOccurs="0" maxOccurs="1" />
+                            <element name="autoCreateUserFlag"  minOccurs="0" type="xsd:boolean" />
+                            <element name="clientReturnData"  minOccurs="0" type="rsa_csd:ClientReturnData" />
+                            <element name="collectionRequest"  minOccurs="0" type="rsa_csd:CollectionRequest" />
+                            <element name="credentialDataList"  minOccurs="0" type="rsa_csd:CredentialDataList" />
+                            <element name="deviceManagementRequest"  minOccurs="0" type="rsa_csd:DeviceManagementRequestPayload" />
+                            <element name="eventDataList"  minOccurs="1" type="rsa_csd:EventDataList" />
+                            <element name="runRiskType"  minOccurs="1" type="rsa_csd:RunRiskType" />
+                            <element name="userData"  minOccurs="0" type="rsa_csd:UserData" />
+                            <element name="channelIndicator" minOccurs="0" type="rsa_csd:ChannelIndicatorType"/>
+                            <element name="clientDefinedChannelIndicator" minOccurs="0" type="xsd:string"/>
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="analyzeResponse">
+                <complexType>
+                    <sequence>
+                        <element name="analyzeReturn" type="rsa_csd:AnalyzeResponse" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="AnalyzeResponse">
+                <complexContent>
+                    <extension base="rsa_csd:GenericResponse">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of ANALYZE response</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="collectableCredentialList"  minOccurs="0" type="rsa_csd:CollectableCredentialList" />
+                            <element name="credentialAuthResultList"  minOccurs="0" type="rsa_csd:CredentialAuthResultList" />
+                            <element name="deviceManagementResponse"  minOccurs="0" type="rsa_csd:DeviceManagementResponsePayload" />
+                            <element name="requiredCredentialList"  minOccurs="0" type="rsa_csd:RequiredCredentialList" />
+                            <element name="riskResult" minOccurs="0" type="rsa_csd:RiskResult" />
+                            <element name="serverRedirectData"  minOccurs="0" type="rsa_csd:ServerRedirectData" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="authenticate">
+                <complexType>
+                    <sequence>
+                        <element name="request" type="rsa_csd:AuthenticateRequest" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="AuthenticateRequest">
+                <complexContent>
+                    <extension base="rsa_csd:GenericRequest">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of an AUTHENTICATE request</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialDataList"  minOccurs="0" type="rsa_csd:CredentialDataList" />
+                            <element name="deviceManagementRequest"  minOccurs="0" type="rsa_csd:DeviceManagementRequestPayload" />
+                            <element name="eventDataList"  minOccurs="0" type="rsa_csd:EventDataList" />
+                            <element name="userData"  minOccurs="0" type="rsa_csd:UserData" />
+							<element name="channelIndicator" minOccurs="0" type="rsa_csd:ChannelIndicatorType"/>
+                            <element name="clientDefinedChannelIndicator" minOccurs="0" type="xsd:string"/>
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="authenticateResponse">
+                <complexType>
+                    <sequence>
+                        <element name="authenticateReturn" type="rsa_csd:AuthenticateResponse" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="AuthenticateResponse">
+                <complexContent>
+                    <extension base="rsa_csd:GenericResponse">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of an AUTHENTICATE request</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialAuthResultList"  minOccurs="0" type="rsa_csd:CredentialAuthResultList" />
+                            <element name="deviceManagementResponse"  minOccurs="0" type="rsa_csd:DeviceManagementResponsePayload" />
+                            <element name="requiredCredentialList"  minOccurs="0" type="rsa_csd:RequiredCredentialList" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="challenge">
+                <complexType>
+                    <sequence>
+                        <element name="request" type="rsa_csd:ChallengeRequest" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="ChallengeRequest">
+                <complexContent>
+                    <extension base="rsa_csd:GenericRequest">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of a CHALLENGE request</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialChallengeRequestList"  minOccurs="0" type="rsa_csd:CredentialChallengeRequestList" />
+                            <element name="deviceManagementRequest"  minOccurs="0" type="rsa_csd:DeviceManagementRequestPayload" />
+                            <element name="eventDataList"  minOccurs="0" type="rsa_csd:EventDataList" />
+                            <element name="userData"  minOccurs="0" type="rsa_csd:UserData" />
+							<element name="channelIndicator" minOccurs="0" type="rsa_csd:ChannelIndicatorType"/>
+                            <element name="clientDefinedChannelIndicator" minOccurs="0" type="xsd:string"/>
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="challengeResponse">
+                <complexType>
+                    <sequence>
+                        <element name="challengeReturn" type="rsa_csd:ChallengeResponse" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="ChallengeResponse">
+                <complexContent>
+                    <extension base="rsa_csd:GenericResponse">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of a CHALLENGE response</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialChallengeList"  minOccurs="0" type="rsa_csd:CredentialChallengeList" />
+                            <element name="deviceManagementResponse"  minOccurs="0" type="rsa_csd:DeviceManagementResponsePayload" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="createUser">
+                <complexType>
+                    <sequence>
+                        <element name="request" type="rsa_csd:CreateUserRequest" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="CreateUserRequest">
+                <complexContent>
+                    <extension base="rsa_csd:GenericRequest">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of a CREATEUSER request</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialManagementRequestList"  minOccurs="0" type="rsa_csd:CredentialManagementRequestList" />
+                            <element name="deviceManagementRequest"  minOccurs="0" type="rsa_csd:DeviceManagementRequestPayload" />
+                            <element name="runRiskType"  minOccurs="0" type="rsa_csd:RunRiskType" />
+                            <element name="userData"  minOccurs="0" type="rsa_csd:UserData" />
+							<element name="channelIndicator" minOccurs="0" type="rsa_csd:ChannelIndicatorType"/>
+                            <element name="clientDefinedChannelIndicator" minOccurs="0" type="xsd:string"/>
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="createUserResponse">
+                <complexType>
+                    <sequence>
+                        <element name="createUserReturn" type="rsa_csd:CreateUserResponse" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="CreateUserResponse">
+                <complexContent>
+                    <extension base="rsa_csd:GenericResponse">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of a CREATEUSER response</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialManagementResponseList"  minOccurs="0" type="rsa_csd:CredentialManagementResponseList" />
+                            <element name="deviceManagementResponse"  minOccurs="0" type="rsa_csd:DeviceManagementResponsePayload" />
+                            <element name="riskResult"  minOccurs="0" type="rsa_csd:RiskResult" />
+                            <element name="systemCredentials"  minOccurs="0" type="rsa_csd:CredentialList" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="queryAuthStatus">
+                <complexType>
+                    <sequence>
+                        <element name="request" type="rsa_csd:QueryAuthStatusRequest" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="QueryAuthStatusRequest">
+                <complexContent>
+                    <extension base="rsa_csd:GenericRequest">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of a QUERYAUTHSTATUS request</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialAuthStatusRequest"  minOccurs="0" type="rsa_csd:CredentialAuthStatusRequest" />
+							<element name="channelIndicator" minOccurs="0" type="rsa_csd:ChannelIndicatorType"/>
+                            <element name="clientDefinedChannelIndicator" minOccurs="0" type="xsd:string"/>
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="queryAuthStatusResponse">
+                <complexType>
+                    <sequence>
+                        <element name="queryAuthStatusReturn" type="rsa_csd:QueryAuthStatusResponse" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="QueryAuthStatusResponse">
+                <complexContent>
+                    <extension base="rsa_csd:GenericResponse">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of a QUERYAUTHSTATUS response</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialAuthStatusResponse"  minOccurs="0" type="rsa_csd:CredentialAuthStatusResponse" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="updateUser">
+                <complexType>
+                    <sequence>
+                        <element name="request" type="rsa_csd:UpdateUserRequest" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="UpdateUserRequest">
+                <complexContent>
+                    <extension base="rsa_csd:GenericRequest">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of UPDATEUSER request</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialManagementRequestList"  minOccurs="0" type="rsa_csd:CredentialManagementRequestList" />
+                            <element name="deviceManagementRequest"  minOccurs="0" type="rsa_csd:DeviceManagementRequestPayload" />
+                            <element name="eventDataList"  minOccurs="0" type="rsa_csd:EventDataList" />
+                            <element name="runRiskType"  minOccurs="0" type="rsa_csd:RunRiskType" />
+                            <element name="userData"  minOccurs="0" type="rsa_csd:UserData" />
+                            <element name="userPreference"  minOccurs="0" type="rsa_csd:UserPreference" />
+							<element name="channelIndicator" minOccurs="0" type="rsa_csd:ChannelIndicatorType"/>
+                            <element name="clientDefinedChannelIndicator" minOccurs="0" type="xsd:string"/>
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="updateUserResponse">
+                <complexType>
+                    <sequence>
+                        <element name="updateUserReturn" type="rsa_csd:UpdateUserResponse" />
+                    </sequence>
+                </complexType>
+            </element>
+            <complexType name="UpdateUserResponse">
+                <complexContent>
+                    <extension base="rsa_csd:GenericResponse">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the contents of UPDATEUSER response</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="credentialManagementResponseList"  minOccurs="0" type="rsa_csd:CredentialManagementResponseList" />
+                            <element name="deviceManagementResponse"  minOccurs="0" type="rsa_csd:DeviceManagementResponsePayload" />
+                            <element name="riskResult"  minOccurs="0" type="rsa_csd:RiskResult" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <element name="updateUserReturn" type="rsa_csd:UpdateUserResponse" />
+            <complexType name="SoapFaultType">
+                <sequence>
+                    <element maxOccurs="1" minOccurs="1" name="code" type="xsd:string" />
+                    <element maxOccurs="1" minOccurs="1" name="description" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <element name="SoapFault" type="rsa_csd:SoapFaultType" />
+            <complexType name="ConfigurationHeader">
+                <xsd:annotation>
+                    <xsd:documentation>This is used in the ASP model to load caller-specfic configurations</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="application"  minOccurs="0" type="xsd:string" />
+                    <element name="instanceId"  minOccurs="0" type="xsd:string" />
+                    <element name="ruleSet"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="IdentificationData">
+                <xsd:annotation>
+                    <xsd:documentation>Identifies user, transaction, and session</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="clientSessionId"  minOccurs="0" type="xsd:string" />
+                    <element name="clientTransactionId"  minOccurs="0" type="xsd:string" />
+                    <element name="delegated"  minOccurs="0" type="xsd:boolean" />
+                    <element name="groupName"  minOccurs="0" type="xsd:string" />
+                    <element name="newUserName"  minOccurs="0" type="xsd:string" />
+                    <element name="orgName"  minOccurs="0" type="xsd:string" />
+                    <element name="sessionId"  minOccurs="0" type="xsd:string" />
+                    <element name="transactionId"  minOccurs="0" type="xsd:string" />
+                    <element name="userCountry"  minOccurs="0" type="xsd:string" />
+                    <element name="userLanguage"  minOccurs="0" type="xsd:string" />
+                    <element name="userLoginName"  minOccurs="0" type="xsd:string" />
+                    <element name="userName"  minOccurs="0" type="xsd:string" />
+                    <element name="userStatus"  minOccurs="0" type="rsa_csd:UserStatus" />
+                    <element name="userType"  minOccurs="0" type="rsa_csd:WSUserType" />
+                </sequence>
+            </complexType>
+            <simpleType name="RequestType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates all the request methods on the rsa system</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="ANALYZE" />
+                    <enumeration value="AUTHENTICATE" />
+                    <enumeration value="CHALLENGE" />
+                    <enumeration value="CREATEUSER" />
+                    <enumeration value="NOTIFY" />
+                    <enumeration value="QUERY" />
+                    <enumeration value="QUERYAUTHSTATUS" />
+                    <enumeration value="UPDATEUSER" />
+                </restriction>
+            </simpleType>
+            <simpleType name="MessageVersion">
+                <annotation>
+                    <documentation>This type defines the avaliable message versions</documentation>
+                </annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="7.0" />
+                    <enumeration value="6.0" />
+                </restriction>
+            </simpleType>
+            <complexType name="MessageHeader">
+                <xsd:annotation>
+                    <xsd:documentation>This header provides general information about the request</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="apiType"  minOccurs="0" type="rsa_csd:APIType" />
+                    <element name="requestId"  minOccurs="0" type="xsd:string" />
+                    <element name="requestType"  minOccurs="0" type="rsa_csd:RequestType" />
+                    <element name="timeStamp"  minOccurs="0" type="xsd:string" />
+                    <element name="version"  minOccurs="0" type="rsa_csd:MessageVersion" />
+                </sequence>
+            </complexType>
+            <simpleType name="AuthorizationMethod">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the authorization methods used in the security header</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="PASSWORD" />
+                    <enumeration value="SECRET_HMAC_SHA1" />
+                </restriction>
+            </simpleType>
+            <complexType name="SecurityHeader">
+                <xsd:annotation>
+                    <xsd:documentation>This identifies the credential used to authenticate the caller to the RSA System</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="callerCredential"  minOccurs="1" type="xsd:string" />
+                    <element name="callerId"  minOccurs="1" type="xsd:string" />
+                    <element name="method"  minOccurs="1" type="rsa_csd:AuthorizationMethod" />
+                </sequence>
+            </complexType>
+            <complexType name="StatusHeader">
+                <xsd:annotation>
+                    <xsd:documentation>This reports the status of the call</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="reasonCode"  minOccurs="0" type="xsd:int" />
+                    <element name="reasonDescription"  minOccurs="0" type="xsd:string" />
+                    <element name="statusCode"  minOccurs="0" type="xsd:int" />
+                </sequence>
+            </complexType>
+            <complexType name="DeviceRequest">
+                <xsd:annotation>
+                    <xsd:documentation>Requests information about the device</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="beaconId"  minOccurs="0" type="xsd:string" />
+                    <element name="devicePrint"  minOccurs="0" type="xsd:string" />
+                    <element name="deviceTokenCookie"  minOccurs="0" type="xsd:string" />
+                    <element name="deviceTokenFSO"  minOccurs="0" type="xsd:string" />
+                    <element name="httpAccept"  minOccurs="0" type="xsd:string" />
+                    <element name="httpAcceptChars"  minOccurs="0" type="xsd:string" />
+                    <element name="httpAcceptEncoding"  minOccurs="0" type="xsd:string" />
+                    <element name="httpAcceptLanguage"  minOccurs="0" type="xsd:string" />
+                    <element name="httpReferrer"  minOccurs="0" type="xsd:string" />
+                    <element name="ipAddress"  minOccurs="0" type="xsd:string" />
+                    <element name="userAgent"  minOccurs="0" type="xsd:string" />
+                    <element name="geoLocation"  minOccurs="0" type="xsd:string" />
+                    <element name="domElements" minOccurs="0" type="xsd:string" />
+                    <element name="jsEvents" minOccurs="0" type="xsd:string" />
+                    <element name="pageId" minOccurs="0" type="xsd:string" />
+                    <element name="deviceIdentifier" minOccurs="0" maxOccurs="unbounded" type="rsa_csd:DeviceIdentifier"/>
+                </sequence>
+            </complexType>
+            <simpleType name="DeviceActionType">
+                <xsd:annotation>
+                    <xsd:documentation>This defines all the actions applicable to a device</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="BROWSE_DEVICES" />
+                    <enumeration value="UPDATE_DEVICE" />
+                    <enumeration value="UNBIND_ALL_DEVICES" />
+                </restriction>
+            </simpleType>
+            <complexType name="DeviceActionTypeList">
+                <complexContent>
+                    <extension base="rsa_csd:ActionTypeList">
+                        <sequence>
+                            <element name="deviceActionTypes" type="rsa_csd:DeviceActionType" minOccurs="0" maxOccurs="unbounded" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <simpleType name="BindingType">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the device binding type information</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="HARD_BIND" />
+                    <enumeration value="NONE" />
+                </restriction>
+            </simpleType>
+            <complexType name="DeviceData">
+                <xsd:annotation>
+                    <xsd:documentation>This defines device information</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="bindingType"  minOccurs="0" type="rsa_csd:BindingType" />
+                    <element name="deviceTokenCookie"  minOccurs="0" type="xsd:string" />
+                    <element name="deviceTokenFSO"  minOccurs="0" type="xsd:string" />
+                    <element name="lookupLabel"  minOccurs="0" type="xsd:string" />
+                    <element name="newLabel"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="DeviceManagementRequestPayload">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the device management request payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="actionTypeList"  minOccurs="0" type="rsa_csd:DeviceActionTypeList" />
+                    <element name="deviceData"  minOccurs="0" type="rsa_csd:DeviceData" />
+                </sequence>
+            </complexType>
+            <complexType name="DeviceResult">
+                <xsd:annotation>
+                    <xsd:documentation>Returns the results of device credential authentication</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="authenticationResult"  minOccurs="0" type="rsa_csd:AuthenticationResult" />
+                    <element name="callStatus"  minOccurs="0" type="rsa_csd:CallStatus" />
+                    <element name="deviceData"  minOccurs="0" type="rsa_csd:DeviceData" />
+                </sequence>
+            </complexType>
+            <complexType name="DeviceManagementResponsePayload">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the device management response payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="acspAccountId"  minOccurs="0" type="xsd:string" />
+                    <element name="callStatus"  minOccurs="0" type="rsa_csd:CallStatus" />
+                    <element name="deviceData" type="rsa_csd:DeviceData" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <simpleType name="UserStatus">
+                <xsd:annotation>
+                    <xsd:documentation>This type contains all the user states indicating a phase of a user's lifecycle</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="NOTENROLLED" />
+                    <enumeration value="UNVERIFIED" />
+                    <enumeration value="VERIFIED" />
+                    <enumeration value="DELETE" />
+                    <enumeration value="LOCKOUT" />
+                    <enumeration value="UNLOCKED" />
+                </restriction>
+            </simpleType>
+            <simpleType name="WSUserType">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the type of user</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="PERSISTENT" />
+                    <enumeration value="NONPERSISTENT" />
+                    <enumeration value="BAIT" />
+                </restriction>
+            </simpleType>
+            <simpleType name="MilterOption">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the options regarding the RSA Milter</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="DISABLED" />
+                    <enumeration value="PHRASE_ENABLED" />
+                </restriction>
+            </simpleType>
+            <complexType name="UserPreference">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines user preference regarding the RSA Milter</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="milterOption"  minOccurs="0" type="rsa_csd:MilterOption" />
+                </sequence>
+            </complexType>
+            <complexType name="AuthenticationLevel">
+                <xsd:annotation>
+                    <xsd:documentation>Allows customers using their own authentication mechanism to pass data to the RSA AA System</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="attemptsTryCount"  minOccurs="0" type="xsd:int" />
+                    <element name="level"  minOccurs="0" type="xsd:int" />
+                    <element name="successful"  minOccurs="0" type="xsd:boolean" />
+                </sequence>
+            </complexType>
+            <simpleType name="EventType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates all the types of events in the RSA AA Server</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="NULL" />
+                    <enumeration value="SESSION_SIGNIN" />
+                    <enumeration value="FAILED_LOGIN_ATTEMPT" />
+                    <enumeration value="ENROLL" />
+                    <enumeration value="UPDATE_USER" />
+                    <enumeration value="CREATE_USER" />
+                    <enumeration value="OLB_ENROLL" />
+                    <enumeration value="FAILED_OLB_ENROLL_ATTEMPT" />
+                    <enumeration value="ACTIVATE_CARD" />
+                    <enumeration value="OPEN_NEW_ACCOUNT" />
+                    <enumeration value="REQUEST_CREDIT" />
+                    <enumeration value="ADD_PAYEE" />
+                    <enumeration value="EDIT_PAYEE" />
+                    <enumeration value="PAYMENT" />
+                    <enumeration value="DEPOSIT" />
+                    <enumeration value="STOCK_TRADE" />
+                    <enumeration value="OPTIONS_TRADE" />
+                    <enumeration value="CHANGE_LOGIN_ID" />
+                    <enumeration value="CHANGE_EMAIL" />
+                    <enumeration value="CHANGE_PHONE" />
+                    <enumeration value="CHANGE_ADDRESS" />
+                    <enumeration value="CHANGE_PASSWORD" />
+                    <enumeration value="CHANGE_LIFE_QUESTIONS" />
+                    <enumeration value="FAILED_CHANGE_PASSWORD_ATTEMPT" />
+                    <enumeration value="CHANGE_ALERT_SETTINGS" />
+                    <enumeration value="CHANGE_STATEMENT_SETTINGS" />
+                    <enumeration value="CHANGE_AUTH_DATA" />
+                    <enumeration value="SEND_SECURE_MESSAGE" />
+                    <enumeration value="READ_SECURE_MESSAGE" />
+                    <enumeration value="VIEW_CHECK" />
+                    <enumeration value="VIEW_STATEMENT" />
+                    <enumeration value="REQUEST_CHECK_COPY" />
+                    <enumeration value="REQUEST_STATEMENT_COPY" />
+                    <enumeration value="REQUEST_CHECKS" />
+                    <enumeration value="REQUEST_NEW_CARD" />
+                    <enumeration value="REQUEST_NEW_PIN" />
+                    <enumeration value="EXTRA_AUTH" />
+                    <enumeration value="USER_DETAILS" />
+                    <enumeration value="CLIENT_DEFINED" />
+                    <enumeration value="WITHDRAW" />
+                    <enumeration value="CARD_PIN_CHANGE" />
+                </restriction>
+            </simpleType>
+            <complexType name="EventData">
+                <xsd:annotation>
+                    <xsd:documentation>This defines all relevant information about an event</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="authenticationLevel"  minOccurs="0" type="rsa_csd:AuthenticationLevel" />
+                    <element name="clientDefinedAttributeList"  minOccurs="0" type="rsa_csd:FactList" />
+                    <element name="clientDefinedEventType"  minOccurs="0" type="xsd:string" />
+                    <element name="eventDescription"  minOccurs="0" type="xsd:string" />
+                    <element name="eventId"  minOccurs="0" type="xsd:string" />
+                    <element name="eventReferenceId"  minOccurs="0" type="xsd:string" />
+                    <element name="eventType"  minOccurs="0" type="rsa_csd:EventType" />
+                    <element name="newUserData"  minOccurs="0" type="rsa_csd:UserData" />
+                    <element name="stockTradeData"  minOccurs="0" type="rsa_csd:StockTradeData" />
+                    <element name="timeOfOccurrence"  minOccurs="0" type="xsd:string" />
+                    <element name="transactionData"  minOccurs="0" type="rsa_csd:TransactionData" />
+                </sequence>
+            </complexType>
+            <complexType name="EventDataList">
+                <sequence>
+                    <element name="eventData" type="rsa_csd:EventData" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <complexType name="NamedValue">
+                <xsd:annotation>
+                    <xsd:documentation>This type contains details name/value pair for a fact</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="name"  minOccurs="0" type="xsd:string" />
+                    <element name="value"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <simpleType name="DataType">
+                <xsd:annotation>
+                    <xsd:documentation>This type contains the data types for the fact system</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="STRING" />
+                    <enumeration value="BOOLEAN" />
+                    <enumeration value="FLOAT" />
+                    <enumeration value="DOUBLE" />
+                    <enumeration value="INTEGER" />
+                    <enumeration value="DATE" />
+                    <enumeration value="IP" />
+                </restriction>
+            </simpleType>
+            <complexType name="ClientDefinedFact">
+                <complexContent>
+                    <extension base="rsa_csd:NamedValue">
+                        <sequence>
+                            <element name="dataType"  minOccurs="0" type="rsa_csd:DataType" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="FactList">
+                <sequence>
+                    <element name="fact" type="rsa_csd:ClientDefinedFact" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <simpleType name="AccountOwnershipType">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the ownership type of an account</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="INDIVIDUAL" />
+                    <enumeration value="JOINT" />
+                    <enumeration value="TRUST" />
+                    <enumeration value="CUSTODIAL" />
+                    <enumeration value="BUSINESS" />
+                </restriction>
+            </simpleType>
+            <simpleType name="AccountRelationType">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the level of the user accessing the account</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="PRIMARY_OWNER" />
+                    <enumeration value="CO_OWNER" />
+                    <enumeration value="AUTHORIZED_USER" />
+                </restriction>
+            </simpleType>
+            <simpleType name="AccountType">
+                <xsd:annotation>
+                    <xsd:documentation>This type the avaliable account types in the RSA AA System</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="CREDIT_CARD" />
+                    <enumeration value="DEBIT_CARD" />
+                    <enumeration value="CHECKING" />
+                    <enumeration value="CHECKING_WITH_OVERDRAFT" />
+                    <enumeration value="BROKERAGE" />
+                    <enumeration value="SAVINGS" />
+                    <enumeration value="CD" />
+                    <enumeration value="LINE_OF_CREDIT" />
+                    <enumeration value="RETIREMENT" />
+                    <enumeration value="MORTGAGE" />
+                    <enumeration value="USER_DEFINED" />
+                </restriction>
+            </simpleType>
+            <complexType name="AccountData">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines account information for a user</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="accountBalance"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="accountCategory"  minOccurs="0" type="xsd:string" />
+                    <element name="accountCountry"  minOccurs="0" type="xsd:string" />
+                    <element name="accountCreditLimit"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="accountCreditsTurnover"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="accountCreditsUsed"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="accountDailyLimit"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="accountLastCreditGrantDate"  minOccurs="0" type="xsd:string" />
+                    <element name="accountName"  minOccurs="0" type="xsd:string" />
+                    <element name="accountNickName"  minOccurs="0" type="xsd:string" />
+                    <element name="accountNumber"  minOccurs="0" type="xsd:string" />
+                    <element name="internationalAccountNumber"  minOccurs="0" type="xsd:string" />
+                    <element name="accountOpenedDate"  minOccurs="0" type="xsd:string" />
+                    <element name="accountOwnershipType"  minOccurs="0" type="rsa_csd:AccountOwnershipType" />
+                    <element name="accountRelationType"  minOccurs="0" type="rsa_csd:AccountRelationType" />
+                    <element name="accountType"  minOccurs="0" type="rsa_csd:AccountType" />
+                    <element name="clientDefinedAccountType"  minOccurs="0" type="xsd:string" />
+                    <element name="externalRiskScore"  minOccurs="0" type="xsd:int" />
+                    <element name="liquid"  minOccurs="0" type="xsd:boolean" />
+                    <element name="nextLiquidDate"  minOccurs="0" type="xsd:string" />
+                    <element name="referenceCode"  minOccurs="0" type="xsd:string" />
+                    <element name="routingCode"  minOccurs="0" type="xsd:string" />
+                    <element name="swiftCode"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="UserAddress">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the elements that make up a user's home location</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="addressLastUpdateDate"  minOccurs="0" type="xsd:string" />
+                    <element name="addressSetDate"  minOccurs="0" type="xsd:string" />
+                    <element name="country"  minOccurs="0" type="xsd:string" />
+                    <element name="postalCode"  minOccurs="0" type="xsd:string" />
+                    <element name="region"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="UserName">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the elements that make up a user's name</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="firstName"  minOccurs="0" type="xsd:string" />
+                    <element name="lastName"  minOccurs="0" type="xsd:string" />
+                    <element name="middleName"  minOccurs="0" type="xsd:string" />
+                    <element name="nameLine"  minOccurs="0" type="xsd:string" />
+                    <element name="prefix"  minOccurs="0" type="xsd:string" />
+                    <element name="suffix"  minOccurs="0" type="xsd:string" />
+                    <element name="title"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="UserData">
+                <sequence>
+                    <element name="VIP" minOccurs="0" type="xsd:boolean" />
+                    <element name="business" minOccurs="0" type="xsd:boolean" />
+                    <element name="lastAccountOpenDate"  minOccurs="0" type="xsd:string" />
+                    <element name="lastOnlineServicePasswordChangeDate"  minOccurs="0" type="xsd:string" />
+                    <element name="onlineServiceEnrollDate"  minOccurs="0" type="xsd:string" />
+                    <element name="totalAvailableBalance"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="totalCreditLimit"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="totalCreditsUsed"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="userAddress"  minOccurs="0" type="rsa_csd:UserAddress" />
+                    <element name="userNameData"  minOccurs="0" type="rsa_csd:UserName" />
+                </sequence>
+            </complexType>
+            <simpleType name="PriceType">
+                <xsd:annotation>
+                    <xsd:documentation>This type enumerates stock pricing data</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="MARKET" />
+                    <enumeration value="BRACKETED_FIXED" />
+                    <enumeration value="BRACKETED_POINTS" />
+                    <enumeration value="BRACKETED_PERCENTAGES" />
+                </restriction>
+            </simpleType>
+            <complexType name="StockData">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the composition for specific stock information</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="ETF" minOccurs="0" type="xsd:boolean" />
+                    <element name="OTC"  minOccurs="0" type="xsd:boolean" />
+                    <element name="SP500"  minOccurs="0" type="xsd:boolean" />
+                    <element name="currentMarketPrice"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="last30DaysAveragePrice"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="last30DaysAverageVolume"  minOccurs="0" type="xsd:int" />
+                    <element name="last30DaysHighPrice"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="last30DaysLowPrice"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="percentSharesHeldByInstitution"  minOccurs="0" type="xsd:int" />
+                    <element name="sharesFloating"  minOccurs="0" type="xsd:int" />
+                    <element name="sharesOut"  minOccurs="0" type="xsd:int" />
+                    <element name="symbol"  minOccurs="0" type="xsd:string" />
+                    <element name="todayHighPrice"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="todayLowPrice"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="todayOpenPrice"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="todayVolume"  minOccurs="0" type="xsd:int" />
+                </sequence>
+            </complexType>
+            <simpleType name="TermType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates how long the trade transaction is good for</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="GOOD_FOR_DAY" />
+                    <enumeration value="GOOD_UNTIL_CANCELLED" />
+                    <enumeration value="IMMEDIATE_OR_CANCEL" />
+                    <enumeration value="FILL_OR_KILL" />
+                </restriction>
+            </simpleType>
+            <simpleType name="TradeType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates the type of trade transaction</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="BUY" />
+                    <enumeration value="SELL" />
+                    <enumeration value="SELL_SHORT" />
+                    <enumeration value="BUY_TO_COVER" />
+                </restriction>
+            </simpleType>
+            <complexType name="StockTradeData">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the compostion for stock trade information</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="allOrNone"  minOccurs="0" type="xsd:boolean" />
+                    <element name="lowerChangeLimit"  minOccurs="0" type="xsd:int" />
+                    <element name="lowerPrice"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="numberOfShares"  minOccurs="0" type="xsd:int" />
+                    <element name="priceType" minOccurs="0" type="rsa_csd:PriceType" />
+                    <element name="stockData"  minOccurs="0" type="rsa_csd:StockData" />
+                    <element name="termType"  minOccurs="0" type="rsa_csd:TermType" />
+                    <element name="tradeType"  minOccurs="0" type="rsa_csd:TradeType" />
+                    <element name="upperChangeLimit"  minOccurs="0" type="xsd:int" />
+                    <element name="upperPrice"  minOccurs="0" type="rsa_csd:Amount" />
+                </sequence>
+            </complexType>
+            <simpleType name="ExecutionSpeed">
+                <xsd:annotation>
+                    <xsd:documentation>This defines how fast a transaction will take place</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="SEVERAL_DAYS" />
+                    <enumeration value="OVER_NIGHT" />
+                    <enumeration value="FEW_HOURS" />
+                    <enumeration value="REAL_TIME" />
+                </restriction>
+            </simpleType>
+            <simpleType name="OtherAccountBankType">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the location of a bank account</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="SAME_BANK" />
+                    <enumeration value="OTHER_BANK" />
+                </restriction>
+            </simpleType>
+            <simpleType name="OtherAccountOwnershipType">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the direction of the money transfer and to/from whom</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="ME_TO_ME" />
+                    <enumeration value="ME_TO_YOU" />
+                </restriction>
+            </simpleType>
+            <simpleType name="OtherAccountType">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the account type</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="BILLER" />
+                    <enumeration value="PERSONAL_ACCOUNT" />
+                </restriction>
+            </simpleType>
+            <simpleType name="Schedule">
+                <xsd:annotation>
+                    <xsd:documentation>This defines all the avaliable transaction schedules</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="IMMEDIATE" />
+                    <enumeration value="SCHEDULED" />
+                    <enumeration value="RECURRING" />
+                </restriction>
+            </simpleType>
+            <simpleType name="TransferMediumType">
+                <xsd:annotation>
+                    <xsd:documentation>This defines different methods of carrying out a transaction</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="INTERNAL" />
+                    <enumeration value="BILLPAY_MAIL" />
+                    <enumeration value="BILLPAY_ELEC" />
+                    <enumeration value="BALANCE_TRANSFER" />
+                    <enumeration value="ACH" />
+                    <enumeration value="WIRE" />
+                    <enumeration value="INTL_WIRE" />
+                    <enumeration value="CHECK" />
+                </restriction>
+            </simpleType>
+            <complexType name="TransactionData">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the specific detials of a transaction</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="amount"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="dueDate"  minOccurs="0" type="xsd:string" />
+                    <element name="estimatedDeliveryDate"  minOccurs="0" type="xsd:string" />
+                    <element name="executionSpeed"  minOccurs="0" type="rsa_csd:ExecutionSpeed" />
+                    <element name="myAccountData"  minOccurs="0" type="rsa_csd:AccountData" />
+                    <element name="otherAccountBankType"  minOccurs="0" type="rsa_csd:OtherAccountBankType" />
+                    <element name="otherAccountData"  minOccurs="0" type="rsa_csd:AccountData" />
+                    <element name="otherAccountOwnershipType"  minOccurs="0" type="rsa_csd:OtherAccountOwnershipType" />
+                    <element name="otherAccountType"  minOccurs="0" type="rsa_csd:OtherAccountType" />
+                    <element name="previousAmount"  minOccurs="0" type="rsa_csd:Amount" />
+                    <element name="recurringFrequency"  minOccurs="0" type="xsd:int" />
+                    <element name="schedule"  minOccurs="0" type="rsa_csd:Schedule" />
+                    <element name="transferMediumType"  minOccurs="0" type="rsa_csd:TransferMediumType" />
+                </sequence>
+            </complexType>
+            <complexType name="AuthenticationResult">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the result of an authentication</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="authStatusCode"  minOccurs="0" type="xsd:string" />
+                    <element name="risk"  minOccurs="0" type="xsd:int" />
+                </sequence>
+            </complexType>
+            <complexType name="CallStatus">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the status of a web service call</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="statusCode"  minOccurs="0" type="xsd:string" />
+                    <element name="statusDescription"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <simpleType name="CredentialProvisioningStatus">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the association of a credential to a user</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="ACTIVE" />
+                    <enumeration value="DISABLED" />
+                </restriction>
+            </simpleType>
+            <simpleType name="CredentialStatus">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the state of a credential type</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="ACTIVE" />
+                    <enumeration value="DISABLED" />
+                    <enumeration value="LOCKED" />
+                    <enumeration value="UNLOCKED" />
+                </restriction>
+            </simpleType>
+            <simpleType name="CredentialType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates all the credential types on the RSA AA System</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="QUESTION" />
+                    <enumeration value="OOBPHONE" />
+                    <enumeration value="OOBEMAIL" />
+                    <enumeration value="USER_DEFINED" />
+                </restriction>
+            </simpleType>
+            <complexType name="Credential">
+                <xsd:annotation>
+                    <xsd:documentation>This defines what makes up a credential</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="credentialStatus"  minOccurs="0" type="rsa_csd:CredentialStatus" />
+                    <element name="credentialType"  minOccurs="0" type="rsa_csd:CredentialType" />
+                    <element name="genericCredentialType"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="CredentialList">
+                <sequence>
+                    <element name="credential" type="rsa_csd:Credential" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <simpleType name="CollectionInitiator">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates the different ways to initiate credential collection</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="USER_INITIATED" />
+                    <enumeration value="CSR_INITIATED" />
+                    <enumeration value="AUTO_INITIATED" />
+                </restriction>
+            </simpleType>
+            <complexType name="CollectionRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This describes why a collection is being initiated and the reasons behind it</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="collectionInitiator"  minOccurs="0" type="rsa_csd:CollectionInitiator" />
+                    <element name="collectionReason" minOccurs="0" type="rsa_csd:CollectionReason" />
+                    <element name="forceCollection"  minOccurs="0" type="xsd:boolean" />
+                    <element name="orgCredentialList"  minOccurs="0" type="rsa_csd:CredentialList" />
+                </sequence>
+            </complexType>
+            <complexType abstract="true" name="CredentialRequestList">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the contents of an abstract Credential Request List</xsd:documentation>
+                </xsd:annotation>
+            </complexType>
+            <complexType abstract="true" name="CredentialResponseList">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the contents of an abstract Credential Response List</xsd:documentation>
+                </xsd:annotation>
+            </complexType>
+            <complexType name="CollectableCredential">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the collectable credential types</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="collectionReason"  minOccurs="0" type="rsa_csd:CollectionReason" />
+                    <element name="collectionType"  minOccurs="0" type="rsa_csd:CollectionType" />
+                    <element name="credentialType"  minOccurs="0" type="rsa_csd:CredentialType" />
+                </sequence>
+            </complexType>
+            <complexType name="CollectableCredentialList">
+                <xsd:annotation>
+                    <xsd:documentation>This is a list of credentials that are safe for the system to collect</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="collectableCredential" type="rsa_csd:CollectableCredential" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <complexType name="RequiredCredential">
+                <xsd:annotation>
+                    <xsd:documentation>This is a list of the authorization results for each credential</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="credentialType"  minOccurs="0" type="rsa_csd:CredentialType" />
+                    <element name="genericCredentialType"  minOccurs="0" type="xsd:string" />
+                    <element name="groupName"  minOccurs="0" type="xsd:string" />
+                    <element name="preference"  minOccurs="0" type="xsd:int" />
+                    <element name="required" minOccurs="0" type="xsd:boolean" />
+                </sequence>
+            </complexType>
+            <complexType name="RequiredCredentialList">
+                <xsd:annotation>
+                    <xsd:documentation>This is a list of the required list of credentials needed to authenticate the user</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="requiredCredential" type="rsa_csd:RequiredCredential" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <complexType name="CredentialManagementRequestList">
+                <complexContent>
+                    <extension base="rsa_csd:CredentialRequestList">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the Credential Management Request List</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="challengeQuestionManagementRequest"  minOccurs="0" type="rsa_csd:ChallengeQuestionManagementRequest" />
+                            <element name="oobEmailManagementRequest"  minOccurs="0" type="rsa_csd:OobEmailManagementRequest" />
+                            <element name="oobPhoneManagementRequest"  minOccurs="0" type="rsa_csd:OobPhoneManagementRequest" />
+                            <element name="acspManagementRequestData"  minOccurs="0" type="rsa_csd:AcspManagementRequestData" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="CredentialManagementResponseList">
+                <complexContent>
+                    <extension base="rsa_csd:CredentialResponseList">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the Credential Management Response List</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="challengeQuestionManagementResponse"  minOccurs="0" type="rsa_csd:ChallengeQuestionManagementResponse" />
+                            <element name="oobEmailManagementResponse"  minOccurs="0" type="rsa_csd:OobEmailManagementResponse" />
+                            <element name="oobPhoneManagementResponse"  minOccurs="0" type="rsa_csd:OobPhoneManagementResponse" />
+                            <element name="acspManagementResponseData"  minOccurs="0" type="rsa_csd:AcspManagementResponseData" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="CredentialDataList">
+                <complexContent>
+                    <extension base="rsa_csd:CredentialRequestList">
+                        <xsd:annotation>
+                            <xsd:documentation>This is a list of any credentials that the user has presented as a part of this transaction</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="challengeQuestionData"  minOccurs="0" type="rsa_csd:ChallengeQuestionData" />
+                            <element name="oobEmailData"  minOccurs="0" type="rsa_csd:OobEmailData" />
+                            <element name="oobPhoneData"  minOccurs="0" type="rsa_csd:OobPhoneData" />
+                            <element name="acspAuthenticationRequestData"  minOccurs="0" type="rsa_csd:AcspAuthenticationRequestData" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="CredentialAuthResultList">
+                <complexContent>
+                    <extension base="rsa_csd:CredentialResponseList">
+                        <xsd:annotation>
+                            <xsd:documentation>This is a list of the authorization results for each credential</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="challengeQuestionAuthResult"  minOccurs="0" type="rsa_csd:ChallengeQuestionAuthResult" />
+                            <element name="oobEmailAuthResult"  minOccurs="0" type="rsa_csd:OobEmailAuthResult" />
+                            <element name="oobPhoneAuthResult"  minOccurs="0" type="rsa_csd:OobPhoneAuthResult" />
+                            <element name="acspAuthenticationResponseData"  minOccurs="0" type="rsa_csd:AcspAuthenticationResponseData" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="CredentialChallengeRequestList">
+                <complexContent>
+                    <extension base="rsa_csd:CredentialRequestList">
+                        <xsd:annotation>
+                            <xsd:documentation>This list returns a user's challenge material from the RSA System</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="challengeQuestionChallengeRequest"  minOccurs="0" type="rsa_csd:ChallengeQuestionChallengeRequest" />
+                            <element name="oobEmailChallengeRequest"  minOccurs="0" type="rsa_csd:OobEmailChallengeRequest" />
+                            <element name="oobPhoneChallengeRequest"  minOccurs="0" type="rsa_csd:OobPhoneChallengeRequest" />
+                            <element name="acspChallengeRequestData"  minOccurs="0" type="rsa_csd:AcspChallengeRequestData" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="CredentialChallengeList">
+                <complexContent>
+                    <extension base="rsa_csd:CredentialResponseList">
+                        <xsd:annotation>
+                            <xsd:documentation>This returns the challenge material to be presented to the user</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="challengeQuestionChallenge"  minOccurs="0" type="rsa_csd:ChallengeQuestionChallenge" />
+                            <element name="oobEmailChallenge"  minOccurs="0" type="rsa_csd:OobEmailChallenge" />
+                            <element name="oobPhoneChallenge"  minOccurs="0" type="rsa_csd:OobPhoneChallenge" />
+                            <element name="acspChallengeResponseData"  minOccurs="0" type="rsa_csd:AcspChallengeResponseData" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="CredentialAuthStatusRequest">
+                <complexContent>
+                    <extension base="rsa_csd:CredentialRequestList">
+                        <xsd:annotation>
+                            <xsd:documentation>A request to view the status of an asynchronous credential</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="challengeQuestionAuthStatusRequest"  minOccurs="0" type="rsa_csd:ChallengeQuestionAuthStatusRequest" />
+                            <element name="oobEmailAuthStatusRequest"  minOccurs="0" type="rsa_csd:OobEmailAuthStatusRequest" />
+                            <element name="oobPhoneAuthStatusRequest"  minOccurs="0" type="rsa_csd:OobPhoneAuthStatusRequest" />
+                            <element name="acspAuthStatusRequestData"  minOccurs="0" type="rsa_csd:AcspAuthStatusRequestData" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="CredentialAuthStatusResponse">
+                <complexContent>
+                    <extension base="rsa_csd:CredentialResponseList">
+                        <xsd:annotation>
+                            <xsd:documentation>The result of a user's asynchronous credential</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="challengeQuestionAuthStatusResponse"  minOccurs="0" type="rsa_csd:ChallengeQuestionAuthStatusResponse" />
+                            <element name="oobEmailAuthStatusResponse"  minOccurs="0" type="rsa_csd:OobEmailAuthStatusResponse" />
+                            <element name="oobPhoneAuthStatusResponse"  minOccurs="0" type="rsa_csd:OobPhoneAuthStatusResponse" />
+                            <element name="acspAuthStatusResponseData"  minOccurs="0" type="rsa_csd:AcspAuthStatusResponseData" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <xsd:complexType name="AcspAuthenticationRequestData">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Credential Data Payload</xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="payload"  minOccurs="0" type="rsa_csd:AcspAuthenticationRequest" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AcspAuthenticationResponseData">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Credential Auth Result Payload</xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="acspAccountId" minOccurs="0" type="xsd:string"/>
+                    <xsd:element name="callStatus" minOccurs="0" type="rsa_csd:CallStatus"/>
+                    <xsd:element name="payload"  minOccurs="0" type="rsa_csd:AcspAuthenticationResponse" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AcspAuthStatusRequestData">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Credential AuthStatus Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="payload"  minOccurs="0" type="rsa_csd:AcspAuthStatusRequest" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AcspAuthStatusResponseData">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Credential AuthStatus Response Payload</xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="acspAccountId" minOccurs="0" type="xsd:string"/>
+                    <xsd:element name="callStatus" minOccurs="0" type="rsa_csd:CallStatus"/>
+                    <xsd:element name="payload"  minOccurs="0" type="rsa_csd:AcspAuthStatusResponse" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AcspManagementRequestData">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Credential Management Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="credentialProvisioningStatus"  minOccurs="0" type="rsa_csd:CredentialProvisioningStatus" />
+                    <xsd:element name="payload"  minOccurs="0" type="rsa_csd:AcspManagementRequest" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AcspManagementResponseData">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Credential Management Response Payload</xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="acspAccountId" minOccurs="0" type="xsd:string"/>
+                    <xsd:element name="callStatus" minOccurs="0" type="rsa_csd:CallStatus"/>
+                    <xsd:element name="payload"  minOccurs="0" type="rsa_csd:AcspManagementResponse" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AcspChallengeRequestData">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Credential Challenge Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="payload"  minOccurs="0" type="rsa_csd:AcspChallengeRequest" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AcspChallengeResponseData">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Credential Challenge Payload</xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="acspAccountId" minOccurs="0" type="xsd:string"/>
+                    <xsd:element name="callStatus" minOccurs="0" type="rsa_csd:CallStatus"/>
+                    <xsd:element name="payload"  minOccurs="0" type="rsa_csd:AcspChallengeResponse" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <simpleType name="ChallengeQuestionActionType">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the specific action to use with challenge questions</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="ADD_USER_QUESTION" />
+                    <enumeration value="BROWSE_QUESTION" />
+                    <enumeration value="GET_USER_QUESTION" />
+                    <enumeration value="SET_USER_QUESTION" />
+                </restriction>
+            </simpleType>
+            <complexType name="ChallengeQuestionActionTypeList">
+                <xsd:annotation>
+                    <xsd:documentation>This defines a list of challenge question action types</xsd:documentation>
+                </xsd:annotation>
+                <complexContent>
+                    <extension base="rsa_csd:ActionTypeList">
+                        <sequence>
+                            <element name="challengeQuestionActionType" type="rsa_csd:ChallengeQuestionActionType" minOccurs="0" maxOccurs="unbounded" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="ChallengeQuestionIdList">
+                <sequence>
+                    <element name="questionId" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionConfig">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the configuration data for challenge questions</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="excludeQuestionList"  minOccurs="0" type="rsa_csd:ChallengeQuestionIdList" />
+                    <element name="excludeUserQuestions"  minOccurs="0" type="xsd:boolean" />
+                    <element name="groupCount"  minOccurs="0" type="xsd:int" />
+                    <element name="includeRetired"  minOccurs="0" type="xsd:boolean" />
+                    <element name="questionCount"  minOccurs="0" type="xsd:int" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestion">
+                <xsd:annotation>
+                    <xsd:documentation>This defines challenge question metadata</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="actualAnswer"  minOccurs="0" type="xsd:string" />
+                    <element name="actualAnswerOnFile"  minOccurs="0" type="xsd:string" />
+                    <element name="questionId"  minOccurs="0" type="xsd:string" />
+                    <element name="questionText"  minOccurs="0" type="xsd:string" />
+                    <element name="userAnswer"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionList">
+                <sequence>
+                    <element name="challengeQuestion" type="rsa_csd:ChallengeQuestion" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionManagementRequestPayload">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the Challenge Question Management request</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="actionTypeList" minOccurs="0" type="rsa_csd:ChallengeQuestionActionTypeList" />
+                    <element name="challengeQuestionConfig"  minOccurs="0" type="rsa_csd:ChallengeQuestionConfig" />
+                    <element name="challengeQuestionList"  minOccurs="0" type="rsa_csd:ChallengeQuestionList" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionGroup">
+                <xsd:annotation>
+                    <xsd:documentation>This defines challenge question group information</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="challengeQuestion" type="rsa_csd:ChallengeQuestion" minOccurs="0" maxOccurs="unbounded" />
+                    <element name="groupName"  minOccurs="0" type="xsd:string" />
+                    <element name="retired"  minOccurs="0" type="xsd:boolean" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionGroupList">
+                <sequence>
+                    <element name="questionGroup" type="rsa_csd:ChallengeQuestionGroup" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionManagementResponsePayload">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the Challenge Question Management response</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="acspAccountId"  minOccurs="0" type="xsd:string" />
+                    <element name="browsableChallQuesGroupList"  minOccurs="0" type="rsa_csd:ChallengeQuestionGroupList" />
+                    <element name="callStatus"  minOccurs="0" type="rsa_csd:CallStatus" />
+                    <element name="userChallQuesDataList"  minOccurs="0" type="rsa_csd:ChallengeQuestionList" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionDataPayload">
+                <sequence>
+                    <element name="challengeQuestion" type="rsa_csd:ChallengeQuestion" minOccurs="0" maxOccurs="unbounded" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionMatchResult">
+                <sequence>
+                    <element name="failCount"  minOccurs="0" type="xsd:int" />
+                    <element name="matchCount"  minOccurs="0" type="xsd:int" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionAuthResultPayload">
+                <xsd:annotation>
+                    <xsd:documentation>This returns the results of the challenge question authentication</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="authenticationResult"  minOccurs="0" type="rsa_csd:AuthenticationResult" />
+                    <element name="callStatus"  minOccurs="0" type="rsa_csd:CallStatus" />
+                    <element name="challengeQuestionMatchResult"  minOccurs="0" type="rsa_csd:ChallengeQuestionMatchResult" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionChallengeRequestPayload">
+                <xsd:annotation>
+                    <xsd:documentation>This requests the results of the challenge question challenge method</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="excludeQuestions"  minOccurs="0" type="rsa_csd:ChallengeQuestionIdList" />
+                    <element name="numberOfQuestion"  minOccurs="0" type="xsd:int" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionChallengePayload">
+                <xsd:annotation>
+                    <xsd:documentation>This returns the results of the challenge question challenge method</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="callStatus"  minOccurs="0" type="rsa_csd:CallStatus" />
+                    <element name="challengeQuestions"  minOccurs="0" type="rsa_csd:ChallengeQuestionList" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionManagementRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This requests the results of the challenge question management method</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="credentialProvisioningStatus"  minOccurs="0" type="rsa_csd:CredentialProvisioningStatus" />
+                    <element name="payload"  minOccurs="0" type="rsa_csd:ChallengeQuestionManagementRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionManagementResponse">
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:ChallengeQuestionManagementResponsePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionData">
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:ChallengeQuestionDataPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionAuthResult">
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:ChallengeQuestionAuthResultPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionChallengeRequest">
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:ChallengeQuestionChallengeRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionChallenge">
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:ChallengeQuestionChallengePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionAuthStatusRequest">
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:UnsupportedAuthStatusRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="ChallengeQuestionAuthStatusResponse">
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:UnsupportedAuthStatusResponsePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobEmailManagementRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Email MANAGEMENT Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="credentialProvisioningStatus"  minOccurs="0" type="rsa_csd:CredentialProvisioningStatus" />
+                    <element name="payload"  minOccurs="0" type="rsa_csd:EmailManagementRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobPhoneManagementRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Phone MANAGEMENT Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="credentialProvisioningStatus"  minOccurs="0" type="rsa_csd:CredentialProvisioningStatus" />
+                    <element name="payload"  minOccurs="0" type="rsa_csd:PhoneManagementRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobEmailManagementResponse">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Email MANAGEMENT Response Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:EmailManagementResponsePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobPhoneManagementResponse">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Phone MANAGEMENT Response Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:PhoneManagementResponsePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobEmailData">
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobPhoneData">
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobEmailAuthResult">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Email AUTHENTICATION Result Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoResponsePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobPhoneAuthResult">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Phone AUTHENTICATION Result Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoResponsePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobEmailChallengeRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Email CHALLENGE Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBEmailChallengeRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobPhoneChallengeRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Phone CHALLENGE Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBPhoneChallengeRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobEmailChallenge">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Email CHALLENGE Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoResponsePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobPhoneChallenge">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Phone CHALLENGE Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoResponsePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobEmailAuthStatusRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Email AUTHSTATUS Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobPhoneAuthStatusRequest">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Phone AUTHSTATUS Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoRequestPayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobEmailAuthStatusResponse">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Email AUTHSTATUS Response Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoResponsePayload" />
+                </sequence>
+            </complexType>
+            <complexType name="OobPhoneAuthStatusResponse">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the OOB Phone AUTHSTATUS Response Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="payload"  minOccurs="0" type="rsa_csd:OOBInfoResponsePayload" />
+                </sequence>
+            </complexType>
+            <simpleType name="OOBActionType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumeration defines the OOB Action Types</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="ADD_OOB" />
+                    <enumeration value="GET_OOB" />
+                    <enumeration value="DELETE_OOB" />
+                    <enumeration value="UPDATE_OOB" />
+                </restriction>
+            </simpleType>
+            <complexType name="OOBActionTypeList">
+                <complexContent>
+                    <extension base="rsa_csd:ActionTypeList">
+                        <xsd:annotation>
+                            <xsd:documentation>This is a list of OOB Action Types</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="oobActionType" type="rsa_csd:OOBActionType" minOccurs="0" maxOccurs="unbounded" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType abstract="true" name="OOBManagementRequestPayload">
+                <sequence>
+                    <element name="oobActionTypeList"  minOccurs="0" type="rsa_csd:OOBActionTypeList" />
+                </sequence>
+            </complexType>
+            <complexType name="OOBContactInfoObject">
+                <xsd:annotation>
+                    <xsd:documentation>This object defines the contact information for a user</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="defaultFlag"  minOccurs="0" type="xsd:boolean" />
+                    <element name="label"  minOccurs="0" type="xsd:string" />
+                    <element name="lastModified"  minOccurs="0" type="xsd:string" />
+                    <element name="reference"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="EmailInfo">
+                <xsd:annotation>
+                    <xsd:documentation>This object defines the parts of the email information for a user</xsd:documentation>
+                </xsd:annotation>
+                <complexContent>
+                    <extension base="rsa_csd:OOBContactInfoObject">
+                        <sequence>
+                            <element name="address"  minOccurs="0" type="xsd:string" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="EmailManagementRequestPayload">
+                <complexContent>
+                    <extension base="rsa_csd:OOBManagementRequestPayload">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the Email Management Request Payload - allows query, update, and add contact information</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="contactList" type="rsa_csd:EmailInfo" minOccurs="0" maxOccurs="unbounded" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="PhoneInfo">
+                <complexContent>
+                    <extension base="rsa_csd:OOBContactInfoObject">
+                        <xsd:annotation>
+                            <xsd:documentation>This object defines the parts of the phone information for a user</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="areaCode"  minOccurs="0" type="xsd:string" />
+                            <element name="countryCode"  minOccurs="0" type="xsd:string" />
+                            <element name="extension"  minOccurs="0" type="xsd:string" />
+                            <element name="phoneNumber"  minOccurs="0" type="xsd:string" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="PhoneManagementRequestPayload">
+                <complexContent>
+                    <extension base="rsa_csd:OOBManagementRequestPayload">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the Phone Management Request Payload - allows query, update, and add contact information</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="contactList" type="rsa_csd:PhoneInfo" minOccurs="0" maxOccurs="unbounded" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType abstract="true" name="OOBManagementResponsePayload">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the OOB Management Response Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="acspAccountId"  minOccurs="0" type="xsd:string" />
+                    <element name="callStatus"  minOccurs="0" type="rsa_csd:CallStatus" />
+                </sequence>
+            </complexType>
+            <complexType name="EmailManagementResponsePayload">
+                <complexContent>
+                    <extension base="rsa_csd:OOBManagementResponsePayload">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the Email Management Response Payload</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="contactList" type="rsa_csd:EmailInfo" minOccurs="0" maxOccurs="unbounded" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="PhoneManagementResponsePayload">
+                <complexContent>
+                    <extension base="rsa_csd:OOBManagementResponsePayload">
+                        <xsd:annotation>
+                            <xsd:documentation>This defines the Phone Management Response Payload</xsd:documentation>
+                        </xsd:annotation>
+                        <sequence>
+                            <element name="contactList" type="rsa_csd:PhoneInfo" minOccurs="0" maxOccurs="unbounded" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="OOBInfoRequestPayload">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the OOB Info Request payload for authenticate, queryAuthStatus, and analyze</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="token"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="OOBInfoResponsePayload">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the OOB Info Response payload for authenticate, queryAuthStatus, and analyze</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="authenticationResult"  minOccurs="0" type="rsa_csd:AuthenticationResult" />
+                    <element name="callStatus"  minOccurs="0" type="rsa_csd:CallStatus" />
+                    <element name="channelStatus"  minOccurs="0" type="xsd:string" />
+                    <element name="reason"  minOccurs="0" type="xsd:string" />
+                    <element name="token"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>            
+            <complexType name="OOBEmailChallengeRequestPayload">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Email Challenge Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="emailInfo"  minOccurs="0" type="rsa_csd:EmailInfo" />
+                    <element name="fromAddress"  minOccurs="0" type="xsd:string" />
+                    <element name="fromName"  minOccurs="0" type="xsd:string" />
+                    <element name="noOp" minOccurs="0" type="xsd:boolean" />
+                    <element name="subject"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="OOBPhoneChallengeRequestPayload">
+                <xsd:annotation>
+                    <xsd:documentation>This type defines the Phone Challenge Request Payload</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="noOp" minOccurs="0" type="xsd:boolean" />
+                    <element name="phoneInfo"  minOccurs="0" type="rsa_csd:PhoneInfo" />
+                    <element name="tokenCollectionFlow"  minOccurs="0" type="xsd:boolean" />
+                </sequence>
+            </complexType>
+            <complexType name="ClientReturnData">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the Client Return Data - sent during an anaylze request for re-direction after authentication</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="returnUrl"  minOccurs="0" type="xsd:string" />
+                    <element name="validationMethod"  minOccurs="0" type="rsa_csd:AuthorizationMethod" />
+                </sequence>
+            </complexType>
+            <complexType name="ServerRedirectData">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the Server Redirect Data - returned in an anaylize response for redirection after authentication</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="redirectUrl"  minOccurs="0" type="xsd:string" />
+                    <element name="secretKey"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <simpleType name="CollectionReason">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates the reason why a credential is collected</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="CSR_REQUESTED" />
+                    <enumeration value="USER_SETTINGS" />
+                    <enumeration value="FIRST_COLLECTION" />
+                    <enumeration value="REFRESH_AFTER_FAILURE" />
+                    <enumeration value="ADDITIONAL_COLLECTION" />
+                    <enumeration value="REFRESH_COLLECTION" />
+                </restriction>
+            </simpleType>
+            <simpleType name="CollectionType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates the collection types</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="OPTIONAL_COLLECTION" />
+                    <enumeration value="REQUIRED_COLLECTION" />
+                </restriction>
+            </simpleType>
+            <simpleType name="RunRiskType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates all the actions for the risk engine</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="RISK_ONLY" />
+                    <enumeration value="ALL" />
+                    <enumeration value="NONE" />
+                    <enumeration value="DEVICE_ONLY" />
+                </restriction>
+            </simpleType>
+            <simpleType name="ActionCode">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates all the actions for the triggered rule</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="NONE" />
+                    <enumeration value="ALLOW" />
+                    <enumeration value="REVIEW" />
+                    <enumeration value="DELAY_AND_REVIEW" />
+                    <enumeration value="STOP_AND_REVIEW" />
+                    <enumeration value="ELEVATE_SECURITY" />
+                    <enumeration value="REDIRECT_CHALLENGE" />
+                    <enumeration value="REDIRECT_COLLECT" />
+                    <enumeration value="CHALLENGE" />
+                    <enumeration value="COLLECT" />
+                    <enumeration value="DENY" />
+                    <enumeration value="BLOCK" />
+                    <enumeration value="LOCKED" />
+                </restriction>
+            </simpleType>
+            <simpleType name="ActionApplyType">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the recommended policy actions</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="STRICT" />
+                    <enumeration value="LIGHT" />
+                    <enumeration value="OVERRIDE" />
+                    <enumeration value="LOG" />
+                    <enumeration value="NONE" />
+                </restriction>
+            </simpleType>
+            <complexType name="TriggeredRule">
+                <xsd:annotation>
+                    <xsd:documentation>This type contains information about the specific rule that was triggered during risk anaylsis</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="actionCode"  minOccurs="0" type="rsa_csd:ActionCode" />
+                    <element name="actionName"  minOccurs="0" type="xsd:string" />
+                    <element name="actionType" minOccurs="0" type="rsa_csd:ActionApplyType" />
+                    <element name="clientFactList"  minOccurs="0" type="rsa_csd:FactList" />
+                    <element name="ruleId"  minOccurs="0" type="xsd:string" />
+                    <element name="ruleName"  minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="RiskResult">
+                <xsd:annotation>
+                    <xsd:documentation>This defines the risk result information</xsd:documentation>
+                </xsd:annotation>
+                <sequence>
+                    <element name="riskScore"  minOccurs="0" type="xsd:int" />
+                    <element name="riskScoreBand"  minOccurs="0" type="xsd:string" />
+                    <element name="triggeredRule"  minOccurs="0" type="rsa_csd:TriggeredRule" />
+                    <element name="triggeredTestRule"  minOccurs="0" type="rsa_csd:TriggeredRule" />
+                </sequence>
+            </complexType>
+            <complexType name="UnsupportedChallengeRequestPayload">
+                <sequence />
+            </complexType>
+            <complexType name="UnsupportedChallengePayload">
+                <sequence>
+                    <element name="callStatus"  minOccurs="0" type="rsa_csd:CallStatus" />
+                </sequence>
+            </complexType>
+            <complexType name="UnsupportedAuthStatusRequestPayload">
+                <sequence />
+            </complexType>
+            <complexType name="UnsupportedAuthStatusResponsePayload">
+                <sequence>
+                    <element name="authenticationResult"  minOccurs="0" type="rsa_csd:AuthenticationResult" />
+                    <element name="callStatus"  minOccurs="0" type="rsa_csd:CallStatus" />
+                </sequence>
+            </complexType>
+            <simpleType name="ChannelIndicatorType">
+                <xsd:annotation>
+                    <xsd:documentation>This enumerates all available channel types.</xsd:documentation>
+                </xsd:annotation>
+                <restriction base="xsd:string">
+                    <enumeration value="WEB" />
+                    <enumeration value="IVR" />
+                    <enumeration value="CALL_CENTER" />
+                    <enumeration value="BRANCH" />
+                    <enumeration value="ATM" />
+                    <enumeration value="MOBILE" />
+                    <enumeration value="OTHER" />
+                </restriction>
+            </simpleType>
+            <complexType name="ClientGenCookie">
+                <complexContent>
+                    <extension base="rsa_csd:DeviceIdentifier">
+                        <sequence>
+                            <element name="clientGenCookie" minOccurs="0" type="xsd:string" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="MobileDevice">
+                <complexContent>
+                    <extension base="rsa_csd:DeviceIdentifier">
+                        <sequence>
+                            <element name="simId" minOccurs="0" type="xsd:string" />
+                            <element name="otherId" minOccurs="0" type="xsd:string" />
+                            <element name="hardwareId" minOccurs="0" type="xsd:string" />
+                            <element name="geoLocation" minOccurs="0" type="rsa_csd:GeoLocation"/>
+                            <element name="deviceModel" minOccurs="0" type="xsd:string" />
+                            <element name="deviceMultiTaskingSupported" minOccurs="0" type="xsd:string" />
+                            <element name="deviceName" minOccurs="0" type="xsd:string" />
+                            <element name="deviceSystemName" minOccurs="0" type="xsd:string" />
+                            <element name="deviceSystemVersion" minOccurs="0" type="xsd:string" />
+                            <element name="languages" minOccurs="0" type="xsd:string" />
+                            <element name="wiFiMacAddress" minOccurs="0" type="xsd:string" />
+                            <element name="wiFiNetworksData" minOccurs="0" type="rsa_csd:WiFiNetworkData" />
+                            <element name="cellTowerID" minOccurs="0" type="xsd:string" />
+                            <element name="locationAreaCode" minOccurs="0" type="xsd:string" />
+                            <element name="screenSize" minOccurs="0" type="xsd:string" />
+                            <element name="numberOfAddressBookEntries" minOccurs="0" type="xsd:int" />
+                            <element name="rsaApplicationkey" minOccurs="0" type="xsd:string" />
+                            <element name="wapClientID" minOccurs="0" type="xsd:string" />
+                            <element name="vendorClientID" minOccurs="0" type="xsd:string" />
+                            <element name="mcc" minOccurs="0" type="xsd:string" />
+                            <element name="mnc" minOccurs="0" type="xsd:string" />
+                            <element name="osId" minOccurs="0" type="xsd:string" />
+                            <element name="mobileSdkData" minOccurs="0" type="xsd:string" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+            <complexType name="GeoLocation">
+                <sequence>
+                    <element name="longitude" minOccurs="0" type="xsd:decimal" />
+                    <element name="latitude" minOccurs="0" type="xsd:decimal" />
+                    <element name="horizontalAccuracy" minOccurs="0" type="xsd:int" />
+                    <element name="altitude" minOccurs="0" type="xsd:int" />
+                    <element name="altitudeAccuracy" minOccurs="0" type="xsd:int" />
+                    <element name="heading" minOccurs="0" type="xsd:decimal" />
+                    <element name="speed" minOccurs="0" type="xsd:int" />
+                    <element name="timestamp" minOccurs="0" type="xsd:long" />
+                    <element name="statusCode" minOccurs="0" type="xsd:int" />
+                </sequence>
+            </complexType>
+            <complexType name="WiFiNetworkData">
+                <sequence>
+                    <element name="stationName" minOccurs="0" type="xsd:string" />
+                    <element name="bbsId" minOccurs="0" type="xsd:string" />
+                    <element name="signalStrength" minOccurs="0" type="xsd:int" />
+                    <element name="channel" minOccurs="0" type="xsd:string" />
+                    <element name="ssId" minOccurs="0" type="xsd:string" />
+                </sequence>
+            </complexType>
+            <complexType name="PhoneData">
+                <complexContent>
+                    <extension base="rsa_csd:DeviceIdentifier">
+                        <sequence>
+                            <element name="phoneNo" minOccurs="0" type="xsd:string" />
+                            <element name="countryCode" minOccurs="0" type="xsd:string" />
+                            <element name="areaCode" minOccurs="0" type="xsd:string" />
+                            <element name="extension" minOccurs="0" type="xsd:string" />
+                        </sequence>
+                    </extension>
+                </complexContent>
+            </complexType>
+        </schema>
+    </wsdl:types>
+    <wsdl:message name="updateUserRequest">
+        <wsdl:part name="parameters" element="rsa_csd:updateUser" />
+    </wsdl:message>
+    <wsdl:message name="createUserRequest">
+        <wsdl:part name="parameters" element="rsa_csd:createUser" />
+    </wsdl:message>
+    <wsdl:message name="createUserResponse">
+        <wsdl:part name="parameters" element="rsa_csd:createUserResponse" />
+    </wsdl:message>
+    <wsdl:message name="queryAuthStatusResponse">
+        <wsdl:part name="parameters" element="rsa_csd:queryAuthStatusResponse" />
+    </wsdl:message>
+    <wsdl:message name="authenticateResponse">
+        <wsdl:part name="parameters" element="rsa_csd:authenticateResponse" />
+    </wsdl:message>
+    <wsdl:message name="updateUserResponse">
+        <wsdl:part name="parameters" element="rsa_csd:updateUserResponse" />
+    </wsdl:message>
+    <wsdl:message name="analyzeRequest">
+        <wsdl:part name="parameters" element="rsa_csd:analyze" />
+    </wsdl:message>
+    <wsdl:message name="queryResponse">
+        <wsdl:part name="parameters" element="rsa_csd:queryResponse" />
+    </wsdl:message>
+    <wsdl:message name="challengeRequest">
+        <wsdl:part name="parameters" element="rsa_csd:challenge" />
+    </wsdl:message>
+    <wsdl:message name="authenticateRequest">
+        <wsdl:part name="parameters" element="rsa_csd:authenticate" />
+    </wsdl:message>
+    <wsdl:message name="queryAuthStatusRequest">
+        <wsdl:part name="parameters" element="rsa_csd:queryAuthStatus" />
+    </wsdl:message>
+    <wsdl:message name="notifyRequest">
+        <wsdl:part name="parameters" element="rsa_csd:notify" />
+    </wsdl:message>
+    <wsdl:message name="queryRequest">
+        <wsdl:part name="parameters" element="rsa_csd:query" />
+    </wsdl:message>
+    <wsdl:message name="challengeResponse">
+        <wsdl:part name="parameters" element="rsa_csd:challengeResponse" />
+    </wsdl:message>
+    <wsdl:message name="notifyResponse">
+        <wsdl:part name="parameters" element="rsa_csd:notifyResponse" />
+    </wsdl:message>
+    <wsdl:message name="analyzeResponse">
+        <wsdl:part name="parameters" element="rsa_csd:analyzeResponse" />
+    </wsdl:message>
+    <wsdl:message name="AdaptiveAuthenticationSoapFault">
+        <wsdl:part name="parameters" element="rsa_csd:SoapFault" />
+    </wsdl:message>
+    <wsdl:portType name="AdaptiveAuthenticationInterface">
+        <wsdl:operation name="notify">
+            <wsdl:input name="notifyRequest" message="tns:notifyRequest" />
+            <wsdl:output name="notifyResponse" message="tns:notifyResponse" />
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault" message="tns:AdaptiveAuthenticationSoapFault" />
+        </wsdl:operation>
+        <wsdl:operation name="query">
+            <wsdl:input name="queryRequest" message="tns:queryRequest" />
+            <wsdl:output name="queryResponse" message="tns:queryResponse" />
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault" message="tns:AdaptiveAuthenticationSoapFault" />
+        </wsdl:operation>
+        <wsdl:operation name="analyze">
+            <wsdl:input name="analyzeRequest" message="tns:analyzeRequest" />
+            <wsdl:output name="analyzeResponse" message="tns:analyzeResponse" />
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault" message="tns:AdaptiveAuthenticationSoapFault" />
+        </wsdl:operation>
+        <wsdl:operation name="authenticate">
+            <wsdl:input name="authenticateRequest" message="tns:authenticateRequest" />
+            <wsdl:output name="authenticateResponse" message="tns:authenticateResponse" />
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault" message="tns:AdaptiveAuthenticationSoapFault" />
+        </wsdl:operation>
+        <wsdl:operation name="challenge">
+            <wsdl:input name="challengeRequest" message="tns:challengeRequest" />
+            <wsdl:output name="challengeResponse" message="tns:challengeResponse" />
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault" message="tns:AdaptiveAuthenticationSoapFault" />
+        </wsdl:operation>
+        <wsdl:operation name="createUser">
+            <wsdl:input name="createUserRequest" message="tns:createUserRequest" />
+            <wsdl:output name="createUserResponse" message="tns:createUserResponse" />
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault" message="tns:AdaptiveAuthenticationSoapFault" />
+        </wsdl:operation>
+        <wsdl:operation name="queryAuthStatus">
+            <wsdl:input name="queryAuthStatusRequest" message="tns:queryAuthStatusRequest" />
+            <wsdl:output name="queryAuthStatusResponse" message="tns:queryAuthStatusResponse" />
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault" message="tns:AdaptiveAuthenticationSoapFault" />
+        </wsdl:operation>
+        <wsdl:operation name="updateUser">
+            <wsdl:input name="updateUserRequest" message="tns:updateUserRequest" />
+            <wsdl:output name="updateUserResponse" message="tns:updateUserResponse" />
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault" message="tns:AdaptiveAuthenticationSoapFault" />
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:portType name="AsyncAdaptiveAuthenticationInterface">
+        <wsdl:operation name="notify">
+            <wsdl:input name="notifyRequest" message="tns:notifyRequest" />
+        </wsdl:operation>
+        <wsdl:operation name="analyze">
+            <wsdl:input name="analyzeRequest" message="tns:analyzeRequest" />
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="AsyncAdaptiveAuthenticationSoapBinding" type="tns:AsyncAdaptiveAuthenticationInterface">
+        <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+        <wsdl:operation name="notify">
+            <wsdlsoap:operation soapAction="rsa:notify:Notify" />
+            <wsdl:input name="notifyRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="analyze">
+            <wsdlsoap:operation soapAction="rsa:analyze:Analyze" />
+            <wsdl:input name="analyzeRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="AdaptiveAuthenticationSoapBinding" type="tns:AdaptiveAuthenticationInterface">
+        <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+        <wsdl:operation name="notify">
+            <wsdlsoap:operation soapAction="rsa:notify:Notify" />
+            <wsdl:input name="notifyRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output name="notifyResponse">
+                <wsdlsoap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault">
+                <wsdlsoap:fault name="AdaptiveAuthenticationSoapFault" use="literal" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="query">
+            <wsdlsoap:operation soapAction="rsa:query:Query" />
+            <wsdl:input name="queryRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output name="queryResponse">
+                <wsdlsoap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault">
+                <wsdlsoap:fault name="AdaptiveAuthenticationSoapFault" use="literal" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="analyze">
+            <wsdlsoap:operation soapAction="rsa:analyze:Analyze" />
+            <wsdl:input name="analyzeRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output name="analyzeResponse">
+                <wsdlsoap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault">
+                <wsdlsoap:fault name="AdaptiveAuthenticationSoapFault" use="literal" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="authenticate">
+            <wsdlsoap:operation soapAction="rsa:authenticate:Authenticate" />
+            <wsdl:input name="authenticateRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output name="authenticateResponse">
+                <wsdlsoap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault">
+                <wsdlsoap:fault name="AdaptiveAuthenticationSoapFault" use="literal" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="challenge">
+            <wsdlsoap:operation soapAction="rsa:challenge:Challenge" />
+            <wsdl:input name="challengeRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output name="challengeResponse">
+                <wsdlsoap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault">
+                <wsdlsoap:fault name="AdaptiveAuthenticationSoapFault" use="literal" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="createUser">
+            <wsdlsoap:operation soapAction="rsa:createuser:CreateUser" />
+            <wsdl:input name="createUserRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output name="createUserResponse">
+                <wsdlsoap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault">
+                <wsdlsoap:fault name="AdaptiveAuthenticationSoapFault" use="literal" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="queryAuthStatus">
+            <wsdlsoap:operation soapAction="rsa:queryauthstatus:QueryAuthStatus" />
+            <wsdl:input name="queryAuthStatusRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output name="queryAuthStatusResponse">
+                <wsdlsoap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault">
+                <wsdlsoap:fault name="AdaptiveAuthenticationSoapFault" use="literal" />
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateUser">
+            <wsdlsoap:operation soapAction="rsa:udpateuser:UpdateUser" />
+            <wsdl:input name="updateUserRequest">
+                <wsdlsoap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output name="updateUserResponse">
+                <wsdlsoap:body use="literal" />
+            </wsdl:output>
+            <wsdl:fault name="AdaptiveAuthenticationSoapFault">
+                <wsdlsoap:fault name="AdaptiveAuthenticationSoapFault" use="literal" />
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="AdaptiveAuthentication">
+        <wsdl:port name="AdaptiveAuthentication" binding="tns:AdaptiveAuthenticationSoapBinding">
+            <wsdlsoap:address location="http://d3.hq.passmarksecurity.com:8080/AdaptiveAuthentication/services/AdaptiveAuthentication" />
+        </wsdl:port>
+    </wsdl:service>
+    <wsdl:service name="AsyncAdaptiveAuthentication">
+        <wsdl:port name="AsyncAdaptiveAuthentication" binding="tns:AsyncAdaptiveAuthenticationSoapBinding">
+            <wsdlsoap:address location="http://d3.hq.passmarksecurity.com:8080/AdaptiveAuthentication/services/AsyncAdaptiveAuthentication" />
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

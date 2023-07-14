@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.dictionaries.pages.ListPagesOperation.list">
+        <return alias="children" class="com.rssl.phizic.business.dictionaries.pages.Page"/>
+        <![CDATA[
+            SELECT {children.*}
+            FROM PAGES children
+            WHERE ((:extra_name IS NOT NULL) AND (upper(children.PAGE_NAME) like upper(:extra_like_name))) OR
+                  (((:extra_name IS NULL) OR (:extra_name = '')) AND
+                   (((:extra_parentId IS NULL) AND (children.PARENT IS NULL)) OR
+                    ((:extra_parentId IS NOT NULL) AND (children.PARENT = :extra_parentId))))
+            START WITH parent IS NULL
+            CONNECT BY PRIOR id = parent
+            ORDER SIBLINGS BY ORDER_NUMBER
+		]]>
+    </sql-query>
+</hibernate-mapping>

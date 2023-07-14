@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="SegmentCodeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.SegmentCodeType</param>
+    </typedef>
+    <typedef  name="ProductType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.riskProfile.ProductType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile" table="PFP_RISK_PROFILES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_RISK_PROFILES</param>
+            </generator>
+        </id>
+        <property name="uuid"           type="string"          column="UUID"        not-null="true" update="false"/>
+        <property name="name"           type="string"          column="NAME"        not-null="true"/>
+        <property name="segment"        type="SegmentCodeType" column="SEGMENT"     not-null="true"/>
+        <property name="description"    type="string"          column="DESCRIPTION" not-null="true"/>
+        <property name="minWeight"      type="long"            column="MIN_WEIGHT"  not-null="true"/>
+        <property name="maxWeight"      type="long"            column="MAX_WEIGHT"  not-null="false"/>
+        <property name="deleted"        type="boolean"         column="IS_DELETED"  not-null="true"/>
+        <property name="isDefault"      type="boolean"         column="IS_DEFAULT"  not-null="true"/>
+        <map name="productsWeights" table="PFP_PRODUCTS_WEIGHTS" cascade="all-delete-orphan" lazy="false">
+            <key column="ID"/>
+            <map-key column="PRODUCT" type="ProductType"/>
+            <element column="WEIGHT" type="long"/>
+        </map>
+    </class>
+
+    <!--Помечаем все риск-профили в таблице удаленными-->
+    <query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile.markDeleted">
+        update RiskProfile set deleted = true WHERE id = :profileId
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile.isMutable">
+        <return-scalar column="IS_MUTABLE" type="boolean"/>
+        SELECT
+            DECODE(count(*), 0, 1, 0) IS_MUTABLE
+        FROM
+            PERSONAL_FINANCE_PROFILE
+        WHERE
+            RISK_PROFILE_ID  = :profileId
+    </sql-query>
+
+    <!-- есть ли дыры в интервалах -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile.isConcerted">
+        <return-scalar column="IS_CONCERTED" type="boolean"/>
+        SELECT
+            DECODE(ALL_PR.RP_COUNT - PAIR_RP.RP_COUNT - DECODE(ZERO_RP.ZERO_COUNT, 1, 1, 0), 0, 1, 0) IS_CONCERTED
+        FROM
+           (SELECT count(*) RP_COUNT
+            FROM PFP_RISK_PROFILES
+            WHERE IS_DELETED = 0 AND IS_DEFAULT = 0 AND
+                  (SEGMENT = :segment)) ALL_PR,
+           (SELECT count(*) RP_COUNT
+            FROM PFP_RISK_PROFILES rp1
+                JOIN PFP_RISK_PROFILES rp2 ON rp1.MIN_WEIGHT = rp2.MAX_WEIGHT + 1 AND
+                                              rp1.IS_DELETED = 0 AND rp2.IS_DELETED = 0 AND
+                                              rp1.IS_DEFAULT = 0 AND rp2.IS_DEFAULT = 0 AND
+                                              (rp1.SEGMENT = :segment AND rp1.SEGMENT = rp2.SEGMENT)) PAIR_RP,
+           (SELECT count(*) ZERO_COUNT
+            FROM PFP_RISK_PROFILES
+            WHERE MIN_WEIGHT = 0 AND IS_DELETED = 0 AND IS_DEFAULT = 0 AND
+                  (SEGMENT = :segment)) ZERO_RP
+    </sql-query>
+
+    <!-- есть ли пересечения в интервалах -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile.isExistCrossing">
+        <return-scalar column="IS_EXIST" type="boolean"/>
+        <![CDATA[
+            SELECT
+                DECODE(count(*), 0, 0, 1) IS_EXIST
+            FROM
+                PFP_RISK_PROFILES
+            WHERE
+                (:id IS NULL OR :id <> ID) AND IS_DELETED = 0 AND IS_DEFAULT = 0 AND
+                (SEGMENT = :segment) AND
+                ((:minWeight <= MIN_WEIGHT AND (:maxWeight IS NULL OR :maxWeight = '' OR :maxWeight >= MIN_WEIGHT)) OR
+                (:minWeight >= MIN_WEIGHT AND (MAX_WEIGHT IS NULL OR :minWeight <= MAX_WEIGHT)))
+		]]>
+    </sql-query>
+
+    <!-- существуют ли риск-профили для всех сегментов, исключая заданные, с распределением веса (отличным от 0) для заданного типа продукта -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile.isExistProductWeight">
+        <return-scalar column="IS_EXIST" type="boolean"/>
+        <![CDATA[
+            SELECT DECODE(count(*), 0, 0, 1) IS_EXIST
+            FROM PFP_RISK_PROFILES riskProfile
+                 JOIN PFP_PRODUCTS_WEIGHTS weights ON riskProfile.ID = weights.ID AND weights.PRODUCT = :type
+            WHERE riskProfile.SEGMENT NOT IN (:excludedSegments) AND
+                  riskProfile.IS_DELETED = 0 AND
+                  riskProfile.IS_DEFAULT = 0 AND
+                  weights.WEIGHT <> 0
+		]]>
+    </sql-query>
+
+    <!-- существуют ли риск-профили для всех сегментов, исключая заданные, с распределением веса (отличным от 0) для заданного типа продукта -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile.isExistProductWeightForAllSegments">
+        <return-scalar column="IS_EXIST" type="boolean"/>
+        <![CDATA[
+            SELECT DECODE(count(*), 0, 0, 1) IS_EXIST
+            FROM PFP_RISK_PROFILES riskProfile
+                 JOIN PFP_PRODUCTS_WEIGHTS weights ON riskProfile.ID = weights.ID AND weights.PRODUCT = :type
+            WHERE riskProfile.IS_DELETED = 0 AND
+                  riskProfile.IS_DEFAULT = 0 AND
+                  weights.WEIGHT <> 0
+		]]>
+    </sql-query>
+
+    <!--
+        ищем риск-профили для изменения:
+     	 1. риск-профили у которых не задано распределения для типа продукта :type, но сегмент которых соответствует новом сегменту :segment (для добавления веса)
+     	 2. риск-профили у которых задано распределения для типа продукта :type равное 0 и сегмент которых не соответствует новом сегменту :segment (для удаления веса)
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile.getRiskProfilesForModification">
+        <return class="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile"/>
+        SELECT *
+        FROM PFP_RISK_PROFILES riskProfile
+             LEFT JOIN PFP_PRODUCTS_WEIGHTS weights ON riskProfile.ID = weights.ID AND weights.PRODUCT = :type
+        WHERE (riskProfile.SEGMENT IN (:segment) AND weights.WEIGHT IS NULL OR riskProfile.SEGMENT NOT IN (:segment) AND weights.WEIGHT = 0) AND riskProfile.IS_DELETED = 0
+    </sql-query>
+
+    <!-- ищем риск-профили для изменения: риск-профили у которых задано распределения для типа продукта :type равное 0 (для удаления веса) -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile.getRiskProfilesForDeleting">
+        <return class="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile"/>
+        SELECT *
+        FROM PFP_RISK_PROFILES riskProfile
+             LEFT JOIN PFP_PRODUCTS_WEIGHTS weights ON riskProfile.ID = weights.ID AND weights.PRODUCT = :type
+        WHERE weights.WEIGHT = 0 AND riskProfile.IS_DELETED = 0
+    </sql-query>
+</hibernate-mapping>

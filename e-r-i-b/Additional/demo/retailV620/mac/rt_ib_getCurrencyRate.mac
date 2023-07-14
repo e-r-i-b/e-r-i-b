@@ -1,0 +1,168 @@
+/**************************************************************************\
+*  ---------------                                                         *
+*  R-Style Softlab                                                         *
+*  ---------------                                                         *
+*  RS-Retail                                                               *
+*                                                                          *
+*  Определение курса валюты за число                                       *
+*                                                                          *
+*  Пахомова Ю.В                                                            *
+\**************************************************************************/
+
+/**
+передается:
+        getCurrencyRate_q
+        date - дата 
+        toCurrency buyCurrency - код валюты, в которую переводить
+        fromCurrency saleCurrency - код валюты, откуда переводить
+        buySum - покупаемая сумма
+        saleSum - продаваемая сумма
+
+        Пользователь передает валюту продажи и валюту покупки
+        и одну из указанных сумм. 
+
+        Макрос вычисляет курс продажи и курс покупки валюты 
+        И возвращает курс ЦБ, курс покупки, курс продажи, сумму (покупаемую или продаваемую) в требуемой валюте.
+
+возвращается:
+        (большая часть полезной инфы, что тут вычисляется, оказалась не нужна)
+        (поэтому возвращаем просто сумму в требуемой валюте)
+
+        sum - сумма в требуемой валюте.
+**/
+
+
+import "cur_rate.mac";
+
+
+
+macro GetCurrencyRate(inXml, outXml)
+
+   var dateXml = inXml.documentElement.selectSingleNode("//date"); 
+   var toCurrencyXml = inXml.documentElement.selectSingleNode("//buyCurrency" ).text;
+   var fromCurrencyXml   = inXml.documentElement.selectSingleNode("//saleCurrency").text;
+   var buySumXml   = inXml.documentElement.selectSingleNode("//buySum");
+   var sellSumXml   = inXml.documentElement.selectSingleNode("//saleSum");
+
+   var currDate;
+    
+   var node, nodeAnswer;
+
+   var sum=0.0;
+
+   var sCBRate=0.00, sBuyRate=0.0, sSellRate=0.0;
+   var sCBRate1=0.00, sBuyRate1=0.0, sSellRate1=0.0;
+   var toCurrency, fromCurrency;
+
+   var buySum=null, sellSum=null;
+
+   var ruCurrency = 0;//NatCur();
+
+   var result, result1; //результат, возвращаемый GetAllCurrRate - если неверная валюта передана, например
+
+   if (dateXml)
+       currDate = Date(dateXml.text);
+   end;
+
+   if (toCurrencyXml)
+        toCurrency = int(toCurrencyXml);
+   end;
+   if (fromCurrencyXml)
+        fromCurrency = int(fromCurrencyXml);
+   end;
+
+   if (buySumXml)
+        buySum = double(buySumXml.text);
+   end;
+
+   if (sellSumXml)
+        sellSum = double(sellSumXml.text);
+   end;
+
+
+if (not outXml)
+   outXml = CreateXMLObject();
+   if (not outXml)
+      return;
+   end;
+   outXml.documentElement = outXml.createNode(1, "response", "");
+   node = outXml.documentElement.appendChild( outXml.createNode(1, "parentId", "") ); 
+   node.text = ParentId;
+   node = outXml.documentElement.appendChild(outXml.createNode(1, "id", ""));
+   node.text = FormApplicationKey(1);
+   nodeAnswer = outXml.documentElement.appendChild(outXml.createNode(1, "getCurrencyRate_a", ""));
+        
+   if ( (buySum == null) and (sellSum == null))
+        outXML = AddError2OutXml_(outXML, "Не заданы сумма покупки и сумма продажи");
+        return;
+   end;
+
+   /*если одна из валют является рублем - просто вызываем GetAllCurrRate */
+   if  ( (toCurrency == ruCurrency) or (fromCurrency == ruCurrency) )
+      if (toCurrency == ruCurrency)
+         result = GetAllCurrRate( currDate, fromCurrency, sCBRate, sBuyRate, sSellRate);
+      elif (fromCurrency == ruCurrency)
+         result = GetAllCurrRate( currDate, toCurrency, sCBRate, sBuyRate, sSellRate);
+      end;
+
+      /*считаем, что пользователь задал правильный код валюты (и result==true)*/
+      if (buySum != null)   /*покупаем рубли*/
+         sum = buySum * sBuyRate; 
+      else                  /*продаем рубли*/
+         sum = sellSum * sSellRate; 
+      end;
+    end;
+      
+  /* elif (fromCurrency == ruCurrency)
+      result = GetAllCurrRate( currDate, toCurrency, sCBRate, sBuyRate, sSellRate); 
+      if (buySum != null)   /*покупаем валюту*/
+         sum = buySum / sBuyRate;
+      else /*продаем */
+         sum = sellSum / sSellRate; 
+      end;
+
+      sBuyRate = 1/sBuyRate;
+      sSellRate = 1/sSellRate;
+   */  
+      
+   if ( (fromCurrency != ruCurrency) and (toCurrency != ruCurrency))
+      result = GetAllCurrRate( currDate, toCurrency, sCBRate, sBuyRate, sSellRate); 
+      result1 = GetAllCurrRate( currDate, fromCurrency, sCBRate1, sBuyRate1, sSellRate1);
+      if ( (result == false) and (result1 == false) )
+         outXML = AddError2OutXml_(outXML, "Неизвестная валюта, код1=" + toCurrency + ",код2=" + fromCurrency);
+         return;
+      end;
+ 
+      sCBRate = sCBRate/sCBRate1; 
+      sBuyRate = sBuyRate/sBuyRate1; 
+      sSellRate = sSellRate/sSellRate1;
+     
+      if (buySum != null)   /*покупаем валюту*/
+         sum = buySum * sBuyRate;
+      else /*продаем*/
+         sum = sellSum * sSellRate; 
+      end;
+   end;
+        
+      /*
+      /* эти данные не выводим пока */
+      node = outXML.createNode(1, "cbRate",  "");
+      node.text = sCBRate;
+      nodeAnswer.appendChild(node);
+      
+      node = outXML.createNode(1, "cBuyRate",  "");
+      node.text = string(sBuyRate);
+      nodeAnswer.appendChild(node);
+      
+      node = outXML.createNode(1, "cCellRate",  "");
+      node.text = string(sSellRate);
+      nodeAnswer.appendChild(node);
+     */
+      node = outXML.createNode(1, "sum",  "");
+      node.text = string(sum);
+      nodeAnswer.appendChild(node);   
+   end;
+
+      SetParm(1, outXml);
+
+end;

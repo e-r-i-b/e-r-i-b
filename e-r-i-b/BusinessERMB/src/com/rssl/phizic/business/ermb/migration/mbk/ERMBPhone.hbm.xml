@@ -1,0 +1,28 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="PhoneNumber" class="com.rssl.phizic.dataaccess.hibernate.PhoneNumberType"/>
+
+    <class name="com.rssl.phizic.gate.mobilebank.ERMBPhone" table="ERMB_PHONES">
+		<id name="phoneNumber"         type="PhoneNumber"   column="PHONE_NUMBER"/>
+        <property name="phoneUsage"    type="boolean"       column="PHONE_USAGE"     not-null="true"/>
+        <property name="lastModified"  type="calendar"      column="LAST_MODIFIED"   not-null="true"/>
+        <property name="lastUpload"    type="calendar"      column="LAST_UPLOAD"     not-null="true"/>
+   </class>
+
+    <!--Получить ЕРМБ-телефоны, для которых время последнего изменения больше времени последней успешной выгрузки в МБК-->
+    <sql-query name="com.rssl.phizic.business.ermb.migration.mbk.ERMBPhoneService.getERMBPhones">
+        <return alias="phones" class="com.rssl.phizic.gate.mobilebank.ERMBPhone"/>
+        <![CDATA[
+        select * from ERMB_PHONES phones
+            where phones.LAST_MODIFIED > phones.LAST_UPLOAD and rownum <= :maxResults
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.mbk.ERMBPhoneService.findByPhoneNumbers">
+        select phone from com.rssl.phizic.gate.mobilebank.ERMBPhone phone
+        where phone.phoneNumber in (:phoneNumbers)
+    </query>
+</hibernate-mapping>

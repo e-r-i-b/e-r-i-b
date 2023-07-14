@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.gate.mail.statistics.MailStatisticsRecord" mutable="false">
+        <id name="state"/>
+        <property name="counter"/>
+    </class>
+
+    <class name="com.rssl.phizic.gate.mail.statistics.EmployeeStatisticsRecord" mutable="false">
+        <id name="id"/>
+        <property name="arriveTime"/>
+        <property name="processingTime"/>
+        <property name="state"/>
+        <property name="employeeFIO"/>
+        <property name="areaName"/>
+    </class>
+
+    <class name="com.rssl.phizic.gate.mail.statistics.MailDateSpan" mutable="false">
+        <id name="milliseconds"/>
+        <property name="count"              type="long"/>
+    </class>
+
+    <resultset name="com.rssl.phizic.operations.ext.sbrf.mail.MailStatisticsOperation.statistics.resultset">
+        <return class="com.rssl.phizic.gate.mail.statistics.MailStatisticsRecord">
+            <return-property name="state" column="ST"/>
+            <return-property name="counter" column="counter"/>
+        </return>
+    </resultset>
+
+    <resultset name="com.rssl.phizic.operations.ext.sbrf.mail.MailStatisticsOperation.employeeStatistics.resultset">
+        <return class="com.rssl.phizic.gate.mail.statistics.EmployeeStatisticsRecord">
+            <return-property name="id" column="MAIL_ID"/>
+            <return-property name="arriveTime" column="ARRIVE_TIME"/>
+            <return-property name="processingTime" column="PROCESSING_TIME"/>
+            <return-property name="state" column="STATE"/>
+            <return-property name="employeeFIO" column="EMPLOYEE_FIO"/>
+            <return-property name="areaName" column="AREA_NAME"/>
+        </return>
+  </resultset>
+
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.mail.MailStatisticsOperation.statistics"
+               resultset-ref="com.rssl.phizic.operations.ext.sbrf.mail.MailStatisticsOperation.statistics.resultset"/>
+
+
+
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.mail.MailStatisticsOperation.employeeStatistics"
+               resultset-ref="com.rssl.phizic.operations.ext.sbrf.mail.MailStatisticsOperation.employeeStatistics.resultset"/>
+
+    <!--Получить среднее время ответа на письмо, с указанием количества данных на основе которых произведено усреднение-->
+    <!-- Опорный объект: MAIL_CREATION_DATE_INDX
+         Предикаты доступа:  access("MAIL"."CREATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND "MAIL"."CREATION_DATE"<TO_TIMESTAMP(:TODATE))
+         Кардинальность: количество писем с датой создания в интервале от :FROMDATE до :TODATE
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.mail.MailStatisticsOperation.getAverageTime">
+    <return class="com.rssl.phizic.gate.mail.statistics.MailDateSpan">
+        <return-property name="milliseconds" column="avg_time"/>
+        <return-property name="count"        column="mCount"/>
+    </return>
+    <![CDATA[
+        SELECT
+            round(avg(RESPONSE_TIME)) avg_time, count(1) mCount
+        FROM
+            MAIL mail
+        WHERE
+            RESPONSE_TIME is not null
+        AND mail.STATE <> 'TEMPLATE'
+        AND mail.TYPE in (:extra_type)
+        AND (:extra_theme is NULL OR :extra_theme = '' OR mail.SUBJECT_ID = :extra_theme)
+        AND (:extra_response_method is NULL OR :extra_response_method = '' OR mail.RESPONSE_METHOD = :extra_response_method)
+        AND mail.CREATION_DATE >= :extra_fromDate
+        AND mail.CREATION_DATE <  :extra_toDate
+    ]]>
+    </sql-query>
+
+    <!--Получить дату отправки первого письма подходящего под параметры запроса-->
+    <!-- Опорный объект: MAIL_CREATION_DATE_INDX
+         Предикаты доступа:  access("MAIL"."CREATION_DATE">=TO_TIMESTAMP(:FROMDATE) AND "MAIL"."CREATION_DATE"<TO_TIMESTAMP(:TODATE))
+         в обоих запросах из UNION-a.
+         Кардинальность: количество писем с датой создания в интервале от :FROMDATE до :TODATE
+         В первом запросе идет джоин с таблицей RECIPIENTS по FK.
+
+         Запрос очень неоптимален, так как приходится получать оба списка, склеивать их, а уже потом определять минимум.
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.mail.MailStatisticsOperation.getFirstMailDate">
+        <return-scalar column="erlDate" type="calendar"/>
+    <![CDATA[
+        SELECT
+            min(mail1.CREATION_DATE) erlDate from MAIL mail1 where mail1.ID in
+        (
+            SELECT
+                mail.ID
+            FROM
+                MAIL mail
+                LEFT JOIN RECIPIENTS recipient ON mail.ID = recipient.MAIL_ID
+            WHERE
+                recipient.DELETED = '0'
+                AND (mail.STATE != 'CLIENT_DRAFT')
+                AND (mail.DELETED = '0')
+                AND recipient.STATE in (:extra_state)
+                AND mail.TYPE in (:extra_type)
+                AND (:extra_theme is NULL OR :extra_theme = '' OR mail.SUBJECT_ID = :extra_theme)
+                AND (:extra_response_method is NULL OR :extra_response_method = '' OR mail.RESPONSE_METHOD = :extra_response_method)
+                AND mail.DIRECTION = 'ADMIN'
+                AND mail.CREATION_DATE >= :extra_fromDate
+                AND mail.CREATION_DATE <  :extra_toDate
+            UNION ALL
+            SELECT
+                mail.ID
+            FROM
+                MAIL mail
+            WHERE
+            (
+                (
+                    'NONE' in (:extra_state)
+                    AND mail.STATE = 'EMPLOYEE_DRAFT'
+                    AND mail.PARENT_ID is NULL
+                )
+                OR
+                (
+                    'NEW_EPLOYEE_MAIL' in (:extra_state)
+                    AND mail.STATE = 'NEW'
+                    AND mail.PARENT_ID is NULL
+                )
+                OR
+                (
+                    'ANSWER_EPLOYEE_MAIL' in (:extra_state)
+                    AND mail.STATE = 'NEW'
+                    AND mail.PARENT_ID is NOT NULL
+                )
+            )
+            AND mail.DIRECTION = 'CLIENT'
+            AND (mail.DELETED = '0')
+            AND mail.TYPE in (:extra_type)
+            AND (:extra_theme is NULL OR :extra_theme = '' OR mail.SUBJECT_ID = :extra_theme)
+            AND (:extra_response_method is NULL OR :extra_response_method = '' OR mail.RESPONSE_METHOD = :extra_response_method)
+            AND mail.CREATION_DATE >= :extra_fromDate
+            AND mail.CREATION_DATE <  :extra_toDate
+            )
+        ]]>
+        </sql-query>
+
+
+</hibernate-mapping>

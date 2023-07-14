@@ -1,0 +1,20 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <!-- список карточных операций, удовлетворяющих параметрам фильтра -->
+    <query name="com.rssl.phizic.operations.finances.ShowCategoryAbstractOperation.getCardOperations">
+      <![CDATA[
+        from com.rssl.phizic.business.finances.CardOperation op
+        where op.ownerId = :extra_loginId
+          and op.category.id = :extra_categoryId
+          and :extra_start <= op.date and op.date <= :extra_until
+          and (:extra_cash = true or op.cash = :extra_cash)
+          and op.cardNumber in (:extra_cards)
+          and op.cardAmount <> 0
+        order by op.date desc, op.id asc
+      ]]>
+    </query>
+</hibernate-mapping>

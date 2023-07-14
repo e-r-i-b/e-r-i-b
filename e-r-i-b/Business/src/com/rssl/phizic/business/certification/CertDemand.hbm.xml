@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.certification.CertDemand" table="CERT_DEMANDS" abstract="true">
+
+        <id name="id" type="long">
+         <generator class="native">
+          <param name="sequence">S_CERT_DEMANDS</param>
+         </generator>
+        </id>
+
+        <property name="status" type="string" column="STATUS" not-null="true"/>
+        <many-to-one name="login" class="com.rssl.phizic.auth.LoginImpl"  column="LOGIN_ID" fetch="join" lazy="false" not-null="false"/>
+        <property name="issueDate" type="calendar" column="ISSUE_DATE" not-null="true"/>
+	    <property name="certRequest" type="string" column="REQUEST" not-null="true"/>
+	    <property name="certRequestFile" type="string" column="REQUEST_FILENAME" not-null="true"/>
+	    <property name="certRequestAnswer" type="string" column="ANSWER"/>
+	    <property name="certRequestAnswerFile" type="string" column="ANSWER_FILENAME"/>
+	    <property name="refuseReason" type="string" column="REFUSE_REASON"/>
+	    <property name="signed" type="boolean" column="SIGNED"/>
+    </class>
+
+	<query name="com.rssl.phizic.security.certification.getLoginCertDemands">
+        SELECT certDemand from com.rssl.phizic.business.certification.CertDemand certDemand
+		WHERE certDemand.login = :login
+		ORDER BY certDemand.issueDate asc
+	</query>
+
+</hibernate-mapping>

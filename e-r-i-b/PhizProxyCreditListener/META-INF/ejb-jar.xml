@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ejb-jar
+        PUBLIC "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 2.0//EN"
+        "http://java.sun.com/dtd/ejb-jar_2_0.dtd">
+        
+<ejb-jar id="EJBJar_PhizProxyCreditListener">
+    <enterprise-beans>
+
+        <!-- Приём статуса расширенной заявки на кредит -->
+        <message-driven id="MessageDriven_PhizProxyCreditListener">
+
+            <ejb-name>PhizProxyCreditListener</ejb-name>
+
+            <ejb-class>com.rssl.phizic.credit.PhizProxyCreditListener</ejb-class>
+
+            <transaction-type>Bean</transaction-type>
+
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+
+            <resource-ref id="ResourceRef_BackCreditQCF">
+                <res-ref-name>jms/etsm/LoanClaimStatusQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+
+            <resource-ref id="ResourceRef_BackCreditQueue">
+                <res-ref-name>jms/etsm/LoanClaimStatusQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+
+        </message-driven>
+
+    </enterprise-beans>
+
+    <assembly-descriptor/>
+</ejb-jar>

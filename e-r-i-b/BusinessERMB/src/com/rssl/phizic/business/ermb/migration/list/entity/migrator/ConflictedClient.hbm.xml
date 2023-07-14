@@ -1,0 +1,32 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.ConflictedClient" table="CONFLICTED_CLIENTS">
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_CONFLICTED_CLIENTS</param>
+			</generator>
+        </id>
+        <property name="lastName"        type="string"   column="SUR_NAME"          not-null="true"/>
+        <property name="firstName"       type="string"   column="FIRST_NAME"        not-null="true"/>
+        <property name="middleName"      type="string"   column="PATR_NAME"         not-null="false"/>
+        <property name="document"        type="string"   column="DOCUMENT"          not-null="true"/>
+        <property name="birthday"        type="calendar" column="BIRTH_DATE"        not-null="true"/>
+        <property name="tb"              type="string"   column="TER_BANK"          not-null="false"/>
+        <property name="osb"             type="string"   column="OSB"               not-null="false"/>
+        <property name="vsp"             type="string"   column="VSP"               not-null="false"/>
+        <property name="vipOrMvs"        type="boolean"  column="VIP_OR_MBC"        not-null="true"/>
+        <property name="cardActivity"    type="boolean"  column="CARD_ACTIVITY"     not-null="true"/>
+   </class>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.ConflictedClient.findByFioDulDrTb">
+        from com.rssl.phizic.business.ermb.migration.list.entity.migrator.ConflictedClient
+        where
+            upper(replace(replace(concat(concat(firstName, middleName), lastName), ' ', ''), '-', '')) = :fio and
+            replace(document, ' ', '') = :document and
+            birthday = :birthDay and
+            tb = :tb
+    </query>
+</hibernate-mapping>

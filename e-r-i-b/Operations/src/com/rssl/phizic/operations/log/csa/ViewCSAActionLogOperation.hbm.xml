@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <resultset name="com.rssl.phizic.operations.log.csa.ViewCSAActionLogOperation.list.resultset">
+		<return alias="actionLog" class="com.rssl.phizic.logging.csaAction.CSAActionLogEntry"/>
+    </resultset>
+
+	<sql-query name="com.rssl.phizic.operations.log.csa.ViewCSAActionLogOperation.list" resultset-ref="com.rssl.phizic.operations.log.csa.ViewCSAActionLogOperation.list.resultset">
+        <![CDATA[
+        SELECT actionLog.*
+        FROM   CSA_ACTION_LOG actionLog
+        WHERE
+            actionLog.START_DATE >= :extra_fromDate
+            and actionLog.PASSPORT = :extra_passport
+            and actionLog.START_DATE <= :extra_toDate
+            and upper(actionLog.FIRST_NAME) = upper(:extra_firstName)
+            and upper(actionLog.SUR_NAME) = upper(:extra_surName)
+            and upper(actionLog.PATR_NAME) = upper(:extra_patrName)
+            and actionLog.BIRTHDATE = :extra_birthDate
+            and actionLog.TB in (:extra_tb)
+            AND (:extra_identificationType is null OR actionLog.IDENTIFICATION_TYPE = :extra_identificationType)
+            AND (:extra_operationType is null OR actionLog.OPERATION_TYPE = :extra_operationType)
+            AND (:extra_confirmationType is null OR (:extra_confirmationType = 'none' AND actionLog.CONFIRMATION_TYPE IS NULL) OR (actionLog.CONFIRMATION_TYPE = :extra_confirmationType))
+            AND (:extra_ipAddress is null OR actionLog.IP_ADDRESS = :extra_ipAddress)
+            AND (:extra_employeeFio is null OR upper(replace(actionLog.EMPLOYEE_FIO,' ','')) like upper(replace(:extra_like_employeeFio, ' ','')))
+            AND (:extra_employeeLogin is null OR actionLog.EMPLOYEE_LOGIN = :extra_employeeLogin)
+        order by actionLog.START_DATE desc
+        ]]>
+	</sql-query>
+
+</hibernate-mapping>

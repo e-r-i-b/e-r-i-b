@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.ext.sevb.access.AssignEmployeeAccessOperation.getNumberAdmins">
+        select count(SCHEMEOWNS.id) from EMPLOYEES empl
+            left join SCHEMEOWNS on SCHEMEOWNS.login_id = empl.login_id
+            left join ACCESSSCHEMES on ACCESSSCHEMES.id = SCHEMEOWNS.scheme_id
+            where ACCESSSCHEMES.category = 'A'
+            and empl.department_id = :departmentId
+            and  empl.login_id not in
+                 (select login_id from LOGIN_BLOCK blocks
+                  where current_date >= blocks.date_from
+                  and (blocks.date_until is null or blocks.date_until > current_date)
+                 )
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.dictionaries.provider.ListFieldValidatorsOperation.list">
+        <return alias="validatorParams" class="com.rssl.phizic.business.fields.FieldValidationParameterBase"/>
+        <return alias="validators" class="com.rssl.phizic.business.fields.FieldValidationRuleImpl"/>
+        <return-scalar column="name"   type="string"/>
+        <return-scalar column="code"   type="string"/>
+		<![CDATA[
+            SELECT fields.NAME name, fields.EXTERNAL_ID code, {validatorParams.*}, {validators.*}
+            FROM  FIELD_DESCRIPTIONS fields
+                JOIN FIELD_VALIDATORS_DESCR validators ON validators.FIELD_ID = fields.ID
+                JOIN FIELD_VALIDATORS_PARAM validatorParams ON validators.ID = validatorParams.FIELD_ID
+            WHERE fields.RECIPIENT_ID = :extra_recipienId
+		]]>
+    </sql-query>
+</hibernate-mapping>

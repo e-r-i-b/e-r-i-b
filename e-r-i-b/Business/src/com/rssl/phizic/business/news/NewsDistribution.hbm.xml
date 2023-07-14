@@ -1,0 +1,40 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="NewsDistributionsState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.news.NewsDistributionsState</param>
+    </typedef>
+	<typedef name="NewsDistributionType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.news.NewsDistributionType</param>
+    </typedef>
+
+	<class name="com.rssl.phizic.business.news.NewsDistribution" table="NEWS_DISTRIBUTIONS">
+
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_NEWS_DISTRIBUTIONS</param>
+			</generator>
+		</id>
+
+		<property name="date"               type="calendar"               column="DATE_CREATED"       not-null="true"/>
+        <many-to-one name="login"           class="com.rssl.phizic.auth.CommonLogin" column="EMPLOYEE_LOGIN_ID" lazy="false" not-null="true"/>
+		<property name="type"               type="NewsDistributionType"   column="TYPE"               not-null="true"/>
+		<property name="newsId"             type="long"                   column="NEWS_ID"            not-null="true" />
+		<property name="mailCount"          type="int"                    column="MAIL_COUNT"         not-null="true"/>
+		<property name="timeout"            type="long"                   column="TIMEOUT"            not-null="true"/>
+        <property name="state"              type="NewsDistributionsState" column="STATE"              not-null="true"/>
+        <property name="title"              type="string"                 column="TITLE"              not-null="true"/>
+        <property name="text"               type="string"                 column="TEXT"               not-null="true"/>
+        <property name="terbanks"           type="string"                 column="TERBANKS"           not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.news.findNewsDistributions">
+        select distr
+          from
+               com.rssl.phizic.business.news.NewsDistribution as distr
+          where distr.type = :distrType
+            and distr.newsId in (:newsIds)
+    </query>
+</hibernate-mapping>

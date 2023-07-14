@@ -1,0 +1,109 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.pages.Page" table="PAGES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PAGES</param>
+            </generator>
+        </id>
+
+        <property name="key"   type="string" column="PAGE_KEY"  not-null="true" unique="true" update="false" />
+        <property name="name"  type="string" column="PAGE_NAME"/>
+        <property name="url"   type="string" column="PAGE_URL"/>
+        <property name="order" type="string" column="ORDER_NUMBER"/>
+        <map name="parameters" table="PAGE_PARAMETERS" cascade="all-delete-orphan" lazy="false">
+            <key column="ID"/>
+            <index column="KEY_PARAMETER" type="string"/>
+            <element column="VALUE_PARAMETER" type="string"/>
+        </map>
+        <many-to-one name="parent"
+                     class="com.rssl.phizic.business.dictionaries.pages.Page"
+                     column="PARENT"
+                     lazy="false"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pages.Page.isGroupPage">
+        <return-scalar column="isGroupPage" type="integer"/>
+        <![CDATA[
+             SELECT DECODE(COUNT(*), 0, 0, 1) isGroupPage
+             FROM PAGES
+             WHERE PARENT = :parentId
+		]]>
+    </sql-query>
+    <sql-query name="com.rssl.phizic.business.dictionaries.pages.Page.findPagesByUrlAndParameters">
+        <return-scalar column="pageId" type="long"/>
+        <![CDATA[
+                SELECT children.ID as pageId
+                FROM PAGES children
+                WHERE
+                    ((children.PAGE_URL = :pageURL)
+                AND
+                (
+                    children.ID IN
+                                (
+                                -- поиск идентификатора страницы с заданными параметрами.
+                                  SELECT ID
+                                  FROM (SELECT ID CA_ID, count(ID) CA_countId
+                                        FROM PAGE_PARAMETERS
+                                        WHERE concat(KEY_PARAMETER, concat(:delimiter, VALUE_PARAMETER)) IN (:parameters)
+                                        GROUP BY ID) COUNT_ALIGNMENT,
+                                       (SELECT ID, count(ID) CPOP_countId
+                                        FROM PAGE_PARAMETERS
+                                        GROUP BY ID) COUNT_PARAMETERS_ON_PAGE
+                                  WHERE
+                                     COUNT_ALIGNMENT.CA_ID = COUNT_PARAMETERS_ON_PAGE.ID
+                                  AND
+                                     COUNT_ALIGNMENT.CA_countId = COUNT_PARAMETERS_ON_PAGE.CPOP_countId
+                                )
+
+                    OR
+                    -- отсев "левых" параметров (returnTo и т.д). если параметра не встречается в таблице,
+                    -- то он "левый"
+                       ( SELECT count(*)
+                          FROM PAGE_PARAMETERS
+                          WHERE concat(KEY_PARAMETER, concat(:delimiter, VALUE_PARAMETER)) IN (:parameters)
+                       ) = 0
+                     -- если параметры только "левые", то надо убедиться, что у этой страницы не должно быть обязательных параметров
+                     AND
+                       (SELECT count(*)
+                        FROM PAGE_PARAMETERS
+                        WHERE ID = children.ID
+                       ) = 0
+                ))
+		]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pages.Page.findPagesByUrl">
+        <return-scalar column="pageId" type="long"/>
+            SELECT children.ID as pageId
+            FROM PAGES children
+            WHERE (children.PAGE_URL = :pageURL)
+            AND ( :paramIsNull = '1' OR children.ID not in (SELECT ID FROM PAGE_PARAMETERS) )
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pages.Page.findPagesBySelectedIds">
+        <return alias="page" class="com.rssl.phizic.business.dictionaries.pages.Page"/>
+            SELECT {page.*}
+            FROM pages page
+            START WITH id IN
+               (
+                SELECT id FROM pages
+                WHERE page_url IS NULL
+                    AND id IN (:selectedIds)
+                    AND (parent IS NULL OR parent NOT IN (:selectedIds))
+                )
+            CONNECT BY PRIOR id = PARENT
+
+            UNION ALL
+
+            SELECT {page.*}
+            FROM pages page
+            WHERE page_url IS NOT NULL
+                AND (parent NOT IN (:selectedIds) OR parent IS NULL)
+                AND id in (:selectedIds)
+    </sql-query>
+
+</hibernate-mapping>

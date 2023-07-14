@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.ermb.ErmbClientPhone" table="ERMB_CLIENT_PHONE">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ERMB_CLIENT_PHONE</param>
+            </generator>
+        </id>
+
+        <property name="main" type="boolean" column="IS_MAIN" not-null="true"/>
+        <property name="number" type="string" column="PHONE_NUMBER" not-null="true"/>
+        <property name="creationDate" type="calendar" column="CREATION_DATE" not-null="true"/>
+
+        <many-to-one name="profile"
+                     class="com.rssl.phizic.business.ermb.ErmbProfileImpl"
+                     column="PROFILE_ID"
+                     not-null="true"
+                     fetch="join"
+                     lazy="false"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.ermb.ErmbClientPhone.findPhoneByNumber">
+        select phone
+        from ErmbClientPhone as phone
+        where phone.number = :number
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.ermb.ErmbClientPhone.isPhoneNumberAvailable">
+        <return-scalar column="isPhoneNumberAvailable" type="boolean"/>
+        <![CDATA[
+             SELECT DECODE(COUNT(*), 0, 1, 0) isPhoneNumberAvailable
+             FROM ERMB_CLIENT_PHONE
+             WHERE PHONE_NUMBER = :number
+		]]>
+    </sql-query>
+
+    <!-- Определяет существует ли в ЕРМБ указанный телефон -->
+    <query name="com.rssl.phizic.business.ermb.phone.isErmbPhone">
+        select 1
+        from ErmbClientPhone as phone
+        where phone.number = :phone
+    </query>
+
+</hibernate-mapping>

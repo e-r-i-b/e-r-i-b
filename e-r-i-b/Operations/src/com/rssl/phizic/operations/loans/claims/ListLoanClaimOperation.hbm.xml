@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<query name="com.rssl.phizic.operations.loans.claims.ListLoanClaimOperation.list">
+		<![CDATA[
+        select claim, person
+        from
+         com.rssl.phizic.business.documents.LoanClaim as claim,
+		 com.rssl.phizic.business.persons.ActivePerson as person
+		 inner join person.personDocuments document
+		where (claim.clientLogin = person.login)
+		  and (claim.archive = :extra_archive)
+		  and (document.documentMain = true)
+		  and (:extra_firstName  is null    or :extra_firstName = ''    or upper(person.firstName) like upper(:extra_like_firstName))
+		  and (:extra_surName    is null    or :extra_surName = ''      or upper(person.surName)   like upper(:extra_like_surName))
+		  and (:extra_patrName   is null    or :extra_patrName = ''     or upper(person.patrName)  like upper(:extra_like_patrName))
+		  and (:extra_clientType is null    or :extra_clientType = ''	or
+		      (:extra_clientType = 'A' and person.login.id = :extra_anonymousClientLogin)
+				or
+		      (:extra_clientType = 'R' and person.login.id != :extra_anonymousClientLogin))
+		  and (:extra_document is null or :extra_document = '' or :extra_document = document.documentSeries||document.documentNumber)
+		  and (:extra_claimNumber is null   or :extra_claimNumber = ''  or claim.documentNumber = :extra_claimNumber)
+		  and (:extra_fromDate is null or to_date(to_char(claim.dateCreated,'DD-MON-YYYY'),'DD-MM-YYYY') >= :extra_fromDate)
+		  and (:extra_toDate is null or to_date(to_char(claim.dateCreated,'DD-MON-YYYY'),'DD-MM-YYYY') <= :extra_toDate)
+		  and (
+				((:extra_state  is null  or :extra_state = '') and claim.state.code not in ('C','I'))
+		        or claim.state.code = :extra_state
+			  )
+		  and (:extra_fromClientRequestAmount is null or :extra_fromClientRequestAmount = '' or
+            claim.attributes['client-request-amount'].stringValue >= :extra_fromClientRequestAmount)
+          and (:extra_toClientRequestAmount is null or :extra_toClientRequestAmount = '' or
+            claim.attributes['client-request-amount'].stringValue <= :extra_toClientRequestAmount)
+		  and (:extra_loanKind is null or :extra_loanKind = '' or claim.attributes['kind'].stringValue = :extra_loanKind)
+		  and (:extra_office   is null or :extra_office = ''   or claim.attributes['office'].stringValue = :extra_office)
+
+       order by claim.id desc
+       ]]>
+    </query>
+</hibernate-mapping>

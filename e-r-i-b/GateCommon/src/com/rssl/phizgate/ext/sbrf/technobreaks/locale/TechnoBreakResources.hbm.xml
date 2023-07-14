@@ -1,0 +1,73 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="UUID" class="com.rssl.phizic.dataaccess.hibernate.UUIDType"/>
+
+    <class name="com.rssl.phizgate.ext.sbrf.technobreaks.locale.TechnoBreakResources" table="TECHNOBREAKS_RES">
+        <composite-id>
+            <key-property name="id"        column="ID"            type="long"/>
+            <key-property name="localeId"  column="LOCALE_ID"     type="string"/>
+        </composite-id>
+
+        <property name="message" type="string" column="MESSAGE" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizgate.ext.sbrf.technobreaks.locale.LocaledTechnoBreak" table="TECHNOBREAKS" mutable="false">
+
+       <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_TECHNOBREAKS</param>
+            </generator>
+        </id>
+
+        <property name="adapterUUID" type="string" column="ADAPTER_UUID" not-null="true"/>
+        <property name="periodic" type="PeridicType" column="PERIODIC" not-null="true"/>
+        <property name="defaultMessage" type="boolean" column="IS_DEFAULT_MESSAGE" not-null="true"/>
+        <property name="fromDate" type="calendar" column="FROM_DATE" not-null="true"/>
+        <property name="toDate" type="calendar" column="TO_DATE" not-null="true"/>
+        <property name="message" type="string" column="MESSAGE" not-null="true"/>
+        <property name="status" type="TechnoBreakStatus" column="STATUS" not-null="true"/>
+        <property name="autoEnabled" type="boolean" column="IS_AUTO_ENABLED" not-null="true"/>
+        <property name="allowOfflinePayments" type="boolean" column="IS_ALLOWED_OFFLINE_PAY" not-null="true"/>
+        <property name="uuid" type="UUID" column="UUID" not-null="true"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizgate.ext.sbrf.technobreaks.locale.TechnoBreakResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <!--
+        Опорный объект:    I_TECHNOBREAKS
+        Предикаты доступа: access("TECHNOBREAK"."ADAPTER_UUID"=:EXTRA_ADAPTERCODE AND
+                           "TECHNOBREAK"."STATUS"=:EXTRA_STATUS)
+        Кардинальность: количество технологических перерывов,
+                        заданных для одной внешней системы в статусе status
+    -->
+    <sql-query name="com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak.findByAdapterCode.multilocale">
+        <return alias="tb" class="com.rssl.phizgate.ext.sbrf.technobreaks.locale.LocaledTechnoBreak"/>
+        <return-join alias="tr" property="tb.resources"/>
+        <![CDATA[
+        select {tb.*},{tr.*} from
+            TECHNOBREAKS tb
+        left join
+            TECHNOBREAKS_RES tr on tb.ID = tr.ID and tr.LOCALE_ID = :extra_localeId
+        where
+            tb.FROM_DATE <= :extra_fromDate
+        and
+            ((:extra_autoBreaks = '1' and tb.IS_AUTO_ENABLED = '1') or tb.TO_DATE >= :extra_toDate)
+        and
+            tb.STATUS = :extra_status
+        and
+            tb.ADAPTER_UUID = :extra_adapterCode
+         ]]>
+    </sql-query>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

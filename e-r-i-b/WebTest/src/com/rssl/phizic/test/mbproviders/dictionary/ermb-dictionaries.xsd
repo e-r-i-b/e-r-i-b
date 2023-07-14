@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://sbrf.ru/ermb/auxiliary/providers-dictionary/"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://sbrf.ru/ermb/auxiliary/providers-dictionary/"
+            elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:simpleType name="UUIDType">
+		<xsd:annotation>
+			<xsd:documentation>Идентификатор запроса, сессии</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+		    <xsd:pattern value="[0-9a-fA-F]{32}"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+    <xsd:complexType name="ResponseType">
+	    <xsd:annotation>
+	        <xsd:documentation>Данные ответа</xsd:documentation>
+	    </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="payment" type="PaymentType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+	</xsd:complexType>
+
+    <xsd:complexType name="PaymentType">
+        <xsd:annotation>
+	        <xsd:documentation>Информация о поставщике</xsd:documentation>
+	    </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="billingId" type="xsd:string"/>
+            <xsd:element name="serviceId" type="xsd:string"/>
+            <xsd:element name="providerId" type="xsd:string"/>
+            <xsd:element name="serviceName" type="xsd:string"/>
+            <xsd:element name="providerName" type="xsd:string"/>
+            <xsd:element name="providerSmsAlias" type="xsd:string"/>
+            <xsd:element name="paymentEntries" type="PaymentEntriesType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PaymentEntriesType">
+	    <xsd:annotation>
+	        <xsd:documentation>Набор реквизитов (исключая сумму)</xsd:documentation>
+	    </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="entry" type="EntryType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+	</xsd:complexType>
+
+    <xsd:complexType name="EntryType">
+        <xsd:sequence>
+            <xsd:element name="title" type="xsd:string"/>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="hint" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="TitleType">
+        <xsd:annotation>
+	        <xsd:documentation>Наименование (название) поля. Для отображения пользователю</xsd:documentation>
+	    </xsd:annotation>
+	    <xsd:restriction base="xsd:string">
+	        <xsd:pattern value="{80}"/>
+	    </xsd:restriction>
+	</xsd:simpleType>
+
+    <xsd:simpleType name="DescriptionType">
+	    <xsd:restriction base="xsd:string">
+	        <xsd:pattern value="{400}"/>
+	    </xsd:restriction>
+	</xsd:simpleType>
+
+    <!-- Request type -->
+    <xsd:complexType name="GetProvidersRqType">
+        <xsd:sequence>
+            <xsd:element name="rqUID" type="xsd:string"/>
+            <xsd:element name="rqTime" type="xsd:dateTime"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Response type -->
+    <xsd:complexType name="GetProvidersRsType">
+        <xsd:sequence>
+            <xsd:element name="rqUID" type="xsd:string"/>
+            <xsd:element name="status" type="xsd:long"/>
+            <xsd:element name="response" type="ResponseType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="ProvidersRq" type="GetProvidersRqType"/>
+
+    <xsd:element name="ProvidersRs" type="GetProvidersRsType"/>
+
+</xsd:schema>

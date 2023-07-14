@@ -1,0 +1,40 @@
+--Проносим изменеия в ЦСА Админ
+insert into CSAADMIN_IKFL.CONTACT_CENTER_AREAS ( ID, UUID, AREA_NAME ) 
+	select ID, UUID, AREA_NAME from SRB_IKFL.CONTACT_CENTER_AREAS@BLOCK1LINK
+/	
+
+insert into CSAADMIN_IKFL.C_CENTER_AREAS_DEPARTMENTS ( C_C_AREA_ID, TB ) 
+	select C_C_AREA_ID, TB from SRB_IKFL.C_CENTER_AREAS_DEPARTMENTS@BLOCK1LINK
+/	
+
+insert into CSAADMIN_IKFL.MAIL_SUBJECTS ( ID, UUID, DESCRIPTION )
+	select CSAADMIN_IKFL.S_MAIL_SUBJECTS.nextval, UUID, DESCRIPTION from SRB_IKFL.MAIL_SUBJECTS@BLOCK1LINK
+/
+
+update CSAADMIN_IKFL.ACCESSSCHEMES set MAIL_MANAGEMENT = '1' where EXTERNAL_ID in (
+	select accessschemes.EXTERNAL_ID
+	from SRB_IKFL.ACCESSSCHEMES@BLOCK1LINK accessschemes
+	inner join SRB_IKFL.SCHEMESSERVICES@BLOCK1LINK schemesservices on accessschemes.ID=schemesservices.SCHEME_ID
+	inner join SRB_IKFL.SERVICES@BLOCK1LINK services on services.ID = schemesservices.SERVICE_ID 
+	where services.SERVICE_KEY = 'MailManagment' and accessschemes.EXTERNAL_ID is not null
+) 
+/
+delete from SRB_IKFL2.C_CENTER_AREAS_DEPARTMENTS@BLOCK2LINK
+/
+delete from SRB_IKFL2.CONTACT_CENTER_AREAS@BLOCK2LINK
+/
+INSERT INTO SRB_IKFL2.CONTACT_CENTER_AREAS@BLOCK2LINK(ID, UUID, AREA_NAME) 
+    select S_CONTACT_CENTER_AREAS.nextval@BLOCK2LINK, UUID, AREA_NAME
+    from CSAADMIN_IKFL.CONTACT_CENTER_AREAS    
+/
+INSERT INTO SRB_IKFL2.C_CENTER_AREAS_DEPARTMENTS@BLOCK2LINK(C_C_AREA_ID, TB)
+    select cca_b2.id, ccad.TB
+    from SRB_IKFL2.CONTACT_CENTER_AREAS@BLOCK2LINK cca_b2,
+         CSAADMIN_IKFL.C_CENTER_AREAS_DEPARTMENTS ccad,
+         CSAADMIN_IKFL.CONTACT_CENTER_AREAS cca
+    where cca_b2.UUID = cca.UUID 
+        and ccad.c_c_area_id = cca.id
+/
+update SRB_IKFL2.mail_subjects@BLOCK2LINK ms_b2
+set UUID = nvl((select UUID from CSAADMIN_IKFL.mail_subjects ms where ms.description = ms_b2.description),UUID)
+/

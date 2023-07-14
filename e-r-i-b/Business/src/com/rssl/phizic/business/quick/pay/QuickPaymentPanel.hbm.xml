@@ -1,0 +1,93 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+     <typedef  name="QuickPaymentPanelState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.quick.pay.QuickPaymentPanelState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.quick.pay.QuickPaymentPanel" table="QUICK_PAYMENT_PANELS">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_QUICK_PAYMENT_PANELS</param>
+            </generator>
+        </id>
+
+        <property name="uuid"           type="string"                     column="UUID"            not-null="true"/>
+        <property name="state"          type="QuickPaymentPanelState"     column="STATE"           not-null="true"/>
+        <property name="name"           type="string"                     column="NAME"            not-null="true"/>
+        <property name="periodFrom"     type="calendar"                   column="START_DATE"       not-null="false"/>
+        <property name="periodTo"       type="calendar"                   column="END_DATE"         not-null="false"/>
+
+        <set name="departments" table="Q_P_PANELS_DEPARTMENTS" lazy="false">
+            <key column="Q_P_PANEL_ID"/>
+            <element column="TB" type="string" not-null="true"/>
+        </set>
+
+        <bag name="panelBlocks" table="PANEL_BLOCKS" cascade="all-delete-orphan" lazy="false" fetch="subselect">
+            <key column="Q_P_PANEL_ID"/>
+			<one-to-many class="com.rssl.phizic.business.quick.pay.PanelBlock"/>
+        </bag>
+    </class>
+
+    <class name="com.rssl.phizic.business.quick.pay.PanelBlock" table="PANEL_BLOCKS">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PANEL_BLOCKS</param>
+            </generator>
+        </id>
+
+        <property name="uuid"                type="string"                     column="UUID"            not-null="true"/>
+        <property name="show"                type="boolean"                    column="SHOW"            not-null="true"/>
+        <property name="order"               type="long"                       column="ORDER_INDEX"     not-null="true"/>
+        <property name="providerName"        type="string"                     column="PROVIDER_NAME"   not-null="false"/>
+        <property name="showName"            type="boolean"                    column="SHOW_PROVIDER_NAME" not-null="true"/>
+        <property name="providerFieldName"   type="string"                     column="FIELD_NAME"      not-null="false"/>
+        <property name="providerFieldAmount" type="string"                     column="FIELD_SUMM_NAME" not-null="false"/>
+        <property name="summ"                type="big_decimal"                column="SUMM"            not-null="false"/>
+        <many-to-one name="image"       class="com.rssl.phizic.business.image.Image"  column="IMAGE_ID" fetch="join" not-null="false"  lazy="false"/>
+        <property name="providerId"          type="long"                       column="PROVIDER_ID"     not-null="true"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.quick.pay.QuickPaymentPanel.findByTRB">
+        <return alias="block" class="com.rssl.phizic.business.quick.pay.PanelBlock"/>
+        <![CDATA[
+            SELECT {block.*}
+            FROM
+                QUICK_PAYMENT_PANELS panel
+            JOIN
+                PANEL_BLOCKS block ON panel.ID = block.Q_P_PANEL_ID
+            JOIN
+                Q_P_PANELS_DEPARTMENTS department ON panel.ID = department.Q_P_PANEL_ID
+            WHERE
+                department.TB = :TB
+             AND
+                panel.START_DATE <= :date
+             AND
+                (panel.END_DATE IS null OR :date < panel.END_DATE)
+             AND
+                panel.STATE = 'ACTIVE'
+             AND
+                block.SHOW = '1'
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.quick.pay.QuickPaymentPanel.findTRBwithQPP">
+       <return alias="department" class="com.rssl.phizic.business.departments.Department"/>
+        <![CDATA[
+            SELECT {department.*}
+            FROM
+                DEPARTMENTS department
+            JOIN
+                Q_P_PANELS_DEPARTMENTS panel_department ON department.TB = panel_department.TB
+            AND
+                nvl(department.OSB, 'NULL') = 'NULL'
+            AND
+                nvl(department.OFFICE, 'NULL') = 'NULL'
+        ]]>
+    </sql-query>
+   
+</hibernate-mapping>

@@ -1,0 +1,132 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.advertising.locale.AdvertisingBlockResources" table="ADVERTISINGS_RES">
+        <composite-id>
+            <key-property name="uuid"       column="UUID"       type="string"/>
+            <key-property name="localeId"   column="LOCALE_ID"  type="string"/>
+        </composite-id>
+        <property name="title"              column="TITLE"      type="string"/>
+        <property name="text"               column="TEXT"       type="string"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.advertising.locale.AdvertisingButtonResources" table="ADVERTISING_BUTTONS_RES">
+        <composite-id>
+            <key-property name="uuid"       column="UUID"       type="string"/>
+            <key-property name="localeId"   column="LOCALE_ID"  type="string"/>
+        </composite-id>
+        <property name="title"              column="TITLE"      type="string"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.advertising.locale.LocaledAdvertisingBlock" table="ADVERTISINGS" mutable="false">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ADVERTISINGS</param>
+            </generator>
+        </id>
+
+        <property name="uuid"           type="string"                     column="UUID"            not-null="true"/>
+        <property name="state"          type="AdvertisingState"           column="STATE"           not-null="true"/>
+        <property name="availability"   type="AdvertisingAvailability"    column="AVAILABLE"       not-null="true"/>
+        <property name="name"           type="string"                     column="NAME"            not-null="true"/>
+        <property name="periodFrom"     type="calendar"                   column="START_DATE"       not-null="false"/>
+        <property name="periodTo"       type="calendar"                   column="END_DATE"         not-null="false"/>
+
+        <set name="departments" table="ADVERTISINGS_DEPARTMENTS" lazy="false">
+            <key column="ADVERTISING_ID"/>
+            <element column="TB" type="string" not-null="true"/>
+        </set>
+
+        <set name="requirements" table="ADVERTISING_REQUIREMENTS" cascade="all-delete-orphan" lazy="false">
+            <key column="ADVERTISING_ID"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.productRequirements.ProductRequirement"/>
+        </set>
+
+        <set name="reqAccTypes" table="ADVERTISING_REQ_ACC_TYPES" cascade="all-delete-orphan" lazy="false">
+            <key column="ADVERTISING_ID"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.productRequirements.AccTypesRequirement"/>
+        </set>
+
+        <property name="title"          type="string"                     column="TITLE"           not-null="false"/>
+        <property name="text"           type="string"                     column="TEXT"            not-null="false"/>
+
+        <bag name="buttons" table="ADVERTISING_BUTTONS" cascade="all-delete-orphan" lazy="false" fetch="subselect">
+            <key column="ADVERTISING_ID"/>
+            <one-to-many class="com.rssl.phizic.business.advertising.locale.LocaledAdvertisingButton"/>
+        </bag>
+
+        <list name="areas" table="ADVERTISING_AREAS" cascade="all-delete-orphan" lazy="false">
+            <key column="ADVERTISING_ID" not-null="false"/>
+            <list-index column="LIST_INDEX"/>
+            <one-to-many class="com.rssl.phizic.business.advertising.AdvertisingArea"/>
+        </list>
+
+        <many-to-one name="image"       class="com.rssl.phizic.business.image.Image"  column="IMAGE_ID" lazy="false" fetch="join" not-null="false"/>
+        <property name="showTime"       type="long"                       column="SHOW_TIME"       not-null="true"/>
+        <property name="orderIndex"     type="long"                       column="ORDER_INDEX"     not-null="true"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="UUID" not-null="false" property-ref="uuid"/>
+            <one-to-many class="com.rssl.phizic.business.advertising.locale.AdvertisingBlockResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.advertising.locale.LocaledAdvertisingButton" table="ADVERTISING_BUTTONS" mutable="false">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ADVERTISING_BUTTONS</param>
+            </generator>
+        </id>
+
+        <property name="uuid"           type="string"                     column="UUID"            not-null="true"/>
+        <property name="title"          type="string"                     column="TITLE"           not-null="false"/>
+        <property name="url"            type="string"                     column="URL"             not-null="false"/>
+        <property name="show"           type="boolean"                    column="SHOW"            not-null="true"/>
+        <property name="orderIndex"     type="long"                       column="ORDER_INDEX"     not-null="true"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="UUID" not-null="false" property-ref="uuid"/>
+            <one-to-many class="com.rssl.phizic.business.advertising.locale.AdvertisingButtonResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+
+        <many-to-one name="image"       class="com.rssl.phizic.business.image.Image"  column="IMAGE_ID" lazy="false" fetch="join" not-null="false"/>
+
+    </class>
+
+    <!-- Получение списка баннеров в виде сущностей AdvertisingBlock в порядке их отображения. Для мобильного API -->
+    <!--
+       Опорный объект: ADVERTISINGS_BY_TB_IDX
+       Предикаты доступа: access("ADVDEPARTMENT"."TB"=:DEPARTMENTID)
+       Кардинальность: количество баннеров для тербанка
+     -->
+    <sql-query name="com.rssl.phizic.business.advertising.AdvertisingService.getApiBunnerList.multilocale">
+        <return alias="adv" class="com.rssl.phizic.business.advertising.locale.LocaledAdvertisingBlock"/>
+        <return-join alias="advRes" property="adv.resources"/>
+        <![CDATA[
+            SELECT
+                {adv.*},{advRes.*}
+            FROM
+                ADVERTISINGS   adv
+                left join ADVERTISINGS_DEPARTMENTS advDepartment on adv.ID = advDepartment.ADVERTISING_ID
+                left join ADVERTISINGS_RES advRes on adv.UUID = advRes.UUID and advRes.LOCALE_ID = :extra_localeId
+            WHERE
+                (adv.START_DATE is null or adv.START_DATE <= :extra_currentDate) and (adv.END_DATE is null or adv.END_DATE >= :extra_currentDate)
+                AND adv.STATE='ACTIVE'
+                AND (adv.AVAILABLE = 'FULL' or adv.AVAILABLE = 'API')
+                AND advDepartment.TB = :extra_departmentId
+                ORDER BY adv.ORDER_INDEX, adv.NAME
+        ]]>
+    </sql-query>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+
+</hibernate-mapping>

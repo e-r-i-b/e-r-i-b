@@ -1,0 +1,50 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.limits.link.LimitPaymentsLinkBase" table="PAYMENTS_GROUP_RISK">
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_PAYMENTS_GROUP_RISK</param>
+			</generator>
+		</id>
+
+        <discriminator column="KIND" type="string"/>
+
+		<many-to-one name="groupRisk"  column="GROUP_RISK_ID" class="com.rssl.phizic.business.limits.GroupRisk" lazy="false" fetch="join"/>
+        <property    name="tb"         column="TB"            type="string"   not-null="false"/>
+    </class>
+
+    <!-- Перевод оплаты на соц. карту -->
+    <subclass name="com.rssl.phizic.business.limits.link.InternalSocialLimitPaymentLink"
+              extends="com.rssl.phizic.business.limits.link.LimitPaymentsLinkBase"
+              discriminator-value="SP"/>
+
+    <!-- Оплата юридическому лицу -->
+    <subclass name="com.rssl.phizic.business.limits.link.JuridicalExternalLimitPaymentLink"
+              extends="com.rssl.phizic.business.limits.link.LimitPaymentsLinkBase"
+              discriminator-value="JP"/>
+
+    <!-- Конверсионные операции. -->
+    <subclass name="com.rssl.phizic.business.limits.link.ConversionLimitPaymentLink"
+              extends="com.rssl.phizic.business.limits.link.LimitPaymentsLinkBase"
+              discriminator-value="CP"/>
+
+    <!-- Оплата на карту частному лицу вне СберБанка -->
+    <subclass name="com.rssl.phizic.business.limits.link.PhysicalExternalCardLimitPaymentLink"
+              extends="com.rssl.phizic.business.limits.link.LimitPaymentsLinkBase"
+              discriminator-value="ECP"/>
+
+    <!-- Оплата на счет частному лицу в другой банк -->
+    <subclass name="com.rssl.phizic.business.limits.link.PhysicalExternalAccountLimitPaymentLink"
+              extends="com.rssl.phizic.business.limits.link.LimitPaymentsLinkBase"
+              discriminator-value="EAP"/>
+
+    <!-- Оплаты на счет/карту частному лицу внутри СберБанка -->
+    <subclass name="com.rssl.phizic.business.limits.link.PhysicalInternalLimitPaymentLink"
+              extends="com.rssl.phizic.business.limits.link.LimitPaymentsLinkBase"
+              discriminator-value="IP"/>
+
+</hibernate-mapping>
+

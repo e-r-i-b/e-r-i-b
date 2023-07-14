@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class name="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.ExtendedOfficeGateImpl" table="DEPARTMENTS" mutable="false">
+
+		<id name="synchKey" type="Long" column="ID"/>
+
+        <component name="code" class="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.ExtendedCodeGateImpl">
+            <property name="region" type="string" column="TB"/>
+            <property name="branch" type="string" column="OSB"/>
+            <property name="office" type="string" column="OFFICE"/>
+        </component>
+
+ 		<property name="name"      type="string" column="NAME"/>
+		<property name="BIC"       type="string" column="BIC"/>
+		<property name="address"   type="string" column="POST_ADDRESS"/>
+		<property name="telephone" type="string" column="PHONE"/>
+        <property name="sbidnt"    type="string" column="SBIDNT"/>
+    </class>
+
+
+	<!--Репликация справочника Офисов.
+	 1. Для БИК'а и СМФР t_codekind=3 и t_codekind=14 соответственно, см. таблицу DCODEKIND_DBT.
+	 2.Алгоритм заполнения кода (code) такой: region – терБанк – заполняется из поля T_BANKID, в случае когда это поле = 0,
+			заполняется из поля T_NAMEBRANCH (при этом branch и office не заполняем).
+			branch – ОСБ – заполняем из поля T_NAMEBRANCH, тем что идет до ‘/’, office – офис, из того же поля, тем что идет после ‘/’.
+	 3.Если не заполнено название банка (t_Desc) не реплицируем (см. РО) -->
+	<sql-query name="ccom.rssl.phizicgate.rsretailV6r4.dictionaries.officies.ExtendedOfficeGateImpl.list">
+        <return alias="office" class="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.ExtendedOfficeGateImpl">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="code">
+		        <return-column name="region"/>
+		        <return-column name="branch"/>
+		        <return-column name="office"/>
+		    </return-property>
+	        <return-property name="name"     column="tname"/>
+	        <return-property name="BIC" column="BIC"/>
+	        <return-property name="address"   column="postAdress"/>
+	        <return-property name="telephone" column="phone"/>
+	        <return-property name="sbidnt" column="sbidnt"/>
+        </return>
+        <![CDATA[
+		select
+		(Select t_code from dpartcode_dbt where t_codekind=14 and t_partyid=RSB_KERNEL.GetSelfId()) as sbidnt,
+		(Select t_code from dpartcode_dbt where t_codekind=3 and t_partyid=RSB_KERNEL.GetSelfId()) as BIC,
+		dep.t_FNCash as fNCash,
+		case when t_bankid = 0 then t_namebranch else to_char(t_bankid) end  AS region,
+		case
+			when t_bankid != 0 then substr(t_namebranch,0,(select instr(t_namebranch,'/') from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch)-1)
+		end  AS branch,
+		case
+			when t_bankid !=0 then substr(t_namebranch, (select instr(t_namebranch,'/') from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch)+1, (select length(t_namebranch) from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch))
+		end as office,
+		replace(t_Desc, chr(1),'') as tname,
+		replace(t_PostAdress,chr(1),'') as postAdress,
+		replace(t_Phone,chr(1),'')  as phone
+		from dlistfdep_dbt dep
+		where ((t_Desc is not null) and (replace(t_Desc, chr(1),'')!=' '))
+		      AND (((dep.t_namebranch like '%'||:region||'%' OR :region IS NULL) AND dep.t_bankid = 0)
+		          OR ((dep.t_bankid like '%'||:region||'%' OR :region IS NULL) AND dep.t_bankid != 0))
+		      AND (((substr(t_namebranch,0,(select instr(t_namebranch,'/') from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch)-1) LIKE '%'||:branch||'%' OR :branch IS NULL) AND (dep.t_bankid != 0)) OR (dep.t_bankid = 0  AND :branch IS NULL))
+		      AND (((substr(t_namebranch, (select instr(t_namebranch,'/') from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch)+1, (select length(t_namebranch) from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch)) LIKE '%'||:office||'%' OR :office IS NULL) AND (dep.t_bankid != 0))
+		          OR (dep.t_bankid = 0 AND :office IS NULL))
+		      AND (upper(dep.t_desc) LIKE '%'||upper(:name)||'%' OR :name IS NULL)
+		   
+		order by fNCash
+        ]]>
+    </sql-query>
+
+	<sql-query name="com.rssl.phizicgate.rsretailV6r4.dictionaries.officies.ExtendedOfficeGateImpl.findById">
+        <return alias="office" class="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.ExtendedOfficeGateImpl">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="code">
+		        <return-column name="region"/>
+		        <return-column name="branch"/>
+		        <return-column name="office"/>
+		    </return-property>
+	        <return-property name="name"     column="tname"/>
+	        <return-property name="BIC" column="BIC"/>
+	        <return-property name="address"   column="postAdress"/>
+	        <return-property name="telephone" column="phone"/>
+	        <return-property name="sbidnt" column="sbidnt"/>
+        </return>
+        <![CDATA[
+		select
+		(Select t_code from dpartcode_dbt where t_codekind=14 and t_partyid=RSB_KERNEL.GetSelfId()) as sbidnt,
+		(Select t_code from dpartcode_dbt where t_codekind=3 and t_partyid=RSB_KERNEL.GetSelfId()) as BIC,
+		dep.t_FNCash as fNCash,
+		case when t_bankid = 0 then t_namebranch else to_char(t_bankid) end  AS region,
+		case
+			when t_bankid != 0 then substr(t_namebranch,0,(select instr(t_namebranch,'/') from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch)-1)
+		end  AS branch,
+		case
+			when t_bankid !=0 then substr(t_namebranch, (select instr(t_namebranch,'/') from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch)+1, (select length(t_namebranch) from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch))
+		end as office,
+		replace(t_Desc, chr(1),'') as tname,
+		replace(t_PostAdress,chr(1),'') as postAdress,
+		replace(t_Phone,chr(1),'')  as phone
+		from dlistfdep_dbt dep
+		where dep.t_FNCash = :fnCash
+		order by fNCash
+        ]]>
+    </sql-query>
+
+
+    <!-- Для репликации-->
+    <sql-query name="com.rssl.phizicgate.rsretailV6r4.dictionaries.officies.ExtendedOfficeGateImpl.getAll">
+        <return alias="office" class="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.ExtendedOfficeGateImpl">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="code">
+		        <return-column name="region"/>
+		        <return-column name="branch"/>
+		        <return-column name="office"/>
+		    </return-property>
+	        <return-property name="name"     column="tname"/>
+	        <return-property name="BIC" column="BIC"/>
+	        <return-property name="address"   column="postAdress"/>
+	        <return-property name="telephone" column="phone"/>
+	        <return-property name="sbidnt" column="sbidnt"/>
+        </return>
+        <![CDATA[
+		select
+		(Select t_code from dpartcode_dbt where t_codekind=14 and t_partyid=RSB_KERNEL.GetSelfId()) as sbidnt,
+		(Select t_code from dpartcode_dbt where t_codekind=3 and t_partyid=RSB_KERNEL.GetSelfId()) as BIC,
+		dep.t_FNCash as fNCash,
+		case when t_bankid = 0 then t_namebranch else to_char(t_bankid) end  AS region,
+		case
+			when t_bankid != 0 then substr(t_namebranch,0,(select instr(t_namebranch,'/') from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch)-1)
+		end  AS branch,
+		case
+			when t_bankid !=0 then substr(t_namebranch, (select instr(t_namebranch,'/') from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch)+1, (select length(t_namebranch) from dlistfdep_dbt dep2 where dep2.t_namebranch = dep.t_namebranch))
+		end as office,
+		replace(t_Desc, chr(1),'') as tname,
+		replace(t_PostAdress,chr(1),'') as postAdress,
+		replace(t_Phone,chr(1),'')  as phone
+		from dlistfdep_dbt dep
+		where ((t_Desc is not null) and (replace(t_Desc, chr(1),'')!=' '))
+		order by fNCash
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

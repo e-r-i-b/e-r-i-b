@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+<!--Центральный Банк Российской Федерации.
+Унифицированные форматы электронных банковских сообщений.
+
+Схемы с описанием прикладных типов.
+
+июнь 2010 г.-->
+<!--e-mail:  wlad@e-burg.cbr.ru-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:lt="urn:cbr-ru:ed:leaftypes:v2.0" xmlns:bt="urn:cbr-ru:ed:basetypes:v2.0" targetNamespace="urn:cbr-ru:ed:leaftypes:v2.0" elementFormDefault="qualified" version="2.4.8">
+	<xs:import namespace="urn:cbr-ru:ed:basetypes:v2.0" schemaLocation="cbr_ed_basetypes.xsd"/>
+	<xs:simpleType name="AccountDocIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Номер бумажного документа. Цифровой, от 1 до 3 знаков.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="3"/>
+         <xs:pattern value="[0-9]*[1-9][0-9]*">
+            <xs:annotation>
+               <xs:documentation>исключение значений 0, 00, 000</xs:documentation>
+            </xs:annotation>
+         </xs:pattern>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="AccountNumberRUIDBrfType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Номер балансового счета второго порядка. Цифровой, 5 знаков.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:pattern value="\d{5}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="AccountNumberRUIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Номер счета. [Лицевой счет]. Текстовый, 20 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:pattern value="\d{5}[0-9ABCEHKMPTX]\d{14}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ArchiveIDType">
+      		<xs:annotation>
+         		<xs:documentation>Идентификатор. Идентификатор архива. Текстовый, до 255 символов</xs:documentation>
+      		</xs:annotation>
+      		<xs:restriction base="bt:IdentifierTextCategory">
+         		<xs:minLength value="1"/>
+         		<xs:maxLength value="255"/>
+      		</xs:restriction>
+   	</xs:simpleType>
+	<xs:simpleType name="AvisoNumberIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Номер авизо. Цифровой, от 1 до 3 знаков.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="3"/>
+			<xs:pattern value="[0-9]*[1-9][0-9]*">
+				<xs:annotation>
+					<xs:documentation>исключение значений 0, 00, 000</xs:documentation>
+				</xs:annotation>
+			</xs:pattern>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="BICRUIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Банковский идентификационный код; БИК. [БИК РФ]. Цифровой, 9 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:pattern value="\d{9}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="BICSWIFTRUIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Банковский идентификационный код SWIFT. Текстовый, 11 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="11"/>
+			<xs:maxLength value="11"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="BalanceKopeckAmountType">
+		<xs:annotation>
+			<xs:documentation>Сумма. В копейках (для обозначения остатка на счете). Целое число, до 18 разрядов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:AmountCategory">
+			<xs:totalDigits value="18"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CBCIDNumberType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Код бюджетной классификации (поле 104). Цифровой, 20 знаков.</xs:documentation>
+		</xs:annotation>
+      <xs:restriction base="bt:IdentifierCategory">
+         <xs:pattern value="\d{20}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CBCIDTextType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Код бюджетной классификации (поле 104). Текстовый, до 20 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CashAccountingCodeType">
+		<xs:annotation>
+			<xs:documentation>Код. Символ кассовых операций. [Символы кассовой отчетности]. Цифровой, 2 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:CodeCategory">
+			<xs:pattern value="\d{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CashDocIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Номер кассового документа. Текстовый, до 9 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:maxLength value="9"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ControlCodeType">
+		<xs:annotation>
+			<xs:documentation>Код. Код контроля/ошибки в ЭД. Цифровой, 4 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:CodeCategory">
+			<xs:pattern value="\d{4}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="DateType">
+		<xs:annotation>
+			<xs:documentation>Дата. [ГОСТ ИСО 8601-2001]. Формат CCYY-MM-DD.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:DateCategory"/>
+	</xs:simpleType>
+	<xs:simpleType name="DayQuantityType">
+		<xs:annotation>
+			<xs:documentation>Количество. Количество дней. Целое, до 3 разрядов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:QuantityCategory">
+			<xs:totalDigits value="3"/>
+			<xs:minInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="DrawerStatusCodeTextType">
+		<xs:annotation>
+			<xs:documentation>Код. Статус составителя расчетного документа (поле 101). Текстовый, 1-2 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="2"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="EDCodeType">
+		<xs:annotation>
+			<xs:documentation>Код. Код запроса/возврата ЭД. Цифровой, 1-2 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:CodeCategory">
+			<xs:pattern value="[12]?\d"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="EDDrawerIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Уникальный идентификатор составителя ЭД; УИС. [УИС]. Цифровой, 10 знаков.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:pattern value="\d{10}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="EDNumberType">
+		<xs:annotation>
+			<xs:documentation>Число. Номер электронного документа. Целое, до 9 разрядов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:NumberCategory">
+			<xs:totalDigits value="9"/>
+			<xs:minInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="EDQuantityType">
+		<xs:annotation>
+			<xs:documentation>Количество. Количество электронных документов в пакете ЭД или ЭСИД. Целое, до 9 разрядов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:QuantityCategory">
+			<xs:totalDigits value="9"/>
+			<xs:minInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="FNameIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Имя файла. Текстовый.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<xs:simpleType name="FourDigitCodeType">
+		<xs:annotation>
+			<xs:documentation>Код. Четырехзначный код значения реквизита. [Кодовые значения реквизитов]. Цифровой, 4 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:CodeCategory">
+			<xs:pattern value="\d{4}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="INNIDTextType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Индивидуальный номер налогоплательщика; ИНН. [ИНН]. Текстовый, до 12 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:maxLength value="12"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="KPPIDTextType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Код причины постановки на учет; КПП. [КПП]. Текстовый, до 9 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="9"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="KopeckAmountType">
+		<xs:annotation>
+			<xs:documentation>Сумма. В копейках. Положительное целое число, до 18 разрядов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:AmountCategory">
+			<xs:totalDigits value="18"/>
+			<xs:minInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+   <xs:simpleType name="MaketIDType">
+      <xs:annotation>
+         <xs:documentation>Идентификатор. Идентификатор типа макета. Текстовый, до 7 символов</xs:documentation>
+      </xs:annotation>
+      <xs:restriction base="bt:IdentifierTextCategory">
+         <xs:minLength value="1"/>
+         <xs:maxLength value="7"/>
+      </xs:restriction>
+   </xs:simpleType>
+	<xs:simpleType name="Max1020TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 1020 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="1020"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max105TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 105 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="105"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max130TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 130 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="130"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max140TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 140 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="140"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max150TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 150 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="150"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max160TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 160 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="160"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max16TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 16 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="16"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max170TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 170 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="170"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max210TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 210 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="210"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max260TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 260 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="260"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Max298TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 298 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="298"/>
+		</xs:restriction>
+	</xs:simpleType>
+   	<xs:simpleType name="Max300TextType">
+      		<xs:annotation>
+         		<xs:documentation>Текст. Строка, до 300 символов.</xs:documentation>
+      		</xs:annotation>
+      		<xs:restriction base="bt:TextCategory">
+         		<xs:minLength value="1"/>
+         		<xs:maxLength value="300"/>
+      		</xs:restriction>
+   	</xs:simpleType>
+	<xs:simpleType name="Max5TextType">
+		<xs:annotation>
+			<xs:documentation>Текст. Строка, до 5 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="5"/>
+		</xs:restriction>
+	</xs:simpleType>
+        <xs:simpleType name="Max6QuantityType">
+     		<xs:annotation>
+        		<xs:documentation>Количество. Количество электронных документов. Целое, до 6 разрядов.</xs:documentation>
+      		</xs:annotation>
+      		<xs:restriction base="bt:QuantityCategory">
+         		<xs:totalDigits value="6"/>
+         		<xs:minInclusive value="1"/>
+      		</xs:restriction>
+   	</xs:simpleType>
+        <xs:simpleType name="NotNegativeKopeckAmountType">
+		<xs:annotation>
+			<xs:documentation>Сумма. В копейках (для обозначения неотрицательной суммы). Положительное целое число или ноль, до 18 разрядов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:AmountCategory">
+			<xs:totalDigits value="18"/>
+			<xs:minInclusive value="0"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="OKATOIDTextType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Код муниципального образования ОКАТО (поле 105). Текстовый, от 1 до 11 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="11"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="OneDigitCodeType">
+		<xs:annotation>
+			<xs:documentation>Код. Однозначный код значения реквизита. [Кодовые значения реквизитов]. Цифровой, 1 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:CodeCategory">
+			<xs:pattern value="\d{1}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="OrdinalNumberType">
+		<xs:annotation>
+			<xs:documentation>Число. Порядковый номер. Целое, до 6 разрядов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:NumberCategory">
+			<xs:totalDigits value="6"/>
+			<xs:minInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PartAggregateIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Уникальный идентификатор совокупности частей. Цифровой, до 27 разрядов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:pattern value="\d{1,27}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PaytPriorityCodeType">
+		<xs:annotation>
+			<xs:documentation>Код. Очередность платежа. [Очередность платежа]. (0 - очередность не указана, 1-6).</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:CodeCategory">
+			<xs:enumeration value="0"/>
+			<xs:enumeration value="1"/>
+			<xs:enumeration value="2"/>
+			<xs:enumeration value="3"/>
+			<xs:enumeration value="4"/>
+			<xs:enumeration value="5"/>
+			<xs:enumeration value="6"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PurposeCodeType">
+		<xs:annotation>
+			<xs:documentation>Код. Резерв, не заполняется до указаний Банка России. [Безналичные расчеты]. Цифровой, 2 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:CodeCategory">
+			<xs:pattern value="\d{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ReportIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Номер формы. Цифровой, 7 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:pattern value="\d{7}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SessionIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Номер рейса/сеанса. Цифровой, 1 знак.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:pattern value="\d{1}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TUCodeIDType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Код территориального учреждения. Цифровой, 2 знака</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierCategory">
+			<xs:pattern value="\d{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TaxDocDateCodeTextType">
+		<xs:annotation>
+			<xs:documentation>Код. Дата налогового документа (поле 109). Строка, до 10 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="10"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TaxDocIDTextType">
+		<xs:annotation>
+			<xs:documentation>Идентификатор. Номер налогового документа (поле 108). Текстовый, до 20 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TaxPaytKindCodeTextType">
+		<xs:annotation>
+			<xs:documentation>Код. Тип налогового платежа (поле 110). Текстовый, 1-2 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="2"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TaxPaytReasonCodeTextType">
+		<xs:annotation>
+			<xs:documentation>Код. Основание налогового платежа (поле 106). Текстовый, 1-2 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="2"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TaxPeriodCodeTextType">
+		<xs:annotation>
+			<xs:documentation>Код. Налоговый период (поле 107). Строка, от 1 до 10 символов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:IdentifierTextCategory">
+			<xs:minLength value="1"/>
+			<xs:maxLength value="10"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TextType">
+		<xs:annotation>
+         <xs:documentation>ТекстПроизвольный. Строка без ограничения длины.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TextContentCategory"/>
+	</xs:simpleType>
+	<xs:simpleType name="TimeType">
+		<xs:annotation>
+			<xs:documentation>Время. [ГОСТ ИСО 8601-2001]. Формат hh:mm:ss.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:TimeCategory"/>
+	</xs:simpleType>
+	<xs:simpleType name="TotalKopeckAmountType">
+		<xs:annotation>
+			<xs:documentation>Сумма. В копейках. Положительное целое число, до 22 разрядов.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:AmountCategory">
+			<xs:totalDigits value="22"/>
+			<xs:minInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TransactionKindCodeType">
+		<xs:annotation>
+			<xs:documentation>Код. Вид операции. [Шифр документа]. Цифровой, 2 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:CodeCategory">
+			<xs:pattern value="\d{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TwoDigitCodeType">
+		<xs:annotation>
+			<xs:documentation>Код. Двузначный код значения реквизита. [Кодовые значения реквизитов]. Цифровой, 2 значный.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:CodeCategory">
+			<xs:pattern value="\d{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="YearMonthType">
+		<xs:annotation>
+			<xs:documentation>Месяц года. [ГОСТ ИСО 8601-2001]. Формат CCYY-MM.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:YearMonthCategory"/>
+	</xs:simpleType>
+    <xs:simpleType name="PayerIDType">
+        <xs:annotation>
+            <xs:documentation>Идентификатор. Идентификатор плательщика в формате ГИС ГМП</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="bt:IdentifierCategory"/>
+    </xs:simpleType>
+    <xs:simpleType name="ChargeIDType">
+        <xs:annotation>
+            <xs:documentation>Идентификатор. Уникальный идентификатор начисления (УИН) в формате ГИС ГМП </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="bt:IdentifierCategory">
+            <xs:minLength value="1"/>
+            <xs:maxLength value="20"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="SupplierServiceCodeType">
+        <xs:annotation>
+            <xs:documentation>Код. Услуга поставщика (код по ФРГУ или внутренний код услуги поставщика), по которой совершается авансовый платеж</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="bt:IdentifierTextCategory">
+            <xs:minLength value="1"/>
+            <xs:maxLength value="36"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="PortalServiceCodeType">
+        <xs:annotation>
+            <xs:documentation>Код. Услуга на портале УЭК, по которой совершается авансовый платеж</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="bt:IdentifierTextCategory">
+            <xs:minLength value="1"/>
+            <xs:maxLength value="36"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="SPNameIDType">
+        <xs:annotation>
+            <xs:documentation>Идентификатор. Поставщик в ЕРИБ</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="bt:IdentifierCategory"/>
+    </xs:simpleType>
+	 <xs:simpleType name="UUIDType">
+		<xs:annotation>
+			<xs:documentation>UUID</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="bt:UUIDCategory"/>
+	</xs:simpleType>
+</xs:schema>

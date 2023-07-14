@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/state-machine.xsd">
+
+	<states inital-state="INITIAL" description="Машина состояний создания автоподписки на инвойсы в корзине платежей" saveNodeInfo="true">
+        <sequences-handlers>
+            <sequence name="confirm">
+                <handler class="com.rssl.phizic.business.payments.forms.meta.CheckCommissionSumAction"/>
+                <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.CheckProviderServicePaymentHandler"/>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.DocumentSumValidationHandler"/>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.basket.subscription.CheckBillingSupportInvoiceSubscriptionHandler"/>
+            </sequence>
+            <sequence name="preDispatch">
+                <handler class="com.rssl.phizic.business.payments.forms.meta.DisallowAdditionalCardPaymentHandler"/>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.SimpleBusinessDocumentDateAction"/>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.InvoiceSubscriptionNextPayDateAction"/>
+                <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.SetAutopayNumberHandler"/>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.CacheClearHandler"/>
+            </sequence>
+            <sequence name="doSaved">
+                <!--обновляем маски для полей со скрытыми реквизитами-->
+                <handler class="com.rssl.phizic.business.payments.forms.meta.UpdateMaskExtendedFieldsHandler"/>
+                <!--считаем комисиию-->
+                <handler class="com.rssl.phizic.business.payments.forms.meta.BillingPaymentCommissionSaveHandler"/>
+                <!--валидируем в гейте-->
+                <handler  class="com.rssl.phizic.business.payments.forms.meta.DefaultGateValidationHandler"/>
+                <!-- Проверка непревышения введенной суммы отстатка на карте с учетом  возможности разности валют -->
+                <handler class="com.rssl.phizic.business.payments.forms.meta.DocumentSumValidationHandler"/>
+                <!--сохраняем назначение платежа-->
+                <handler class="com.rssl.phizic.business.payments.forms.meta.receivers.PaymentSystemPaymentGroundSaveHandler">
+                   <enabled class="com.rssl.phizic.business.payments.forms.meta.GateDocumentTypeFilter">
+                       <parameter name="className" value="com.rssl.phizic.gate.payments.systems.AccountPaymentSystemPayment"/>
+                   </enabled>
+                </handler>
+            </sequence>
+        </sequences-handlers>
+
+        <state id="INITIAL" description="Инициализация заявки"
+               client-form="/private/userprofile/basket/subscription/create.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="INITIAL" description="Редактирование документа клиентом" type="client">
+                    <next-states default="INITIAL"/>
+                </event>
+                <event name="SAVE" description="Сохранение документа клиентом"  type="client" lock="true">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DisallowAdditionalCardPaymentHandler"/>
+                        <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.CheckProviderServicePaymentHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.receivers.ServiceProviderInfoSaveHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.receivers.AutoSubNotKeyFieldCleanHandler"/>
+                        <!--вызываем метод подготовки биллингового платежа. по его результатам в раширенных полях может появиться доп информация-->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PrepareDocumentOfflineSupportedHandler"/>
+                        <!-- удаляем источник создания подписки (автоматически сгенерированную подписку) -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.basket.subscription.RemoveInvoiceSubscriptionSourceHandler"/>
+                    </handlers>
+
+                    <!--по умолчанию считаем, что есть что еще заполнять: переводим в состояние частично заполен(черновик)-->
+                    <next-states default="DRAFT">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.NotFilledSubscriptionParametersCondition" state="INITIAL_LONG_OFFER"/>
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.LongOfferBillingPaymentRequisitesSufficientCondition" state="SAVED">
+                            <handlers>
+                                <sequence-handlers-ref name="doSaved"/>
+                            </handlers>
+                        </next-state>
+                    </next-states>
+				</event>
+
+                <event name="SAVE" description="Сохранение документа клиентом" type="system" lock="true">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.InvoiceSubscriptionNextPayDateAction"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OfflineDelayedBillingPaymentHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckOfflineDelayedHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DisallowAdditionalCardPaymentHandler"/>
+                        <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.CheckProviderServicePaymentHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.receivers.ServiceProviderInfoSaveHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.receivers.AutoSubNotKeyFieldCleanHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PrepareDocumentHandler"/>
+                    </handlers>
+                    <next-states default="DRAFT">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.LongOfferBillingPaymentRequisitesSufficientCondition" state="SAVED">
+                            <handlers>
+                                <sequence-handlers-ref name="doSaved"/>
+                            </handlers>
+                        </next-state>
+                    </next-states>
+				</event>
+
+                <event name="DELETE" description="Удалить документ" type="client">
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="system">
+                    <next-states default="DELETED"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="DRAFT" description="Частично заполеннный документ"
+                client-form="/private/userprofile/basket/payments/payment.do"
+                system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <events>
+                <event name="INITIAL" description="Редактирование документа клиентом" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PrepareEditDocumentHandler"/>
+                    </handlers>
+                    <next-states default="INITIAL"/>
+                </event>
+                <event name="INITIAL" description="Редактирование документа клиентом" type="employee">
+                    <next-states default="INITIAL"/>
+                </event>
+                <event name="SAVE" description="Сохранение документа клиентом"  type="client" lock="true">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckAccountTemplateForSomeTBHandler"/>
+                        <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.CheckProviderServicePaymentHandler"/>
+                        <!--вызываем метод подготовки биллингового платежа. по его результатам в раширенных полях может появиться доп информация-->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PrepareDocumentHandler"/>
+                    </handlers>
+                    <!--по умолчанию считаем, что есть, что еще заполнять: переводим в состояние частично заполен(черновик)-->
+                    <next-states default="DRAFT">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.NotFilledSubscriptionParametersCondition" state="INITIAL_LONG_OFFER"/>
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.LongOfferBillingPaymentRequisitesSufficientCondition" state="SAVED">
+                            <handlers>
+                                <sequence-handlers-ref name="doSaved"/>
+                            </handlers>
+                        </next-state>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+
+        <state id="INITIAL_LONG_OFFER" description="Вы сохранили заявку, но не заполнили параметры подписки"
+               client-form="/private/userprofile/basket/payments/payment.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <events>
+                 <event name="SAVE" type="client">
+                     <next-states default="SAVED">
+                         <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.NotFilledSubscriptionParametersCondition" state="INITIAL_LONG_OFFER"/>
+                         <handlers>
+                             <sequence-handlers-ref name="doSaved"/>
+                         </handlers>
+                     </next-states>
+                 </event>
+
+                <event name="INITIAL" description="Редактирование документа" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PrepareEditDocumentHandler"/>
+                    </handlers>
+                    <next-states default="INITIAL"/>
+                 </event>
+
+                 <event name="DELETE" description="Удалить документ" type="client">
+                     <next-states default="DELETED"/>
+                 </event>
+
+                 <event name="DELETE" description="Удалить документ" type="system">
+                     <next-states default="DELETED"/>
+                 </event>
+            </events>
+        </state>
+
+        <state id="SAVED" description="Вы сохранили, но еще не подтвердили документ."
+               client-form="/private/userprofile/basket/payments/confirm.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <events>
+                <event name="DOUNKNOW" description="таймаут" type="client">
+                    <next-states default="UNKNOW">
+                        <handlers>
+                            <!-- все равно создаем сущность подписки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateInvoiceSubscriptionEntityAction"/>
+                        </handlers>
+                    </next-states>
+                </event>
+
+                 <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW">
+                        <handlers>
+                            <!-- все равно создаем сущность подписки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateInvoiceSubscriptionEntityAction"/>
+                        </handlers>
+                    </next-states>
+                </event>
+
+                <event name="DOWAITCONFIRM" description="Перевод документа в ожидание дополнительной обработки" type="client">
+                    <handlers>
+                        <sequence-handlers-ref name="confirm"/>
+                    </handlers>
+                    <next-states default="WAIT_CONFIRM">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SumRestrictionHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+                                <parameter name="datePropertyName" value="admissionDate"/>
+                                <parameter name="datePropertyType" value="java.util.Calendar"/>
+                            </handler>
+                            <!-- сброс текстовки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                        </handlers>
+                    </next-states>
+                </event>
+
+                <event name="CONFIRM" description="Отправка документа клиентом" type="client" lock="true">
+                    <handlers>
+                         <!-- событие подтверждения клиентское, поэтому сеттим интернет банк(IB) -->
+                        <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.SetChannelTypeHandler"/>
+                        <sequence-handlers-ref name="confirm"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.CheckBillingPaymentChargeOffCardHandler"/>
+                    </handlers>
+                    <next-states default="DISPATCHED">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.OfflineDelayedCondition" state="OFFLINE_DELAYED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SumRestrictionHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction">
+                                    <parameter name="datePropertyName" value="admissionDate"/>
+                                    <parameter name="datePropertyType" value="java.util.Calendar"/>
+                                </handler>
+                                <!-- сброс текстовки -->
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            </handlers>
+                        </next-state>
+                        <handlers>
+                            <sequence-handlers-ref name="preDispatch"/>
+                            <!-- создание сущности подписки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateInvoiceSubscriptionEntityAction"/>
+                            <!-- сброс текстовки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                        </handlers>
+                    </next-states>
+                </event>
+
+                <event name="CONFIRM" description="Отправка документа клиентом" type="system" lock="true">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.SetChannelTypeHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.CheckCommissionSumAction"/>
+                        <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.CheckProviderServicePaymentHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.CheckBillingPaymentChargeOffCardHandler"/>
+                    </handlers>
+                    <next-states default="DISPATCHED">
+                        <handlers>
+                            <sequence-handlers-ref name="preDispatch"/>
+                        </handlers>
+                    </next-states>
+                </event>
+
+                <event name="EDIT" description="Редактирование документа" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PrepareEditDocumentHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DeniedEditPaymentHandler"/>
+                    </handlers>
+                    <next-states default="INITIAL">
+                        <!--<next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.BarCodeJurPaymentCondition"                           state="DRAFT"/>
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.LongOfferBillingPaymentRequisitesSufficientCondition" state="INITIAL_LONG_OFFER"/>-->
+                    </next-states>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="client">
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="system">
+                    <next-states default="DELETED"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="DISPATCHED" description="Документ подтвержден и передан на обработку в банк."
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ABSSystemNameResolver">
+
+            <events>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+
+                <event name="REPEAT_SEND" description="Подтверждение документа системой" type="system">
+                    <next-states default="DISPATCHED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.BusinessDocumentRepeatSendHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="EXECUTE" description="Подтверждение документа системой" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <next-state condition="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.AutoSubscriptionCondition" state="EXECUTED" description="Заявка успешно принята на исполнение в банке">
+                            <handlers>
+                                <!-- из отложенного в исполненный -->
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                    <parameter name="key" value="operation.tomorrow.message"/>
+                                </handler>
+                            </handlers>
+                        </next-state>
+                        <handlers>
+                            <!-- из отложенного в исполненный -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                <parameter name="key" value="operation.tomorrow.message"/>
+                            </handler>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.ExecutedDocumentSendToIPSHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="EXECUTE" description="Подтверждение документа системой" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.TestClientBlockedHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <next-state condition="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.AutoSubscriptionCondition" state="EXECUTED" description="Заявка успешно принята на исполнение в банке">
+                            <handlers>
+                                <!-- из отложенного в исполненный -->
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                    <parameter name="key" value="operation.tomorrow.message"/>
+                                </handler>
+                            </handlers>
+                        </next-state>
+                        <handlers>
+                            <!-- из отложенного в исполненный -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                    <parameter name="key" value="operation.tomorrow.message"/>
+                            </handler>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.ExecutedDocumentSendToIPSHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="PARTLY_EXECUTED" description="Подтверждение документа АБС в ходе двухфазной транзакции  " type="system">
+                    <next-states default="PARTLY_EXECUTED"/>
+                </event>
+
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                        <!-- откатываем лимит -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.UpdateErrorInvoiceSubscriptionEntityAction"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.TestClientBlockedHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.UpdateErrorInvoiceSubscriptionEntityAction"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                    </next-states>
+                </event>
+
+                <event name="ERROR" description="При работе с документом произошла ошибка" type="system">
+                    <handlers>
+                        <!-- откатываем лимит -->
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                    </handlers>
+                    <next-states default="ERROR"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="WAIT_CONFIRM" description="Документ, ожидающий дополнительного подтверждения"
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="DOUNKNOW" description="таймаут" type="employee">
+                    <next-states default="UNKNOW"/>
+                </event>
+                <event name="CONFIRM" type="employee">
+                    <next-states default="DISPATCHED">
+                        <handlers>
+                            <sequence-handlers-ref name="preDispatch"/>
+                            <!-- сброс текстовки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                         </handlers>
+                    </next-states>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="system">
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="DELETE" description="Удалить документ" type="client">
+                    <next-states default="DELETED"/>
+                </event>
+                <event name="REFUSE" description="Отклонить заявку" type="employee">
+                    <next-states default="REFUSED"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="EXECUTED" description="Заявка успешно исполнена банком"
+                client-form="/private/payments/view.do"
+                employee-form="/private/payments/view.do"
+                system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+        </state>
+
+        <state id="REFUSED" description="Вам отказано в исполнении операции по какой-либо причине."
+                client-form="/private/payments/view.do"
+                employee-form="/private/payments/view.do"
+                system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+        </state>
+
+        <state id="ERROR" description="Документ не может быть исполнен, Вам необходимо обратиться в банк."
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="EXECUTE" description="Подтверждение документа сотрудником" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <!-- сброс текстовки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+		    </events>
+        </state>
+
+        <state id="UNKNOW" description="Документ подтвержден и передан на обработку в банк."
+               client-form="/private/payments/view.do"
+               employee-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <events>
+                <event name="SPECIFY" description="Уточнение состояния документа" type="employee" lock="true">
+                    <next-states default="DISPATCHED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.InvoiceSubscriptionNextPayDateAction"/>
+                            <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.SetAutopayNumberHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                            <!-- сброс текстовки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="EXECUTE" description="Подтверждение документа сотрудником" type="employee">
+                     <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <!-- сброс текстовки -->
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="system">
+                    <handlers>
+                         <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+       				</handlers>
+                    <next-states default="REFUSED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="ERROR" description="Ошибка исполнения документа" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.ermb.handlers.ErmbRefuseDocumentHandler">
+                           <enabled class="com.rssl.phizic.business.payments.forms.meta.DocumentCreationChannelFilter">
+                               <parameter name="whiteList" value="sms"/>
+                           </enabled>
+                         </handler>
+                    </handlers>
+                    <next-states default="ERROR"/>
+                </event>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+            </events>
+		</state>
+
+        <state id="OFFLINE_DELAYED" description="Ожидается передача документа на обработку в банк."
+            client-form="/private/payments/view.do"
+            employee-form="/private/payments/view.do"
+            system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <handlers>
+                <handler class="com.rssl.phizic.business.payments.forms.meta.ClearOfflineDelayedRowHandler"/>
+            </handlers>
+            <events>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+                <event name="DISPATCH" description="Отправка документа системой" type="system">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.OfflineDelayedBillingPaymentHandler"/>
+                    </handlers>
+                    <next-states default="DISPATCHED">
+                        <next-state condition="com.rssl.phizic.business.payments.forms.meta.conditions.OfflineDelayedCondition" state="OFFLINE_DELAYED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey"/>
+                            </handlers>
+                        </next-state>
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.PrepareDocumentHandler"/>
+                            <handler class="com.rssl.phizic.business.ext.sbrf.payments.handlers.CheckProviderServicePaymentHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.handlers.CheckBillingPaymentChargeOffCardHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.BillingPaymentRequisitesSufficientHandler"/>
+                            <sequence-handlers-ref name="preDispatch"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.ExecutedDocumentSendToIPSHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="ERROR" description="Ошибка исполнения документа" type="system">
+                    <next-states default="ERROR"/>
+                </event>
+                <event name="EXECUTE" description="Подтверждение документа системой" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.TestClientBlockedHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                    </handlers>
+                    <next-states default="EXECUTED">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.CreateNotificationHandler"/>
+                            <handler class="com.rssl.phizic.business.payments.forms.meta.ExecutedDocumentSendToIPSHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="REFUSE" description="Отказ в исполнении документа" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.RollbackUserLimitHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.SetExecutionDateHandler"/>
+                    </handlers>
+                    <next-states default="REFUSED"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="DELETED" description="Документ удален."
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+        </state>
+    </states>
+</config>

@@ -1,0 +1,24 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.bankroll.SendedAbstract" table="SENDED_ABSTRACTS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_SENDED_ABSTRACTS</param>
+            </generator>
+        </id>
+        <property name="sendedDate"    type="calendar"  column="SENDED_DATE"     not-null="true"/>
+        <property name="fromDate"      type="calendar"  column="FROM_DATE"            not-null="true" />
+        <property name="toDate"          type="calendar"  column="TO_DATE"            not-null="true"/>
+        <many-to-one name="cardLink" column="CARDLINK_ID" class="com.rssl.phizic.business.resources.external.CardLink" lazy="false"/>
+
+    </class>
+
+    <query name="com.rssl.phizic.business.dictionaries.bankroll.SendedAbstract.removeByLink">
+        delete from com.rssl.phizic.business.dictionaries.bankroll.SendedAbstract sendedAbstract
+        where sendedAbstract.cardLink = :cardLink
+    </query>
+
+</hibernate-mapping>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://tempuri.org/PosGate/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="PosGate" targetNamespace="http://tempuri.org/PosGate/">
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://tempuri.org/PosGate/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			<xsd:element name="pqResponse" type="xsd:string"/>
+			<xsd:element name="pqRequest" type="xsd:string"/>
+			<xsd:element name="pqFault" type="xsd:string"/>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="pqResponse">
+		<wsdl:part element="tns:pqResponse" name="pqResponse"/>
+	</wsdl:message>
+	<wsdl:message name="pqRequest">
+		<wsdl:part element="tns:pqRequest" name="pqRequest"/>
+	</wsdl:message>
+	<wsdl:message name="pqFault">
+		<wsdl:part element="tns:pqFault" name="pqFault"/>
+	</wsdl:message>
+
+
+	<wsdl:portType name="PosGate">
+		<wsdl:operation name="pqQuery">
+			<wsdl:input message="tns:pqRequest"/>
+			<wsdl:output message="tns:pqResponse"/>
+			<wsdl:fault message="tns:pqFault" name="Fault"/>
+		</wsdl:operation>
+
+	</wsdl:portType>
+	<wsdl:binding name="PosGateSOAP" type="tns:PosGate">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="pqQuery">
+			<soap:operation soapAction="http://tempuri.org/PosGate/NewOperation"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="PosGate">
+		<wsdl:port binding="tns:PosGateSOAP" name="PosGateSOAP">
+			<soap:address location="http://localhost:9080/PosGateWS/services/PosGateSOAP"/>
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

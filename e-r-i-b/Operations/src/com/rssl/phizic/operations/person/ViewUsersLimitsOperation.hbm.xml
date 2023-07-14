@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--Получить список лимитов клиента
+     1) Опорный элемент: LIMITS
+        Предикаты доступа: нет
+        Кардинальность: все записи таблицы
+     2) Опорный элемент: LIMITS
+        Предикаты доступа: нет
+        Кардинальность: все записи таблицы
+    -->
+	<sql-query name="com.rssl.phizic.operations.person.ViewUsersLimitsOperation.list">
+        <return alias="limits" class="com.rssl.phizic.business.limits.Limit"/>
+    <![CDATA[
+    select
+        {limits.*}
+    from
+        Limits limits
+    where
+        limits.LIMIT_TYPE in ('OBSTRUCTION_FOR_AMOUNT_OPERATIONS', 'OVERALL_AMOUNT_PER_DAY', 'IMSI')
+        and limits.CHANNEL_TYPE = :extra_channelType
+        and (limits.LIMIT_TYPE = 'OVERALL_AMOUNT_PER_DAY' or limits.TB = :extra_tb)
+        -- учитываем только подтвержденные лимиты
+        and limits.STATE = 'CONFIRMED'
+        and current_date >= limits.START_DATE
+        and (
+            limits.END_DATE is null
+            or limits.END_DATE > current_date
+        )
+
+    union
+
+    select
+        {limits.*}
+    from
+        Limits limits
+        left join GROUPS_RISK groupRisk on limits.GROUP_RISK_ID = groupRisk.ID
+    where
+        limits.LIMIT_TYPE = 'GROUP_RISK'
+        and limits.TB = :extra_tb
+        -- учитываем только подтвержденные лимиты
+        and limits.STATE = 'CONFIRMED'
+        and limits.SECURITY_TYPE = :extra_securityType
+        and limits.CHANNEL_TYPE = :extra_channelType
+        and current_date >= limits.START_DATE
+        and (
+            limits.END_DATE is null
+            or limits.END_DATE > current_date
+        )
+    ]]>
+	</sql-query>
+</hibernate-mapping>
+

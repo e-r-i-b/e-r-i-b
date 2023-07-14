@@ -1,0 +1,32 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class table="CARD_OPERATION_TYPES" name="com.rssl.phizic.business.dictionaries.finances.CardOperationType">
+	    <id name="code" type="long" column="CODE"/>
+        <property name="cash" type="boolean" column="CASH" not-null="true"/>
+    </class>
+
+    <!--Список типов операций-->
+    <query name="com.rssl.phizic.business.dictionaries.finances.getAllOperationTypes">
+        from com.rssl.phizic.business.dictionaries.finances.CardOperationType
+        order by code
+    </query>
+
+    <!-- Поиск типа карточной операции по коду
+        Опорный объект: PK_CARD_OPERATION_TYPES
+        Предикаты доступа: "CODE"=TO_NUMBER(:CODE)
+        Кардинальность: CODE - первичный ключ, поэтому будет получено не более одного значения.
+    -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.CardOperationTypeService.findOperationTypeByCode">
+        from com.rssl.phizic.business.dictionaries.finances.CardOperationType
+        where code = :code
+    </query>
+
+    <!-- Поиск типов карточных операций по коду -->
+    <query name="com.rssl.phizic.business.dictionaries.finances.CardOperationTypeService.findOperationTypesByCode">
+        from com.rssl.phizic.business.dictionaries.finances.CardOperationType
+        where code in (:codes)
+    </query>
+</hibernate-mapping>

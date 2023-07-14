@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+		  http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+           version="2.5">
+
+    <listener>
+        <listener-class>com.rssl.phizic.init.InitializerListenerBase</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>com.rssl.phizic.web.common.CacheShootDownListener</listener-class>
+    </listener>
+
+    <filter>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>CSAFront</param-value>
+        </init-param>
+    </filter>
+
+    <filter>
+		<filter-name>ContextFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.ContextFilter</filter-class>
+	</filter>
+
+    <filter>
+		<filter-name>HeaderFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.HeaderFilter</filter-class>
+		<init-param>
+			<param-name>requestEncoding</param-name>
+			<param-value>Windows-1251</param-value>
+		</init-param>
+	</filter>
+
+    <filter>
+		<filter-name>MobileBrowserFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.security.MobileBrowserFilter</filter-class>
+		<init-param>
+			<param-name>redirectUrl</param-name>
+			<param-value>/CSAFront/unallowedbrowsers.do</param-value>        
+		</init-param>
+	</filter>
+
+    <filter>
+        <description>Сохраняет в контексте ID активной смены промоутера</description>
+        <filter-name>PromoterContextFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.promoter.PromoterContextFilter</filter-class>
+    </filter>
+
+    <filter>
+        <description>Отключает проверку фильра на XSS для оплаты с внешней ссылки</description>
+        <filter-name>PayOrderParametersFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.security.PayOrderParametersFilter</filter-class>
+    </filter>
+
+    <filter>
+		<filter-name>FraudMonitoringFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.FraudMonitoringFilter</filter-class>
+	</filter>
+
+    <filter-mapping>
+        <filter-name>FraudMonitoringFilter</filter-name>
+        <url-pattern>*.do</url-pattern>
+    </filter-mapping>
+
+    <context-param>
+		<param-name>resourcesRealPath</param-name>
+		<param-value>/CSAFront-res@additionl.path@</param-value>
+	</context-param>
+
+    <servlet>
+        <servlet-name>action</servlet-name>
+        <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+        <init-param>
+            <param-name>config</param-name>
+            <param-value>/WEB-INF/struts-config.xml</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>captchaServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.captcha.CaptchaServlet</servlet-class>
+        <load-on-startup>3</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>registrationCaptchaServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.captcha.CaptchaServlet</servlet-class>
+        <load-on-startup>3</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>FSOServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.security.fraud.PassMarkSimpleFSOServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <servlet-mapping>
+        <servlet-name>action</servlet-name>
+        <url-pattern>*.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>captchaServlet</servlet-name>
+        <url-pattern>/captcha.png</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>registrationCaptchaServlet</servlet-name>
+        <url-pattern>/registration/captcha.png</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>FSOServlet</servlet-name>
+        <url-pattern>/pmfso</url-pattern>
+    </servlet-mapping>
+
+    <filter-mapping>
+		<filter-name>ContextFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>HeaderFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+        <filter-name>MobileBrowserFilter</filter-name>
+        <url-pattern>/index.do</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>PromoterContextFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>PayOrderParametersFilter</filter-name>
+        <url-pattern>/payOrderPaymentLogin.do</url-pattern>
+    </filter-mapping>
+
+    <jsp-config>
+
+        <taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-html</taglib-uri>
+			<taglib-location>/WEB-INF/tld/struts-html.tld</taglib-location>
+		</taglib>
+
+        <taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/core</taglib-uri>
+			<taglib-location>/WEB-INF/tld/customized-jstl.tld</taglib-location>
+		</taglib>
+
+        <taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-bean</taglib-uri>
+			<taglib-location>/WEB-INF/tld/struts-bean.tld</taglib-location>
+		</taglib>
+
+        <taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-logic</taglib-uri>
+			<taglib-location>/WEB-INF/tld/struts-logic.tld</taglib-location>
+		</taglib>
+
+        <taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/functions</taglib-uri>
+			<taglib-location>/WEB-INF/tld/fn.tld</taglib-location>
+		</taglib>
+
+        <taglib>
+			<taglib-uri>http://rssl.com/tags/csa</taglib-uri>
+			<taglib-location>/WEB-INF/tld/csa.tld</taglib-location>
+		</taglib>
+
+       <taglib>
+			<taglib-uri>http://rssl.com/tags</taglib-uri>
+			<taglib-location>/WEB-INF/tld/csa.tld</taglib-location>
+		</taglib>
+
+        <taglib>
+			<taglib-uri>http://struts.application-servers.com/layout</taglib-uri>
+			<taglib-location>/WEB-INF/tld/customized-struts-layout.tld</taglib-location>
+		</taglib>
+
+        <taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/fmt</taglib-uri>
+			<taglib-location>/WEB-INF/tld/fmt.tld</taglib-location>
+		</taglib>
+        
+    </jsp-config>
+
+    <mime-mapping>
+        <extension>htc</extension>
+        <mime-type>text/x-component</mime-type>
+    </mime-mapping>
+
+</web-app>

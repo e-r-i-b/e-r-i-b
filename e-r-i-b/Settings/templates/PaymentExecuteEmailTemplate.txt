@@ -1,0 +1,97 @@
+Уважаемый(-ая), ${shortName}!
+
+<@compress single_line=true >
+<#list entries as info>
+    <#if info.documentType != "LossPassbookApplicationClaim">
+        <#if info.isLongOffer == "true">
+            <#if info.documentState == 'WAIT_CONFIRM'>
+                <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                    Отмену
+                <#else>
+                    Создание
+                </#if>
+                 регулярного платежа по
+            <#elseif info.documentState == 'REFUSED'>
+                <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                    В отмене
+                <#else>
+                    В создании
+                </#if>
+                регулярного платежа по
+            <#else>
+                Регулярный платеж по
+            </#if>
+
+            <#if isCard(info.accountType) >
+                карте ${info.nameOrType?if_exists} ${getCutCardNumber(info.accountNumber)}
+            <#else>
+                счету ${info.nameOrType?if_exists} ${info.accountNumber}
+            </#if>
+
+            <#if info.documentState == 'WAIT_CONFIRM'>
+                необходимо подтвердить в контактном центре Банка по номеру 8 (800) 555-55-50.
+            <#elseif info.documentState == 'REFUSED'>
+                отказано банком.
+            <#else>
+                 <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                    Отменен
+                 <#else>
+                    Создан
+                 </#if>
+            </#if>
+        <#else>
+            <#if info.documentState == 'WAIT_CONFIRM'>
+                Платеж
+            <#elseif info.documentState == 'REFUSED'>
+                Информируем Вас о том, что в исполнении платежа
+            <#else>
+                Информируем Вас о том, что
+            </#if>
+            <#if isCard(info.accountType) >
+                с Вашей карты ${info.nameOrType?if_exists} ${getCutCardNumber(info.accountNumber)}
+            <#else>
+                с Вашего счета ${info.nameOrType?if_exists} ${info.accountNumber}
+            </#if>
+
+
+            <#if info.documentState != 'WAIT_CONFIRM' && info.documentState != 'REFUSED'>
+                выполнен платеж
+            </#if>
+
+            <#if info.recipientAccountNumber?if_exists != "">
+	            <#if isCard(info.recipientAccountType) >
+	                на карту ${getCutCardNumber(info.recipientAccountNumber)}
+	            <#else>
+	                на счет ${info.recipientAccountNumber}
+	            </#if>
+            </#if>
+
+             <#if info.documentState == 'WAIT_CONFIRM'>
+                на сумму ${info.transactionSum} ${info.currency} необходимо подтвердить в контактном центре Банка по номеру 8 (800) 555-55-50.
+             <#elseif info.documentState == 'REFUSED'>
+                на сумму ${info.transactionSum} ${info.currency} отказано банком.
+             <#else>
+                на сумму ${info.transactionSum} ${info.currency}.
+             </#if>
+        </#if>
+    <#else>
+
+        <#if info.documentState == 'REFUSED'>
+            Заявление об утере сберкнижки ${info.accountNumber} отклонено банком.
+        <#else>
+            Ваше заявление об утере сберкнижки ${info.accountNumber} обработано. Остаток получите наличными в банке.
+        </#if>
+    </#if>
+</#list>
+</@compress>
+
+Для получения более подробной информации, а также для настройки параметров оповещений Вы можете воспользоваться системой "${bankContext.systemName}".
+
+Внимание! Сообщения, рассылаемые "${bankContext.systemName}", никогда не содержат вложенные файлы или ссылки на ресурсы, размещенные в интернете. Любое сообщение от имени "${bankContext.systemName}", содержащее вложенные файлы или ссылки, является фальшивым. Если Вы получили сообщение, в тексте которого содержатся вложенные файлы или ссылки, ни в коем случае не открывайте их и не проходите по ссылкам. Не отвечайте на такие сообщения. Просто удалите их.
+
+Дата и время составления отчета: ${reportTime.time?string("dd.MM.yyyy HH:mm:ss")}
+
+С уважением,
+${bankContext.bankName}
+Адрес: ${bankContext.bankAddress}
+Телефон: ${bankContext.bankPhone}

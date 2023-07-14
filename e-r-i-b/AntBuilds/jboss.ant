@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<!--
+	Утилитный проект таски в нем не предназначены для самостоятельного запуска
+	требуют предватирельной установки пропертей
+	current.config.dir
+	exploded.dir
+-->
+<project name="jboss">
+    <import id="configs" file="configs.ant"/>
+
+	<target name="make_services" if="appserver.type.jboss">
+
+		<property name="jboss.services.sources.location" value="${current.config.dir}/services"/>
+		<property name="jboss.services.target.location"  value="${application.explode.dir}/lib/phizic"/>
+
+		<pathconvert dirsep="/" pathsep=" " property="jboss.sar.classpath">
+			<path>
+				<fileset dir="${application.explode.dir}" includes="**/*.jar"/>
+			</path>
+			<mapper>
+				<globmapper from="${application.explode.dir}/*" to="../../*" handledirsep="true"/>
+			</mapper>
+		</pathconvert>
+
+		<antcall target="make_sar">
+			<param name="sar.name" value="PhizICHibernate"/>
+		</antcall>
+
+		<antcall target="make_sar">
+			<param name="sar.name" value="CryptoProviderService"/>
+		</antcall>
+
+		<antcall target="make_sar">
+			<param name="sar.name" value="RetailJNIService"/>
+		</antcall>
+
+		<antcall target="make_sar">
+			<param name="sar.name" value="RSRetailV51Hibernate"/>
+		</antcall>
+
+		<antcall target="make_sar">
+			<param name="sar.name" value="RSBankV50Hibernate"/>
+		</antcall>
+
+		<antcall target="make_sar">
+			<param name="sar.name" value="RSBankV55Hibernate"/>
+		</antcall>
+
+		<antcall target="make_sar">
+			<param name="sar.name" value="RSRetailV6r4Hibernate"/>
+		</antcall>
+
+		<antcall target="make_sar">
+			<param name="sar.name" value="RSLoans64Hibernate"/>
+		</antcall>
+
+        <antcall target="make_sar">
+            <param name="sar.name" value="RSRetailV6r20Hibernate"/>
+        </antcall>
+
+		<antcall target="make_sar">
+			<param name="sar.name" value="ArmourProviderService"/>
+		</antcall>
+	</target>
+
+	<target name="make_sar">
+		<available file="${jboss.services.sources.location}/${sar.name}.sar" type="dir" property="sar.available"/>
+		<antcall target="make_sar_internal">
+			<param name="sar.name" value="${sar.name}"/>
+		</antcall>
+	</target>
+
+	<target name="make_sar_internal" if="sar.available">
+		<jar destfile="${jboss.services.target.location}/${sar.name}.sar"
+		     basedir="${jboss.services.sources.location}/${sar.name}.sar">
+			<manifest>
+				<attribute name="Class-Path" value="${jboss.sar.classpath} ../../Settings/"/>
+			</manifest>
+		</jar>
+		<echo message="Создан сервис ${sar.name}"/>
+	</target>
+</project>

@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<typedef name="ChargeOffType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.chargeoff.ChargeOffType</param>
+	</typedef>
+	<typedef name="ChargeOffState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.chargeoff.ChargeOffState</param>
+	</typedef>
+
+	<class name="com.rssl.phizic.business.chargeoff.ChargeOffLog" table="CHARGEOFFLOG">
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_CHARGEOFFLOG</param>
+			</generator>
+		</id>
+
+		<many-to-one name="login" class="com.rssl.phizic.auth.CommonLogin" column="LOGIN_ID" lazy="false" not-null="true" update="false"/>
+
+		<property name="date" type="calendar" column="OPERATION_DATE" not-null="true"/>
+		<property name="type" type="ChargeOffType" column="TYPE" not-null="true"/>
+		<property name="amount" type="money">
+			<column name="AMOUNT"/>
+			<column name="CURRENCY"/>
+		</property>
+		<property name="account" type="string" column="ACCOUNT"/>
+		<property name="periodFrom" type="calendar" column="PERIOD_FROM"/>
+		<property name="periodUntil" type="calendar" column="PERIOD_UNTIL"/>
+		<property name="state" type="ChargeOffState"   column="STATE"  not-null="true"/>
+		<property name="attempt" type="long" column="ATTEMPT"/>
+		
+	</class>
+
+	<!--Получаем все задолженности-->
+	<query name="com.rssl.phizic.business.chargeoff.getDebts">
+		select chargeOffLog
+		from com.rssl.phizic.business.chargeoff.ChargeOffLog chargeOffLog, com.rssl.phizic.person.Person person
+		where ((chargeOffLog.state = 'dept')
+			and (chargeOffLog.login = person.login)
+			and (person.status!='D'))
+		order by chargeOffLog.date, chargeOffLog.login, chargeOffLog.periodFrom
+	</query>
+
+    <!--Получаем все задолженности для джоба (добавлен параметр ids - уникальные коды обработанных задолженностей)-->
+    <query name="com.rssl.phizic.business.chargeoff.getDebtsWithFilter">
+        select chargeOffLog
+		from com.rssl.phizic.business.chargeoff.ChargeOffLog chargeOffLog, com.rssl.phizic.person.Person person
+		where ((chargeOffLog.state = 'dept')
+			and (chargeOffLog.login = person.login)
+			and (person.status!='D'))
+			and not(chargeOffLog.id in (:ids))
+		order by chargeOffLog.date, chargeOffLog.login, chargeOffLog.periodFrom
+    </query>
+
+	<!--Получаем все подходящие платежи, т.е. которые подготовлены (prepared) и подошел срок оплаты-->
+	<query name="com.rssl.phizic.business.chargeoff.getAppropriativePayments">
+		select chargeOffLog
+		from com.rssl.phizic.business.chargeoff.ChargeOffLog chargeOffLog, com.rssl.phizic.person.Person person
+		where ((chargeOffLog.periodFrom &lt;= :currentDate) and (chargeOffLog.state = 'prepared')
+				and (chargeOffLog.login = person.login) and (person.status!='D'))
+		order by chargeOffLog.date desc		
+	</query>
+
+    <!--Получаем все подходящие платежи для джоба (добавлен параметр ids - уникальные коды обработанных платежей)-->
+    <query name="com.rssl.phizic.business.chargeoff.getAppropriativePaymentsWithFilter">
+        select chargeOffLog
+        from com.rssl.phizic.business.chargeoff.ChargeOffLog chargeOffLog, com.rssl.phizic.person.Person person
+        where ((chargeOffLog.periodFrom &lt;= :currentDate) and (chargeOffLog.state = 'prepared')
+                and (chargeOffLog.login = person.login) and (person.status!='D'))
+                and not(chargeOffLog.id in (:ids))
+        order by chargeOffLog.date desc
+    </query>
+
+	<!--Получаем список платежей в соответсвии с фильтром. Платежи для отображения, следовательно не со статусом prepared-->
+	<query name="com.rssl.phizic.business.chargeoff.getChargeOffLogs">
+		select chargeOffLog
+		from com.rssl.phizic.business.chargeoff.ChargeOffLog chargeOffLog
+		where ((chargeOffLog.login = :login)
+				and (:operation_date is null or trunc(chargeOffLog.date,'DD') = :operation_date)
+				and ((:state is null or chargeOffLog.state=:state) and (chargeOffLog.state!='prepared'))
+				and (:periodFrom is null or chargeOffLog.periodFrom &lt;= :periodFrom))
+		order by chargeOffLog.date desc, chargeOffLog.periodFrom desc
+	</query>
+</hibernate-mapping>

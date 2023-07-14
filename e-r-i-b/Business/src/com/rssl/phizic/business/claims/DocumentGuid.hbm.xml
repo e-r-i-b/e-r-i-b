@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class name="com.rssl.phizic.business.claims.DocumentGuid" table="GUID_TO_DOCUMENTID">
+		<id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_GUID_TO_DOCUMENTID</param>
+            </generator>
+        </id>
+
+		<property name="guid" type="string" column="GUID"/>
+		<property name="documentId" type="long" column="DOCUMENT_ID" not-null="true"/>
+		<property name="personId" type="long" insert="false" update="false">
+			<formula>(SELECT document.LOGIN_ID FROM BUSINESS_DOCUMENTS document WHERE document.ID = DOCUMENT_ID)</formula>
+		</property>
+	</class>
+
+	<query name="com.rssl.phizic.business.documents.BusinessDocumentService.getIdByGuid">
+		select documentGuid
+		from   com.rssl.phizic.business.claims.DocumentGuid documentGuid
+		where  documentGuid.guid = :guid
+	</query>
+
+	<query name="com.rssl.phizic.business.documents.BusinessDocumentService.getGuidById">
+		select documentGuid
+		from   com.rssl.phizic.business.claims.DocumentGuid documentGuid
+		where  documentGuid.documentId = :id
+	</query>
+
+	<query name="com.rssl.phizic.business.documents.BusinessDocumentService.getDocumentGuidByGuidAndPerson">
+		select documentGuid
+		from   com.rssl.phizic.business.claims.DocumentGuid documentGuid
+		where  documentGuid.personId = :personId and
+		       documentGuid.guid = :guid
+	</query>
+
+</hibernate-mapping>

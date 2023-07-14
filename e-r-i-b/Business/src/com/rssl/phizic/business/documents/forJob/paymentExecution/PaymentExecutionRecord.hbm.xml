@@ -1,0 +1,38 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.rssl.phizic.business.documents.forJob.paymentExecution.PaymentExecutionRecord" table="PAYMENT_EXECUTION_RECORDS">
+        <id name="id" type="long" node="id">
+            <generator class="native">
+                <param name="sequence">S_PAYMENT_EXECUTION_RECORDS</param>
+            </generator>
+		</id>
+        <property name="documentId" type="long"     column="DOCUMENT_ID"/>
+        <property name="jobName"    type="string"   column="JOB_NAME"/>
+        <property name="addingDate" type="calendar" column="ADDING_DATE"/>
+        <property name="nextProcessDate" type="calendar" column="NEXT_PROCESS_DATE"/>
+        <property name="counter" type="long" column="COUNTER" not-null="true"/>
+    </class>
+
+
+    <query name="com.rssl.phizic.business.documents.forJob.paymentExecution.deleteByDocumentIdAndJobName">
+		delete from com.rssl.phizic.business.documents.forJob.paymentExecution.PaymentExecutionRecord paymentExecutionRecord
+		where paymentExecutionRecord.documentId = :documentId and paymentExecutionRecord.jobName = :jobName
+	</query>
+
+    <query name="com.rssl.phizic.business.documents.forJob.paymentExecution.incCounterAndNextProcessDate">
+        update from com.rssl.phizic.business.documents.forJob.paymentExecution.PaymentExecutionRecord paymentExecutionRecord
+        set paymentExecutionRecord.counter = paymentExecutionRecord.counter + 1,
+        paymentExecutionRecord.nextProcessDate = :nextProcessDate
+        where paymentExecutionRecord.documentId = :documentId and paymentExecutionRecord.jobName = :jobName
+    </query>
+
+    <query name="com.rssl.phizic.business.documents.forJob.paymentExecution.incCounter">
+        update from com.rssl.phizic.business.documents.forJob.paymentExecution.PaymentExecutionRecord paymentExecutionRecord
+        set paymentExecutionRecord.counter = paymentExecutionRecord.counter + 1
+        where paymentExecutionRecord.documentId = :documentId and paymentExecutionRecord.jobName = :jobName
+    </query>
+
+</hibernate-mapping>

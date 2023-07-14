@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions
+        name="FraudMonitoringAsyncInteractionService"
+        targetNamespace="http://async-interaction/fraud/monitoring/back/gate"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:ns="http://async-interaction/fraud/monitoring/back/gate">
+
+    <wsdl:types>
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://async-interaction/fraud/monitoring/back/gate">
+            <xsd:include schemaLocation="AsyncInteraction.xsd"/>
+        </xsd:schema>
+    </wsdl:types>
+
+    <wsdl:message name="request">
+        <wsdl:part name="request" element="ns:Request"/>
+    </wsdl:message>
+
+    <wsdl:message name="response">
+        <wsdl:part name="response" element="ns:Response"/>
+    </wsdl:message>
+
+    <wsdl:portType name="FraudMonitoringAsyncInteractionService">
+        <wsdl:operation name="send" parameterOrder="request">
+            <wsdl:input  message="ns:request"  name="request"/>
+            <wsdl:output message="ns:response" name="response"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="FraudMonitoringAsyncInteractionServiceSoapBinding" type="ns:FraudMonitoringAsyncInteractionService">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="send">
+            <soap:operation soapAction="http://async-interaction/fraud/monitoring/back/gate/send"/>
+            <wsdl:input name="request">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="response">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="FraudMonitoringAsyncInteractionService">
+        <wsdl:port binding="ns:FraudMonitoringAsyncInteractionServiceSoapBinding" name="FraudMonitoringAsyncInteractionService">
+            <soap:address location="http://localhost:8080/FraudMonitoringBackGateApp/services/FraudMonitoringAsyncInteractionService"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<receivers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:noNamespaceSchemaLocation="../../schemas/receivers.xsd">
+
+	<receiver className="com.rssl.phizic.business.dictionaries.PaymentReceiverPhiz" kind="P" listkind="PJ">
+		<field name="name"                  description="Наименование (ФИО)" required="true" maxlength="265"/>
+		<field name="INN"                   description="ИНН"                required="true" maxlength="12" minlength="10"/>
+		<field name="account"               description="Счет"               required="true">
+			<format regexp="\d{20}" message="Номер счета должен содержать 20 цифр"/>
+			<validators>
+				<validator>
+					<class>com.rssl.phizic.business.payments.forms.validators.AccountCurrencyValidator</class>
+					<message>Валюта счета получателя отсутствует в справочнике валют. Обновите справочник и повторите попытку.</message>
+				</validator>
+			</validators>
+		</field>
+		<field name="bankName"              description="Наименование"       required="true"/>
+		<field name="bankCode"              description="БИК"                required="true"/>
+		<field name="correspondentAccount"  description="Корр. счет"         required="false">
+			<format regexp="\d{20}" message="Номер корр. счета должен содержать 20 цифр"/>
+		</field>
+		<field name="description"           description="Дополнительные сведения"/>
+
+        <form-validators>
+            <form-validator>
+                <class>com.rssl.phizic.business.payments.forms.validators.AccountKeyValidator</class>
+                    <field-ref name="receiverAccount">account</field-ref>
+                    <field-ref name="receiverBIC">bankCode</field-ref>
+                    <message>Неверный ключ счета.</message>
+            </form-validator>
+        </form-validators>
+	</receiver>
+
+	<receiver className="com.rssl.phizic.business.dictionaries.PaymentReceiverJur" kind="J" listkind="PJ">
+		<field name="name"                  description="Наименование (ФИО)"  required="true" maxlength="265"/>
+		<field name="INN"                   description="ИНН"                 required="true" maxlength="10" minlength="10"/>
+		<field name="KPP"                   description="КПП"                 required="true">
+			<format regexp="\d{9}" message="КПП должен содержать 9 цифр"/>
+		</field>
+		<field name="account"               description="Счет"                required="true">
+			<format regexp="\d{20}" message="Номер счета должен содержать 20 цифр"/>
+			<validators>
+				<validator>
+					<class>com.rssl.phizic.business.payments.forms.validators.AccountCurrencyValidator</class>
+					<message>Валюта счета получателя отсутствует в справочнике валют. Обновите справочник и повторите попытку.</message>
+				</validator>
+			</validators>
+		</field>
+		<field name="bankName"              description="Наименование"        required="true"/>
+		<field name="bankCode"              description="БИК"                 required="true"/>
+		<field name="correspondentAccount"  description="Корр. счет"          required="false">
+			<format regexp="\d{20}" message="Номер корр. счета должен содержать 20 цифр"/>
+		</field>
+		<field name="description"           description="Дополнительные сведения"/>
+        
+        <form-validators>
+            <form-validator>
+                <class>com.rssl.phizic.business.payments.forms.validators.AccountKeyValidator</class>
+                    <field-ref name="receiverAccount">account</field-ref>
+                    <field-ref name="receiverBIC">bankCode</field-ref>
+                    <message>Неверный ключ счета.</message>
+            </form-validator>
+        </form-validators>        
+	</receiver>
+
+	<receiver className="com.rssl.phizic.business.dictionaries.contact.ContactReceiver" kind="C" listkind="C">
+		<field name="surName"               description="Фамилия"            required="true"/>
+		<field name="firstName"             description="Имя"                required="true"/>
+		<field name="patrName"              description="Отчество"/>
+		<field name="birthDay"              description="Дата рождения">
+			<validators>			
+					 <validator>
+						 <class>com.rssl.common.forms.validators.DateFieldValidator</class>
+					 </validator>
+			</validators>
+		</field>
+		<field name="bank"                  description="Банк получателя"    required="true" type="contactMember"/>
+		<field name="contactBankCode"       path="bank.code"                 description="Код банка"          required="true"/>
+		<field name="contactBankName"       path="bank.name"                 description="Наименование банка"/>
+		<field name="contactBankPhone"      path="bank.phone"                description="телефон"/>
+		<field name="addInfo"               description="Доп. информация"/>
+
+
+	</receiver>
+	
+    <receiver className="com.rssl.phizic.business.dictionaries.BillingPaymentReceiver" kind="B" listkind="B">
+        <field name="alias"                 description="Обозначение" required="true"/>
+        <field name="name"                  description="Наименование (ФИО)"/>
+        <field name="INN"                   description="ИНН"/>
+        <field name="account"               description="Счет"/>
+        <field name="bankName"              description="Наименование"/>
+        <field name="bankCode"              description="БИК"/>
+        <field name="correspondentAccount"  description="Корр. счет"/>
+        <field name="serviceProviderKey"    description="Идентификатор услуги"/>
+    </receiver>
+</receivers>

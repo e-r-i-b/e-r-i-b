@@ -1,0 +1,167 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="StateType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.providers.ServiceProviderState</param>
+	</typedef>
+
+    <typedef name="AccountType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.providers.AccountType</param>
+	</typedef>
+
+     <typedef name="AutoSubType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.documents.payments.AutoSubType</param>
+	</typedef>
+
+    <typedef name="ServiceProviderSubType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.providers.ServiceProviderSubType</param>
+	</typedef>
+
+     <class name="com.rssl.phizic.business.dictionaries.providers.locale.ServiceProviderResources" table="SERVICE_PROVIDERS_RES">
+        <composite-id>
+            <key-property name="uuid"      column="UUID"          type="string"/>
+            <key-property name="localeId"  column="LOCALE_ID"     type="string"/>
+        </composite-id>
+        <property name="name"              column="NAME"               type="string" not-null="true"/>
+        <property name="legalName"         column="LEGAL_NAME"         type="string" not-null="true"/>
+        <property name="alias"             column="ALIAS"              type="string" not-null="true"/>
+        <property name="bankName"          column="BANK_NAME"          type="string" not-null="true"/>
+        <property name="description"       column="DESCRIPTION"        type="string" not-null="true"/>
+        <property name="tipOfProvider"     column="TIP_OF_PROVIDER"    type="string" not-null="true"/>
+        <property name="commissionMessage" column="COMMISSION_MESSAGE" type="string" not-null="true"/>
+        <property name="nameOnBill"        column="NAME_ON_BILL"       type="string" not-null="true"/>
+        <property name="nameService"       column="NAME_SERVICE"       type="string" not-null="false"/>
+    </class>
+
+
+    <class name="com.rssl.phizic.business.dictionaries.providers.locale.LocaledServiceProvider" table="SERVICE_PROVIDERS" mutable="false">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_SERVICE_PROVIDERS</param>
+            </generator>
+        </id>
+
+        <property name="uuid"                type="string"          column="UUID"               not-null="true"/>
+        <property name="synchKey"            type="string"          column="EXTERNAL_ID"        not-null="true"     unique="true"/>
+        <property name="code"                type="string"          column="CODE"               not-null="true"/>
+        <property name="name"                type="string"          column="NAME"               not-null="true"/>
+        <property name="description"         type="string"          column="DESCRIPTION"        not-null="false"/>
+        <property name="sortPriority"        type="long"            column="SORT_PRIORITY"      not-null="false"/>
+        <property name="tipOfProvider"       type="string"          column="TIP_OF_PROVIDER"    not-null="false" />
+        <property name="commissionMessage"   type="string"          column="COMMISSION_MESSAGE" not-null="false"/>
+        <property name="INN"                 type="string"          column="INN"                not-null="false"/>
+        <property name="KPP"                 type="string"          column="KPP"                not-null="false"/>
+        <property name="BIC"                 type="string"          column="BANK_CODE"          not-null="false"/>
+        <property name="account"             type="string"          column="ACCOUNT"            not-null="false"/>
+        <property name="bankName"            type="string"          column="BANK_NAME"          not-null="false"/>
+        <property name="corrAccount"         type="string"          column="CORR_ACCOUNT"       not-null="false"/>
+        <property name="NSICode"             type="string"          column="NSI_CODE"           not-null="false"/>
+        <property name="transitAccount"      type="string"          column="TRANSIT_ACCOUNT"    not-null="false"/>
+        <property name="state"               type="StateType"       column="STATE"              not-null="true"/>
+        <property name="bankDetails"         type="boolean"         column="IS_BANK_DETAILS"    not-null="true"/>
+        <property name="phoneNumber"         type="string"          column="PHONE_NUMBER"       not-null="false"/>
+        <property name="creationDate"        type="calendar"        column="CREATION_DATE"      not-null="true"/>
+        <property name="standartTemplate"    type="boolean"         column="STANDART_SMS"       not-null="true"/>
+        <property name="templateFormat"      type="string"          column="SMS_FORMAT"         not-null="false"/>
+        <property name="templateExample"     type="string"          column="SMS_EXAMPLE"        not-null="false"/>
+        <property name="imageId"             type="long"            column="IMAGE_ID"           not-null="false"/>
+        <property name="imageHelpId"         type="long"            column="IMAGE_HELP_ID"      not-null="false"/>
+        <property name="barSupported"        type="boolean"         column="IS_BAR_SUPPORTED"   not-null="false"/>
+        <property name="offlineAvailable"    type="boolean"         column="IS_OFFLINE_AVAILABLE" not-null="true"/>
+
+        <property name="visiblePaymentsForInternetBank" type="boolean"         column="VISIBLE_PAYMENTS_FOR_IB"             not-null="true"/>
+        <property name="visiblePaymentsForMApi"         type="boolean"         column="VISIBLE_PAYMENTS_FOR_M_API"          not-null="true"/>
+        <property name="visiblePaymentsForAtmApi"       type="boolean"         column="VISIBLE_PAYMENTS_FOR_ATM_API"        not-null="true"/>
+        <property name="availablePaymentsForInternetBank" type="boolean"       column="AVAILABLE_PAYMENTS_FOR_IB"           not-null="true"/>
+        <property name="availablePaymentsForMApi"         type="boolean"       column="AVAILABLE_PAYMENTS_FOR_M_API"        not-null="true"/>
+        <property name="availablePaymentsForAtmApi"       type="boolean"       column="AVAILABLE_PAYMENTS_FOR_ATM_API"      not-null="true"/>
+        <property name="availablePaymentsForErmb"         type="boolean"       column="AVAILABLE_PAYMENTS_FOR_ERMB"         not-null="true"/>
+        <property name="creditCardSupported"              type="boolean"       column="IS_CREDIT_CARD_SUPPORTED"/>
+        <property name="subType"                          type="ServiceProviderSubType" column="SUB_TYPE"/>
+
+        <property name="departmentId" type="long" column="DEPARTMENT_ID" not-null="false" />
+
+        <many-to-one name="groupRisk"        column="GROUP_RISK_ID" class="com.rssl.phizic.business.limits.GroupRisk"		not-null="false" lazy="false" fetch="join"/>
+
+        <list name="fieldDescriptions" table="FIELD_DESCRIPTIONS" cascade="all-delete-orphan" lazy="false" fetch="subselect">
+            <key column="RECIPIENT_ID"/>
+            <list-index column="LIST_INDEX"/>
+            <one-to-many class="com.rssl.phizic.business.fields.FieldDescription"/>
+        </list>
+
+        <set name="regions" table="SERVICE_PROVIDER_REGIONS" cascade="none" lazy="false">
+           <key column="SERVICE_PROVIDER_ID"/>
+           <many-to-many column="REGION_ID" class="com.rssl.phizic.business.dictionaries.regions.Region" unique="true" lazy="false"/>
+        </set>
+
+        <component name="bank" class="com.rssl.phizic.gate.dictionaries.ResidentBank" insert="false" update="false">
+            <property name="BIC" type="string" formula="BANK_CODE"/>
+            <property name="account" type="string" formula="CORR_ACCOUNT"/>
+            <property name="name" type="string" formula="BANK_NAME"/>
+        </component>
+
+        <component name="restrictions" class="com.rssl.phizic.business.dictionaries.providers.SumRestrictions">
+            <property name="minimumSum" type="big_decimal" column="MIN_SUM_RESTRICTION"/>
+            <property name="maximumSum" type="big_decimal" column="MAX_SUM_RESTRICTION"/>
+        </component>
+
+        <property name="maxComissionAmount"  type="big_decimal" column="MAX_COMISSION_AMOUNT"  not-null="false"/>
+        <property name="minComissionAmount"  type="big_decimal" column="MIN_COMISSION_AMOUNT"  not-null="false"/>
+        <property name="comissionRate"       type="big_decimal" column="COMISSION_RATE"        not-null="false"/>
+        <property name="ground"              type="boolean"     column="IS_GROUND"             not-null="true"/>
+        <property name="deptAvailable"       type="boolean"     column="IS_DEPT_AVAILABLE"     not-null="true"/>
+        <property name="attrDelimiter"       type="string"      column="ATTR_DELIMITER"        not-null="false"/>
+        <property name="attrValuesDelimiter" type="string"      column="ATTR_VALUES_DELIMITER" not-null="false"/>
+        <property name="popular"             type="boolean"     column="IS_POPULAR"            not-null="true"/>
+        <property name="propsOnline"         type="boolean"     column="IS_PROPS_ONLINE"       not-null="true"/>
+        <property name="bankomatSupported"   type="boolean"     column="IS_BANKOMAT_SUPPORTED" not-null="true"/>
+        <property name="mobilebank"          type="boolean"     column="IS_MOBILEBANK"         not-null="true"/>
+        <property name="mobilebankCode"      type="string"      column="MOBILEBANK_CODE"       not-null="false" unique="true"/>
+        <property name="federal"             type="boolean"     column="IS_FEDERAL"            not-null="true"/>
+        <property name="versionAPI"          type="integer"     column="VERSION_API"           not-null="false"/>
+        <property name="autoPaymentSupported" type="boolean"    column="IS_AUTOPAYMENT_SUPPORTED" not-null="true"/>
+        <property name="autoPaymentSupportedInApi" type="boolean"    column="IS_AUTOPAYMENT_SUPPORTED_API" not-null="true"/>
+        <property name="autoPaymentSupportedInATM" type="boolean"    column="IS_AUTOPAYMENT_SUPPORTED_ATM" not-null="true"/>
+        <property name="autoPaymentSupportedInERMB" type="boolean"   column="IS_AUTOPAYMENT_SUPPORTED_ERMB" not-null="true"/>
+        <property name="autoPaymentVisible"         type="boolean"   column="VISIBLE_AUTOPAYMENTS_FOR_IB"           not-null="true"/>
+        <property name="autoPaymentVisibleInApi"    type="boolean"   column="VISIBLE_AUTOPAYMENTS_FOR_API"        not-null="true"/>
+        <property name="autoPaymentVisibleInATM"    type="boolean"   column="VISIBLE_AUTOPAYMENTS_FOR_ATM"      not-null="true"/>
+        <property name="autoPaymentVisibleInERMB"   type="boolean"   column="VISIBLE_AUTOPAYMENTS_FOR_ERMB"         not-null="true"/>
+
+        <property name="templateSupported"   type="boolean"     column="IS_TEMPLATE_SUPPORTED" not-null="true"/>
+        <property name="planingForDeactivate" type="boolean"     column="PLANING_FOR_DEACTIVATE" not-null="false"/>
+        <property name="editPaymentSupported" type="boolean"     column="IS_EDIT_PAYMENT_SUPPORTED" not-null="true"/>
+
+        <property name="codeService"         type="string"      column="CODE_SERVICE"          not-null="false"/>
+        <property name="accountType"         type="AccountType" column="ACCOUNT_TYPE"          not-null="false"/>
+        <property name="nameService"         type="string"      column="NAME_SERVICE"          not-null="false"/>
+        <property name="legalName"           type="string"      column="LEGAL_NAME"            not-null="false"/>
+        <property name="alias"               type="string"      column="ALIAS"                 not-null="false"/>
+        <property name="nameOnBill"          type="string"      column="NAME_ON_BILL"          not-null="false"/>
+        <property name="codeRecipientSBOL"   type="string"      column="CODE_RECIPIENT_SBOL"   not-null="false"/>
+
+        <many-to-one name="billing"          column="BILLING_ID"    class="com.rssl.phizic.business.dictionaries.billing.Billing"  lazy="false"/>
+
+        <map name="autoPaySchemes" table="AUTOPAY_SETTINGS"
+             cascade="all-delete-orphan" lazy="false" batch-size="5">
+                <key column="RECIPIENT_ID"  />
+                <map-key formula="TYPE" type="AutoSubType"/>
+                <one-to-many entity-name="AutoPaySetting"/>
+        </map>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="UUID" not-null="false" property-ref="uuid"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.providers.locale.ServiceProviderResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+
+    </class>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

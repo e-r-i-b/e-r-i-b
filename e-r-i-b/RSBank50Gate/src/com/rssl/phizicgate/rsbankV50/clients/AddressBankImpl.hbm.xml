@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.rssl.phizicgate.rsbankV50.clients" catalog="RSBankV50">
+	<class name="com.rssl.phizicgate.rsbankV50.clients.AddressImpl">
+		<id name="id"/>
+
+		<property name="postalCode"/>
+		<property name="province"/>
+		<property name="district"/>
+		<property name="city"/>
+		<property name="street"/>
+		<property name="house"/>
+		<property name="building"/>
+		<property name="flat"/>
+		<property name="homePhone"/>
+		<property name="workPhone"/>
+		<property name="mobilePhone"/>
+	</class>
+
+	<sql-query name="GetClientAddress">
+		<return alias="address" class="com.rssl.phizicgate.rsbankV50.clients.AddressImpl">
+			<return-property name="id"         column="id"/>
+			<return-property name="postalCode" column="postalCode"/>
+			<return-property name="province"   column="province"/>
+			<return-property name="district"   column="district"/>
+			<return-property name="city"       column="city"/>
+			<return-property name="street"     column="street"/>
+			<return-property name="house"      column="house"/>
+			<return-property name="building"   column="building"/>
+			<return-property name="flat"       column="flat"/>
+			<return-property name="homePhone"  column="homePhone"/>
+			<return-property name="workPhone"  column="workPhone"/>
+			<return-property name="mobilePhone" column="mobilePhone"/>
+		</return>
+		SELECT
+		convert(addressInt.Client, sql_char) + convert(addressInt.AdrType, sql_char) + addressInt.IsMain AS id,
+		addressInt.PostIndex AS postalCode,
+		addressInt.Place + addressInt.Settlement AS province,
+		addressInt.Area AS district,
+		addressInt.City AS city,
+		addressInt.StreetKind + addressInt.Street AS street,
+		addressInt.House AS house,
+		addressInt.Building AS building,
+		addressInt.Apartment AS flat,
+        addressHomePhone.Address as homePhone,
+        addressJobPhone.Address as workPhone,
+		addressMobilePhone.Address as mobilePhone
+		FROM
+		regdoc_dbt AS regdoc, paprkind_dbt AS docInfo,
+		client_dbt AS client
+		INNER JOIN persn_dbt AS persn ON client.client = persn.ClientID AND client.LegalForm = 2
+		LEFT JOIN address_dbt as addressInt ON addressInt.Client = persn.ClientID and addressInt.AdrType = :addrType and addressInt.ConType=1
+		LEFT JOIN address_dbt as addressJobPhone ON addressJobPhone.Client = persn.ClientID and addressJobPhone.AdrType = 1 and addressJobPhone.ConType=2 and addressJobPhone.ConKind='Рабочий'
+		LEFT JOIN address_dbt as addressHomePhone ON addressHomePhone.Client = persn.ClientID and addressHomePhone.AdrType = 1 and addressHomePhone.ConType=2 and addressHomePhone.ConKind='Домашний'
+		LEFT JOIN address_dbt as addressMobilePhone ON addressMobilePhone.Client = persn.ClientID and addressMobilePhone.AdrType = 1 and addressMobilePhone.ConType=2 and addressMobilePhone.ConKind='Мобильный'
+		LEFT JOIN regdoc_dbt as regDocInn ON regDocInn.Client = persn.ClientID and regDocInn.RDKind = 100
+		LEFT JOIN clcoun_dbt as country ON country.CodeLat3 = client.szCountryNR
+
+		WHERE
+		client.client = :personId AND
+		regdoc.Client = :personId AND
+		docInfo.PaperKind = regDoc.RDKind AND
+		regdoc.IsMain = 'X' And
+		((Select rdkind.DocType from rdkind_dbt As rdkind where rdkind.RDKind = regdoc.RDKind) = 1)
+	</sql-query>
+
+</hibernate-mapping>

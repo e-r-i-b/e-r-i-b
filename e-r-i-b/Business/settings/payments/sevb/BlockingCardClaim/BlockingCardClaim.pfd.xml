@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="BlockingCardClaim"
+              description="Блокировка карты"
+			  detailedDescription="Подача в банк заявки на блокировку пластиковой карты."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.BlockingCardClaim"/>
+	<sender class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+
+		<field name="dateCreated"
+		       source="date-created"
+		       description="Дата создания"
+			   type="string"/>
+
+
+		<field name="card"
+		       description="Карта"
+		       type="card"
+		       source="extra-parameters/parameter[@name='card']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="reason"
+		       source="extra-parameters/parameter[@name='reason']/@value"
+				type="string"
+		       description="Причина блокирования"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="anotherCardType"
+		       description="Тип карты"
+		       type="string"
+		       source="extra-parameters/parameter[@name='anotherCardType']/@value"
+			   enabled="form.anotherCardInfo == 'true'"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field  name="cardType"
+				source="extra-parameters/parameter[@name='cardType']/@value"
+				description="Тип карты"
+				type="string">
+		</field>
+
+		<field name="currency"
+		       description="Валюта"
+		       type="string"
+		       source="extra-parameters/parameter[@name='currency']/@value"
+			   enabled="form.anotherCardInfo == 'true'"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="account"
+		       description="Спецкартчный счет"
+		       type="string"
+		       source="extra-parameters/parameter[@name='account']/@value"
+		       signable="true"/>
+
+		<field name="externalId"
+		       source="extra-parameters/parameter[@name='externalId']/@value"
+		       description="externalId"
+			   type="string"/>
+	</fields>
+
+	<form-validators>
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.CardAndClientCompatibles">
+			<field-ref name="cardId">card</field-ref>
+		</form-validator>
+
+		<form-validator class="com.rssl.phizic.business.claims.forms.validators.CardStateEqualToOneFromParametersValidator">
+			<message text="Для указанной карты блокировка невозможена"/>
+			<field-ref name="cardId">card</field-ref>
+			<parameter name="param1">active</parameter>
+			<parameter name="param2">replenishment</parameter>
+			<parameter name="param3">changing</parameter>
+			<parameter name="param4">ordered</parameter>
+		</form-validator>
+	</form-validators>
+</payment-form>

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="DepositOpeningClaim"
+		description="Заявка на открытие счета или вклада"
+		detailedDescription="Подача в банк заявки на открытие счета или срочного вклада."
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.DepositOpeningClaim"/>
+	<statemachine name="OpenClaimStateMachine"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<field name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+		<field
+				name="visitDate"
+				description="Дата визита"
+				type="date"
+				source="extra-parameters/parameter[@name='visit-date']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DatePeriodFieldValidator">
+					<message text="Дата визита не может быть меньше текущей."/>
+					<parameter name="after">infinity</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field
+				name="department"
+				description="Офис банка"
+				type="string"
+				source="extra-parameters/parameter[@name='department']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="fullName"
+				description="Ф.И.О."
+				type="string"
+				source="extra-parameters/parameter[@name='full-name']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Ф.И.О] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+		<field
+				name="citizenship"
+				description="Гражданство"
+				type="string"
+				source="extra-parameters/parameter[@name='citizenship']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			   	<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Гражданство] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+		<field
+				name="phone"
+				description="Контактный телефон"
+				type="string"
+				source="extra-parameters/parameter[@name='phone']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Контактный телефон]  должна содержать от 5 до 13 цифр"/>
+					<parameter name="regexp">\d{5,13}$</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field
+				name="email"
+				description="E-mail"
+				type="string"
+				source="extra-parameters/parameter[@name='email']/@value"
+				signable="true">
+			<validators>				
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Неверно введен e-mail"/>
+					<parameter name="regexp">^[\.\-_A-Za-z0-9]+?@[\.\-A-Za-z0-9]+?\.[A-Za-z0-9]{2,6}$</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field
+				name="product"
+				description="Вид вклада"
+				type="string"
+				source="extra-parameters/parameter[@name='deposit-product-id']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="period"
+				description="Срок вклада"
+				type="string"
+				source="extra-parameters/parameter[@name='period']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field name="amount"
+		       description="Сумма"
+		       source="amount"
+		       type="money"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение суммы должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+			</validators>
+		</field>
+		<field
+				name="currency"
+				description="Валюта"
+				type="string"
+				source="amount-currency"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field
+				name="fromAccount"
+				description="Счет списания"
+				type="account"
+				source="payer-account"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator"/>
+			</validators>
+		</field>
+		<field  name="radio"
+				source="extra-parameters/parameter[@name='is-renewal']/@value"
+				type="string"
+				description="Автоматически пролонгировать"/>
+		<field
+				name="toAccount"
+				description="Перевести на счет"
+				type="account"
+				source="extra-parameters/parameter[@name='to-account']/@value"
+				enabled="form.radio != 'false'">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Некорректный счет зачисления"/>
+					<parameter name="regexp">^42[36]01\w*</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="minAmount"
+		       description="Минимальная сумма вклада"
+		       source="extra-parameters/parameter[@name='min-amount']/@value"
+		       type="money">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение минимальной суммы должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="accountType"
+				description="Тип вклада"
+				type="string"
+				source="extra-parameters/parameter[@name='account-type']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field  name="fromAccountType"
+				description="Тип вклада"
+				type="string"
+				source="extra-parameters/parameter[@name='from-account-type']/@value"/>
+		<field  name="toAccountType"
+				description="Тип вклада"
+				type="string"
+				source="extra-parameters/parameter[@name='to-account-type']/@value"/>
+		<field  name="actionType"
+				source="extra-parameters/parameter[@name='unusable-field']/@value"
+				description="тип счета"
+				type="string"
+				signable="true"/>
+
+		<field  name="contribution"
+				source="extra-parameters/parameter[@name='contribution']/@value"
+				description="Вид вклада"
+				type="string"
+				signable="true"/>
+
+		<field  name="office"
+				source="extra-parameters/parameter[@name='office']/@value"
+				description="Офис банка"
+				type="string"
+				signable="true"/>
+
+	</fields>
+
+	<form-validators>
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">fromAccount</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+		<form-validator class="com.rssl.common.forms.validators.CompareValidator">
+			<message text="Сумма вклада не может быть меньше минимальной"/>
+			<field-ref name="obj1">minAmount</field-ref>
+			<field-ref name="obj2">amount</field-ref>
+			<parameter name="operator">le</parameter>
+		</form-validator>
+		<form-validator
+				class="com.rssl.phizic.business.payments.forms.validators.AccountCurrencyEqualValidator">
+			<message text="Валюта счета списания не совпадает с выбранной валютой вклада"/>
+			<field-ref name="account">fromAccount</field-ref>
+			<field-ref name="currency">currency</field-ref>
+		</form-validator>
+		<form-validator
+				enabled="form.radio != 'true'"
+				class="com.rssl.phizic.business.payments.forms.validators.AccountCurrencyEqualValidator">
+			<message text="Валюта счета зачисления не совпадает с выбранной валютой вклада"/>
+			<field-ref name="account">toAccount</field-ref>
+			<field-ref name="currency">currency</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

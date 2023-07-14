@@ -1,0 +1,501 @@
+/***************************************************************************\
+  Образец макроса проверки по стоп-листам
+
+  Главная программа CheckStopList(typeOp, rec)
+    входные параметры:
+      typeOp - код типа операции               |  rec - структура таблицы
+   --------------------------------------------+---------------------------
+        1 - ввод / обновление записи о клиенте |    TDepClient
+        2 - вкладная финансовая                |    sbdepdoc.dbt
+        3 - вкладная нефинансовая              |    depositr.dbt
+        4 - прочая приходная / расходная       |    pay_doc.dbt
+        5 - ценные бумаги и ценности           |    ci_doc.dbt
+        6 - валютно-обменная операция          |    exoperat.dbt
+
+    возвращаемый результат:
+      0 - проверка прошла успешно, операция продолжается
+     -1 - проверка не прошла, операция завершается
+      1 - проверка прошла успешно, продолжить проверку в стандартном режиме
+
+      04.09.06 ALR всегда поиск по ФИО и дате рождения
+      17.10.06 Ярмольчук. При открытии счета проверка на наличие данных о месте жительства клиента
+      17.10.06 Милеев.    Запрет на продажу сертификатов нерезидентам.
+      18.10.06 Ярмольчук. Запрос на дату рождения клиента при прочих операциях
+                          (при задании клиента без внесения в справочник)
+(-)   29.10.07 Новиков Д.В. Оптимизация запроса в процедуре ChkOnTerrorists
+      01.11.07 Новиков Д.В. Отменено: Запрос на дату рождения клиента при прочих операциях
+                                      (при задании клиента без внесения в справочник)
+      13.11.2007 Катин И.Н. вопрос о месте рождения убран для массового открытия
+                            пластиковых счетов.
+(-)              SSS  Добавлена в проверку ChkOnTerrorists дата документа
+
+      04.06.2008 Катин И.Н. доработан по ТЗ ID 2274 (Федеральный закон № 115)
+
+
+      29.07.2008 Катин И.Н. доработан по инциденту ID 42'253 (отражение в операции открытия счета
+                            нового кода клиента)
+
+      24.11.2008 Катин И.Н. по ID 48'166 обеспечена проверка клиента в стоп-листе
+                 при отсутствии необходимости его идентификации по ФЗ № 115.
+
+(-)   27.11.2008 Катин И.Н. оптимизация работы sql - запроса в функции ChkOnTerrorists().
+      28.07.2009 Шевцов А.В. адаптировал под Северо-Восточный Банк
+      31.07.2009 Шевцов А.В. добавил принудительную пометку для ФМ
+      06.08.2009 Шевцов А.В. устранение ошибок
+\***************************************************************************/
+Import CommonInter, "stop_retail.mac", clntcontrol;
+import "fm_check.mac";
+
+Private Const
+ WarnFlag     =   False, /* True - выводить сообщение MsgStr0 про закон № 115          */
+ CancelFlag   =   False, /* True - в случае ошибок проверки клиента, отменять операцию */
+
+ SummLit      =  $15000,
+ SummMax      = $600000,
+
+ ini_FileName = "magadan.ini",
+ ini_KeyName0 =  "GT_FNCash" ,
+ ini_KeyName1 =  "CS_gp11r"  ,
+ ini_KeyName2 =  "CS_gp11c"  ,
+ ini_KeyName3 =  "CS_gp21r"  ,
+ ini_KeyName4 =  "CS_gp21c"  ,
+ ini_KeyName5 =  "CS_gp41r"  ,
+ ini_KeyName6 =  "CS_gp41c"  ,
+
+ MsgStr0      = "По Федеральному закону № 115 клиент, участвующий в совершаемой операции," +
+                " будет проходить идентификацию и будет сохранен в справочнике клиентов.|" +
+                "Esc - продолжение операции",
+ MsgStr1      = "Не пройдена обязательная проверка клиента, участвующего в совершаемой" +
+                " операции, по Федеральному закону № 115. Операция прекращена!",
+ MsgStr2      = "Внимание! По соображениям безопасности требуется полная идентификация" +
+                " этого клиента!|Esc - продолжить.",
+ MsgStr3      = "Для проведения операции вами выбран клиент с кодом: ",
+ MsgStr4      = "|Все необходимые изменения в базу данных будут внесены.|",
+ MsgStr5      = "Esc - продолжить операцию.";
+
+Private Var
+ GT_FNCash    = 99, /* Default */
+ ChClnt       = TCheck_Client;
+
+/*----------------------------------------*/
+Private Macro ReadParamFromIniFile(ini_KeyName,ini_FileName,Default)
+var Result = Trim(GetIniString(ini_KeyName,ini_FileName,False));
+
+ if (Result != "")
+  Return Result ;
+ else
+  Return Default;
+ end;
+End;
+/*----------------------------------------*/
+Private Macro WarnMsgBox()
+ if (WarnFlag)
+  MsgBox(MsgStr0);
+ end;
+End;
+/*----------------------------------------*/
+Macro CheckDepClient(dep:TDepClient):Integer
+
+ /* здесь находится код проверки
+    println("CheckDepClient. Код клиента: " + string(dep.rec.CodClient)); */
+
+ Return Check_Client_Main(0,0,dep,ВВОД,DIALOG_TXT_FILE);
+End;
+/*----------------------------------------*/
+Macro CheckSbDepDoc(rec):Integer
+record r ("sbdepdoc"  );
+record r1("sbdepdoc.1");
+
+var TClnt = TClientList, ControlPerson = 0;
+
+ if (ValType(rec)==V_MEMADDR)
+    SetBuff(r,rec);
+ else
+    SetRecordAddr(r,rec,0,0,TRUE);
+ end;
+
+ /* здесь находится код проверки
+    println("CheckSbDepDoc. Счет: " + r.Account); */
+
+ /* -= AVSh =- блокировка 65 операции 11 подвид, если не задан счет получателя */
+ if ((r.TypeOper == 65) and (r.ApplType == 11))
+  SetBuff(r1,rec);
+  if (    (Trim(r1.Account_Receiver) == "")
+      and Not GetTrue(False,"Не задан счет получателя!\n" +
+                            "Продолжение операции приведет к открытию нового счета.\n" +
+                            "Вы уверены, что хотите осуществить перевод на новый счет?"))
+   Return -1;
+  end;
+ end;
+ 
+ /* -= AVSh =- вывод предупреждения о недопустимости операции по другому ВСП и блокирование этой операции   */
+ GT_FNCash = Int(ReadParamFromIniFile(ini_KeyName0,ini_FileName,String(GT_FNCash))); /* Чит. ном. фил. "ГЗ" */
+ if (    (NumRealFNCash() != NumFNCash())
+     and (NumRealFNCash() != GT_FNCash  ) /* Без "Группы Зачисления" */
+     and Not ExecMacroFile("any_dep.mac","Login_and_Check",r.Referenc,r.iApplicationKind,r.ApplicationKey,r.FNCash,r.Account))
+  Return -1;
+ end;
+
+ /* Проверка заполнения данных клиента */
+ if (    (NumRealFNCash() == NumFNCash()) /* Только для операций по своему филиалу */
+     and (   (     r.VidDoc   ==    1)    /* Все наличные операции */
+          or (    (r.TypeOper ==   51)    /* Открытие безналичными, но не через макрос sc_openacc.mac */
+              and (r.Flags    != 4104) and (SubStr(Trim(r.Ground),1,8) != "зп схема"))))
+
+  WarnMsgBox();
+
+  ControlPerson = Проверим_Заполнение_Клиента(r,5);
+
+  if ((ControlPerson == -5) and CancelFlag) /* Из проверки пришел с ошибкой     */
+   MsgBox(MsgStr1);
+   Return -1;                               /* Не разрешаем продолжать операцию */
+  end;
+
+  if ((ControlPerson != -5) and (ControlPerson != r.CodClient))
+   MsgBox("Для открытия счета Вами выбран клиент с кодом: ",ControlPerson,MsgStr4 +
+          "После завершения операции открытия счета нажмите Esc и Alt+F3 чтобы обновить информацию по счету.|" + MsgStr5);
+   Корректировка_значений(ControlPerson,r.CodClient,r.FNCash,r.Referenc,r.Account,r.IsCur);
+   r.CodClient = ControlPerson;
+   Copy(rec,r);
+  end;
+ end;
+
+ /* -= AVSh =- Проверка в ФМ */
+//  ExecMacroFile("fm_check.mac","OperationsFilter",r.iApplicationKind,r.ApplicationKey,False,r); 
+  OperationsFilter(r.iApplicationKind,r.ApplicationKey,False,r);
+
+ /* Проверка в стоп-листах */
+ if (TClnt.GetRecord(r.CodClient))
+  Return Check_Client_Main(0,0,TClnt.CurRec,ВВОД,DIALOG_TXT_FILE);
+ end;
+ Return 0;
+End;
+/*----------------------------------------*/
+Macro CheckDepositr(rec):Integer
+record r("depositr");
+
+var TClnt = TClientList;
+
+ SetBuff(r,rec);
+
+ /* здесь находится код проверки
+    println("CheckDepositr. Код клиента: " + string(r.CodClient)); */
+
+ /* Проверка в стоп-листах */
+ if (TClnt.GetRecord(r.CodClient))
+  Return Check_Client_Main(0,0,TClnt.CurRec,ВВОД,DIALOG_TXT_FILE);
+ end;
+ Return 0;
+End;
+/*----------------------------------------*/
+Macro CheckPay_Doc(rec):Integer
+record r("pay_doc");
+
+var TClnt   = TClientList,
+    ClntRec = TRecHandler("commclnt.rec"),
+
+    ControlPerson = 0,
+    CodStopList   = 0;
+
+ /*--------------------------*/
+ /* -= AVSh =- Не игнор. оп. */
+ macro NotIgnorOper()
+     /* Игнорируемые операции    - номер операции всегда из 3 цифр!!! */
+ var gp11r = "013,036,038,060,090,091,092,093,158,162,164,165,166,171,178",             /* Default */
+     gp11c = "036,038,060,091,099,106,107,108",                                         /* Default */
+     gp41r = "006,007,030,031,032,033,034,035,036,093,094,102,104,107",                 /* Default */
+     gp41c = "000,006,030,031,032,033,034,035,036,038,099,102",                         /* Default */
+     /* Не игнорируемые операции - номер операции всегда из 3 цифр!!! */
+     gp21r = "005,006,008,052,106,107,113,114,115,117,119,120,121,122,123,124,125,"   + /* Default */
+             "126,127,128,129,131,132,133,134,137,145,146,147,148,149,150,151,152,153",
+     gp21c = "036,066,067";                                                             /* Default */
+
+  gp11r = ReadParamFromIniFile(ini_KeyName1,ini_FileName,gp11r);
+  gp11c = ReadParamFromIniFile(ini_KeyName2,ini_FileName,gp11c);
+  gp21r = ReadParamFromIniFile(ini_KeyName3,ini_FileName,gp21r);
+  gp21c = ReadParamFromIniFile(ini_KeyName4,ini_FileName,gp21c);
+  gp41r = ReadParamFromIniFile(ini_KeyName5,ini_FileName,gp41r);
+  gp41c = ReadParamFromIniFile(ini_KeyName6,ini_FileName,gp41c);
+
+  Return (   (    (     r.GroupOpert == 11) /* Прочие приходные */
+              and (   ((r.IsCur      ==  0) and (Index(gp11r,String(r.NumOpert:o:3)) == 0))     /* Рубли  */
+                   or ((r.IsCur      ==  1) and (Index(gp11c,String(r.NumOpert:o:3)) == 0))))   /* Валюта */
+
+          or (    (     r.GroupOpert == 41) /* Прочие расходные */
+              and (   ((r.IsCur      ==  0) and (Index(gp41r,String(r.NumOpert:o:3)) == 0))     /* Рубли  */
+                   or ((r.IsCur      ==  1) and (Index(gp41c,String(r.NumOpert:o:3)) == 0))))   /* Валюта */
+
+          or (    (     r.GroupOpert == 21) /* Платы и налоги   */
+              and (   ((r.IsCur      ==  0) and (Index(gp21r,String(r.NumOpert:o:3)) >  0))     /* Рубли  */
+                   or ((r.IsCur      ==  1) and (Index(gp21c,String(r.NumOpert:o:3)) >  0))))); /* Валюта */
+ end;
+ /*--------------------------*/
+
+ SetBuff(r,rec);
+
+ /* здесь находится код проверки
+    println("CheckPay_Doc. Номер операции: " + string(r.NumOpert)); */
+
+ /* Проверка заполнения данных клиента */
+ if   (    (StrLen(Trim(r.ClientLastName)) > 0) /* С панели введена хотя бы фамилия */
+       and (r.VidDoc == StrFor(0))              /* Только наличная операция         */
+       and NotIgnorOper())                      /* Не игнорируемая операция         */
+
+  WarnMsgBox();
+
+  ControlPerson = Проверим_Заполнение_Клиента_Прочая(r,6);
+
+  if ((ControlPerson == -5) and CancelFlag) /* Из проверки пришел с ошибкой     */
+   MsgBox(MsgStr1);
+   Return -1;                               /* Не разрешаем продолжать операцию */
+  end;
+
+  if ((ControlPerson != -5) and TClnt.GetRecord(ControlPerson))
+   CodStopList = Check_Client_Main(0,0,TClnt.CurRec,ВВОД,DIALOG_TXT_FILE);
+   if (CodStopList == 1)
+    MsgBox(MsgStr2);
+    ControlPerson = Дополнительная_проверка(ControlPerson,r.FNCash);
+   end;
+
+   if (r.CodClient != ControlPerson)
+    if (r.CodClient != 0) /* Только при замене существующего клиента */
+     MsgBox(MsgStr3,ControlPerson,MsgStr4 + MsgStr5);
+    end;
+    Корректировка_значений_прочей(ControlPerson,r);
+    r.CodClient = ControlPerson;
+    Copy(rec,r);
+   end;
+  end;
+ /* Без проверки заполнения данных клиента */
+ elif ((r.CodClient != 0) and TClnt.GetRecord(r.CodClient))
+  CodStopList = Check_Client_Main(0,0,TClnt.CurRec,ВВОД,DIALOG_TXT_FILE);
+ /* Без проверки заполнения данных клиента */
+ else
+  if (Not ((r.GroupOpert == 11) and (r.NumOpert == 162)))
+   ClntRec.Clear;
+   ClntRec.rec.CodClient   = 0;
+   ClntRec.rec.Name1       = r.ClientLastName  ;
+   ClntRec.rec.Name2       = r.ClientFirstName ;
+   ClntRec.rec.Name3       = r.ClientSecondName;
+   ClntRec.rec.PaperKind   = r.PersIdType  ;
+   ClntRec.rec.PaperSeries = r.PassportSer ;
+   ClntRec.rec.PaperNumber = r.PassportNumb;
+   ClntRec.rec.INN         = r.INN_Payer;
+   ClntRec.rec.NotResident = r.FlagRez  ;
+   CodStopList             = Check_Client_Main(0,0,ClntRec,ВВОД,DIALOG_TXT_FILE);
+  end;
+ end;
+
+ /* -= AVSh =- Проверка в ФМ */
+ if (Not (   ((r.GroupOpert == 11) and (r.IsCur == 0) and ((r.NumOpert == 158) or (r.NumOpert == 164)))
+          or ( r.GroupOpert == 21)
+          or ((r.GroupOpert == 41) and (r.IsCur == 0) and ((r.NumOpert ==  93) or (r.NumOpert ==  94)))))
+  ExecMacroFile("fm_check.mac","OperationsFilter",r.iApplicationKind,r.ApplicationKey,False,r);
+ end;
+
+ Return CodStopList;
+End;
+/*----------------------------------------*/
+Macro CheckCi_Doc(rec):Integer
+record r ("ci_doc"  );
+record r1("ci_doc.1");
+record r2("ci_doc.2");
+record r3("ci_doc.3");
+record r4("ci_doc.4");
+file   f ("ci_doc"  );
+
+var TClnt         = TClientList,
+    ClntRec       = TRecHandler("commclnt.rec"),
+    ControlPerson =  0,
+    CodClient     =  0,
+    CodStopList   =  0,
+    Norm_Series   = "",
+    Norm_Number   = "",
+    Norm_Kind     =  0;
+
+ SetBuff(r,rec);
+
+ /* здесь находится код проверки
+    println("CheckCi_Doc. Сумма: " + string(r.Sum)); */
+
+ /* Проверка заполнения данных клиента, если клиент пришел с кодом */
+ if (r.ClientCode != 0)
+  WarnMsgBox();
+
+  ControlPerson = Проверим_Заполнение_Клиента_Бумаги(r.ClientCode,r.Branch,6);
+
+  if ((ControlPerson == -5) and CancelFlag) /* Из проверки пришел с ошибкой     */
+   MsgBox(MsgStr1);
+   Return -1;                               /* Не разрешаем продолжать операцию */
+  end;
+
+  if ((ControlPerson != -5) and TClnt.GetRecord(ControlPerson))
+   if ((r.Type == 3) and (r.Operation == 1) and (TClnt.CurRec.rec.NotResident == StrFor(1))) /* Операция продажи сертификата */
+    MsgBox("На основании Инструкции 117-И,|запрещено совершение операции покупки сберегательных сертификатов СБ РФ|" +
+           "нерезидентом за наличный расчет.|Данный вид операции необходимо выполнять|с использованием специальных счетов!");
+    Return -1;
+   end;
+   CodStopList  = Check_Client_Main(0,0,TClnt.CurRec,ВВОД,DIALOG_TXT_FILE);
+   r.ClientCode = ControlPerson;
+   Copy(rec,r);
+  end;
+ /* Без проверки заполнения данных клиента */
+ else
+  Rewind(f  );
+  Copy  (f,r);
+
+  if   ( r.Type ==  1)     /* OGSZ    */
+   ;
+  elif ((r.Type ==  2) or  /* LOTTERY */
+        (r.Type ==  4)   ) /* COIN    */
+   SetRecordAddr(r2,f,0,FldOffset(f,"Info"),True);
+   ChClnt.Get_ser_num_from_string(r2.PersId,Norm_Series,Norm_Number,Norm_Kind);
+   ClntRec.rec.CodClient   = 0;
+   ClntRec.rec.Name1       = r2.LastName ;
+   ClntRec.rec.Name2       = r2.FirstName;
+   ClntRec.rec.Name3       = r2.PatrName ;
+   ClntRec.rec.PaperKind   = Norm_Kind   ;
+   ClntRec.rec.PaperSeries = Norm_Series ;
+   ClntRec.rec.PaperNumber = Norm_Number ;
+   CodStopList             = Check_Client_Main(0,0,ClntRec,ВВОД,DIALOG_TXT_FILE);
+
+  elif ( r.Type ==  3)     /* CERT    */
+   SetRecordAddr(r3,f,0,FldOffset(f,"Info"),True);
+   CodClient = ChClnt.Get_Client_Code(r.Branch,r3.Account);
+   if ((CodClient != 0) and TClnt.GetRecord(CodClient))
+    CodStopList = Check_Client_Main(0,0,TClnt.CurRec,ВВОД,DIALOG_TXT_FILE);
+   end;
+
+  elif ( r.Type ==  5)     /* INGOT   */
+   SetRecordAddr(r4,f,0,FldOffset(f,"Info"),True);
+   ClntRec.rec.CodClient = 0;
+   ClntRec.rec.Name1     = r4.LastName ;
+   ClntRec.rec.Name2     = r4.FirstName;
+   ClntRec.rec.Name3     = r4.PatrName ;
+   CodStopList = Check_Client_Main(0,0,ClntRec,ВВОД,DIALOG_TXT_FILE);
+
+  elif ( r.Type ==  6)     /* ORVVZ   */
+   ;
+  elif ( r.Type == 10)     /* MISC    */
+   ;
+  end;
+ end;
+
+ /* -= AVSh =- Проверка в ФМ */
+ ExecMacroFile("fm_check.mac","OperationsFilter",r.ApplicationKind,r.ApplicationKey,False,r);
+
+ Return CodStopList;
+End;
+/*----------------------------------------*/
+Macro CheckExOperat(rec):Integer
+record r ("exoperat","exchange.def");
+record r1("exoperat","exchange.def");
+
+var TClnt         = TClientList,
+    ClntRec       = TRecHandler("commclnt.rec"),
+    ControlPerson = 0,
+    CodStopList   = 0,
+    Podozr        = False;
+
+ SetBuff(r ,rec);
+ Copy   (r1,r  );
+
+ /* здесь находится код проверки
+    println("CheckExOperat. Вид операции: " + string(r.Kind_Oper)); */
+
+ Podozr = (    (StrLen(Trim(r.Sname)) >       0)
+           and (            r.TaxBase < SummMax)
+           and GetTrue(False,"Является ли на Ваш взгляд эта операция подозрительной?"));
+
+ /* Проверка заполнения данных клиента */
+ if (    (         StrLen(Trim(r.Sname)) > 0) /* С панели введена хотя бы фамилия */
+     and (         Podozr                     /* Подозрительная операция          */
+          or (     r.TaxBase > SummLit)       /* Сумма операции > 15000р.         */
+          or (    (r.Kind_Oper !=  1)         /* Определенные операции            */
+              and (r.Kind_Oper !=  6)
+              and (r.Kind_Oper !=  7)
+              and (r.Kind_Oper != 18))))
+
+  WarnMsgBox();
+
+  ControlPerson = Проверим_Заполнение_Клиента_ВОО(r,Podozr);
+
+  if ((ControlPerson == -5) and CancelFlag) /* Из проверки пришел с ошибкой     */
+   MsgBox(MsgStr1);
+   Return -1;                               /* Не разрешаем продолжать операцию */
+  end;
+
+  if ((ControlPerson != -5) and TClnt.GetRecord(ControlPerson))
+   Сохраним_нового_клиента(ControlPerson,r.Branch,r.ApplicationKind,r.ApplicationKey,Podozr);
+
+   CodStopList = Check_Client_Main(0,0,TClnt.CurRec,ВВОД,DIALOG_TXT_FILE);
+   if (CodStopList == 1)
+    MsgBox(MsgStr2);
+    ControlPerson = Дополнительная_проверка(ControlPerson,r.Branch);
+   end;
+
+   if (r.ClientCode != ControlPerson)
+    if (r.ClientCode != 0) /* Только при замене существующего клиента */
+     MsgBox(MsgStr3,ControlPerson,MsgStr4 + MsgStr5);
+    end;
+    Корректировка_значений_ВОО(ControlPerson,r);
+    r1.ClientCode = ControlPerson;
+   end;
+  end;
+ /* Без проверки заполнения данных клиента */
+ elif ((r.ClientCode != 0) and TClnt.GetRecord(r.ClientCode))
+  CodStopList = Check_Client_Main(0,0,TClnt.CurRec,ВВОД,DIALOG_TXT_FILE);
+ /* Без проверки заполнения данных клиента */
+ else
+  ClntRec.Clear;
+  ClntRec.rec.CodClient   = 0;
+  ClntRec.rec.Name1       = r.Sname;
+  ClntRec.rec.Name2       = r.Name ;
+  ClntRec.rec.Name3       = r.Pname;
+  ClntRec.rec.PaperKind   = r.ClientDocType  ;
+  ClntRec.rec.PaperSeries = ChClnt.cl_doc_ser_norm(r.ClientDocSeria,r.ClientDocType);
+  ClntRec.rec.PaperNumber = r.ClientDocNumber;
+  ClntRec.rec.INN         = r.INN  ;
+  CodStopList             = Check_Client_Main(0,0,ClntRec,ВВОД,DIALOG_TXT_FILE);
+ end;
+
+ /* -= AVSh =- Принудительно помечаем подозрительную операцию */
+ if (Podozr)
+  ExecMacroFile("fm_check.mac","MarkOperation1",r1,r1.ApplicationKind);
+ end;
+
+ /* -= AVSh =- Проверка в ФМ */
+ ExecMacroFile("fm_check.mac","OperationsFilter",r1.ApplicationKind,r1.ApplicationKey,False,r1);
+
+ Return CodStopList;
+End;
+/*----------------------------------------*/
+Macro CheckStopList(typeOp:Integer,rec):Integer
+var Result = -1;
+
+ if   (typeOp == 1)
+  Result = CheckDepClient(rec);
+ elif (typeOp == 2)
+  Result = CheckSbDepDoc (rec);
+ elif (typeOp == 3)
+  Result = CheckDepositr (rec);
+ elif (typeOp == 4)
+  Result = CheckPay_Doc  (rec);
+ elif (typeOp == 5)
+  Result = CheckCi_Doc   (rec);
+ elif (typeOp == 6)
+  Result = CheckExOperat (rec);
+ end;
+
+/* if (Result == -1)
+    MsgBox("проверка по стоп-листам не прошла");
+   else
+    MsgBox("проверка по стоп-листам прошла");
+   end; */
+ Return Result;
+End;
+/*----------------------------------------*/
+Macro ChkOnTerrorists(NumContract:String,NumPayMessage:String,payfId:Integer,typeFind)
+ /* Здесь проверяем стоп листы */
+end;
+/*----------------------------------------*/

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.ermb.ErmbTmpPhone" table="ERMB_TMP_PHONE">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ERMB_TMP_PHONE</param>
+            </generator>
+        </id>
+
+        <property name="number" type="string" column="PHONE_NUMBER" not-null="true"/>
+
+    </class>
+
+    <!--
+        запрос получения временного телефона
+        Опорный объект: ERMB_TMP_PHONE_UNIQUE_NUMBER
+        Предикаты доступа: access("PHONE"."PHONE_NUMBER"=:NUMBER)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ermb.ErmbTmpPhone.findPhoneByNumber">
+        <return alias="phone" class="com.rssl.phizic.business.ermb.ErmbTmpPhone"/>
+        select {phone.*}
+        from ERMB_TMP_PHONE phone
+        where phone.PHONE_NUMBER = :number
+    </sql-query>
+
+</hibernate-mapping>

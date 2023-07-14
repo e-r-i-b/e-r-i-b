@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping catalog="RSBankV55">
+
+	<class name="com.rssl.phizicgate.rsV55.dictionaries.officies.OfficeImpl" table="DEPARTMENTS" mutable="false">
+        <id name="synchKey" type="string"/>
+
+        <component name="code" class="com.rssl.phizicgate.rsV55.dictionaries.officies.CodeImpl">
+            <property name="id" type="string" column="ID" insert="false" update="false" not-null="true"/>
+        </component>
+
+        <property name="name"      type="string"          column="NAME"/>
+		<property name="address"   type="string"          column="POST_ADDRESS"/>
+		<property name="telephone" type="string"          column="PHONE"/>
+        <property name="BIC" type="string"/>
+    </class>
+
+    <sql-query name="com.rssl.phizicgate.rsV55.dictionaries.officies.GetOfficies">
+        <return alias="office" class="com.rssl.phizicgate.rsV55.dictionaries.officies.OfficeImpl">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="code">
+		        <return-column name="fNCash"/>
+		    </return-property>
+	        <return-property name="name"     column="name"/>
+	        <return-property name="address"   column="postAdress"/>
+	        <return-property name="telephone" column="phone"/>
+            <return-property name="BIC" column="BIC"/>
+        </return>
+        <![CDATA[                            
+	    SELECT
+        	CONVERT(dep.FNCash,SQL_VARCHAR)     AS fNCash,
+	        dep."Desc"                          AS name,
+	        dep.PostAdress                      AS postAdress,
+	        dep.Phone                           AS phone,
+	        info.bic                            AS BIC
+	    FROM listfdep_dbt AS dep
+	    JOIN bank_1 as info ON info.id=0
+	    WHERE (:depName IS NULL OR dep."Desc" like :depName)
+	    ORDER BY fNCash asc
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizicgate.rsV55.dictionaries.officies.findfById">
+        <return alias="office" class="com.rssl.phizicgate.rsV55.dictionaries.officies.OfficeImpl">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="code">
+		        <return-column name="fNCash"/>
+		    </return-property>
+	        <return-property name="name"     column="name"/>
+	        <return-property name="address"   column="postAdress"/>
+	        <return-property name="telephone" column="phone"/>
+            <return-property name="BIC" column="BIC"/>
+        </return>
+        <![CDATA[
+	    SELECT
+        	CONVERT(dep.FNCash,SQL_VARCHAR)     AS fNCash,
+	        dep."Desc"                          AS name,
+	        dep.PostAdress                      AS postAdress,
+	        dep.Phone                           AS phone,
+	        info.bic                            AS BIC
+	    FROM listfdep_dbt AS dep
+	    JOIN bank_1 as info ON info.id=0
+	    WHERE fNCash = :fnCash
+	    ORDER BY fNCash asc
+        ]]>
+    </sql-query>
+
+
+
+</hibernate-mapping>

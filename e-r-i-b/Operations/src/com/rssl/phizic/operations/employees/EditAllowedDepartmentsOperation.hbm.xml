@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.operations.employees.AllowedDepartmentWrapper" mutable="false">
+        <id name="id"               access="field"/>
+        <property name="name"       access="field"/>
+        <property name="tb"         access="field"/>
+        <property name="osb"        access="field"/>
+        <property name="vsp"        access="field"/>
+        <property name="allowed"    access="field"/>
+    </class>
+
+    <resultset name="com.rssl.phizic.operations.employees.EditAllowedDepartmentsOperation.allowed.resultset">
+        <return class="com.rssl.phizic.operations.employees.AllowedDepartmentWrapper">
+            <return-property name="id"      column="ID"/>
+            <return-property name="name"    column="NAME"/>
+            <return-property name="tb"      column="TB"/>
+            <return-property name="osb"     column="OSB"/>
+            <return-property name="vsp"     column="VSP"/>
+            <return-property name="allowed" column="ALLOWED"/>
+        </return>
+    </resultset>
+
+    <sql-query name="com.rssl.phizic.operations.employees.EditAllowedDepartmentsOperation.allowed">
+        <return class="com.rssl.phizic.operations.employees.AllowedDepartmentWrapper">
+            <return-property name="id"      column="ID"/>
+            <return-property name="name"    column="NAME"/>
+            <return-property name="tb"      column="TB"/>
+            <return-property name="osb"     column="OSB"/>
+            <return-property name="vsp"     column="VSP"/>
+            <return-property name="allowed" column="ALLOWED"/>
+        </return>
+        SELECT
+            departments.ID                          as ID,
+            departments.NAME                        as NAME,
+            departments.TB                          as TB,
+            nvl(departments.OSB, '*')               as OSB,
+            nvl(departments.OFFICE, '*')            as VSP,
+            CASE WHEN EXISTS(SELECT 1 FROM ALLOWED_DEPARTMENTS ad
+                                WHERE ad.LOGIN_ID = :extra_adminLoginId
+                                AND ad.TB||'|'||ad.OSB||'|'||ad.VSP in (
+                                                                departments.TB||'|*|*',
+                                                                departments.TB||'|'||departments.OSB||'|*',
+                                                                departments.TB||'|'||departments.OSB||'|'||departments.OFFICE,
+                                                                '*|*|*')
+                            )
+            THEN 1
+            ELSE 0
+            END AS ALLOWED
+        FROM
+            DEPARTMENTS departments
+        WHERE
+            (departments.TB || '|' || departments.OSB || '|' || departments.OFFICE) in (:extra_allowedDepartments)
+    </sql-query>
+</hibernate-mapping>

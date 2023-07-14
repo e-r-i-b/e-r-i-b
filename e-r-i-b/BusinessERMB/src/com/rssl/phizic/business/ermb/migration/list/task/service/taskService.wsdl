@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:ns="http://service.task.sbrf.ru"
+                  name="TaskWebService"
+                  targetNamespace="http://service.task.sbrf.ru">
+
+    <wsdl:import namespace="http://service.task.sbrf.ru" location="taskService.xsd"/>
+
+    <wsdl:message name="loadClientsRqMsg">
+        <wsdl:part element="ns:loadClientsActionRq" name="loadClientsActionRq"/>
+    </wsdl:message>
+
+    <wsdl:message name="loadClientsRsMsg">
+        <wsdl:part element="ns:StatusRs" name="loadClientsActionRs"/>
+    </wsdl:message>
+
+    <wsdl:message name="smsDeliveryRq">
+        <wsdl:part element="ns:SmsDeliveryActionRq" name="smsSendsSegRq"/>
+    </wsdl:message>
+
+    <wsdl:message name="smsRsMsg">
+        <wsdl:part element="ns:StatusRs" name="smsRsMsg"/>
+    </wsdl:message>
+
+    <wsdl:portType name="TaskWebService">
+   		<wsdl:operation name="loadClients">
+   			<wsdl:input message="ns:loadClientsRqMsg"/>
+   			<wsdl:output message="ns:loadClientsRsMsg"/>
+   		</wsdl:operation>
+        <wsdl:operation name="smsDelivery">
+   			<wsdl:input message="ns:smsDeliveryRq" />
+   			<wsdl:output message="ns:smsRsMsg"/>
+   		</wsdl:operation>
+   	</wsdl:portType>
+
+    <wsdl:binding name="TaskWebServiceBinding" type="ns:TaskWebService">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="loadClients">
+            <soap:operation style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="smsDelivery">
+            <soap:operation style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="TaskWebService">
+        <wsdl:port name="TaskWebServicePort" binding="ns:TaskWebServiceBinding">
+            <soap:address location="http://localhost:8080/services/TaskWebServiceImpl"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

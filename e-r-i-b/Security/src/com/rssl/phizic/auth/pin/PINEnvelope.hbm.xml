@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.auth.pin.PINEnvelope" table="PINENVELOPES" batch-size="50">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PINENVELOPES</param>
+            </generator>
+        </id>
+
+	    <property name="requestNumber" type="long" column="REQUEST_NUMBER" not-null="true"/>
+		<property name="departmentId"  type="long" column="DEPARTMENT_ID" not-null="true"/>
+		<property name="userId"        type="string" column="USER_ID" not-null="true"/>
+        <property name="value"         type="string" column="VALUE" />
+        <property name="state"         type="string" column="STATE" not-null="true"/>
+
+    </class>
+	
+	<!--TODO:Запрос не используется, возможно надо удалить.-->
+	<!--Если будете использовать, надо дописать индекс в таблицу (requestNumber desc) -->
+	<query name="com.rssl.phizic.auth.pin.getLastEnvelope">
+		select envelope
+		from com.rssl.phizic.auth.pin.PINEnvelope envelope
+		order by envelope.requestNumber desc
+    </query>
+
+	<query name="com.rssl.phizic.auth.pin.findEnvelopeByRequestNumber">
+		select envelope
+		from com.rssl.phizic.auth.pin.PINEnvelope envelope
+		where envelope.requestNumber = :requestNumber and
+			  envelope.userId = :userId
+    </query>
+
+	<query name="com.rssl.phizic.auth.pin.findEnvelope">
+		select envelope
+		from com.rssl.phizic.auth.pin.PINEnvelope envelope
+		where envelope.userId = :userId
+    </query>
+
+	<query name="com.rssl.phizic.auth.pin.getAllEnvelopesByState">
+		select envelope
+		from com.rssl.phizic.auth.pin.PINEnvelope envelope
+		where envelope.state = :state
+    </query>
+
+</hibernate-mapping>

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.replication.providers.ServiceProviderForReplicationWrapper" table="SERVICE_PROVIDERS" where="KIND='B'" lazy="false" mutable="false">
+        <id name="id" column="ID" type="long" access="field"/>
+        <property name="uuid" column="UUID" type="string" access="field"/>
+        <many-to-one name="provider" class="com.rssl.phizic.business.dictionaries.providers.BillingServiceProvider" access="field" column="ID" not-null="true" lazy="false" insert="false" update="false" fetch="select"/>
+        <set name="paymentServices" table="SERV_PROVIDER_PAYMENT_SERV" cascade="none" lazy="false">
+            <key column="SERVICE_PROVIDER_ID"/>
+            <many-to-many column="PAYMENT_SERVICE_ID" class="com.rssl.phizic.business.dictionaries.payment.services.PaymentService" unique="true" lazy="false"/>
+        </set>
+    </class>
+</hibernate-mapping>

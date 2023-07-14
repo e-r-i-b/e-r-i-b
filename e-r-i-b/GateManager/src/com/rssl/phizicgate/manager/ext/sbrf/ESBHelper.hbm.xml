@@ -1,0 +1,41 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hobernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <query name="com.rssl.phizicgate.manager.ext.sbrf.ESBHelper.isESBSupportedByLoginId">
+        select office
+        from com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment as office
+        where office.id = (select person.departmentId from com.rssl.phizic.business.persons.ActivePerson person where person.login.id=:loginId)
+    </query>
+
+    <!--todo убрать после того как во всех ТБ на КСШ будет реализован фукционал подачи заявки об утере сберкнижки (CHG039252)-->
+    <sql-query name="com.rssl.phizicgate.manager.ext.sbrf.ESBHelper.isSACSSupported">
+        <return-scalar column="sacsSupported" type="int"/>
+        <![CDATA[
+        select 1 sacsSupported
+          from SCHEMEOWNS so
+             , ACCESSSCHEMES ac
+             , schemesservices s
+             , services ser
+         where so.login_id = :login_id
+           and ac.id = so.scheme_id
+           and s.scheme_id = ac.id
+           and ser.id = s.service_id
+           and lower(ser.service_key) = lower(:service_key)
+           and rownum < 2
+        ]]>
+    </sql-query>
+
+    <!-- является ли билинг шинными -->
+    <sql-query name="com.rssl.phizicgate.manager.ext.sbrf.ESBHelper.isESBBilling">
+        SELECT
+            decode(adapter.ADAPTER_TYPE, 'ESB', '1', '0')
+        FROM
+            ADAPTERS adapter
+        JOIN
+            BILLINGS billing ON billing.ADAPTER_UUID = adapter.UUID
+        WHERE
+            billing.EXTERNAL_ID = :synchKey
+    </sql-query>
+</hibernate-mapping>

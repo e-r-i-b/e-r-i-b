@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="MonitoringReport" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.monitoring.MonitoringReport</param>
+    </typedef>
+    <class name="com.rssl.phizic.business.monitoring.MonitoringThresholdValues" table="MONITORING_THRESHOLD_VALUES" abstract="false">
+        <id column="ID" name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_MONITORING_THRESHOLD_VALUES</param>
+            </generator>
+        </id>
+
+        <many-to-one name="department" class="com.rssl.phizic.business.departments.Department" column="DEPARTMENT_ID" lazy="false"/>
+        <property name="report"          type="MonitoringReport"   column="REPORT"         not-null="true"/>
+        <property name="warningThreshold"   type="long"     column="VARNING_THRESHOLD"  not-null="true"/>
+        <property name="errorThreshold"     type="long"     column="ERROR_THRESHOLD"    not-null="true"/>
+    </class>
+</hibernate-mapping>

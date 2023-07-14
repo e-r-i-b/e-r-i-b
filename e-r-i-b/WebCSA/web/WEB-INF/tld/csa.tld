@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.2//EN" "http://java.sun.com/dtd/web-jsptaglibrary_1_2.dtd">-->
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee web-jsptaglibrary_2_0.xsd"
+        version="2.0">
+    <tlib-version>1.2</tlib-version>
+    <jsp-version>1.1</jsp-version>
+    <short-name>csa</short-name>
+    <uri>http://rssl.com/tags/csa</uri>
+    <!--Тег для вывода на страницу ошибок валидации, сохраненных в реквесте-->
+    <tag>
+        <name>messages</name>
+        <tag-class>com.rssl.phizic.web.tags.MessagesTag</tag-class>
+        <body-content>JSP</body-content>
+        <attribute>
+            <!--Имя переменной для сохранения текста сообщения-->
+            <name>id</name>
+            <required>true</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>bundle</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <!-- Имя переменной для сохранения поля, в котором произошла ошибка-->
+            <name>field</name>
+            <required>false</required>
+            <rtexprvalue>false</rtexprvalue>
+        </attribute>
+        <attribute>
+            <!--ключ для поиска сообщений в реквесте (ключи заданы енумом ActionMessagesKeys)-->
+            <name>message</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+
+    <tag>
+        <name>popupCollection</name>
+        <tag-class>com.rssl.phizic.web.tag.popup.PopupCollection</tag-class>
+        <body-content>JSP</body-content>
+        <attribute>
+            <name>defaultUrl</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+
+    <tag>
+        <name>popupItem</name>
+        <tag-class>com.rssl.phizic.web.tag.popup.PopupItem</tag-class>
+        <body-content>JSP</body-content>
+        <attribute>
+            <name>id</name>
+            <required>true</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>page</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>onclose</name>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+        <attribute>
+            <name>closable</name>
+            <type>boolean</type>
+            <required>false</required>
+            <rtexprvalue>true</rtexprvalue>
+        </attribute>
+    </tag>
+    
+    <function>
+      <name>calculateActionURL</name>
+      <function-class>com.rssl.phizic.web.actions.StrutsUtils</function-class>
+      <function-signature>java.lang.String simpleCalculateActionURL(javax.servlet.jsp.PageContext,java.lang.String)</function-signature>
+    </function>
+    <!--Преобразование даты к строке в фотмате, зависящем от ее(даты) давности-->
+    <function>
+      <name>formatDateDependsOnSysDate</name>
+      <function-class>com.rssl.phizic.utils.DateHelper</function-class>
+      <function-signature>java.lang.String formatDateDependsOnSysDate(java.util.Calendar, boolean, boolean)</function-signature>
+    </function>
+    <!--Преобразование строки в html формат (с тегами выделения, курсива и т.д)-->
+    <function>
+      <name>process</name>
+      <function-class>com.rssl.phizic.web.news.ProcessBBCode</function-class>
+      <function-signature>java.lang.String preparePostTextForCSA(java.lang.String)</function-signature>
+    </function>
+
+    <!--использовать ли скрипт https://vojs.group-ib.ru/vaultonline-2.js для сбора статистики на каждой странице-->
+    <function>
+      <name>useVaultOnline</name>
+      <function-class>com.rssl.phizic.config.SettingsHelper</function-class>
+      <function-signature>boolean useVaultOnline()</function-signature>
+    </function>
+
+    <!--текст советов на странице входа-->
+    <function>
+      <name>getLoginPageMessageSecure</name>
+      <function-class>com.rssl.phizic.config.SettingsHelper</function-class>
+      <function-signature>java.lang.String getLoginPageMessageSecure()</function-signature>
+    </function>
+
+    <!--текст предложений на странице входа-->
+    <function>
+      <name>getLoginPageMessageSlide</name>
+      <function-class>com.rssl.phizic.config.SettingsHelper</function-class>
+      <function-signature>java.lang.String getLoginPageMessageSlide(int, java.lang.String)</function-signature>
+    </function>
+
+     <!-- Заменяем переносы строки на заданный символ -->
+    <function>
+        <name>replaceNewLine</name>
+        <function-class>com.rssl.phizic.utils.StringUtils</function-class>
+        <function-signature>java.lang.String replaceNewLine(java.lang.String,java.lang.String)</function-signature>
+    </function>
+
+    <function>
+      <name>currentForm</name>
+      <function-class>com.rssl.phizic.web.actions.StrutsUtils</function-class>
+      <function-signature>java.lang.Object currentForm(javax.servlet.jsp.PageContext)</function-signature>
+   </function>
+
+    <!-- список символов, которые используются при генерации каптча кода -->
+   <function>
+       <name>captchaSymbols</name>
+       <function-class>com.rssl.phizic.captcha.Captcha</function-class>
+       <function-signature>char[] getActiveChars()</function-signature>
+   </function>
+
+   <!--Возвращает отформатированный номер карты на форму подписи-->
+   <function>
+      <name>getCutCardNumber</name>
+      <function-class>com.rssl.phizic.utils.MaskUtil</function-class>
+      <function-signature>java.lang.String getCutCardNumber(java.lang.String)</function-signature>
+   </function>
+
+   <!-- Возвращает настройку доступности самостоятельной регистрации -->
+   <function>
+      <name>isAccessInternalRegistration</name>
+      <function-class>com.rssl.phizic.config.FrontSettingHelper</function-class>
+      <function-signature>boolean isAccessInternalRegistration()</function-signature>
+   </function>
+
+   <!-- Возвращает настройку доступности самостоятельной регистрации -->
+   <function>
+      <name>isAccessExternalRegistration</name>
+      <function-class>com.rssl.phizic.config.FrontSettingHelper</function-class>
+      <function-signature>boolean isAccessExternalRegistration()</function-signature>
+   </function>
+
+    <!-- Возвращает настройку доступности самостоятельного востановления пароля -->
+   <function>
+      <name>isAccessRecoverPassword</name>
+      <function-class>com.rssl.phizic.config.FrontSettingHelper</function-class>
+      <function-signature>boolean isAccessRecoverPassword()</function-signature>
+   </function>
+
+     <!-- Возвращает флажок доступности входа в систему -->
+   <function>
+      <name>isGlobalLoginRestriction</name>
+      <function-class>com.rssl.phizic.config.FrontSettingHelper</function-class>
+      <function-signature>boolean isGlobalLoginRestriction()</function-signature>
+   </function>
+
+    <!-- Возвращает текст заголовока для формы ввода логин-пароля -->
+    <function>
+        <name>getAuthTitle</name>
+        <function-class>com.rssl.phizic.config.FrontSettingHelper</function-class>
+        <function-signature>java.lang.String getAuthTitle()</function-signature>
+    </function>
+
+    <!--Получение контекстного имени логина (PhizIC или PhizIA)-->
+   <function>
+      <name>loginContextName</name>
+      <function-class>com.rssl.phizic.web.actions.StrutsUtils</function-class>
+      <function-signature>java.lang.String loginContextName()</function-signature>
+   </function>
+
+    <!-- Является ли вход для оплаты с внешней ссылки.-->
+    <function>
+        <name>isPayOrder</name>
+        <function-class>com.rssl.phizic.web.auth.payOrder.PayOrderHelper</function-class>
+        <function-signature>boolean isPayOrder()</function-signature>
+    </function>
+
+    <function>
+        <name>getPayOrderBackURL</name>
+        <function-class>com.rssl.phizic.web.auth.payOrder.PayOrderHelper</function-class>
+        <function-signature>java.lang.String getPayOrderBackURL()</function-signature>
+    </function>
+
+    <!-- Является ли вход корректным. Возвращает false, если клиент зашел для оплаты с внешней ссылки не с соответствующего сайта -->
+    <function>
+       <name>isCorrectEnter</name>
+       <function-class>com.rssl.phizic.web.auth.payOrder.PayOrderHelper</function-class>
+       <function-signature>boolean isCorrectEnter()</function-signature>
+    </function>
+
+     <!--Перезаписывает символы перевода строки, экранирует закрывающий тег </script>-->
+   <function>
+      <name>escapeForJS</name>
+      <function-class>com.rssl.phizic.utils.StringHelper</function-class>
+      <function-signature>java.lang.String formatStringForJavaScript(java.lang.String, boolean)</function-signature>
+   </function>
+
+     <!-- Удаляем из строки символы, соответствующие регулярному выражению  -->
+    <function>
+        <name>replace</name>
+        <function-class>com.rssl.phizic.utils.StringUtils</function-class>
+        <function-signature>java.lang.String replaceString(java.lang.String, java.lang.String)</function-signature>
+    </function>
+    <!-- Возвращает урл сайта деловая среда -->
+  <function>
+     <name>getBusinessEnvironmentMainURL</name>
+     <function-class>com.rssl.phizic.config.FrontSettingHelper</function-class>
+     <function-signature>java.lang.String getBusinessEnvironmentMainURL()</function-signature>
+  </function>
+
+    <!-- Возвращает урл страницы клиента в деловой среде -->
+  <function>
+     <name>getBusinessEnvironmentUserURL</name>
+     <function-class>com.rssl.phizic.config.FrontSettingHelper</function-class>
+     <function-signature>java.lang.String getBusinessEnvironmentUserURL()</function-signature>
+  </function>
+
+    <!-- Поддерживает ли браузер CSS3 -->
+    <function>
+        <name>isModernCSS</name>
+        <function-class>com.rssl.phizic.web.util.browser.BrowserUtils</function-class>
+        <function-signature>boolean isModernCSS()</function-signature>
+    </function>
+
+
+    <function>
+        <name>getBlockingRuleNotification</name>
+        <function-class>com.rssl.auth.csa.front.business.blockingrules.BlockingRulesUtils</function-class>
+        <function-signature>com.rssl.auth.csa.front.business.blockingrules.BlockingRules findBlockingRule()</function-signature>
+    </function>
+
+    <!-- получить урл на главную страницу -->
+    <function>
+        <name>getMainUrl</name>
+        <function-class>com.rssl.phizic.web.common.URLContext</function-class>
+        <function-signature>java.lang.String getMainUrlInfo()</function-signature>
+    </function>
+
+    <function>
+        <name>isUECPaymentSession</name>
+        <function-class>com.rssl.phizic.web.auth.payOrder.PayOrderHelper</function-class>
+        <function-signature>boolean isUECPaymentSession()</function-signature>
+    </function>
+
+    <function>
+        <name>isWebShopPaymentSession</name>
+        <function-class>com.rssl.phizic.web.auth.payOrder.PayOrderHelper</function-class>
+        <function-signature>boolean isWebShopPaymentSession()</function-signature>
+    </function>
+
+    <!-- получить урл сайта УЭК -->
+    <function>
+        <name>getUECWebSiteUrl</name>
+        <function-class>com.rssl.phizic.web.auth.payOrder.PayOrderHelper</function-class>
+        <function-signature>java.lang.String getUECWebSiteUrl()</function-signature>
+    </function>
+
+    <!-- тип доступной регистрации -->
+    <function>
+         <name>getRegistrationAccessType</name>
+         <function-class>com.rssl.phizic.config.FrontSettingHelper</function-class>
+        <function-signature>com.rssl.phizic.config.RegistrationAccessType getRegistrationAccessType()</function-signature>
+    </function>
+
+     <function>
+         <name>isActiveCaptha</name>
+         <function-class>com.rssl.phizic.captcha.CaptchaServlet</function-class>
+        <function-signature>boolean isActiveCaptha(javax.servlet.http.HttpServletRequest,java.lang.String)</function-signature>
+    </function>
+
+    <function>
+        <name>isAsyncCheckingFieldsEnabled</name>
+        <function-class>com.rssl.phizic.config.CSAFrontConfig</function-class>
+        <function-signature>boolean asyncCheckingFieldsIsEnabled()</function-signature>
+    </function>
+
+    <function>
+        <name>isPromoBlockEnabled</name>
+        <function-class>com.rssl.phizic.config.CSAFrontConfig</function-class>
+        <function-signature>boolean PromoBlockEnabled() </function-signature>
+    </function>
+
+    <function>
+        <name>showPopupAfterRegistration</name>
+        <function-class>com.rssl.phizic.config.CSAFrontConfig</function-class>
+        <function-signature>boolean showPopupAfterRegistrationEnabled()</function-signature>
+    </function>
+
+    <!-- подключать ли скрипты Касперского -->
+    <function>
+        <name>needKasperskyScript</name>
+        <function-class>com.rssl.phizic.security.SecurityUtil</function-class>
+        <function-signature>boolean needKasperskyScript()</function-signature>
+    </function>
+
+    <function>
+        <name>isPixelMetricActive</name>
+        <function-class>com.rssl.phizic.config.FrontSettingHelper</function-class>
+        <function-signature>boolean getPixelMetricActivity()</function-signature>
+    </function>
+
+    <!--Экранированя URL. (Защита от XSS)-->
+    <function>
+        <name>encodeURL</name>
+        <function-class>com.rssl.phizic.utils.StringHelper</function-class>
+        <function-signature>java.lang.String encodeURL(java.lang.String)</function-signature>
+    </function>
+
+    <!--Проверка активности скриптов Фрод монитроинга-->
+    <function>
+        <name>isScriptsRSAActive</name>
+        <function-class>com.rssl.phizic.web.util.FraudMonitoringUtils</function-class>
+        <function-signature>boolean isScriptsRSAActive()</function-signature>
+    </function>
+
+    <!--Проверка активности флеш объекта Фрод монитроинга-->
+    <function>
+        <name>isFSORSAActive</name>
+        <function-class>com.rssl.phizic.web.util.FraudMonitoringUtils</function-class>
+        <function-signature>boolean isFSORSAActive()</function-signature>
+    </function>
+
+    <!--URL сервлета для обработки результата от флеш объекта-->
+    <function>
+        <name>getFSORSAServletUrl</name>
+        <function-class>com.rssl.phizic.web.util.FraudMonitoringUtils</function-class>
+        <function-signature>java.lang.String getFSORSAServletUrl()</function-signature>
+    </function>
+
+    <!--Проверка на валидность FSO токена-->
+    <function>
+        <name>isFSOTokenValid</name>
+        <function-class>com.rssl.phizic.web.util.FraudMonitoringUtils</function-class>
+        <function-signature>boolean isFSOTokenValid()</function-signature>
+    </function>
+
+    <!--Получить значение токена флеш объекта-->
+    <function>
+        <name>getFSOTokenValue</name>
+        <function-class>com.rssl.phizic.web.util.FraudMonitoringUtils</function-class>
+        <function-signature>java.lang.String getFSOTokenValue()</function-signature>
+    </function>
+</taglib>

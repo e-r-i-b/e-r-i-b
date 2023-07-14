@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="LoanPayment"
+              description="Погашение кредита"
+              detailedDescription="Для того чтобы внести платеж по кредиту или полностью погасить сумму задолженности, заполните поля формы и нажмите на кнопку «Оплатить»."
+              confirmDescription="Платеж успешно отправлен в банк. После его обработки средства будут списаны с Вашего счета и переведены на счет получателя. Спасибо, что Вы воспользовались «Сбербанк Онлайн»!"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.LoanPayment"/>
+    <template-implementation class="com.rssl.phizic.business.documents.templates.impl.LoanTransferTemplate"/>
+
+	<statemachine name="PaymentStateMachine"/>
+    <extended-metadata-loader   class="com.rssl.phizic.business.payments.forms.meta.LoanPaymentMetadataLoader"/>
+
+	<fields>
+		<field
+				name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"
+				signable="true">
+		</field>
+
+        <field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"           
+				signable="true">
+        </field>
+
+        <field name="documentTime"
+				description="Время документа"
+				source="document-time"
+				type="string"/>
+
+        <field name="operationDate"
+			source="operation-date-short-year"
+			description="Дата отправки платежа"
+			type="string"/>
+
+        <field name="operationTime"
+			source="operation-time"
+			description="Время исполнения платежа"
+			type="string"/>
+
+        <field
+                name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Источник списания средств: карта"
+                type="resource">
+            <validators>
+                <validator mode="by-template|document|prepare-long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field
+                name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+        <field  name="fromResourceLink"
+                description="Ссылка на ресурс списания"
+                type="string"
+                source="extra-parameters/parameter[@name='from-resource-link']/@value"
+                value="form.fromResource==null?null:form.fromResource.getCode()">
+        </field>
+
+        <field  name="fromAccountSelect"
+                description="карта списания"
+                type="string"
+                source="payer-account"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getNumber()">
+            <validators>
+                <validator mode="by-template|document|prepare-long-offer|long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer|long-offer|mobile" class="com.rssl.common.forms.validators.RegexpFieldValidator" >
+                    <message text="Вы неправильно указали номер карты. Пожалуйста, введите 16 либо 18 цифр."/>
+                    <parameter name="regexp">(\d{16})|(\d{18})|(\d{15})</parameter>
+                </validator>
+                <validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer|long-offer|mobile" class="com.rssl.phizic.business.payments.forms.validators.CardNumberChecksumFieldValidator">
+                    <message text="Вы указали недопустимый номер карты"/>
+                </validator>
+            </validators>
+        </field>
+
+        <field
+                name="fromAccountName"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                description="Наименование источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getName()">
+        </field>
+
+        <field name="resourceCurrency"
+               description="Валюта источника списания средств"
+               source="extra-parameters/parameter[@name='resource-currency']/@value"
+               type="string"
+               signable="true"
+               value="form.fromResource==null?null:form.fromResource.getCurrency().getCode()"/>
+
+        <field
+                name="loan"
+                description="Кредит"
+                type="resource"
+                source="extra-parameters/parameter[@name='loan']/@value">
+            <validators>
+                <validator mode="by-template|document|prepare-long-offer|long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field
+                name="loanAccountNumber"
+                description="Ссудный счет"
+                type="string"
+                source="extra-parameters/parameter[@name='loan-account-number']/@value"
+                signable="true"
+                value="form.loan==null?null:form.loan.getNumber()">
+            <validators>
+                <validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field
+                name="agreementNumber"
+                description="Номер договора"
+                type="string"
+                source="extra-parameters/parameter[@name='agreement-number']/@value"
+                signable="true"
+                value="form.loan==null?null:form.loan.getLoan().getAgreementNumber()"/>
+
+        <field
+                name="office"
+                description="Подразделение, в котором открыт кредит"
+                type="string"
+                source="extra-parameters/parameter[@name='office']/@value"
+                signable="true"
+                value="(form.loan==null || form.loan.getLoan().getOffice()==null) ? null
+                                    : form.loan.getLoan().getOffice().getCode().getFields().get('region') +
+                                      form.loan.getLoan().getOffice().getCode().getFields().get('branch') +
+                        (form.loan.getLoan().getOffice().getCode().getFields().get('office')==null ? '':
+                                   '/' + form.loan.getLoan().getOffice().getCode().getFields().get('office'))"/>
+
+        <field
+                name="loanExternalId"
+                description="внешний id кредита"
+                type="string"
+                source="extra-parameters/parameter[@name='loan-external-id']/@value"
+                signable="true"
+                value="form.loan==null?null:form.loan.getExternalId()">
+            <validators>
+                <validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field
+                name="loanType"
+                description="Тип кредита"
+                type="string"
+                source="extra-parameters/parameter[@name='loan-type']/@value"
+                value="form.loan==null?null:form.loan.getLoan().getDescription()">
+        </field>
+
+        <field  name="exactAmount"
+                description="Сумма списания (зачисления)"
+                source="exact-amount"
+                type="string">
+        </field>
+
+        <field
+                name="loanAmount"
+                description="Сумма кредита"
+                type="string"
+                source="extra-parameters/parameter[@name='loan-amount']/@value"
+                value="form.loan==null?null:form.loan.getLoan().getLoanAmount().getDecimal()">
+        </field>
+
+		<field
+                name="balanceAmount"
+                description="Сумма остатка задолженнности"
+                type="string"
+                source="ignored"
+                value="form.loan==null?null:form.loan.getLoan().getBalanceAmount().getDecimal()">
+        </field>
+
+		<field
+                name="nextPaymentAmount"
+                description="Рекомендуемая сумма следующего платежа"
+                type="string"
+                source="ignored"
+                value="form.loan==null?null:form.loan.getLoan().getNextPaymentAmount().getDecimal()">
+        </field>
+
+		<field
+                name="loanCurrency"
+                description="Сумма кредита"
+                type="string"
+                source="extra-parameters/parameter[@name='loan-currency']/@value"
+                signable="true"
+                value="form.loan==null?null:form.loan.getLoan().getLoanAmount().getCurrency().getCode()">
+        </field>
+
+		<field
+                name="loanName"
+                description="Название кредита"
+                type="string"
+                source="extra-parameters/parameter[@name='loan-name']/@value"
+                signable="true"
+                value="form.loan==null?null:form.loan.getName()">
+        </field>
+
+		<field
+				name="admissionDate"
+				description="Плановая дата исполнения платежа"
+				source="admission-date"
+				type="date"
+				signable="false"/>
+
+        <field
+				name="commission"
+				description="Сумма коммисии"
+				source="commission"
+				type="money"
+				signable="true"/>
+
+		<field
+				name="ground"
+				description="Назначение платежа"
+				source="ground"
+				type="string"
+				signable="true">
+		</field>
+
+        <field  name="longOfferSumType"
+                source="extra-parameters/parameter[@name='long-offer-sum-type']/@value"
+                description="Тип суммы исполения регулярного платежа"
+                type="string"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+        
+        <field
+                name="checkSum"
+                description="Необходимость проверки суммы"
+                source="ignored"
+                type="boolean"
+                value="form.longOfferSumType == null || form.longOfferSumType == '' || form.longOfferSumType == 'FIXED_SUMMA'"/>
+
+        <field
+                name="amount"
+                description="Сумма"
+                source="amount"
+                type="money"
+                signable="true">
+
+			<validators>
+				<validator mode="by-template|document|long-offer" enabled="form.checkSum" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="draft-template|pre-template|template|by-template|document|prepare-long-offer|long-offer|mobile" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+		</field>
+
+        <field
+			name="amountCurrency"
+			description="Валюта"
+			source="amount-currency"
+			type="string"
+			signable="true"
+			value="form.loanCurrency">
+		</field>
+
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+			   type="string"/>
+
+        <field
+                name="amountInternal"
+                description="Сумма"
+                source="ignored"
+                type="string"
+                value="parseFloat(form.amount)"/>
+
+        <field
+                name="nextPaymentAmountInternal"
+                description="Рекомендуемая сумма платежа"
+                source="ignored"
+                type="string"
+                value="parseFloat(form.nextPaymentAmount)"/>
+
+        <field
+                name="balanceAmountInternal"
+                description="Сумма остатка задолженности по кредиту"
+                source="ignored"
+                type="string"
+                value="parseFloat(form.balanceAmount)"/>
+
+        <field  name="longOfferPrioritySelect"
+                source="extra-parameters/parameter[@name='long-offer-priority']/@value"
+                description="Приоритет исполнения регулярного платежа"
+                type="long"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Вы неправильно указали приоритет исполнения платежа. Пожалуйста, выберите из выпадающего списка другое значение."/>
+                    <parameter name="regexp">^\d$</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="longOfferStartDate"
+                source="extra-parameters/parameter[@name='long-offer-start-date']/@value"
+                description="Дата начала действия регулярного платежа"
+                type="date"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="firstPaymentDate"
+                source="extra-parameters/parameter[@name='long-offer-first-payment-date']/@value"
+                description="Дата ближайшего платежа"
+                type="date"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="longOfferEndDate"
+                source="extra-parameters/parameter[@name='long-offer-end-date']/@value"
+                description="Дата окончания действия регулярного платежа"
+                type="date"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="longOfferPayDay"
+                source="extra-parameters/parameter[@name='long-offer-pay-day']/@value"
+                description="День месяца, в который производится списание по регулярному платежу"
+                type="long"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field name="isSumModify"
+               source="extra-parameters/parameter[@name='is-sum-modify']/@value"
+               description="Вид суммы исполнения регулярного платежа"
+               type="boolean"/>
+
+        <field  name="isStartDateChanged"
+                source="extra-parameters/parameter[@name='is-long-offer-start-date-changed']/@value"
+                description="Изменилась ли дата ближайшего платежа"
+                type="boolean"/>
+
+        <field  name="loanTB"
+                source="ignored"
+                description="Территориальный банк ссудного счета" 
+                value="form.loan==null?null:form.loan.getLoan().getOffice().getCode().getFields().get('region')"/>
+
+        <field  name="cardTB"
+                source="ignored"
+                description="Территориальный банк карты списания"
+                value="form.fromResource==null?null:form.fromResource.getCard().getOffice().getCode().getFields().get('region')"/>
+
+        <field
+                name="loanLinkId"
+                source="extra-parameters/parameter[@name='loan-link-id']/@value"
+                description="Идентификатор LoanLink"
+                type="long"
+                value="form.loan==null?null:form.loan.getId()">
+        </field>
+        
+    </fields>
+
+    <dictionaries>
+		<entity-list name="monthsDictionary">
+            <entity key="01">январь</entity>
+            <entity key="02">февраль</entity>
+            <entity key="03">март</entity>
+			<entity key="04">апрель</entity>
+			<entity key="05">май</entity>
+			<entity key="06">июнь</entity>
+			<entity key="07">июль</entity>
+            <entity key="08">август</entity>
+            <entity key="09">сентябрь</entity>
+            <entity key="10">октябрь</entity>
+            <entity key="11">ноябрь</entity>
+            <entity key="12">декабрь</entity>
+        </entity-list>
+
+        <entity-list name="sumTypesDictionary">
+            <entity key="FIXED_SUMMA">на фиксированную сумму в валюте списания</entity>
+            <entity key="CREDIT_MINIMUM">сумма текущей задолженности по кредиту</entity>
+            <entity key="CREDIT_MANUAL">сумма основного долга и рассчитанная сумма неустойки</entity>
+        </entity-list>
+	</dictionaries>
+
+	<form-validators>
+		<form-validator mode="by-template|document" class="com.rssl.phizic.business.payments.forms.validators.UserResourceAmountValidator"
+                enabled="form.resourceCurrency != '' &amp;&amp; form.loanCurrency != null &amp;&amp; form.resourceCurrency == form.loanCurrency &amp;&amp; form.amount != null">
+			<field-ref name="resource">fromResource</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+
+         <form-validator mode="long-offer" class="com.rssl.phizic.business.payments.forms.validators.CloseDateResourceValidator">
+            <message text="Срок действия платежа не может быть больше срока действия вклада(карты), указанного счетом списания."/>
+            <field-ref name="resource">fromResource</field-ref>
+            <field-ref name="longOfferEndDate" >longOfferEndDate</field-ref>
+        </form-validator>
+        
+         <form-validator mode="long-offer" class="com.rssl.phizic.business.payments.forms.validators.CloseLoanDateValidator">
+            <message text="Срок действия регулярного платежа не может превышать срок действия кредитного договора."/>
+            <field-ref name="resource">loan</field-ref>
+            <field-ref name="longOfferEndDate" >longOfferEndDate</field-ref>
+        </form-validator>
+
+        <form-validator mode="by-template|document|prepare-long-offer|long-offer" class="com.rssl.common.forms.validators.CompareValidator"
+                enabled="form.balanceAmount != null &amp;&amp; form.balanceAmount != '' &amp;&amp; form.checkSum">
+            <message text="Сумма превышает сумму общей задолженности."/>
+            <field-ref name="obj1">amountInternal</field-ref>
+            <field-ref name="obj2">balanceAmountInternal</field-ref>
+            <parameter name="operator">le</parameter>
+        </form-validator>
+
+        <form-validator mode="sms" class="com.rssl.common.forms.validators.CompareValidator"
+                enabled="form.balanceAmount != null &amp;&amp; form.balanceAmount != '' &amp;&amp; form.checkSum">
+            <message text="Операция не выполнена. Сумма погашения не может быть больше остатка задолженности по кредиту. Чтобы узнать остаток задолженности отправьте запрос ИНФОРМАЦИЯ NNNN, где NNNN – последние цифры номера договора."/>
+            <field-ref name="obj1">amountInternal</field-ref>
+            <field-ref name="obj2">balanceAmountInternal</field-ref>
+            <parameter name="operator">le</parameter>
+        </form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.common.forms.validators.CompareValidator">
+            <message text="Дата окончания действия регулярного платежа не может быть меньше текущей даты"/>
+            <field-ref name="obj1">documentDate</field-ref>
+            <field-ref name="obj2">longOfferEndDate</field-ref>
+            <parameter name="operator">le</parameter>
+        </form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.common.forms.validators.CompareValidator">
+            <message text="Дата начала действия регулярного платежа не должна превышать дату окончания действия регулярного платежа."/>
+            <field-ref name="obj1">longOfferEndDate</field-ref>
+            <field-ref name="obj2">longOfferStartDate</field-ref>
+            <parameter name="operator">gt</parameter>
+        </form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.common.forms.validators.CompareValidator">
+            <message text="Ближайшая дата выполнения не должна превышать дату окончания действия регулярного платежа."/>
+            <field-ref name="obj1">longOfferEndDate</field-ref>
+            <field-ref name="obj2">firstPaymentDate</field-ref>
+            <parameter name="operator">gt</parameter>
+        </form-validator>
+        
+         <form-validator mode="long-offer" class="com.rssl.common.forms.validators.DateTimeCompareValidator">
+            <message text="Дата начала действия регулярного платежа не может быть меньше текущей даты. Укажите другую дату начала действия"/>
+            <field-ref name="from_date">longOfferStartDate</field-ref>
+            <field-ref name="from_time"/>
+            <field-ref name="to_date"/>
+            <field-ref name="to_time"/>
+            <parameter name="curDate">to_cleartime</parameter>
+            <parameter name="operator">ge</parameter>
+        </form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.phizic.business.payments.forms.validators.IsBorrowerValidator"
+                enabled="form.resourceCurrency != 'RUB' &amp;&amp; form.resourceCurrency != 'RUR'">
+            <message text="Вы можете создать регулярный платеж на операцию погашения кредита в валюте отличной от валюты рубли, только если являетесь заемщиком или созаемщиком."/>
+            <field-ref name="loan">loan</field-ref>
+        </form-validator>
+        <form-validator mode="long-offer" class="com.rssl.phizic.business.payments.forms.validators.NotBorrowerCurrencyValidator">
+            <message text="Валюта карты списания и валюта счета зачисления должны совпадать"/>
+            <field-ref name="obj1">resourceCurrency</field-ref>
+            <field-ref name="obj2">loanCurrency</field-ref>
+            <field-ref name="loan">loan</field-ref>
+        </form-validator>
+        <form-validator mode="long-offer" class="com.rssl.phizic.business.payments.forms.validators.LoanCardTBValidator">
+            <message text="Карта и кредит должны быть открыты в одном ТБ"/>
+            <field-ref name="loanTB">loanTB</field-ref>
+            <field-ref name="cardTB">cardTB</field-ref>
+        </form-validator>
+
+        <!--ЕРМБ. Проверка карты списания: Карта не должна быть виртуальной-->
+        <form-validator mode="sms" class="com.rssl.phizic.business.payments.forms.validators.CheckVirualCardValidator"
+                        enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Операция не выполнена. Была указана виртуальная карта. Для совершения операции укажите в запросе другую карту для списания."/>
+            <field-ref name="resource">fromResource</field-ref>
+        </form-validator>
+
+        <!--ЕРМБ. Проверка карты списания: Нельзя производить активные операции с дополнительной карты, выпущенной на имя третьего лица-->
+        <form-validator mode="sms" class="com.rssl.phizic.business.payments.forms.validators.CardNotAdditionalClientToOtherValidator"
+                        enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Операция не выполнена. Недопустимый платеж с карты, выпущенной другому лицу. Для проведения платежа укажите в запросе другую карту для списания."/>
+            <field-ref name="resource">fromResource</field-ref>
+        </form-validator>
+	</form-validators>
+</payment-form>

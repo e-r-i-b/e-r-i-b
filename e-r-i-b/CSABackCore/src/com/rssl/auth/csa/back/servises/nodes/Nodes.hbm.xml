@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.auth.csa.back.servises.nodes.Node" table="CSA_NODES">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CSA_NODES</param>
+            </generator>
+        </id>
+
+        <property name="name"                       type="string"       column="NAME"                               not-null="true"/>
+        <property name="hostname"                   type="string"       column="HOSTNAME"                           not-null="true"/>
+        <property name="listenerHostname"           type="string"       column="LISTENER_HOSTNAME"                  not-null="true"/>
+        <property name="existingUsersAllowed"       type="boolean"      column="EXISTING_USERS_ALLOWED"             not-null="true"/>
+        <property name="newUsersAllowed"            type="boolean"      column="NEW_USERS_ALLOWED"                  not-null="true"/>
+        <property name="temporaryUsersAllowed"      type="boolean"      column="TEMPORARY_USERS_ALLOWED"            not-null="true"/>
+        <property name="usersTransferAllowed"       type="boolean"      column="USERS_TRANSFER_ALLOWED"             not-null="true"/>
+        <property name="adminAvailable"             type="boolean"      column="ADMIN_AVAILABLE"                    not-null="true"/>
+        <property name="guestAvailable"             type="boolean"      column="GUEST_AVAILABLE"                    not-null="true"/>
+
+        <property name="smsQueueName"               type="string"       column="SMS_QUEUE_NAME"                     not-null="true"/>
+        <property name="smsFactoryName"             type="string"       column="SMS_FACTORY_NAME"                   not-null="true"/>
+
+        <property name="ermbQueueName"              type="string"       column="ERMB_QUEUE_NAME"                    not-null="true"/>
+        <property name="ermbFactoryName"            type="string"       column="ERMB_FACTORY_NAME"                  not-null="true"/>
+
+        <property name="dictionaryQueueName"        type="string"       column="DICTIONARY_QUEUE_NAME"              not-null="true"/>
+        <property name="dictionaryFactoryName"      type="string"       column="DICTIONARY_FACTORY_NAME"            not-null="true"/>
+
+        <property name="multiNodeDataQueueName"     type="string"       column="MULTI_NODE_DATA_QUEUE_NAME"        not-null="true"/>
+        <property name="multiNodeDataFactoryName"   type="string"       column="MULTI_NODE_DATA_FACTORY_NAME"      not-null="true"/>
+
+        <property name="mbkRegistrationQueueName"     type="string"       column="MBK_REGISTRATION_QUEUE_NAME"        not-null="true"/>
+        <property name="mbkRegistrationFactoryName"   type="string"       column="MBK_REGISTRATION_FACTORY_NAME"      not-null="true"/>
+    </class>
+
+    <!--
+       Получить список наполняющихся блоков для полноценных клиентов
+       Опорный объект: нет
+       Предикаты доступа: FULL SCAN(1 по стопкею)
+       Кардинальность: количество блоков
+    -->
+    <query name="com.rssl.auth.csa.back.servises.nodes.Node.getFilling">
+         <![CDATA[
+         select node from com.rssl.auth.csa.back.servises.nodes.Node node
+         where node.newUsersAllowed = true and node.guestAvailable != true
+       ]]>
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.nodes.Node.getTemporary">
+         <![CDATA[
+         select node from com.rssl.auth.csa.back.servises.nodes.Node node
+         where node.temporaryUsersAllowed = true
+       ]]>
+    </query>
+
+    <!--
+       Получить список наполняющихся блоков для гостевых клиентов
+       Опорный объект: нет
+       Предикаты доступа: FULL SCAN(1 по стопкею)
+       Кардинальность: количество блоков
+    -->
+    <query name="com.rssl.auth.csa.back.servises.nodes.Node.getFillingGuest">
+         <![CDATA[
+         select node from com.rssl.auth.csa.back.servises.nodes.Node node
+         where node.newUsersAllowed = true and node.guestAvailable = true and node.adminAvailable = true
+       ]]>
+    </query>
+
+</hibernate-mapping>

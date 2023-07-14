@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/state-machine.xsd">
+
+    <states inital-state="INITIAL" description="Машина состояний досрочного погашения платежа" saveNodeInfo="true">
+
+        <state id="INITIAL" description="Вы создали, но еще не сохранили заявку."
+               client-form="/private/payments/payment.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <handlers>
+                <!--Проверяем возможность досрочного погашения кредита-->
+                <handler class="com.rssl.phizic.business.payments.forms.meta.EarlyLoanRepaymentClaimInitHandler"/>
+            </handlers>
+            <events>
+                <event name="SAVE" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.EarlyLoanRepFullRepaymentHandler"/>
+                    </handlers>
+                    <next-states default="SAVED"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="SAVED" description="Вы сохранили, но еще не подтвердили заявку."
+               client-form="/private/payments/confirm.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="EDIT" type="client">
+                    <next-states default="INITIAL"/>
+                </event>
+                <event name="CONFIRM" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+						<handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                            <parameter name="key" value="operation.earlyloanrepayment.accepted"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.EarlyLoanRepaymentClaimConfirmHandler"/>
+                    </handlers>
+                    <next-states default="DISPATCHED"/>
+                </event>
+                <event name="DOUNKNOW" description="таймаут" type="client">
+                    <next-states default="UNKNOW"/>
+                </event>
+                <event name="DOUNKNOW" description="таймаут" type="system">
+                    <next-states default="UNKNOW"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="UNKNOWN" description="Отправка заявки в Банк"
+               client-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+            <events>
+                <event name="SPECIFY" description="Автоматическое уточнение состояния документа" type="system" lock="true">
+                    <next-states default="UNKNOWN">
+                        <next-state condition="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.ESBBillingPaymentCondition" state="DISPATCHED">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.BusinessDocumentRepeatSendHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.PostUpdateDocumentHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.SetClientMessageKey">
+                                    <parameter name="key" value="operation.earlyloanrepayment.accepted"/>
+                                </handler>
+                            </handlers>
+                            <enabled class="com.rssl.phizic.business.ext.sbrf.payments.forms.meta.DocumentOfficeESBSupportedFilter"/>
+                        </next-state>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+
+        <state id="DISPATCHED" description="Принята"
+               client-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"/>
+
+        <state id="ERROR" description="Ошибка регистрации заявки"
+               client-form="/private/payments/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"/>
+
+    </states>
+</config>

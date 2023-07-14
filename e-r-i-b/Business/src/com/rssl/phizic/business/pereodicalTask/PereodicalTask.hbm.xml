@@ -1,0 +1,65 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+        <typedef name="StateType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		    <param name="enumClass">com.rssl.phizic.business.operations.background.TaskState</param>
+	    </typedef>
+       <class name="com.rssl.phizic.business.pereodicalTask.PereodicalTask"
+              table="PEREODICAL_TASK">
+
+            <id name="id" type="long" column="ID">
+                <generator class="native">
+                    <param name="sequence">S_PEREODICAL_TASK</param>
+                </generator>
+            </id>
+            <discriminator column="KIND" type="string"/>
+
+            <many-to-one name="owner" class="com.rssl.phizic.auth.CommonLogin" column="LOGIN_ID" lazy="false"
+                     update="false"/>
+            <property name="creationDate" type="calendar" column="CREATION_DATE" not-null="true"/>
+            <property name="state" type="StateType" column="STATE_CODE" not-null="true"/>
+
+            <property name="triggerName" type="string" column="TRIGGER_NAME" not-null="true"/>
+            <property name="operationName" type="string" column="OPERATION_NAME" not-null="true"/>
+            <property name="cronExp" type="string" column="CRON_EXP" not-null="false"/>
+            <property name="timeInterval" type="long" column="TIME_INTERVAL" not-null="false"/>
+       </class>
+
+        <subclass name="com.rssl.phizic.business.pereodicalTask.unload.DirInteractionPereodicalTask"
+    	          extends="com.rssl.phizic.business.pereodicalTask.PereodicalTask"
+    	          discriminator-value="U">
+                <property name="dir" type="text" column="DIR"/>
+    	</subclass>
+
+        <query name="com.rssl.phizic.business.pereodicalTask.PereodicalTask.getTaskByTriggerName">
+            select task
+            from com.rssl.phizic.business.pereodicalTask.PereodicalTask task
+            where task.triggerName = :triggerName
+        </query>
+
+        <query name="com.rssl.phizic.business.pereodicalTask.PereodicalTask.getTaskByOperationName">
+            select task
+            from com.rssl.phizic.business.pereodicalTask.PereodicalTask task
+            where task.operationName = :operationName
+        </query>
+    
+         <query name="com.rssl.phizic.business.pereodicalTask.PereodicalTask.removeTaskByTriggerName">
+            delete from com.rssl.phizic.business.pereodicalTask.PereodicalTask as task
+            where task.triggerName = :triggerName
+        </query>
+
+         <query name="com.rssl.phizic.business.pereodicalTask.PereodicalTask.updateStatus">
+            update com.rssl.phizic.business.pereodicalTask.PereodicalTask task
+            set task.state = :state
+            where task.id = :taskId
+         </query>
+
+         <query name="com.rssl.phizic.business.pereodicalTask.unload.DirInteractionPereodicalTask.updateStatus">
+            update com.rssl.phizic.business.pereodicalTask.unload.DirInteractionPereodicalTask task
+            set task.state = :state
+            where task.id = :taskId
+         </query>
+
+</hibernate-mapping>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.sms.locale.SmsResourceResources" table="SMS_RESOURCES_RES">
+        <composite-id>
+            <key-property name="id"         column="ID"         type="long"/>
+            <key-property name="localeId"   column="LOCALE_ID"  type="string"/>
+        </composite-id>
+        <property name="text"               column="TEXT"       type="string"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.sms.locale.LocaledSMSConfirmationResource" table="SMS_RESOURCES" discriminator-value= "CONFIRMATION" mutable="false">
+
+        <id name="id" column="ID">
+            <generator class="native">
+                <param name="sequence">S_SMS_RESOURCES</param>
+            </generator>
+        </id>
+
+        <discriminator type="string" column="SMS_TYPE"/>
+
+        <property name="key"             column="KEY"               type="string" not-null="true"/>
+        <property name="text"            column="TEXT"              type="string"/>
+        <property name="description"     column="DESCRIPTION"       type="string"/>
+        <property name="variables"       column="VARIABLES"         type="string"/>
+
+        <property name="lastModified"    column="LAST_MODIFIED"     type="calendar"/>
+        <property name="previousText"    column="PREVIOUS_TEXT"     type="string"/>
+        <property name="employeeLoginId" column="EMPLOYEE_LOGIN_ID" type="long"/>
+
+        <property name="custom"      column="CUSTOM"      type="boolean"/>
+        <property name="channel"     column="CHANNEL"     type="channelType"/>
+        <property name="priority"    column="PRIORITY"    type="long" />
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.sms.locale.SmsResourceResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <class name="com.rssl.phizic.business.sms.locale.LocaledSMSInformingResource" table="SMS_RESOURCES" discriminator-value= "INFORMING" mutable="false">
+
+        <id name="id" column="ID">
+            <generator class="native">
+                <param name="sequence">S_SMS_RESOURCES</param>
+            </generator>
+        </id>
+
+        <discriminator type="string" column="SMS_TYPE"/>
+
+        <property name="key"             column="KEY"               type="string" not-null="true"/>
+        <property name="text"            column="TEXT"              type="string"/>
+        <property name="description"     column="DESCRIPTION"       type="string"/>
+        <property name="variables"       column="VARIABLES"         type="string"/>
+
+        <property name="lastModified"    column="LAST_MODIFIED"     type="calendar"/>
+        <property name="previousText"    column="PREVIOUS_TEXT"     type="string"/>
+        <property name="employeeLoginId" column="EMPLOYEE_LOGIN_ID" type="long"/>
+
+        <property name="custom"      column="CUSTOM"      type="boolean"/>
+        <property name="channel"     column="CHANNEL"     type="channelType"/>
+        <property name="priority"    column="PRIORITY"    type="long" />
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.sms.locale.SmsResourceResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <class name="com.rssl.phizic.business.sms.locale.LocaledSMSRefusingResource" table="SMS_RESOURCES" discriminator-value= "REFUSING" mutable="false">
+
+        <id name="id" column="ID">
+            <generator class="native">
+                <param name="sequence">S_SMS_RESOURCES</param>
+            </generator>
+        </id>
+
+        <discriminator type="string" column="SMS_TYPE"/>
+
+        <property name="key"             column="KEY"               type="string" not-null="true"/>
+        <property name="text"            column="TEXT"              type="string"/>
+        <property name="description"     column="DESCRIPTION"       type="string"/>
+        <property name="variables"       column="VARIABLES"         type="string"/>
+
+        <property name="lastModified"    column="LAST_MODIFIED"     type="calendar"/>
+        <property name="previousText"    column="PREVIOUS_TEXT"     type="string"/>
+        <property name="employeeLoginId" column="EMPLOYEE_LOGIN_ID" type="long"/>
+
+        <property name="custom"      column="CUSTOM"      type="boolean"/>
+        <property name="channel"     column="CHANNEL"     type="channelType"/>
+        <property name="priority"    column="PRIORITY"    type="long" />
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.sms.locale.SmsResourceResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

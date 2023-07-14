@@ -1,0 +1,121 @@
+import "rt_ib_xml.mac";
+class(cBaseDeposit) 
+    cGetAccountInfo( inXml, outXml ) 
+   
+   var referenc;   
+
+   private macro readParameters( nodeElement )
+      var nodeComPay;
+      nodeComPay = nodeElement;
+      while( nodeComPay )
+         if   ( nodeComPay.NodeName == "accountReferenc" )
+            referenc = int( nodeComPay.text );
+         end;
+         nodeComPay = nodeComPay.nextSibling();
+      end;// while( nodeComPay )
+   end;//private macro readParameters( nodeElement )   
+
+   private macro createAccountInfoXml(rs, outXml, parentNode)
+      var accountNode, node;
+      var bal;
+      accountNode = parentNode.appendChild( outXML.createNode(1, "accountInfo", "") );
+
+      node = accountNode.appendChild( outXML.createNode(1, "accountId", "") );
+      node.text = rs.value("accountId");
+
+      node = accountNode.appendChild( outXML.createNode(1, "lastTransactionDate", "") );
+      node.text = rs.value("lastTransactionDate");
+
+      node = accountNode.appendChild( outXML.createNode(1, "decimalBalance", "") );
+      
+      bal = rs.value("decimalBalance");
+      if(mod(bal, 1) == 0)
+           bal = bal + ".00";
+      end; //if
+
+      
+      node.text = StrSubst(String(bal), ",", ".");
+
+      node = accountNode.appendChild( outXML.createNode(1, "currencyId", "") );
+      node.text = rs.value("currencyId");
+
+      node = accountNode.appendChild( outXML.createNode(1, "closeDate", "") );
+      node.text = rs.value("closeDate");
+
+      node = accountNode.appendChild( outXML.createNode(1, "isOpen", "") );
+      node.text = rs.value("isOpen");
+
+      node = accountNode.appendChild( outXML.createNode(1, "isLock", "") );
+      node.text = rs.value("isLock");
+
+      node = accountNode.appendChild( outXML.createNode(1, "agreementNumber", "") );
+      node.text = rs.value("agreementNumber");
+
+      node = accountNode.appendChild( outXML.createNode(1, "passbook", "") );
+      node.text = rs.value("passbook");
+
+      SetParm( 2, outXml );
+   end;//private macro createAccountXml(rs, outXml, parentNode)
+   
+   private macro getAccountInfoByReferenc(inXml, outXml)
+      var cmd, rs;
+      cmd = RsdCommand("SELECT "+
+               "deposits.t_sum_rest             AS decimalBalance "+
+               ",deposits.t_code_currency        AS currencyId "+
+               ",deposits.t_referenc             AS accountId "+
+               ",to_char(to_date(deposits.t_final_date, 'DD.MM.RRRR HH24:MI:SS'), 'DD.MM.YYYY( HH24:MI:SS)') AS lastTransactionDate "+
+               ",deposits.t_svodaccount          AS agreementNumber "+
+               ",deposits.t_givebook             AS passbook "+
+               ",case when deposits.t_open_close not like '%‡%' "+
+               "    then to_char(to_date(deposits.t_end_datedep, 'DD.MM.RRRR HH24:MI:SS'), 'DD.MM.YYYY( HH24:MI:SS)') "+
+               "    else to_char(to_date(deposits.t_close_date, 'DD.MM.RRRR HH24:MI:SS'), 'DD.MM.YYYY( HH24:MI:SS)') "+
+               "end                             AS closeDate "+
+               ",case when deposits.t_open_close not like '%‡%' "+
+               "    then 1 else 0 end            AS isOpen"+
+               ",case when deposits.t_UserTypeAccount like '%Ÿ%' OR deposits.t_UserTypeAccount like '%’%' "+
+               "    then 1 else 0 end            AS isLock "+
+         "FROM ddepositr_dbt deposits "+
+         "WHERE deposits.t_referenc = ?");
+      cmd.addParam( "referenc", RSDBP_IN, V_STRING);
+      cmd.value("referenc") = referenc;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+
+      if ( (rs.moveNext))
+         createAccountInfoXml(rs, outXml,nodeAnswer);
+      end;   
+
+      return outXml;
+   end;//private macro getAccountInfoByReferenc(inXml, outXml)
+
+   macro start(inXml, outXml)
+      var nodeParentElement;
+      var stat = 0;
+
+      if(not outXml )
+         outXml = CreateXMLObject();
+         
+         if(not outXml) return; end;
+         CreateBeginTag( outXml );
+         nodeParentElement = inXml.documentElement.selectSingleNode( "//getAccountInfo_q" );
+         nodeElement = nodeParentElement.firstChild();
+
+        if( nodeElement )
+            readParameters( nodeElement );
+            outXML = getAccountInfoByReferenc( inXml, outXML );
+         end;
+      end;//if(not outXml )
+      return outXml;
+   end;//private macro start(inXml, outXml)
+
+end;  //class(cBaseDeposit) 
+
+macro GetAccountInfoById( inXml, outXml )
+
+  var t = cGetAccountInfo;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;
+

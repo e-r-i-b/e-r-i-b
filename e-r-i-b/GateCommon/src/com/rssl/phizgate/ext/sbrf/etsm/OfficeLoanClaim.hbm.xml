@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--
+        Таблица хранения заявок, созданных в каналах отличных от УКО
+    -->
+    <class name="com.rssl.phizgate.ext.sbrf.etsm.OfficeLoanClaim" table="OFFICE_LOAN_CLAIM">
+        <id name="applicationNumber"                type="string"               column="APPLICATION_NUMBER"/>
+        <property name="state"                      type="integer"              column="STATE"/>
+        <property name="needVisitOfficeReason"      type="string"               column="NEED_VISIT_OFFICE_REASON"/>
+        <property name="fioKI"                      type="string"               column="FIO_KI"/>
+        <property name="loginKI"                    type="string"               column="LOGIN_KI"/>
+        <property name="fioTM"                      type="string"               column="FIO_TM"/>
+        <property name="loginTM"                    type="string"               column="LOGIN_TM"/>
+        <property name="department"                 type="string"               column="DEPARTMENT"/>
+        <property name="channel"                    type="string"               column="CHANNEL"/>
+        <property name="agreementDate"              type="calendar"             column="AGREEMENT_DATE"/>
+        <property name="type"                       type="string"               column="TYPE"/>
+        <property name="productCode"                type="string"               column="PRODUCT_CODE"/>
+        <property name="subProductCode"             type="string"               column="SUB_PRODUCT_CODE"/>
+        <property name="productAmount"              type="big_decimal"          column="PRODUCT_AMOUNT"/>
+        <property name="productPeriod"              type="long"                 column="PRODUCT_PERIOD"/>
+        <property name="loanApprovedAmount"         type="big_decimal"          column="LOAN_AMOUNT"/>
+        <property name="loanApprovedPeriod"         type="long"                 column="LOAN_PERIOD"/>
+        <property name="loanApprovedRate"           type="big_decimal"          column="LOAN_RATE"/>
+        <property name="currency"                   type="string"               column="CURRENCY"/>
+        <property name="paymentType"                type="string"               column="PAYMENT_TYPE"/>
+        <property name="typeOfIssue"                type="string"               column="TYPE_OF_ISSUE"/>
+        <property name="accountNumber"              type="string"               column="ACCOUNT_NUMBER"/>
+        <property name="cardNumber"                 type="string"               column="CARD_NUMBER"/>
+        <property name="firstName"                  type="string"               column="FIRST_NAME"/>
+        <property name="surName"                    type="string"               column="LAST_NAME"/>
+        <property name="patrName"                   type="string"               column="MIDDLE_NAME"/>
+        <property name="birthDay"                   type="calendar"             column="BIRTH_DAY"/>
+        <property name="citizen"                    type="string"               column="CITIZEN"/>
+        <property name="documentSeries"             type="string"               column="DOCUMENT_SERIES"/>
+        <property name="documentNumber"             type="string"               column="DOCUMENT_NUMBER"/>
+        <property name="passportIssueDate"          type="calendar"             column="PASSPORT_ISSUE_DATE"/>
+        <property name="passportIssueByCode"        type="string"               column="PASSPORT_ISSUE_BY_CODE"/>
+        <property name="passportIssueBy"            type="string"               column="PASSPORT_ISSUE_BY"/>
+        <property name="hasOldPassport"             type="boolean"              column="HAS_OLD_PASSPORT"/>
+        <property name="oldDocumentSeries"          type="string"               column="OLD_DOCUMENT_SERIES"/>
+        <property name="oldDocumentNumber"          type="string"               column="OLD_DOCUMENT_NUMBER"/>
+        <property name="oldPassportIssueDate"       type="calendar"             column="OLD_PASSPORT_ISSUE_DATE"/>
+        <property name="oldPassportIssueBy"         type="string"               column="OLD_PASSPORT_ISSUE_BY"/>
+        <property name="createDate"                 type="calendar"             column="CREATE_DATE" not-null="true"/>
+        <property name="preapproved"                type="boolean"              column="PREAPPROVED" not-null="true"/>
+        <property name="registrationAddresses"      type="string"               column="REGISTRATION_ADDRESS"/>
+    </class>
+
+    <!--
+        Получение заявок на кредит созданных в каналах отличных от УКО по ФИО, ДУЛ, ДР
+        Опорный объект: OFFICE_LC_FIO_BD_DOC_IDX
+        Предикаты доступа: access(UPPER(REPLACE(REPLACE("LAST_NAME"||"FIRST_NAME"||"MIDDLE_NAME",' ',''),'-',''))=:FIO AND
+               UPPER(REPLACE("DOCUMENT_SERIES",' ','')||REPLACE("DOCUMENT_NUMBER",' ',''))=:DOC AND
+              "OFFER"."BIRTH_DAY"=TO_TIMESTAMP(:BIRTHDAY) AND "OFFER"."CREATE_DATE"<TO_TIMESTAMP(:CREATEDATE))
+        Кардинальность: по количеству заявок у клиента.
+    -->
+    <query name="com.rssl.phizgate.ext.sbrf.etsm.OfficeLoanClaim.getOfficeLoanClaimsByFIODulBD">
+            select offer
+            from OfficeLoanClaim as offer
+            where upper(replace(replace(offer.surName||offer.firstName||offer.patrName,' ',''),'-','')) = :FIO
+            and upper(replace(offer.documentSeries,' ','')||replace(offer.documentNumber,' ',''))  = :Doc
+            and offer.birthDay = :birthDay
+            and offer.createDate >= :createDate
+    </query>
+
+</hibernate-mapping>

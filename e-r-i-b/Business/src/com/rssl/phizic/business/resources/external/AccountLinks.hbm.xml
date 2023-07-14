@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+   <class name="com.rssl.phizic.business.resources.external.AccountLink"
+           table="ACCOUNT_LINKS" >
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ACCOUNT_LINKS</param>
+            </generator>
+        </id>
+        <property name="externalId"     column="EXTERNAL_ID"/>
+        <property name="paymentAbility" column="PAYMENT_ABILITY" type="boolean" not-null="false"/>
+        <property name="loginId" type="long" not-null="true" column="LOGIN_ID" />
+	    <property name="number" column="ACCOUNT_NUMBER"/>
+        <property name="name"       type="string"   not-null="true"  column="ACCOUNT_NAME"/>
+        <property name="showInMain" type="boolean"  not-null="true"  column="SHOW_IN_MAIN"/>
+        <property name="showInSystem" type="boolean" not-null="true" column="SHOW_IN_SYSTEM"/>
+        <property name="showInSms" type="boolean"  not-null="true"   column="SHOW_IN_SMS" access="field"/>
+        <property name="showInMobile"   type="boolean"  not-null="true"  column="SHOW_IN_MOBILE"/>
+        <property name="showOperations" type="boolean"  not-null="true"   column="SHOW_OPERATIONS"/>
+        <property name="currency" type="currency" column="CURRENCY" not-null="false"/>
+        <property name="description" type="string" not-null="false" column="DESCRIPTION"/>
+        <property name="ermbNotification" type="boolean"    not-null="true"   column="ERMB_NOTIFICATION" access="field"/>
+        <property name="ermbSmsAlias" type="string" not-null="false" column="ERMB_SMS_ALIAS"/>
+        <property name="autoSmsAlias" type="string" not-null="false" column="SMS_AUTO_ALIAS"/>
+        <property name="showInATM"   type="boolean"  not-null="true"  column="SHOW_IN_ATM"/>
+        <property name="showInSocial"  type="boolean"  not-null="true"  column="SHOW_IN_SOCIAL"/>
+        <property name="officeOSB"   type="string"   column="OFFICE_OSB"/>
+        <property name="officeTB"    type="string"   column="OFFICE_TB"/>
+        <property name="officeVSP"   type="string"   column="OFFICE_VSP"/>
+        <property name="positionNumber"   type="integer"  not-null="false" column="POSITION_NUMBER"/>
+        <property name="closedState"  type="boolean"  not-null="false"  column="CLOSED_STATE"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.resources.external.AccountLink.list">
+        select link
+        from   com.rssl.phizic.business.resources.external.AccountLink link
+        where  link.loginId = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.AccountLink.list.inSystem">
+        select link
+        from   com.rssl.phizic.business.resources.external.AccountLink link
+        where  link.loginId = :login  and link.showInSystem = true
+        order by positionNumber
+    </query>
+    
+    <query name="com.rssl.phizic.business.resources.external.AccountLink.list.inMobile">
+        select link
+        from   com.rssl.phizic.business.resources.external.AccountLink link
+        where  link.loginId = :login  and link.showInMobile = true
+    </query>
+
+    <!--
+        Опорный объект: DXFK_ACCOUNTLINKS_TO_LOGINS
+        Предикаты доступа: INDEX RANGE SCAN
+        Кардинальность: Количество линков клиента
+    -->
+    <query name="com.rssl.phizic.business.resources.external.AccountLink.list.inSocial">
+        select link
+        from   com.rssl.phizic.business.resources.external.AccountLink link
+        where  link.loginId = :login  and link.showInSocial = true
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.AccountLink.list.inATM">
+        select link
+        from   com.rssl.phizic.business.resources.external.AccountLink link
+        where  link.loginId = :login and link.showInATM = true
+    </query>
+
+	<query name="com.rssl.phizic.business.resources.external.AccountLink.findAccountByNumderAndLoginId">
+		select link
+		from   com.rssl.phizic.business.resources.external.AccountLink link
+		where  link.number = :accountNumber and link.loginId = :login
+	</query>
+
+    <sql-query name="com.rssl.phizic.business.resources.external.AccountLink.findAccountByNumder">
+        <return alias="links" class="com.rssl.phizic.business.resources.external.AccountLink"/>
+        <![CDATA[
+           select {links.*}
+           from ACCOUNT_LINKS links join LOGINS logins on links.login_id=logins.id
+           where (links.account_number = :accountNumber)
+                 and (logins.deleted = 0)
+        ]]>
+    </sql-query>
+
+    <!--
+        !!!!!ВАЖНО!!!!! метод возвращает ВСЕ линки, включая линки удаленных клиентов
+        Опорный объект: UNIQUE_ACCOUNT_NUMBER
+        Предикаты доступа: access("LINKS"."ACCOUNT_NUMBER"=:ACCOUNTNUMBER)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.resources.external.AccountLink.findAccountByNumberIncludeDeletedUsers">
+        <return alias="links" class="com.rssl.phizic.business.resources.external.AccountLink"/>
+        <![CDATA[
+           select {links.*}
+           from ACCOUNT_LINKS links
+           where links.account_number = :accountNumber
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.resources.external.AccountLink.findAccountByNumderActivPerson">
+		select link
+		from   com.rssl.phizic.business.resources.external.AccountLink link,
+		                com.rssl.phizic.business.persons.ActivePerson person
+		where  link.number = :accountNumber and person.login.id = link.loginId and person.status = 'A' and
+                     (person.trustingPersonId = null or person.trustingPersonId = '')
+	</query>
+
+    <!--
+        Опорный объект: UNIQUE_ACCOUNT_NUM
+        Предикаты доступа: access("LINK"."ACCOUNT_NUMBER"=:ACCOUNTNUMBER)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.resources.external.AccountLink.setFalseClosedState">
+        update ACCOUNT_LINKS link set link.CLOSED_STATE = '0'
+            where link.CLOSED_STATE = '1' and link.ACCOUNT_NUMBER = :extra_accountNumber
+    </sql-query>
+</hibernate-mapping>

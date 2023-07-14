@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.deposits.DepositProduct" table="DEPOSITDESCRIPTIONS" abstract="false" discriminator-value="D">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITDESCRIPTIONS</param>
+            </generator>
+        </id>
+
+        <discriminator column="KIND" type="string"/>
+        <property name="name"         type="string" column="NAME"          not-null="true"/>
+        <property name="description"  type="text"   column="DESCRIPTION"   not-null="true"/>
+	    <property name="details"      type="string" column="DETAILS"       />
+        <property name="departmentId" type="long"   column="DEPARTMENT_ID" />
+        <property name="productId"    type="long"   column="PRODUCT_ID"    not-null="true"/>
+        <property name="availableOnline"    type="boolean"   column="AVAILABLE_ONLINE"    not-null="true"/>
+        <property name="lastUpdateDate"     type="calendar"  column="LAST_UPDATE_DATE"    not-null="true"/>
+        <property name="capitalization"     type="boolean"   column="CAPITALIZATION"      not-null="true"/>
+        <property name="withMinimumBalance" type="boolean"   column="MINIMUM_BALANCE"     not-null="true"/>
+
+        <bag name="allowedDepartments" table="DEPOSIT_DEPARTMENTS" lazy="false" fetch="subselect">
+            <key column="DEPOSIT_ID"/>
+            <element column="TB" type="string" not-null="true"/>
+        </bag>
+    </class>
+
+    <class name="com.rssl.phizic.business.deposits.DepositProductPart" table="DEPOSITDESCRIPTIONS" discriminator-value="D">
+        <id name="id"                 type="long"   column="ID"/>
+        <property name="name"         type="string" column="NAME"          not-null="true"/>
+        <property name="productId"    type="long"   column="PRODUCT_ID"    not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.deposits.DepositProduct.getAll">
+        select depositProduct
+        from com.rssl.phizic.business.deposits.DepositProduct as depositProduct
+        order by depositProduct.productId
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.deposits.DepositProduct.getOnlineAvailable">
+        <return alias="depositProduct" class="com.rssl.phizic.business.deposits.DepositProduct"/>
+        <![CDATA[
+           SELECT {depositProduct.*}
+           FROM
+               DEPOSITDESCRIPTIONS depositProduct
+           JOIN
+               DEPOSIT_DEPARTMENTS depositDepartment ON depositProduct.ID = depositDepartment.DEPOSIT_ID
+           WHERE
+               depositProduct.AVAILABLE_ONLINE = '1'
+               AND depositDepartment.TB = :terBank
+       ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.deposits.DepositProduct.getNotOnlineAvailable">
+        select depositProduct
+        from com.rssl.phizic.business.deposits.DepositProduct as depositProduct
+        where depositProduct.availableOnline = false
+    </query>
+
+    <query name="com.rssl.phizic.business.deposits.DepositProduct.getByProductId">
+        select depositProduct
+        from com.rssl.phizic.business.deposits.DepositProduct as depositProduct
+        where depositProduct.productId = :productId
+    </query>
+
+    <query name="com.rssl.phizic.business.deposits.DepositProduct.getAllDepositProductIds">
+        select depositProduct.productId
+        from com.rssl.phizic.business.deposits.DepositProduct as depositProduct
+    </query>
+
+    <query name="com.rssl.phizic.business.deposits.DepositProduct.allowAll">
+        update com.rssl.phizic.business.deposits.DepositProduct depositProduct
+        set depositProduct.availableOnline = true
+    </query>
+</hibernate-mapping>

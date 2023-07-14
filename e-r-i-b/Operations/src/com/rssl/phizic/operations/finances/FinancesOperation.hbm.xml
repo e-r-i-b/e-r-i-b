@@ -1,0 +1,161 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--Для графика история доходов и расходов по категориям-->
+    <class name="com.rssl.phizic.operations.finances.CategoriesDynamicMoveDescription" mutable="false">
+        <id name="id"/>
+        <!--Дата начала периода-->
+        <property name="firstDay"/>
+        <!--Дата окончания периода-->
+        <property name="lastDay"/>
+         <!--сумма за период в национальной валюте-->
+        <property name="nationalSumm"/>
+        <!--Итоговая сумма-->
+        <property name="totalSumm"/>
+    </class>
+    <!--Для графика объем наличных и безналичных операций-->
+    <class name="com.rssl.phizic.operations.finances.CashAndCashlessVolumeDescription" mutable="false">
+        <id name="id"/>
+        <!--Дата начала периода-->
+        <property name="firstDay"/>
+        <!--Дата окончания периода-->
+        <property name="lastDay"/>
+        <!--Сумма за наличный рассчет в национальной валюте-->
+        <property name="cashSumm"/>
+        <!--Сумма за безналичный рассчет в национальной валюте-->
+        <property name="cashlessSumm"/>
+        <!--Итоговая сумма за наличный рассчет-->
+        <property name="totalCashSumm"/>
+        <!--Итоговая сумма за безналичный рассчет-->
+        <property name="totalCashlessSumm"/>
+    </class>
+
+    <!--Список категорий операции по параметрам фильтра. Возвращается категории удовлетворяющие условиям фильтра-->
+    <sql-query name="com.rssl.phizic.operations.finances.CategoriesDynamicMoveOperation.getOperationCategoriesByParams">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.CardOperationCategory"/>
+        SELECT {category.*}
+        FROM CARD_OPERATION_CATEGORIES category
+        WHERE
+            (nvl(category.LOGIN_ID, -1) = -1 or nvl(category.LOGIN_ID, -1) = :login) AND
+            category.INCOME = :income AND
+            category.VISIBLE = '1' AND
+            (:cash = '1' or category.CASH = :cash)
+    </sql-query>
+
+    <!--Динамика движенрия средств в разрезе категории.
+        Если задан период "everyDayLimit" и менее то группировка не осуществляется, иначе результат
+        выполнения запроса группируется по "groupDayCount" дней и сумма выводится по группе.-->
+    <sql-query name="com.rssl.phizic.operations.finances.CategoriesDynamicMoveOperation.list" read-only="true">
+        <query-param name="fromDate" type="calendar"/>
+        <query-param name="toDate" type="calendar"/>
+        <query-param name="everyDayLimit" type="integer"/>
+        <query-param name="groupDayCount" type="integer"/>
+        <query-param name="categoryId" type="long"/>
+        <query-param name="cash" type="Integer"/>
+        <query-param name="cardsNums" type="String"/>
+        <query-param name="loginId" type="long"/>
+        <return class="com.rssl.phizic.operations.finances.CategoriesDynamicMoveDescription">
+            <return-property name="id" column="id"/>
+            <return-property name="firstDay" column="FIRST_DAY"/>
+            <return-property name="lastDay" column="LAST_DAY"/>
+            <return-property name="nationalSumm" column="NATIONAL_SUMM"/>
+            <return-property name="totalSumm" column="TOTAL_SUMM"/>
+        </return>
+        <![CDATA[
+            SELECT *
+              FROM (
+                    select min(period.first_day) as FIRST_DAY
+                         , max(period.last_day-1) as LAST_DAY
+                         , coalesce(sum(co.national_summ),0) as NATIONAL_SUMM
+                         , sum(coalesce(sum(co.national_summ),0)) over() TOTAL_SUMM
+                         , period_num id
+                      from(
+                            SELECT min(:extra_fromDate + day_num - 1) first_day
+                                 , max(:extra_fromDate + day_num) last_day
+                                 , ceil(day_of_week/day_count) period_num
+                              FROM (
+                                     select level day_num
+                                          , (case when ceil(cast(:extra_toDate as date) - cast(:extra_fromDate as date)) > :extra_everyDayLimit
+                                                then (level - 1 + to_number(to_char(:extra_fromDate, 'D')))
+                                                else level
+                                            end) day_of_week
+                                          , (case when ceil(cast(:extra_toDate as date) - cast(:extra_fromDate as date)) > :extra_everyDayLimit then :extra_groupDayCount else 1 end) day_count
+                                       from dual
+                                     connect by level <= ceil(cast(:extra_toDate as date) - cast(:extra_fromDate as date))
+                                   )
+                            GROUP BY ceil(day_of_week/day_count)
+                            ORDER BY min(:extra_fromDate + day_num - 1)
+                           ) period left join card_operations co on period.first_day <= co.operation_date and co.operation_date < period.last_day and
+                                                                    co.category_id = :extra_categoryId and
+                                                                    (:extra_cash is null or co.cash = :extra_cash) and
+                                                                    co.card_number in (:extra_cardsNums) and
+                                                                    co.login_id = :extra_loginId
+                    group by period.period_num
+                    order by period.period_num
+                   )
+             WHERE TOTAL_SUMM != 0
+        ]]>
+    </sql-query>
+
+    <!--Объем наличных и безналичных операций в структуре финансовых потоков.
+        Если задан период "extra_everyDayLimit" и менее то группировка не осуществляется, иначе результат
+        выполнения запроса группируется по "extra_groupDayCount" дней и суммы наличных и безналичных операций
+        выводятся по группе.-->
+    <sql-query name="com.rssl.phizic.operations.finances.ShowCashAndCashlessVolumeOperation.list" read-only="true">
+        <query-param name="fromDate" type="calendar"/>
+        <query-param name="toDate" type="calendar"/>
+        <query-param name="income" type="integer"/>
+        <query-param name="everyDayLimit" type="integer"/>
+        <query-param name="groupDayCount" type="integer"/>
+        <query-param name="cardsNums" type="String"/>
+        <query-param name="loginId" type="long"/>
+        <return class="com.rssl.phizic.operations.finances.CashAndCashlessVolumeDescription">
+            <return-property name="id" column="id"/>
+            <return-property name="firstDay" column="FIRST_DAY"/>
+            <return-property name="lastDay" column="LAST_DAY"/>
+            <return-property name="cashSumm" column="CASH_SUMM"/>
+            <return-property name="cashlessSumm" column="CASHLESS_SUMM"/>
+            <return-property name="totalCashSumm" column="TOTAL_CASH_SUMM"/>
+            <return-property name="totalCashlessSumm" column="TOTAL_CASHLESS_SUMM"/>
+        </return>
+        <![CDATA[
+            SELECT *
+              FROM (
+                    select min(period.first_day) as FIRST_DAY
+                         , max(period.last_day-1) as LAST_DAY
+                         , coalesce(sum(case when co.cash = '1' and coc.income is not null then co.national_summ else 0 end),0) CASH_SUMM
+                         , coalesce(sum(case when co.cash = '0' and coc.income is not null then co.national_summ else 0 end),0) CASHLESS_SUMM
+                         , sum(coalesce(sum(case when co.cash = '1' and coc.income is not null then co.national_summ else 0 end),0)) over() TOTAL_CASH_SUMM
+                         , sum(coalesce(sum(case when co.cash = '0' and coc.income is not null then co.national_summ else 0 end),0)) over() TOTAL_CASHLESS_SUMM
+                         , period_num ID
+                      from(
+                            SELECT min(:extra_fromDate + day_num - 1) first_day
+                                 , max(:extra_fromDate + day_num) last_day
+                                 , ceil(day_of_week/day_count) period_num
+                              FROM (
+                                     select level day_num
+                                          , (case when ceil(cast(:extra_toDate as date) - cast(:extra_fromDate as date)) > :extra_everyDayLimit
+                                                then (level - 1 + to_number(to_char(:extra_fromDate, 'D')))
+                                                else level
+                                            end) day_of_week
+                                          , (case when ceil(cast(:extra_toDate as date) - cast(:extra_fromDate as date)) > :extra_everyDayLimit then :extra_groupDayCount else 1 end) day_count
+                                       from dual
+                                     connect by level <= ceil(cast(:extra_toDate as date) - cast(:extra_fromDate as date))
+                                   )
+                            GROUP BY ceil(day_of_week/day_count)
+                            ORDER BY min(:extra_fromDate + day_num - 1)
+                           ) period left join card_operations co on period.first_day <= co.operation_date and co.operation_date < period.last_day and
+                                                                    co.card_number in (:extra_cardsNums) and
+                                                                    co.login_id = :extra_loginId
+                                    left join card_operation_categories coc on coc.id = co.category_id and
+                                                                               coc.income = :extra_income and
+                                                                               coc.visible = '1'
+                    group by period.period_num
+                    order by period.period_num
+                   )
+             WHERE TOTAL_CASH_SUMM != 0 OR TOTAL_CASHLESS_SUMM != 0 
+        ]]>
+    </sql-query>
+</hibernate-mapping>

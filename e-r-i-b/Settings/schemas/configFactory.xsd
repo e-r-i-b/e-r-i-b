@@ -1,0 +1,82 @@
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+            jxb:version="1.0">
+    <xsd:element name="config-factory">
+        <xsd:complexType>
+            <xsd:sequence>
+                <!-- список необходимых баз данных -->
+                <xsd:element name="dbs" type="DataBasesType" minOccurs="1" maxOccurs="1"/>
+                <!-- список конфигов -->
+                <xsd:element name="configs" type="ConfigsType" minOccurs="1" maxOccurs="1"/>
+            </xsd:sequence>
+        </xsd:complexType>
+
+        <xsd:key name="ReaderNameKey">
+            <xsd:selector xpath="readers/reader"/>
+            <xsd:field xpath="@name"/>
+        </xsd:key>
+        <xsd:keyref name="ReaderNameForConfigRef" refer="ReaderNameKey">
+            <xsd:selector xpath="configs/config/implementation"/>
+            <xsd:field xpath="reader"/>
+        </xsd:keyref>
+        <xsd:key name="ConfigNameKey">
+            <xsd:selector xpath="configs/config"/>
+            <xsd:field xpath="@instance"/>
+        </xsd:key>
+    </xsd:element>
+
+    <xsd:complexType name="DataBasesType">
+        <xsd:sequence>
+            <!-- список инстансов баз данных. -->
+            <xsd:element name="db" type="DataBaseType" minOccurs="1" maxOccurs="unbounded"/>
+            <!-- Указывается время обновления в минутах или отрицательное число, если обновлять конфиг не надо.-->
+            <xsd:element name="refreshEvery" type="xsd:integer" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DataBaseType">
+        <!-- Данные могут получаться из разных приложений и из разных баз. Поэтому необходимо указать заваязку текущего приложения с data-source базы-->
+        <xsd:sequence>
+            <xsd:element name="instanceInfo" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <!-- инстанс приложения -->
+                    <xsd:attribute name="applicationInstance" type="xsd:string"/>
+                    <!-- инстанс базы -->
+                    <xsd:attribute name="dbInstance" type="xsd:string" use="required"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+        <!-- Название базы данных для связи. По этому названию конфиги находят нужную базу -->
+        <xsd:attribute name="name" type="xsd:token" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConfigsType">
+        <xsd:sequence>
+            <!-- Конкретный конфиг -->
+            <xsd:element name="config" type="ConfigType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConfigType">
+        <xsd:sequence>
+            <!-- Реализация конфига -->
+            <xsd:element name="implementation" type="ImplementationType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <!-- Название класса, по которомы можно извлечь данный конфиг из ConfigFactory -->
+        <xsd:attribute name="instance" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ImplementationType">
+        <xsd:sequence>
+            <!-- файл для чтения настроек -->
+            <xsd:element name="readFile" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <!-- Класс, реализующий выбранный конфиг -->
+        <xsd:attribute name="class" type="xsd:string" use="required"/>
+        <!-- Приложение, для которого необходим данный конфиг или не указано, если по-умолчанию для всех приложений -->
+        <xsd:attribute name="application" type="xsd:string" use="optional"/>
+        <!-- Использовать свой композитный ридер -->
+        <xsd:attribute name="useReader" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+</xsd:schema>

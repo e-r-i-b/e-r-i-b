@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xsd:schema xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:annotation>
+        <xsd:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="com.rssl.phizic.config.build.generated" />
+				<jxb:nameXmlTransform>
+					<jxb:elementName suffix="Element" />
+					<jxb:typeName suffix="Descriptor" />
+				</jxb:nameXmlTransform>
+			</jxb:schemaBindings>
+		</xsd:appinfo>
+    </xsd:annotation>
+
+    <xsd:element name="build-config">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="business-module" type="BusinessModule" minOccurs="0" maxOccurs="unbounded"/>
+                <xsd:element name="ejb-module" type="EjbModule" minOccurs="0" maxOccurs="unbounded"/>
+                <xsd:element name="web-module" type="WebModule" minOccurs="0" maxOccurs="unbounded"/>
+                <xsd:element name="web-application" type="WebApplication" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+            <xsd:attribute name="debug-mode" type="xsd:boolean" default="false"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="Module" abstract="true">
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="description" type="xsd:string" use="optional"/>
+        <xsd:attribute name="base" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>Путь к корневой папке модуля (директория с .iml)</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="BusinessModule">
+        <xsd:annotation>
+            <xsd:documentation />
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="Module">
+                <xsd:attribute name="jar-name" type="xsd:string" use="optional"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="EjbModule">
+        <xsd:annotation>
+            <xsd:documentation>
+                EJB-модуль (jms-слушатель)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="Module">
+                <xsd:sequence>
+                    <xsd:element name="business-module" type="BusinessModuleRef" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+                <xsd:attribute name="jar-name" type="xsd:string" use="optional"/>
+                <xsd:attribute name="settings-path" type="xsd:string" use="required">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Путь к директории настроек модуля относительно Settings/configs/${конфигурация}/${приложение}
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="WebModule">
+        <xsd:annotation>
+            <xsd:documentation />
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="Module">
+                <xsd:sequence>
+                    <xsd:element name="business-module" type="BusinessModuleRef" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+                <xsd:attribute name="war-name" type="xsd:string" use="optional"/>
+                <xsd:attribute name="context-path" type="xsd:string" use="required"/>
+                <xsd:attribute name="settings-path" type="xsd:string" use="required">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Путь к директории настроек модуля относительно Settings/configs/${конфигурация}/${приложение}
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="WebApplication">
+        <xsd:annotation>
+            <xsd:documentation />
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="web-module" type="WebModuleRef" minOccurs="0" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="context-path" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="BusinessModuleRef">
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="WebModuleRef">
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="url-folder" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation/>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+</xsd:schema>

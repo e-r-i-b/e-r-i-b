@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<internal-messaging-service xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../schemas/internalMessagingService.xsd">
+    <server>
+        <requestHandlers>
+            <handler request="RefundGoodsRequest" class="com.rssl.phizic.business.einvoicing.processors.RefundOrderRequestProcessor"/>
+            <handler request="CreateOrderPaymentRequest" class="com.rssl.phizic.business.einvoicing.processors.CreateOrderPaymentRequestProcessor"/>
+            <handler request="SendOrderPaymentRequest" class="com.rssl.phizic.business.einvoicing.processors.SendOrderPaymentRequestProcessor"/>
+            <handler request="SendTicketsRequest" class="com.rssl.phizic.business.einvoicing.processors.SendTicketsRequestProcessor"/>
+            <handler request="GetOrderStateRequest" class="com.rssl.phizic.business.einvoicing.processors.GetOrderStateRequestProcessor"/>
+            <handler request="GetRecallStateRequest" class="com.rssl.phizic.business.einvoicing.processors.GetRecallStateRequestProcessor"/>
+        </requestHandlers>
+        <exceptionHandlers defaultCode="1" defaultDescription="Операция временно недоступна"/>
+    </server>
+    <client>
+        <errors>
+            <!--заказ не найден-->
+            <error code="500" exception="com.rssl.phizic.gate.exceptions.GateException"/>
+            <!--заказ неактуален-->
+            <error code="501" exception="com.rssl.phizic.einvoicing.exceptions.InactualOrderInInternetShopException"/>
+            <!--поставщик не найден-->
+            <error code="502" exception="com.rssl.phizic.einvoicing.exceptions.ProviderNotFoundException"/>
+            <!--ошибки по умолчанию-->
+            <error code="1" exception="com.rssl.phizic.gate.exceptions.GateException"/>
+        </errors>
+    </client>
+</internal-messaging-service>

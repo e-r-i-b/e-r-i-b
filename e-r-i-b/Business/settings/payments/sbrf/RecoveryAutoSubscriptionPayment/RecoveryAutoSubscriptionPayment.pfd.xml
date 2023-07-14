@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RecoveryAutoSubscriptionPayment" description="Возобновление выполнения автоплатежа (регулярной операции)"
+              detailedDescription="На этой странице Вы можете создать платеж, который будет выполняться автоматически. Для его создания заполните параметры регулярного платежа и нажмите на кнопку «Сохранить». После рассмотрения банком данного платежа операция будет выполняться автоматически в соответствии с заданными параметрами."
+              confirmDescription="Платеж успешно отправлен в банк. После его обработки регулярный платеж будет выполняться автоматически по заданным Вами параметрам. Спасибо, что Вы воспользовались «Сбербанк Онлайн»!"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+    <implementation class="com.rssl.phizic.business.documents.payments.RecoveryAutoSubscriptionPayment"/>
+	<statemachine name="RecoveryAutoSubscriptionPayment"/>
+    <extended-metadata-loader class="com.rssl.phizic.business.payments.forms.meta.receivers.AutoSubscriptionMetadataLoader"/>
+	<fields>
+
+        <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true"/>
+
+        <field name="billingDocumentNumber"
+               source="billing-document-number"
+               type = "string"
+               description="Номер операции в БС"
+               signable="true"/>
+
+        <field name="documentDate"
+               description="Дата документа"
+               type="date"
+               source="document-date"
+               signable="true"/>
+
+        <field name="fromResourceType"
+               source="extra-parameters/parameter[@name='from-resource-type']/@value"
+               description="Тип источника списания средств: счет, карта"
+               type="string"
+           />
+
+        <field  name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Источник списания средств: счет, карта"
+                type="resource">
+
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Вы не можете создать автоплатеж (регулярную операцию) для оплаты услуг со счета (вклада). Пожалуйста, выберите карту списания."/>
+                    <parameter name="regexp">card:\d+</parameter>
+                </validator>
+                <validator class="com.rssl.phizic.business.payments.forms.validators.CheckResourceVisibilityValidator"/>
+            </validators>
+        </field>
+
+        <field name="fromResourceType"
+               source="extra-parameters/parameter[@name='from-resource-type']/@value"
+               description="Тип источника списания средств: счет, карта"
+               type="string"
+               value="form.fromResource==null?null:form.fromResource.getClass().getName()"/>
+
+        <field name="fromAccountSelect"
+               description="Счет/карта списания"
+               type="string"
+               source="payer-account"
+               signable="true"
+               value="form.fromResource==null?null:form.fromResource.getNumber()"/>
+
+        <field name="fromAccountType"
+               source="extra-parameters/parameter[@name='from-account-type']/@value"
+               description="Тип (описание) источника списания"
+               type="string"
+               signable="true"
+               value="form.fromResource==null?null:form.fromResource.getValue().getDescription()"/>
+
+        <field name="fromAccountName"
+               source="extra-parameters/parameter[@name='from-account-name']/@value"
+               description="Наименование источника списания"
+               type="string"
+               signable="true"
+               value="form.fromResource==null?null:form.fromResource.getName()"/>
+
+        <field name="fromResourceCurrency"
+               description="Валюта"
+               source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+               type="string"
+               value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+               signable="true"/>
+
+        <field name="codeService"
+               description="Идентификатор услуги в биллинговой системе"
+               type="string"
+               source="extra-parameters/parameter[@name='codeService']/@value"/>
+
+        <field name="nameService"
+               description="Наименование услуги в биллинговой системе"
+               type="string"
+               source="extra-parameters/parameter[@name='nameService']/@value"/>
+
+        <!--Данные получателя-->
+        <field name="recipient"
+               description="Идентифкатор поставщика услуг"
+               type="long"
+               source="recipient">
+        </field>
+
+        <field name="receiverId"
+               description="Внешний идентификатор получателя"
+               type="string"
+               source="receiverId">
+        </field>
+
+        <field name="billingCode"
+               description="Идентфикатор билинговой системы"
+               type="string"
+               source="extra-parameters/parameter[@name='provider-billing-code']/@value">
+        </field>
+
+        <field name="receiverName"
+               description="Наименование получателя"
+               type="string"
+               source="receiver-name"
+               signable="true">
+        </field>
+
+        <field name="nameOnBill"
+               description="Наименование получателя, выводимое в чеке"
+               type="string"
+               source="extra-parameters/parameter[@name='name-on-bill']/@value"/>
+
+		<field name="receiverAccount"
+               description="Счет зачисления"
+               type="string"
+               source="receiver-account"
+               signable="true"/>
+
+		<field name="receiverINN"
+               description="ИНН"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-inn']/@value"
+               signable="true"/>
+
+		<field name="receiverKPP"
+               description="КПП"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-kpp']/@value"
+               signable="true"/>
+
+        <field name="receiverBIC"
+               description="БИК"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-bic']/@value"
+               signable="true">
+        </field>
+
+		<field name="receiverBankName"
+               description="Наименование банка Получателя"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-bank']/@value"
+               signable="true"/>
+
+		<field name="receiverCorAccount"
+               description="Кор.Счет"
+               type="string"
+               source="extra-parameters/parameter[@name='receiver-cor-account']/@value"
+               signable="true"/>
+
+		<field name="admissionDate"
+               description="Плановая дата исполнения платежа"
+               source="admission-date"
+               type="date"
+               signable="false"/>
+
+		<field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+		<field name="promoCode"
+               source="promoCode"
+               description="Промо-код"
+               type="string"/>
+
+		<field name="operationDate"
+               source="operation-date-short-year"
+               description="Дата отправки платежа"
+               type="string"/>
+
+        <field name="operationTime"
+			   source="operation-time"
+			   description="Время отправки платежа"
+		       type="string"/>
+
+		<field name="chargeOffDate"
+               source="execution-date"
+               description="Дата исполнения платежа"
+               type="date"/>
+
+        <field name="bankDetails"
+               source="extra-parameters/parameter[@name='bank-details']/@value"
+               description="Банковские реквизиты"
+               type="boolean"/>
+
+        <field name="cardAccountFrom"
+               source="cardAccountFrom"
+               description="Номер счета карты списания"
+               value="xpath:phiz:document('active-cards.xml')/entity-list/entity[@key=$fromAccountSelect]/field[@name='cardAccount']"/>
+
+        <!-- Поля автоплатежа -->
+        <field name="autoSubNumber"
+               source="extra-parameters/parameter[@name='auto-sub-number']/@value"
+               description="Тип суммы исполения регулярного платежа"
+               type="string"/>
+
+        <field name="autoSubType"
+               source="extra-parameters/parameter[@name='auto-sub-type']/@value"
+               description="Тип автоплатежа"
+               type="string"
+               signable="true">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field name="autoSubEventType"
+                source="extra-parameters/parameter[@name='long-offer-event-type']/@value"
+                description="Тип события исполнения автоплатежа"
+                type="string"
+                signable="true">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field name="autoSubSumType"
+               source="extra-parameters/parameter[@name='long-offer-sum-type']/@value"
+               description="Тип суммы исполения регулярного платежа"
+               type="string"
+               value="form.autoSubType=='ALWAYS'?'FIXED_SUMMA_IN_RECIP_CURR':'BY_BILLING'"
+               signable="true"/>
+
+        <field  name="nextPayDateAlways"
+                description="Дата ближайшего платежа"
+                type="date"
+                source="extra-parameters/parameter[@name='auto-sub-next-pay-date']/@value"
+                enabled="form.autoSubType == 'ALWAYS'"
+                signable="true">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" />
+                <validator mode="document" class="com.rssl.common.forms.validators.DateFieldValidator" />
+            </validators>
+        </field>
+
+        <field name="alwaysAmount"
+               source="destination-amount"
+               description="Сумма"
+               type="money"
+               enabled="form.autoSubType == 'ALWAYS'"
+               signable="true">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" />
+                <validator mode="document" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="alwaysAmountCurrency"
+                source="extra-parameters/parameter[@name='auto-sub-invoice-max-amount-currency']/@value"
+                description="Валюта суммы списания при регулярном платеже"
+                type="string"
+                enabled="form.autoSubType == 'ALWAYS'"
+                signable="true"
+                value="'RUB'"/>
+
+        <!-- по выставленному счету -->
+        <field  name="nextPayDateInvoice"
+                description="Ожидаемая дата оплаты счета"
+                type="date"
+                source="extra-parameters/parameter[@name='auto-sub-next-pay-date']/@value"
+                enabled="form.autoSubType == 'INVOICE'"
+                signable="true">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" />
+                <validator mode="document" class="com.rssl.common.forms.validators.DateFieldValidator" />
+            </validators>
+        </field>
+
+        <field name="invoiceMaxAmount"
+               source="extra-parameters/parameter[@name='auto-sub-invoice-max-decimal']/@value"
+               description="Максимальный размер платежа"
+               type="money"
+               enabled="form.autoSubType=='INVOICE'"
+               signable="true">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="invoiceMaxAmountCurrency"
+                source="extra-parameters/parameter[@name='auto-sub-invoice-max-currency']/@value"
+                description="Валюта максимальной суммы платежа в месяц"
+                type="string"
+                enabled="form.autoSubType == 'INVOICE'"
+                signable="true"
+                value="'RUB'"/>
+
+        <field name="autoSubStartDate"
+               source="extra-parameters/parameter[@name='auto-sub-create-date']/@value"
+               type="date"
+               signable="true"
+               description="Дата регистрации"/>
+
+        <field name="autoSubUpdateDate"
+               source="extra-parameters/parameter[@name='auto-sub-update-date']/@value"
+               type="date"
+               signable="true"
+               description="Дата изменения"/>
+
+        <field name="autoSubName"
+               source="extra-parameters/parameter[@name='auto-sub-friendy-name']/@value"
+               description="Название регулярного платежа"
+               type="string"
+               signable="true">
+             <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="document" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message   text="Наименование автоплатежа не должно превышать 20 символов. Пожалуйста, введите другое название."/>
+                    <parameter name="regexp">^.{0,40}$</parameter>
+                </validator>
+                <validator mode="document" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Вы указали недопустимые символы. В наименовании можно использовать буквы лат. алфавита, кириллицы, пробел, цифры, ?, !, *, &quot;, двоеточие, точку, запятую, точку с запятой или тире."/>
+                    <parameter name="regexp">[^\|&amp;&amp;a-zA-Z|а-я\u0451А-Я\u0401|0-9|\\|\*|,|\.|;|\!|\?|:|"|\-| ]*</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="reasonForAdditionalConfirm"
+                source="extra-parameters/parameter[@name='reason-for-additional-confirm']/@value"
+                description="Причина дополнительного подтверждения платежа в КЦ"
+                type="string">
+        </field>
+    </fields>
+
+    <form-validators>
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.NotArrestedProductValidator">
+			<field-ref name="fromResource">fromResource</field-ref>
+		</form-validator>
+
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.FromResourceFilterValidator"
+            enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.AccountLink'">
+            <message text="Вы не можете возобновить действие данного автоплатежа, так как счет списания заблокирован."/>
+			<field-ref name="fromResource">fromResource</field-ref>
+		</form-validator>
+
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.FromResourceFilterValidator"
+            enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Вы не можете возобновить действие данного автоплатежа, так как карта списания заблокирована."/>
+			<field-ref name="fromResource">fromResource</field-ref>
+		</form-validator>
+    </form-validators>
+</payment-form>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:ns="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"
+                  name="ERMBPaymentSmsWService"
+                  targetNamespace="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms">
+    <wsdl:import namespace="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms" location="payment-sms.xsd"/>
+
+    <wsdl:message name="SendPaymentSmsRqMsg">
+   		<wsdl:part element="ns:SendPaymentSmsRq" name="SendPaymentSmsRq"/>
+   	</wsdl:message>
+
+    <wsdl:message name="SendPaymentSmsRsMsg">
+   		<wsdl:part element="ns:SendPaymentSmsRs" name="SendPaymentSmsRs"/>
+   	</wsdl:message>
+
+    <wsdl:portType name="SendPaymentSmsService">
+   		<wsdl:operation name="SendPaymentSms">
+   			<wsdl:input message="ns:SendPaymentSmsRqMsg"/>
+   			<wsdl:output message="ns:SendPaymentSmsRsMsg"/>
+   		</wsdl:operation>
+   	</wsdl:portType>
+
+    <wsdl:binding name="SendPaymentSmsServiceBinding" type="ns:SendPaymentSmsService">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="SendPaymentSms">
+            <soap:operation style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="SendPaymentSmsService">
+        <wsdl:port name="SendPaymentSmsServicePort" binding="ns:SendPaymentSmsServiceBinding">
+            <soap:address location="http://localhost:8080/services/SendPaymentSmsServiceImpl"/>
+        </wsdl:port>
+    </wsdl:service>
+
+</wsdl:definitions>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="config" type="Config"/>
+
+  <xs:complexType name="Config">
+    <xs:sequence>
+      <xs:element name="rules">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="rule" type="Rule" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Rule">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="condition" type="Condition"/>
+      <xs:element name="action" type="Action"/>
+      <xs:element name="status" type="xs:boolean"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Condition">
+    <xs:sequence>
+      <xs:element name="terbanks">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="terbank" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="clientCategory" type="ClientCategoryType" minOccurs="0"/>
+      <xs:element name="age" type="AgeType"/>
+      <xs:element name="bankroll-products" type="bankroll-products"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="AgeType">
+    <xs:sequence>
+      <xs:element name="from" type="xs:int" minOccurs="0"/>
+      <xs:element name="until" type="xs:int" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="bankroll-products">
+    <xs:sequence>
+      <xs:element name="credit-card" type="BankrollProductAvailabilityType"/>
+      <xs:element name="deposit" type="BankrollProductAvailabilityType"/>
+      <xs:element name="loan" type="BankrollProductAvailabilityType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Action">
+    <xs:sequence>
+      <xs:element name="tariff" type="tariff"/>
+      <xs:element name="bankroll-product-defaults" type="bankroll-product-defaults"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="tariff">
+    <xs:sequence>
+      <xs:element name="id" type="xs:long" minOccurs="0"/>
+      <xs:element name="code" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="bankroll-product-defaults">
+    <xs:sequence>
+      <xs:element name="card" type="ProductDefaultParametersType"/>
+      <xs:element name="deposit" type="ProductDefaultParametersType"/>
+      <xs:element name="loan" type="ProductDefaultParametersType"/>
+      <xs:element name="new-product" type="ProductDefaultParametersType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ProductDefaultParametersType">
+    <xs:sequence>
+      <xs:element name="visibility" type="xs:boolean"/>
+      <xs:element name="notification" type="xs:boolean"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="ClientCategoryType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="vip"/>
+      <xs:enumeration value="mbc"/>
+      <xs:enumeration value="standart"/>
+      <xs:enumeration value="unimportant"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="BankrollProductAvailabilityType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="available"/>
+      <xs:enumeration value="unavailable"/>
+      <xs:enumeration value="unimportant"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
+

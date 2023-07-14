@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.loanOffer.SettingLoanAbstract" table="SETTING_LOAN" abstract="true">
+         <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_SETTING_LOAN</param>
+            </generator>
+        </id>
+
+        <discriminator column="KIND"  not-null="true"/>
+
+        <property name="directory" type="string" column="DIRECTORY" not-null="true"/>
+        <property name="fileName" type="string" column="FILE_NAME" not-null="true"/>
+
+	    <subclass name="com.rssl.phizic.business.loanOffer.SettingLoanOfferLoad"
+			  discriminator-value="L">
+
+	    </subclass>
+
+        <subclass name="com.rssl.phizic.business.loanOffer.SettingLoanCardOfferLoad"
+              discriminator-value="C">
+            <property name="automaticLoadDirectory" type="string" column="DIRECTORY_AUTO" not-null="true"/>
+            <property name="automaticLoadFileName" type="string" column="FILE_NAME_AUTO" not-null="true"/>
+        </subclass>
+    </class>
+</hibernate-mapping>

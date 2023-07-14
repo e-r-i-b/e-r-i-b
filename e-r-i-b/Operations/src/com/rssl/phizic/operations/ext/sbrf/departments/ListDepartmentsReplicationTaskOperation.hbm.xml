@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.departments.ListDepartmentsReplicationTaskOperation.list">
+        <return alias="task"     class="com.rssl.phizic.business.dictionaries.offices.extended.replication.ReplicateDepartmentsBackgroundTask"/>
+        <![CDATA[
+            SELECT
+                task.ID as {task.id},
+                task.REPLICATION_MODE as {task.replicationMode},
+                task.CREATION_DATE as {task.creationDate},
+                task.STATE_CODE as {task.state},
+                task.OWNER_ID as {task.ownerId},
+                task.OWNER_FIO as {task.ownerFIO},
+                task.DEPARTMENTS as {task.departmentIdsInternal},
+                task.REPORT_START_DATE as {task.result.startDate},
+                task.REPORT_END_DATE as {task.result.endDate},
+                task.TOTAL_RECORDS as {task.result.sourceTotalRecordsCount},
+                task.SOURCE_SUCCESS as {task.result.sourceProcessedRecordsCount},
+                task.DEST_UPDATED as {task.result.destinationUpdatedRecordsCount},
+                task.DEST_INSERED as {task.result.destinationInseredRecordsCount},
+                task.SOURCE_ERRORS as {task.result.sourceFailedRecordsCount},
+                -- отчеты игнорируем, слишком большие
+                null as {task.result.report},
+                null as {task.result.destinationInseredRecordsReport},
+                null as {task.result.destinationInseredDecentrRecordsReport},
+                null as {task.result.destinationUpdatedRecordsReport},
+                null as {task.result.errorFormatReport},
+                null as {task.result.errorParentReport}
+            FROM
+                DEPARTMENTS_REPLICA_TASKS task
+            ORDER BY task.ID DESC
+          ]]>
+    </sql-query>
+</hibernate-mapping>

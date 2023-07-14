@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="ProfileNodesStateType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.auth.csa.back.servises.nodes.ProfileNode$State</param>
+    </typedef>
+    <typedef name="ProfileType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.csa.ProfileType</param>
+    </typedef>
+    <class name="com.rssl.auth.csa.back.servises.nodes.ProfileNode" table="CSA_PROFILE_NODES">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CSA_PROFILE_NODES</param>
+            </generator>
+        </id>
+
+        <property name="creationDate" type="calendar" formula="CREATION_DATE" not-null="true" generated="insert"/>
+        <property name="state" type="ProfileNodesStateType" column="STATE" not-null="true"/>
+        <property name="profileType" type="ProfileType" column="PROFILE_TYPE" not-null="true"/>
+
+        <many-to-one name="profile" class="com.rssl.auth.csa.back.servises.Profile" column="PROFILE_ID"
+                     lazy="false" not-null="true"/>
+        <many-to-one name="node" class="com.rssl.auth.csa.back.servises.nodes.Node" column="NODE_ID"
+                     lazy="false" not-null="true"/>
+    </class>
+
+    <query name="com.rssl.auth.csa.back.servises.nodes.ProfileNode.getByProfile">
+         <![CDATA[
+         select profileNode from com.rssl.auth.csa.back.servises.nodes.ProfileNode profileNode
+         where profileNode.profile = :profile
+       ]]>
+    </query>
+
+    <!--Удалить все узлы профиля
+        Опорный объект: DXFK_CSA_PROFILENODES_TO_PROFI
+        Предикаты доступа: access("PROFILE_ID"=TO_NUMBER(:PROFILE_ID))
+        Кардинальность: от 1 до количества поднятых блоков, если клиент переводился в каждый из них.
+    -->
+    <query name="com.rssl.auth.csa.back.servises.nodes.ProfileNode.removeProfileNodes">
+         delete from com.rssl.auth.csa.back.servises.nodes.ProfileNode profileNode
+         where profileNode.profile = :profile
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.nodes.ProfileNode.changeProfile">
+        update com.rssl.auth.csa.back.servises.nodes.ProfileNode record
+        set profile = :new_profile
+        where profile in (:old_profile)
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.nodes.ProfileNode.getMigratedTemporaryNodeCount">
+        select 1 from com.rssl.auth.csa.back.servises.nodes.ProfileNode profileNode
+        where profileNode.profile = :profile
+            and profileNode.profileType = 'TEMPORARY'
+            and profileNode.state != 'ACTIVE'
+    </query>
+
+    <!--Изменить состояние связки профиля и блока
+        Опорный элемент: DXFK_CSA_PROFILENODES_TO_PROFI
+        Предикаты доступа: access("PROFILE_ID"=TO_NUMBER(:PROFILEID))
+        Кардинальность: количество связок профиля с блоками
+    -->
+    <query name="com.rssl.auth.csa.back.servises.nodes.ProfileNode.changeTemporaryNodeState">
+        update com.rssl.auth.csa.back.servises.nodes.ProfileNode record
+        set record.state = :newState
+        where record.profile.id = :profileId and record.profileType = 'TEMPORARY' and record.state = :oldState
+    </query>
+</hibernate-mapping>

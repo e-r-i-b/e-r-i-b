@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.rssl.phizicgate.rsretailV6r4.bankroll">
+
+	<class name="OverdraftInfoImpl">
+		<id name="cardId"/>
+		<property name="limit" type="com.rssl.phizicgate.rsretailV6r4.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+			<column name="decimalLimit"/>
+			<column name="currencyId"/>
+		</property>
+		<property name="currentOverdraftSum" type="com.rssl.phizicgate.rsretailV6r4.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+			<column name="decimalCurrentOverdraftSum"/>
+			<column name="currencyId"/>
+		</property>
+
+	</class>
+
+	<sql-query name="GetOverdraftInfo">
+		<return alias="overdraftInfo" class="com.rssl.phizicgate.rsretailV6r4.bankroll.OverdraftInfoImpl">
+	        <return-property name="cardId"                        column="cardId"/>
+			<return-property name="limit">
+		        <return-column name="decimalLimit"/>
+		        <return-column name="currencyId"/>
+	        </return-property>
+		    <return-property name="currentOverdraftSum">
+		        <return-column name="decimalCurrentOverdraftSum"/>
+		        <return-column name="currencyId"/>
+	        </return-property>
+	    </return>
+
+		SELECT
+			card.t_cardref as cardId
+			,credit.t_creditsum as decimalCurrentOverdraftSum
+			,depositr.t_code_currency as currencyId
+			,limhis.t_rest as decimalLimit
+		FROM
+		    DSCCARD_DBT   card
+			,dsclink_dbt   link
+			,ddepositr_dbt depositr
+			,DCREDIT_C_DBT credit
+			,DCHLIMHIS_DBT limhis
+		WHERE
+			card.t_cardref = :cardId
+			and card.t_cardref = link.T_CARDREF
+			and link.T_CARDACCREF = depositr.T_REFERENC
+			and depositr.t_account = credit.T_ACCOUNTKARTA
+			and credit.t_creditnumber = limhis.t_creditnumber_ref
+	</sql-query>
+
+	<sql-query name="GetTotalDebtSum">
+
+        <return-scalar type="double" column="summa"/>
+    	<![CDATA[
+			SELECT
+				sum(dutyrest.T_RESTSUM) summa
+			from
+                DSCCARD_DBT   card
+				,dsclink_dbt   link
+				,ddepositr_dbt depositr
+				,DCREDIT_C_DBT credit
+				,DLCUSREG_DBT  cusreg
+				,DDUTYREST_DBT dutyrest
+			where
+				card.t_cardref = :cardId
+                and card.t_cardref = link.T_CARDREF
+				and link.T_CARDACCREF = depositr.T_REFERENC
+				and depositr.t_account = credit.T_ACCOUNTKARTA
+				and credit.t_creditnumber = cusreg.T_OBJECTNUMBER
+				and cusreg.T_OBJECTTYPEID=8
+				and cusreg.T_REGID <=1001
+				and cusreg.T_REGID <>8
+				and cusreg.T_ID = dutyrest.T_ID_REF
+				and dutyrest.T_RESTDATE in
+				(
+					SELECT
+						max(dutyrest1.T_RESTDATE)
+					from
+                        DSCCARD_DBT   card1
+						,dsclink_dbt   link1
+						,ddepositr_dbt depositr1
+						,DCREDIT_C_DBT credit1
+						,DLCUSREG_DBT  cusreg1
+						,DDUTYREST_DBT dutyrest1
+					where
+						card1.t_cardref = :cardId
+                        and card1.t_cardref = link1.T_CARDREF
+						and link1.T_CARDACCREF = depositr1.T_REFERENC
+						and depositr1.t_account = credit1.T_ACCOUNTKARTA
+						and credit1.t_creditnumber = cusreg1.T_OBJECTNUMBER
+						and cusreg1.T_OBJECTTYPEID=8
+						and cusreg1.T_REGID <=1001
+						and cusreg1.T_REGID <>8
+						and cusreg1.T_ID = dutyrest1.T_ID_REF
+					group by cusreg1.T_REGID
+				)
+
+		]]>
+    </sql-query>
+
+	<sql-query name="GetAvailableLimit">
+
+        <return-scalar type="double" column="limit"/>
+    	<![CDATA[
+			SELECT
+				loanskernel.getlastregrest(8, credit.t_creditnumber, 8) limit
+			from
+                DSCCARD_DBT   card
+				,dsclink_dbt   link
+				,ddepositr_dbt depositr
+				,DCREDIT_C_DBT credit
+				,DLCUSREG_DBT  cusreg
+				,DDUTYREST_DBT dutyrest
+			where
+				card.t_cardref = :cardId
+                and card.t_cardref = link.T_CARDREF
+				and link.T_CARDACCREF = depositr.T_REFERENC
+				and depositr.t_account = credit.T_ACCOUNTKARTA
+				and credit.t_creditnumber = cusreg.T_OBJECTNUMBER
+				and cusreg.T_OBJECTTYPEID=8				
+				and cusreg.T_REGID =8
+				and cusreg.T_ID = dutyrest.T_ID_REF
+				and dutyrest.T_RESTDATE in
+				(
+					SELECT
+						max(dutyrest1.T_RESTDATE)
+					from
+                        DSCCARD_DBT   card1
+						,dsclink_dbt   link1
+						,ddepositr_dbt depositr1
+						,DCREDIT_C_DBT credit1
+						,DLCUSREG_DBT  cusreg1
+						,DDUTYREST_DBT dutyrest1
+					where
+						card1.t_cardref = :cardId
+                        and card1.t_cardref = link1.T_CARDREF
+						and link1.T_CARDACCREF = depositr1.T_REFERENC
+						and depositr1.t_account = credit1.T_ACCOUNTKARTA
+						and credit1.t_creditnumber = cusreg1.T_OBJECTNUMBER
+						and cusreg1.T_OBJECTTYPEID=8
+						and cusreg1.T_REGID =8
+						and cusreg1.T_ID = dutyrest1.T_ID_REF
+					group by cusreg1.T_REGID
+				)
+		]]>
+    </sql-query>
+
+</hibernate-mapping>

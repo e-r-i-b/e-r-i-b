@@ -1,0 +1,1212 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<project name="generate" basedir=".">
+    <import id="builder" file="builder.ant"/>
+
+    <property name="common.temp.location" value="${java.io.tmpdir}/tmp_services/"/>
+    <property name="common.temp.xml" value="${common.temp.location}/.xml"/>
+    <property name="common.service.location" value="http://localhost:8080/services/"/>
+
+    <path id="axis.classpath">
+        <fileset dir="${project.root}/Libraries/Axis/">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <taskdef resource="axis-tasks.properties"
+             classpathref="axis.classpath" />
+
+    <target name=".wsdl2java" description="Генерация веб-сервиса по wsdl">
+        <axis-wsdl2java
+                output="${project.root}\${path.client}"
+                verbose="true"
+                url="${project.root}/${path.wsdl}">
+            <mapping
+                    namespace="${namespace}"
+                    package="${package.client}">
+            </mapping>
+        </axis-wsdl2java>
+
+        <axis-wsdl2java
+                output="${project.root}\${path.server}"
+                verbose="true"
+                url="${project.root}/${path.wsdl}"
+                serverside="true">
+            <mapping
+                    namespace="${namespace}"
+                    package="${package.server}">
+            </mapping>
+        </axis-wsdl2java>
+    </target>
+
+    <target name="generate.RSA_web_back_service" description="Генерация обратного веб-сервиса взаимодействия с ВС Фрод Мониторинг">
+
+        <property name="path.wsdl"   value="FraudMonitoringBackGate/src/com/rssl/phizic/gate/monitoring/fraud/ws/xml/AsyncInteraction.wsdl"/>
+        <property name="path.client" value="WebTest\src"/>
+        <property name="path.server" value="FraudMonitoringBackGate\src"/>
+
+        <axis-wsdl2java
+              output="${project.root}\${path.client}"
+              verbose="true"
+              url="${project.root}/${path.wsdl}">
+
+            <mapping
+                namespace="http://async-interaction/fraud/monitoring/back/gate"
+                package="com.rssl.phizic.test.webgate.rsa.integration.ws.back.generated">
+            </mapping>
+        </axis-wsdl2java>
+
+        <axis-wsdl2java
+              output="${project.root}\${path.server}"
+              verbose="true"
+              url="${project.root}/${path.wsdl}"
+              serverside="true">
+
+            <mapping
+                    namespace="http://async-interaction/fraud/monitoring/back/gate"
+                    package="com.rssl.phizic.gate.monitoring.fraud.ws.generated">
+            </mapping>
+        </axis-wsdl2java>
+    </target>
+
+    <target name="generate.RSA_web_control_service" description="Генерация веб-сервиса проверки операции во ВС Фрод Мониторинг">
+
+        <property name="path.wsdl"   value="FraudMonitoringGate/src/com/rssl/phizic/rsa/integration/ws/control/xml/AdaptiveAuthentication.wsdl"/>
+        <property name="path.client" value="FraudMonitoringGate\src"/>
+        <property name="path.server" value="WebTest\src"/>
+
+        <axis-wsdl2java
+              output="${project.root}\${path.client}"
+              verbose="true"
+              url="${project.root}/${path.wsdl}">
+            <mapping
+                namespace="http://ws.csd.rsa.com"
+                package="com.rssl.phizic.rsa.integration.ws.control.generated">
+            </mapping>
+             <mapping
+                namespace="http://ws.kba.csd.rsa.com"
+                package="com.rssl.phizic.rsa.integration.ws.control.generated.kba">
+            </mapping>
+            <mapping
+                namespace="http://ws.oobgen.csd.rsa.com"
+                package="com.rssl.phizic.rsa.integration.ws.control.generated.oobgen">
+            </mapping>
+            <mapping
+                namespace="http://ws.oobsms.csd.rsa.com"
+                package="com.rssl.phizic.rsa.integration.ws.control.generated.oobsms">
+            </mapping>
+        </axis-wsdl2java>
+
+        <axis-wsdl2java
+              output="${project.root}\${path.server}"
+              verbose="true"
+              url="${project.root}/${path.wsdl}"
+              serverside="true">
+            <mapping
+                    namespace="http://ws.csd.rsa.com"
+                    package="com.rssl.phizic.test.webgate.rsa.integration.ws.control.generated">
+            </mapping>
+             <mapping
+                    namespace="http://ws.kba.csd.rsa.com"
+                    package="com.rssl.phizic.test.webgate.rsa.integration.ws.control.generated.kba">
+            </mapping>
+            <mapping
+                    namespace="http://ws.oobgen.csd.rsa.com"
+                    package="com.rssl.phizic.test.webgate.rsa.integration.ws.control.generated.oobgen">
+            </mapping>
+            <mapping
+                    namespace="http://ws.oobsms.csd.rsa.com"
+                    package="com.rssl.phizic.test.webgate.rsa.integration.ws.control.generated.oobsms">
+            </mapping>
+        </axis-wsdl2java>
+    </target>
+
+    <target name="generate.RSA_web_notification_service" description="Генерация веб-сервиса оповещения ВС Фрод Мониторинг об изменениях при неактивности ВС Фрод Мониторинг">
+        <property name="path.wsdl"   value="FraudMonitoringGate/src/com/rssl/phizic/rsa/integration/ws/notification/xml/ActivityEngine.wsdl"/>
+        <property name="path.client" value="FraudMonitoringGate\src"/>
+        <property name="path.server" value="WebTest\src"/>
+
+        <axis-wsdl2java
+                output="${project.root}\${path.client}"
+                verbose="true"
+                url="${project.root}/${path.wsdl}">
+
+            <mapping
+                    namespace="http://ws.rsa.msk.ru/ActivityEngine/"
+                    package="com.rssl.phizic.rsa.integration.ws.notification.generated">
+            </mapping>
+        </axis-wsdl2java>
+
+        <axis-wsdl2java
+                output="${project.root}\${path.server}"
+                verbose="true"
+                url="${project.root}/${path.wsdl}"
+                serverside="true">
+
+            <mapping
+                    namespace="http://ws.rsa.msk.ru/ActivityEngine/"
+                    package="com.rssl.phizic.test.webgate.rsa.integration.ws.notification.generated">
+            </mapping>
+        </axis-wsdl2java>
+    </target>
+
+    <taskdef name="generate-wsdl-task" classname="com.rssl.phizic.config.ant.GenerateJaxRpcWsdlTask">
+        <classpath refid="project.tasks.classpath"/>
+    </taskdef>
+
+    <taskdef name="generate-service-task" classname="com.rssl.phizic.config.ant.GenerateJaxRpcServiceTask">
+        <classpath refid="project.tasks.classpath"/>
+    </taskdef>
+
+    <target name=".generate.wsdl">
+        <!--необходимо для актуализации classpath-->
+        <antcall target=".make.bin">
+            <param name="module.name" value="${server.app}"/>
+        </antcall>
+
+        <mkdir dir="${common.temp.location}"/>
+        <generate-wsdl-task
+                classpath="${toString:project.tasks.classpath}"
+                name="${name}"
+                serviceLocation="${common.service.location}${name}"
+                packageName="${packageName}"
+                interfaceName="${interfaceName}"
+                interfaceServantName="${interfaceServantName}"
+                nonClassDir="${project.root}/${server.app}/web/WEB-INF/"
+                mapping="${project.root}/${server.app}/web/WEB-INF/${name}.model.xml"
+                base="${common.temp.location}"
+                configPath="${common.temp.xml}"
+                />
+        <!--Удалить мусор-->
+        <delete dir="${common.temp.location}"/>
+    </target>
+
+    <target name=".generate.services">
+        <property name="wsdl.location" value="${project.root}/${server.app}/web/WEB-INF/${name}.wsdl"/>
+
+        <mkdir dir="${common.temp.location}"/>
+        <!--Сгенерировать клиентскую часть-->
+        <generate-service-task
+                name="${name}"
+                appRoot="${project.root}/${client.app}/src/"
+                wsdlLocation="${wsdl.location}"
+                packageName="${clientPackageName}"
+                base="${common.temp.location}"
+                configPath="${common.temp.xml}"
+                client="true"
+                />
+        <!--Сгенерировать серверную часть-->
+        <generate-service-task
+                name="${name}"
+                appRoot="${project.root}/${server.app}/src/"
+                wsdlLocation="${wsdl.location}"
+                packageName="${serverPackageName}"
+                base="${common.temp.location}"
+                configPath="${common.temp.xml}"
+                server="true"
+                endpoint="${project.root}/${server.app}/web/WEB-INF/jaxrpc-ri-runtime.xml"
+                interfaceName="${interfaceName}"
+                interfaceServantName="${interfaceServantName}"
+                />
+        <!--Удалить мусор-->
+        <delete dir="${common.temp.location}"/>
+    </target>
+
+    <!--DepositProductService:wsdl-->
+    <target name="generate.DepositProductService.wsdl" description="Сгенерировать wsdl для DepositProductService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="DepositProductService"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.deposits"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.deposits.generated.DepositProductService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.deposits.DepositProductService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--DepositProductService:services-->
+    <target name="generate.DepositProductService.services" description="Сгенерировать сервисы для DepositProductService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="DepositProductService"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.deposits.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.deposits.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.deposits.generated.DepositProductService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.deposits.DepositProductService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--Dictionaries-->
+    <!--Генерируются по /WebGate/src/com/rssl/phizic/web/gate/dictionaries/generated/GateServiceImpl.wsdl-->
+    <!--missing types-->
+
+    <!--CurrenciesGateService:services-->
+    <target name="generate.CurrenciesGateService.services" description="Сгенерировать сервисы для CurrenciesGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="wsdl.location" value="${project.root}/WebGate/src/com/rssl/phizic/web/gate/dictionaries/generated/GateServiceImpl.wsdl"/>
+            <param name="name" value="CurrenciesGateServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.dictionaries.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.dictionaries.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.dictionaries.generated.GateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.dictionaries.CurrenciesGateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--CountriesGateService:services-->
+    <target name="generate.CountriesGateService.services" description="Сгенерировать сервисы для CountriesGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="wsdl.location" value="${project.root}/WebGate/src/com/rssl/phizic/web/gate/dictionaries/generated/GateServiceImpl.wsdl"/>
+            <param name="name" value="CountriesGateServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.dictionaries.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.dictionaries.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.dictionaries.generated.GateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.dictionaries.CountriesGateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--BanksGateService:services-->
+    <target name="generate.BanksGateService.services" description="Сгенерировать сервисы для BanksGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="wsdl.location" value="${project.root}/WebGate/src/com/rssl/phizic/web/gate/dictionaries/generated/GateServiceImpl.wsdl"/>
+            <param name="name" value="BanksGateServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.dictionaries.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.dictionaries.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.dictionaries.generated.GateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.dictionaries.BanksGateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--CurrencyOpTypeGateService:services-->
+    <target name="generate.CurrencyOpTypeGateService.services" description="Сгенерировать сервисы для CurrencyOpTypeGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="wsdl.location" value="${project.root}/WebGate/src/com/rssl/phizic/web/gate/dictionaries/generated/GateServiceImpl.wsdl"/>
+            <param name="name" value="CurrencyOpTypeGateServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.dictionaries.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.dictionaries.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.dictionaries.generated.GateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.dictionaries.CurrencyOpTypeGateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--KBKGateService:services-->
+    <target name="generate.KBKGateService.services" description="Сгенерировать сервисы для KBKGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="wsdl.location" value="${project.root}/WebGate/src/com/rssl/phizic/web/gate/dictionaries/generated/GateServiceImpl.wsdl"/>
+            <param name="name" value="KBKGateServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.dictionaries.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.dictionaries.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.dictionaries.generated.GateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.dictionaries.KBKGateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--MembersGateService:services-->
+    <target name="generate.MembersGateService.services" description="Сгенерировать сервисы для MembersGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="wsdl.location" value="${project.root}/WebGate/src/com/rssl/phizic/web/gate/dictionaries/generated/GateServiceImpl.wsdl"/>
+            <param name="name" value="MembersGateServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.dictionaries.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.dictionaries.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.dictionaries.generated.GateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.dictionaries.MembersGateService_Server_Impl"/>
+        </antcall>
+    </target>
+    <!--/Dictionaries-->
+
+    <!--OfficeGateService:wsdl-->
+    <target name="generate.OfficeGateService.wsdl" description="Сгенерировать wsdl для OfficeGateService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="OfficeGateService"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.offices"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.offices.generated.OfficeGateService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.offices.OfficeGateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--OfficeGateService:services-->
+    <target name="generate.OfficeGateService.services" description="Сгенерировать сервисы для OfficeGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="OfficeGateService"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.offices.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.offices.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.offices.generated.OfficeGateService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.offices.OfficeGateService_Server_Impl"/>
+        </antcall>
+    </target>
+    
+
+    <!--&lt;!&ndash;GateInfoService:wsdl&ndash;&gt;-->
+    <!--<target name="generate.GateInfoService.wsdl" description="Сгенерировать wsdl для GateInfoService">-->
+        <!--<antcall target=".generate.wsdl">-->
+            <!--<param name="server.app" value="WebGate"/>-->
+            <!--<param name="name" value="GateInfoServiceImpl"/>-->
+            <!--<param name="packageName" value="com.rssl.phizic.web.gate.services.util"/>-->
+            <!--<param name="interfaceName" value="com.rssl.phizic.web.gate.services.util.generated.GateInfoService_PortType"/>-->
+            <!--<param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.util.GateInfoServiceImpl"/>-->
+        <!--</antcall>-->
+    <!--</target>-->
+
+    <!--&lt;!&ndash;GateInfoService:services&ndash;&gt;-->
+    <!--<target name="generate.GateInfoService.services" description="Сгенерировать сервисы для GateInfoService по wsdl">-->
+        <!--<antcall target=".generate.services">-->
+            <!--<param name="server.app" value="WebGate"/>-->
+            <!--<param name="name" value="GateInfoServiceImpl"/>-->
+            <!--<param name="serverPackageName" value="com.rssl.phizic.web.gate.services.util.generated"/>-->
+            <!--<param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.utils.generated"/>-->
+            <!--<param name="server.app" value="WebGate"/>-->
+			<!--<param name="client.app" value="WSGate"/>-->
+            <!--<param name="interfaceName" value="com.rssl.phizic.web.gate.services.util.generated.GateInfoService_PortType"/>-->
+            <!--<param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.util.GateInfoServiceImpl"/>-->
+        <!--</antcall>-->
+    <!--</target>-->
+    
+
+    <!--PaymentRecipientGateService:wsdl-->
+    <target name="generate.PaymentRecipientGateService.wsdl" description="Сгенерировать wsdl для PaymentRecipientGateService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="PaymentRecipientGateServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.payments.systems.recipients"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.payments.systems.recipients.generated.PaymentRecipientGateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.payments.systems.recipients.PaymentRecipientGateServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--PaymentRecipientGateService:services-->
+    <target name="generate.PaymentRecipientGateService.services" description="Сгенерировать сервисы для PaymentRecipientGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="PaymentRecipientGateServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.payments.systems.recipients.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.payments.systems.recipients.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.payments.systems.recipients.generated.PaymentRecipientGateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.payments.systems.recipients.PaymentRecipientGateServiceImpl"/>
+        </antcall>
+    </target>
+    
+
+    <!--RegistartionClientService:wsdl-->
+    <target name="generate.RegistartionClientService.wsdl" description="Сгенерировать wsdl для RegistartionClientService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="RegistartionClientService_Server_Impl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.registration"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.registration.generated.RegistartionClientService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.registration.testtest"/>
+        </antcall>
+    </target>
+
+    <!--RegistartionClientService:services-->
+    <target name="generate.RegistartionClientService.services" description="Сгенерировать сервисы для RegistartionClientService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="RegistartionClientService_Server_Impl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.registration.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.registration.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.registration.generated.RegistartionClientService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.registration.testtest"/>
+        </antcall>
+    </target>
+
+    <!--Naming conflict occurred-->
+    <!--DepositService:wsdl-->
+    <target name="generate.DepositService.wsdl" description="Сгенерировать wsdl для DepositService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="DepositService"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.deposits"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.deposits.generated.DepositService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.deposits.DepositService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--DepositService:services-->
+    <target name="generate.DepositService.services" description="Сгенерировать сервисы для DepositService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="DepositService"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.deposits.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.deposits.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.deposits.generated.DepositService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.deposits.DepositService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--missing ClientDocument-->
+    <!--ClientService:wsdl-->
+    <target name="generate.ClientService.wsdl" description="Сгенерировать wsdl для ClientService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="ClientServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.clients"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.clients.generated.ClientService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.clients.ClientService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--ClientService:services-->
+    <target name="generate.ClientService.services" description="Сгенерировать сервисы для ClientService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="ClientServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.clients.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.clients.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.clients.generated.ClientService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.clients.ClientService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--NotificationSubscribeService:wsdl-->
+    <target name="generate.NotificationSubscribeService.wsdl" description="Сгенерировать wsdl для NotificationSubscribeService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="NotificationSubscribeServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.notification"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.notification.generated.NotificationSubscribeService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.notification.NotificationSubscribeService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--NotificationSubscribeService:services-->
+    <target name="generate.NotificationSubscribeService.services" description="Сгенерировать сервисы для NotificationSubscribeService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="NotificationSubscribeServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.notification.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.notification.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.notification.generated.NotificationSubscribeService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.notification.NotificationSubscribeService_Server_Impl"/>
+        </antcall>
+    </target>
+    
+
+    <!--DebtService:wsdl-->
+    <target name="generate.DebtService.wsdl" description="Сгенерировать wsdl для DebtService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="DebtServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.documents"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.documents.generated.DebtService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.documents.DebtServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--DebtService:services-->
+    <target name="generate.DebtService.services" description="Сгенерировать сервисы для DebtService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="DebtServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.documents.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.documents.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.documents.generated.DebtService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.documents.DebtServiceImpl"/>
+        </antcall>
+    </target>
+    
+
+    <!--BankrollService:wsdl-->
+    <target name="generate.BankrollService.wsdl" description="Сгенерировать wsdl для BankrollService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="BankrollServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.bankroll"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.bankroll.generated.BankrollService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.bankroll.BankrollService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--BankrollService:services-->
+    <target name="generate.BankrollService.services" description="Сгенерировать сервисы для BankrollService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="BankrollServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.bankroll.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.bankroll.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.bankroll.generated.BankrollService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.bankroll.BankrollService_Server_Impl"/>
+        </antcall>
+    </target>
+    
+
+    <!--AutoPaymentService:wsdl-->
+    <target name="generate.AutoPaymentService.wsdl" description="Сгенерировать wsdl для AutoPaymentService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="AutoPaymentServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.documents"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.documents.generated.AutoPaymentService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.documents.AutoPaymentServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--AutoPaymentService:services-->
+    <target name="generate.AutoPaymentService.services" description="Сгенерировать сервисы для AutoPaymentService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="AutoPaymentServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.documents.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.documents.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.documents.generated.AutoPaymentService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.documents.AutoPaymentServiceImpl"/>
+        </antcall>
+    </target>
+
+
+    <!--BasketRouteService:wsdl-->
+    <target name="generate.BasketRouteService.wsdl" description="Сгенерировать wsdl для BasketRouteService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="BasketRouteServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.multiblock.basket"/>
+            <param name="interfaceName" value="com.rssl.phizic.multiblock.basket.generated.BasketRouteService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.multiblock.basket.BasketRouteServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--BasketRouteService:services-->
+    <target name="generate.BasketRouteService.services" description="Сгенерировать сервисы для BasketRouteService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="BasketRouteServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.multiblock.basket.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.basket.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+            <param name="client.app" value="BasketProxyListener"/>
+            <param name="interfaceName" value="com.rssl.phizic.multiblock.basket.generated.BasketRouteService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.multiblock.basket.BasketRouteServiceImpl"/>
+        </antcall>
+    </target>
+    
+
+    <!--LoyaltyProgramService:wsdl-->
+    <target name="generate.LoyaltyProgramService.wsdl" description="Сгенерировать wsdl для LoyaltyProgramService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="LoyaltyProgramServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.loyalty"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.loyalty.generated.LoyaltyProgramService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.loyalty.LoyaltyProgramServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--LoyaltyProgramService:services-->
+    <target name="generate.LoyaltyProgramService.services" description="Сгенерировать сервисы для LoyaltyProgramService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="LoyaltyProgramServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.loyalty.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.loyalty.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.loyalty.generated.LoyaltyProgramService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.loyalty.LoyaltyProgramServiceImpl"/>
+        </antcall>
+    </target>
+    
+
+    <!--RunGateMonitoringService:wsdl-->
+    <target name="generate.RunGateMonitoringService.wsdl" description="Сгенерировать wsdl для RunGateMonitoringService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="RunGateMonitoringServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.monitoring"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.monitoring.generated.RunGateMonitoringService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.monitoring.RunGateMonitoringServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--RunGateMonitoringService:services-->
+    <target name="generate.RunGateMonitoringService.services" description="Сгенерировать сервисы для RunGateMonitoringService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="RunGateMonitoringServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.monitoring.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.monitoring.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.monitoring.generated.RunGateMonitoringService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.monitoring.RunGateMonitoringServiceImpl"/>
+        </antcall>
+    </target>
+    
+
+    <!--CacheService:wsdl-->
+    <target name="generate.CacheService.wsdl" description="Сгенерировать wsdl для CacheService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="CacheServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.cache"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.cache.generated.CacheService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.cache.CacheService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--CacheService:services-->
+    <target name="generate.CacheService.services" description="Сгенерировать сервисы для CacheService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="CacheServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.cache.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.cache.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.cache.generated.CacheService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.cache.CacheService_Server_Impl"/>
+        </antcall>
+    </target>
+    
+
+    <!--DocumentService:wsdl-->
+    <target name="generate.DocumentService.wsdl" description="Сгенерировать wsdl для DocumentService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="DocumentServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.documents"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.documents.generated.DocumentService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.documents.DocumentServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--DocumentService:services-->
+    <target name="generate.DocumentService.services" description="Сгенерировать сервисы для DocumentService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="DocumentServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.documents.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.documents.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.documents.generated.DocumentService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.documents.DocumentServiceImpl"/>
+        </antcall>
+    </target>
+    
+
+    <!--CalendarGateService:wsdl-->
+    <target name="generate.CalendarGateService.wsdl" description="Сгенерировать wsdl для CalendarGateService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="CalendarGateServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.util.calendar"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.util.calendar.generated.CalendarGateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.util.calendar.CalendarGateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--CalendarGateService:services-->
+    <target name="generate.CalendarGateService.services" description="Сгенерировать сервисы для CalendarGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="CalendarGateServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.util.calendar.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.utils.calendar.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.util.calendar.generated.CalendarGateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.util.calendar.CalendarGateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--CurrencyRateService:wsdl-->
+    <target name="generate.CurrencyRateService.wsdl" description="Сгенерировать wsdl для CurrencyRateService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="CurrencyRateServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.currency"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.currency.generated.CurrencyRateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.currency.CurrencyRateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--CurrencyRateService:services-->
+    <target name="generate.CurrencyRateService.services" description="Сгенерировать сервисы для CurrencyRateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="CurrencyRateServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.currency.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.currency.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.currency.generated.CurrencyRateService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.currency.CurrencyRateService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--CurrencyService:wsdl-->
+    <target name="generate.CurrencyService.wsdl" description="Сгенерировать wsdl для CurrencyService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="CurrencyServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.currency"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.currency.generated.CurrencyService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.currency.CurrencyServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--CurrencyService:services-->
+    <target name="generate.CurrencyService.services" description="Сгенерировать сервисы для CurrencyService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="CurrencyServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.currency.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.currency.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.currency.generated.CurrencyService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.currency.CurrencyServiceImpl"/>
+        </antcall>
+    </target>
+    
+
+    <!--UpdatePersonService:wsdl-->
+    <target name="generate.UpdatePersonService.wsdl" description="Сгенерировать wsdl для UpdatePersonService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="UpdatePersonService_Server_Impl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.clients"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.clients.generated.UpdatePersonService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.clients.UpdatePersonService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--UpdatePersonService:services-->
+    <target name="generate.UpdatePersonService.services" description="Сгенерировать сервисы для UpdatePersonService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="UpdatePersonService_Server_Impl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.clients.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.person.update.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+            <param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.clients.generated.UpdatePersonService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.clients.UpdatePersonService_Server_Impl"/>
+        </antcall>
+    </target>
+    
+
+    <!--missing Notification-->
+    <!--NotificationHandlerService:wsdl-->
+    <target name="generate.NotificationHandlerService.wsdl" description="Сгенерировать wsdl для NotificationHandlerService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="NotificationHandler_Server_Impl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.notifications"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.notifications.generated.NotificationHandler"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.notifications.NotificationHandler_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--NotificationHandlerService:services-->
+    <target name="generate.NotificationHandlerService.services" description="Сгенерировать сервисы для NotificationHandlerService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="NotificationHandler_Server_Impl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.notifications.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.notifications.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.notifications.generated.NotificationHandler"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.notifications.NotificationHandler_Server_Impl"/>
+        </antcall>
+    </target>
+    
+
+    <!--BackRefBankrollService_PortType_Impl:wsdl-->
+    <target name="generate.BackRefBankrollService_PortType_Impl.wsdl" description="Сгенерировать wsdl для BackRefBankrollService_PortType_Impl">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="BackRefBankrollService_PortType_Impl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.bankroll"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.bankroll.generated.BackRefBankrollService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.bankroll.BackRefBankrollService_PortType_Impl"/>
+        </antcall>
+    </target>
+
+    <!--BackRefBankrollService_PortType_Impl:services-->
+    <target name="generate.BackRefBankrollService_PortType_Impl.services" description="Сгенерировать сервисы для BackRefBankrollService_PortType_Impl по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="BackRefBankrollService_PortType_Impl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.bankroll.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.bankroll.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.bankroll.generated.BackRefBankrollService_PortType"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.bankroll.BackRefBankrollService_PortType_Impl"/>
+        </antcall>
+    </target>
+    
+
+    <!--UpdateDocumentService:wsdl-->
+    <target name="generate.UpdateDocumentService.wsdl" description="Сгенерировать wsdl для UpdateDocumentService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="UpdateDocumentServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.listener"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.listener.generated.UpdateDocumentService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.listener.UpdateDocumentService_PortType_Impl"/>
+        </antcall>
+    </target>
+
+    <!--UpdateDocumentService:services-->
+    <target name="generate.UpdateDocumentService.services" description="Сгенерировать сервисы для UpdateDocumentService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="UpdateDocumentServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.listener.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.documents.update.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.listener.generated.UpdateDocumentService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.listener.UpdateDocumentService_PortType_Impl"/>
+        </antcall>
+    </target>
+    
+
+    <!--BackRefReceiverInfoService:wsdl-->
+    <target name="generate.BackRefReceiverInfoService.wsdl" description="Сгенерировать wsdl для BackRefReceiverInfoService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="BackRefReceiverInfoServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.recipients"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.recipients.generated.BackRefReceiverInfoService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.recipients.BackRefReceiverInfoServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--BackRefReceiverInfoService:services-->
+    <target name="generate.BackRefReceiverInfoService.services" description="Сгенерировать сервисы для BackRefReceiverInfoService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="BackRefReceiverInfoServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.recipients.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.recipients.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.recipients.generated.BackRefReceiverInfoService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.recipients.BackRefReceiverInfoServiceImpl"/>
+        </antcall>
+    </target>
+
+
+    <!--BackRefBankInfoService:wsdl-->
+    <target name="generate.BackRefBankInfoService.wsdl" description="Сгенерировать wsdl для BackRefBankInfoService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="BackRefBankInfoServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.dictionary"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.dictionary.generated.BackRefBankInfoService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.dictionary.BackRefBankInfoServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--BackRefBankInfoService:services-->
+    <target name="generate.BackRefBankInfoService.services" description="Сгенерировать сервисы для BackRefBankInfoService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="BackRefBankInfoServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.dictionary.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.dictionary.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.dictionary.generated.BackRefBankInfoService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.dictionary.BackRefBankInfoServiceImpl"/>
+        </antcall>
+    </target>
+
+
+    <!--BackRefMonitoringGateConfigService:wsdl-->
+    <target name="generate.BackRefMonitoringGateConfigService.wsdl" description="Сгенерировать wsdl для BackRefMonitoringGateConfigService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="BackRefMonitoringGateConfigServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.monitoring"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.monitoring.generated.BackRefMonitoringGateConfigService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.monitoring.BackRefMonitoringGateConfigServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--BackRefMonitoringGateConfigService:services-->
+    <target name="generate.BackRefMonitoringGateConfigService.services" description="Сгенерировать сервисы для BackRefMonitoringGateConfigService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="BackRefMonitoringGateConfigServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.monitoring.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.monitoring.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.monitoring.generated.BackRefMonitoringGateConfigService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.monitoring.BackRefMonitoringGateConfigServiceImpl"/>
+        </antcall>
+    </target>
+    
+
+    <!--ExceptionStatisticService:wsdl-->
+    <target name="generate.ExceptionStatisticService.wsdl" description="Сгенерировать wsdl для ExceptionStatisticService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="ExceptionStatisticServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.statistics.exception"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.statistics.exception.generated.ExceptionStatisticService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.statistics.exception.ExceptionStatisticServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--ExceptionStatisticService:services-->
+    <target name="generate.ExceptionStatisticService.services" description="Сгенерировать сервисы для ExceptionStatisticService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="ExceptionStatisticServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.statistics.exception.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.statistics.exception.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.statistics.exception.generated.ExceptionStatisticService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.statistics.exception.ExceptionStatisticServiceImpl"/>
+        </antcall>
+    </target>
+    
+
+    <!--BackRefClientService:wsdl-->
+    <target name="generate.BackRefClientService.wsdl" description="Сгенерировать wsdl для BackRefClientService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="BackRefClientServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.clients.backrefservice"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.clients.backrefservice.generated.BackRefClientService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.clients.backrefservice.BackRefClientServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--BackRefClientService:services-->
+    <target name="generate.BackRefClientService.services" description="Сгенерировать сервисы для BackRefClientService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="BackRefClientServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.clients.backrefservice.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgateclient.services.clients.backrefservice.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="WSGateClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.clients.backrefservice.generated.BackRefClientService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.clients.backrefservice.BackRefClientServiceImpl"/>
+        </antcall>
+    </target>
+
+
+    <!--CSABackRefService:wsdl-->
+    <target name="generate.CSABackRefService.wsdl" description="Сгенерировать wsdl для CSABackRefService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WSGateListener"/>
+            <param name="name" value="CSABackRefServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.wsgate.csa"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.csa.generated.CSABackRefService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.csa.CSABackRefServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--CSABackRefService:services-->
+    <target name="generate.CSABackRefService.services" description="Сгенерировать сервисы для CSABackRefService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="CSABackRefServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.wsgate.csa.generated"/>
+            <param name="clientPackageName" value="com.rssl.auth.csa.back.integration.erib.generated"/>
+            <param name="server.app" value="WSGateListener"/>
+			<param name="client.app" value="CSABackCore"/>
+            <param name="interfaceName" value="com.rssl.phizic.wsgate.csa.generated.CSABackRefService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.wsgate.csa.CSABackRefServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--TestJaxRpcService:wsdl-->
+    <target name="generate.TestJaxRpcService.wsdl" description="Сгенерировать wsdl для TestJaxRpcService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="TestJaxRpcServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.test"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.test.generated.TestJaxRpcService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.test.TestJaxRpcServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--TemplateGateService:wsdl-->
+    <target name="generate.TemplateGateService.wsdl" description="Сгенерировать wsdl для TemplateGateService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app"            value="USCTWeb"/>
+            <param name="name"                  value="TemplateGateServiceImpl"/>
+            <param name="packageName"           value="com.rssl.phizic.gate.templates.services"/>
+            <param name="interfaceName"         value="com.rssl.phizic.gate.templates.services.generated.TemplateGateService"/>
+            <param name="interfaceServantName"  value="com.rssl.phizic.gate.templates.services.TemplateGateServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--TemplateGateService:services-->
+    <target name="generate.TemplateGateService.services" description="Сгенерировать сервисы для TemplateGateService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name"                  value="TemplateGateServiceImpl"/>
+            <param name="serverPackageName"     value="com.rssl.phizic.gate.templates.services.generated"/>
+            <param name="clientPackageName"     value="com.rssl.phizicgate.wsgate.services.template.generated"/>
+            <param name="server.app"            value="USCTWeb"/>
+			<param name="client.app"            value="WSGate"/>
+            <param name="interfaceName"         value="com.rssl.phizic.gate.templates.services.generated.TemplateGateService"/>
+            <param name="interfaceServantName"  value="com.rssl.phizic.gate.templates.services.TemplateGateServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--TestJaxRpcService:services-->
+    <target name="generate.TestJaxRpcService.services" description="Сгенерировать сервисы для TestJaxRpcService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="TestJaxRpcServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.test.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.test.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.test.generated.TestJaxRpcService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.test.TestJaxRpcServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--IncrementMonitoringCounterService:wsdl-->
+    <target name="generate.IncrementMonitoringCounterService.wsdl" description="Сгенерировать wsdl для IncrementMonitoringCounterService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="Monitoring"/>
+            <param name="name" value="IncrementMonitoringCounterServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.monitoring.services"/>
+            <param name="interfaceName" value="com.rssl.phizic.monitoring.services.generated.IncrementMonitoringCounterService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.monitoring.services.IncrementMonitoringCounterServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--IncrementMonitoringCounterService:services-->
+    <target name="generate.IncrementMonitoringCounterService.services" description="Сгенерировать сервисы для IncrementMonitoringCounterService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="IncrementMonitoringCounterServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.monitoring.services.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizic.monitoring.client.services.generated"/>
+            <param name="server.app" value="Monitoring"/>
+			<param name="client.app" value="MonitoringClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.monitoring.services.generated.IncrementMonitoringCounterService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.monitoring.services.IncrementMonitoringCounterServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--UpdateMonitoringGateConfigServiceImpl:wsdl-->
+    <target name="generate.UpdateMonitoringGateConfigServiceImpl.wsdl" description="Сгенерировать wsdl для UpdateMonitoringGateConfigServiceImpl">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="Monitoring"/>
+            <param name="name" value="UpdateMonitoringGateConfigServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.monitoring.services"/>
+            <param name="interfaceName" value="com.rssl.phizic.monitoring.services.generated.UpdateMonitoringGateConfigService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.monitoring.services.UpdateMonitoringGateConfigServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--UpdateMonitoringGateConfigServiceImpl:services-->
+    <target name="generate.UpdateMonitoringGateConfigServiceImpl.services" description="Сгенерировать сервисы для UpdateMonitoringGateConfigServiceImpl по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="UpdateMonitoringGateConfigServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.monitoring.services.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizic.monitoring.client.services.generated"/>
+            <param name="server.app" value="Monitoring"/>
+			<param name="client.app" value="MonitoringClient"/>
+            <param name="interfaceName" value="com.rssl.phizic.monitoring.services.generated.UpdateMonitoringGateConfigService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.monitoring.services.UpdateMonitoringGateConfigServiceImpl"/>
+        </antcall>
+    </target>
+
+    <!--MobileBankService:wsdl-->
+    <target name="generate.MobileBankService.wsdl" description="Сгенерировать wsdl для MobileBankService">
+        <antcall target=".generate.wsdl">
+            <param name="server.app" value="WebGate"/>
+            <param name="name" value="MobileBankServiceImpl"/>
+            <param name="packageName" value="com.rssl.phizic.web.gate.services.mobilebank"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.mobilebank.generated.MobileBankService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.mobilebank.MobileBankService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <!--MobileBankService:services-->
+    <target name="generate.MobileBankService.services" description="Сгенерировать сервисы для MobileBankService по wsdl">
+        <antcall target=".generate.services">
+            <param name="name" value="MobileBankServiceImpl"/>
+            <param name="serverPackageName" value="com.rssl.phizic.web.gate.services.mobilebank.generated"/>
+            <param name="clientPackageName" value="com.rssl.phizicgate.wsgate.services.mobilebank.generated"/>
+            <param name="server.app" value="WebGate"/>
+			<param name="client.app" value="WSGate"/>
+            <param name="interfaceName" value="com.rssl.phizic.web.gate.services.mobilebank.generated.MobileBankService"/>
+            <param name="interfaceServantName" value="com.rssl.phizic.web.gate.services.MobileBankService_Server_Impl"/>
+        </antcall>
+    </target>
+
+    <target name="generate.all" description="Сгенерировать все веб-сервисы">
+        <antcall target="generate.DepositProductService.wsdl"/>
+        <antcall target="generate.CurrencyRateService.wsdl"/>
+        <antcall target="generate.CalendarGateService.wsdl"/>
+        <antcall target="generate.DocumentService.wsdl"/>
+        <antcall target="generate.CacheService.wsdl"/>
+        <antcall target="generate.RunGateMonitoringService.wsdl"/>
+        <antcall target="generate.LoyaltyProgramService.wsdl"/>
+        <antcall target="generate.AutoPaymentService.wsdl"/>
+        <antcall target="generate.BankrollService.wsdl"/>
+        <antcall target="generate.DebtService.wsdl"/>
+        <antcall target="generate.NotificationSubscribeService.wsdl"/>
+        <antcall target="generate.ClientService.wsdl"/>
+        <!--<antcall target="generate.DepositService.wsdl"/>-->
+        <antcall target="generate.RegistartionClientService.wsdl"/>
+        <antcall target="generate.PaymentRecipientGateService.wsdl"/>
+        <!--<antcall target="generate.GateInfoService.wsdl"/>-->
+        <antcall target="generate.OfficeGateService.wsdl"/>
+        <antcall target="generate.CSABackRefService.wsdl"/>
+        <antcall target="generate.BackRefClientService.wsdl"/>
+        <antcall target="generate.ExceptionStatisticService.wsdl"/>
+        <antcall target="generate.BackRefMonitoringGateConfigService.wsdl"/>
+        <antcall target="generate.BackRefBankInfoService.wsdl"/>
+        <antcall target="generate.BackRefReceiverInfoService.wsdl"/>
+        <antcall target="generate.UpdateDocumentService.wsdl"/>
+        <antcall target="generate.BackRefBankrollService_PortType_Impl.wsdl"/>
+        <antcall target="generate.NotificationHandlerService.wsdl"/>
+        <antcall target="generate.UpdatePersonService.wsdl"/>
+        <antcall target="generate.CurrencyService.wsdl"/>
+
+
+        <antcall target="generate.DepositProductService.services"/>
+        <antcall target="generate.CurrenciesGateService.services"/>
+        <antcall target="generate.CountriesGateService.services"/>
+        <antcall target="generate.BanksGateService.services"/>
+        <antcall target="generate.CurrencyOpTypeGateService.services"/>
+        <antcall target="generate.KBKGateService.services"/>
+        <antcall target="generate.MembersGateService.services"/>
+        <antcall target="generate.CurrencyRateService.services"/>
+        <antcall target="generate.CalendarGateService.services"/>
+        <antcall target="generate.DocumentService.services"/>
+        <antcall target="generate.CacheService.services"/>
+        <antcall target="generate.RunGateMonitoringService.services"/>
+        <antcall target="generate.LoyaltyProgramService.services"/>
+        <antcall target="generate.AutoPaymentService.services"/>
+        <antcall target="generate.BankrollService.services"/>
+        <antcall target="generate.DebtService.services"/>
+        <antcall target="generate.NotificationSubscribeService.services"/>
+        <antcall target="generate.ClientService.services"/>
+        <!--<antcall target="generate.DepositService.services"/>-->
+        <antcall target="generate.RegistartionClientService.services"/>
+        <antcall target="generate.PaymentRecipientGateService.services"/>
+        <!--<antcall target="generate.GateInfoService.services"/>-->
+        <antcall target="generate.OfficeGateService.services"/>
+        <antcall target="generate.CSABackRefService.services"/>
+        <antcall target="generate.BackRefClientService.services"/>
+        <antcall target="generate.ExceptionStatisticService.services"/>
+        <antcall target="generate.BackRefMonitoringGateConfigService.services"/>
+        <antcall target="generate.BackRefBankInfoService.services"/>
+        <antcall target="generate.BackRefReceiverInfoService.services"/>
+        <antcall target="generate.UpdateDocumentService.services"/>
+        <antcall target="generate.BackRefBankrollService_PortType_Impl.services"/>
+        <antcall target="generate.NotificationHandlerService.services"/>
+        <antcall target="generate.UpdatePersonService.services"/>
+        <antcall target="generate.CurrencyService.services"/>
+    </target>
+</project>

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.departments.allowed.AllowedDepartments" table="ALLOWED_DEPARTMENTS">
+        <composite-id>
+            <key-property name="loginId" access="field"  column="LOGIN_ID" type="long"/>
+            <key-property name="tb"      access="field"  column="TB"       type="string"/>
+            <key-property name="osb"     access="field"  column="OSB"      type="string"/>
+            <key-property name="vsp"     access="field"  column="VSP"      type="string"/>
+        </composite-id>
+    </class>
+
+    <query name="com.rssl.phizic.business.departments.allowed.isDepartmentAllowed">
+        select 1
+        from
+        com.rssl.phizic.business.departments.allowed.AllowedDepartments as ad
+        where ad.loginId = :loginId
+            AND ad.tb||'|'||ad.osb||'|'||ad.vsp in (
+                                                :TB||'|*|*',
+                                                :TB||'|'||:OSB||'|*',
+                                                :TB||'|'||:OSB||'|'||:OFFICE,
+                                                '*|*|*')
+    </query>
+
+    <!--
+    Проверяет доступность тербанка без учета OSB и VSP.
+
+    Опорный элемент:  PK_ALLOWED_DEPARTMENTS
+    Предикаты доступа:  "ALLOWEDDEP0_"."LOGIN_ID"=TO_NUMBER(:LOGINID)AND("ALLOWEDDEP0_"."TB"=:TB OR "ALLOWEDDEP0_"."TB"='*')
+    Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.departments.allowed.isTBAllowed">
+        select 1
+        from
+        com.rssl.phizic.business.departments.allowed.AllowedDepartments as ad
+        where ad.loginId = :loginId
+            AND ad.tb in (:TB, '*')
+    </query>
+
+    <query name="com.rssl.phizic.business.departments.removeAllowedDepartments">
+            delete from com.rssl.phizic.business.departments.allowed.AllowedDepartments as allowedDepartments
+                where allowedDepartments.loginId=:loginId
+    </query>
+
+</hibernate-mapping>

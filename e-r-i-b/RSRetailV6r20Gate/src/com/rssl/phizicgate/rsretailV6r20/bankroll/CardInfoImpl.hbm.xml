@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.rssl.phizicgate.rsretailV6r20.bankroll.CardInfoImpl">
+        <id name="longId"/>
+
+		<!--<property name="cardState" type="com.rssl.phizicgate.rsretailV6r20.bankroll.CardStateWrapper">-->
+			<!--<column name="stateOf"/>-->
+			<!--<column name="paymentSystemId"/>-->
+		<!--</property>-->
+        <!--<property name="statusDescription"/>-->
+		<!--<property name="balance" type="com.rssl.phizicgate.rsretailV6r20.hibernate.RSRetailMoneyType" insert="false" update="false">-->
+			<!--<column name="decimalBalance"/>-->
+			<!--<column name="currencyId"/>-->
+		<!--</property>-->
+        <!--<property name="limit" type="com.rssl.phizicgate.rsretailV6r20.hibernate.RSRetailMoneyType" insert="false" update="false">-->
+		    <!--<column name="decimalLimit"/>-->
+		    <!--<column name="currencyId"/>-->
+	    <!--</property>-->
+    </class>
+
+	<sql-query name="GetCardInfo">
+        <return alias="cards" class="com.rssl.phizicgate.rsretailV6r20.bankroll.CardInfoImpl">
+            <return-property name="longId"            column="longId"/>
+            <return-property name="statusDescription" column="statusDescription"/>
+			<return-property name="cardState">
+				<return-column name="stateOf"/>
+				<return-column name="paymentSystemId"/>
+			</return-property>
+	        <return-property name="balance">
+	            <return-column name="decimalBalance"/>
+	            <return-column name="currencyId"/>
+            </return-property>
+	        <return-property name="limit">
+				<return-column name="decimalLimit"/>
+				<return-column name="currencyId"/>
+			</return-property>
+        </return>
+<!--
+			SELECT
+			    cards.t_cardref          AS longId
+			   ,deposits.t_sum_rest      AS decimalBalance
+			   ,deposits.t_code_currency AS currencyId
+			   ,cards.t_limitsum         AS decimalLimit
+			   ,cards.t_cardstatecode    AS stateOf
+			   ,codes.t_codname          AS statusDescription
+			   ,cards.t_psref            AS paymentSystemId
+			FROM
+				dsccard_dbt cards
+			   ,dsclink_dbt links
+			   ,ddepositr_dbt deposits
+			   ,dsccodif_dbt codes
+			WHERE cards.t_cardref     = :cardId
+			AND deposits.t_referenc   = links.t_cardaccref
+			AND cards.t_cardref       = links.t_cardref
+			AND cards.t_cardstatecode = codes.t_codcode
+			AND (cards.t_psref = codes.t_psref OR codes.t_psref = 0)
+			AND codes.t_codtype = 6
+-->
+		<![CDATA[
+			SELECT
+			    cards.t_cardref          AS longId
+			   ,deposits.t_sum_rest      AS decimalBalance
+			   ,deposits.t_code_currency AS currencyId
+			   ,cards.t_limitsum         AS decimalLimit
+			   ,cards.t_cardstatecode    AS stateOf
+			   ,codes.t_codname          AS statusDescription
+			   ,cards.t_psref            AS paymentSystemId
+			FROM
+				dsccard_dbt cards
+			   ,dsclink_dbt links
+			   ,ddepositr_dbt deposits
+			   ,dsccodif_dbt codes
+			WHERE cards.t_cardref     = :cardId
+		    AND cards.t_fncash = :fnCash
+			AND deposits.t_referenc   = links.t_cardaccref
+			AND cards.t_cardref       = links.t_cardref
+			AND cards.t_fncash = links.t_fncash
+			AND cards.t_cardstatecode = codes.t_codcode
+			AND (cards.t_psref = codes.t_psref OR codes.t_psref = 0)
+			AND codes.t_codtype = 6
+		]]>
+    </sql-query>
+
+    <sql-query name="GetCardCurrency">
+        <return-scalar column="CODCUR" type="long"/>
+
+        SELECT TOP 1 CODCUR FROM scLink_dbt
+        WHERE CardRef = :cardId
+        ORDER BY mainAcc DESC
+    </sql-query>
+
+	<sql-query name="GetCardLastOperationDate">
+		<return-scalar column="lastOperationDate" type="calendar"/>
+<!--
+        select max(lastOperationDate) as lastOperationDate from (
+            SELECT docs.t_Date_Document AS lastOperationDate
+            FROM
+                 dsccard_dbt cards
+                ,ddepositr_dbt deposits
+                ,dsclink_dbt links
+                ,dsbdepdoc_dbt docs
+            WHERE cards.t_cardref   = :cardId
+            AND deposits.t_referenc = links.t_cardaccref
+            AND cards.t_cardref = links.t_cardref
+            AND docs.t_referenc = deposits.t_referenc
+            AND docs.t_kindop not in (8, 9, 14, 15, 16 )
+            AND docs.t_action <> 2
+            AND docs.t_typeoper not in (38, 39)
+            AND docs.t_mode <> 2
+            AND bitand(docs.t_flags, 131072) = 0
+            AND (docs.t_insum <> 0 OR docs.t_outsum <> 0 )
+            GROUP BY  docs.t_date_document
+        )
+-->
+		<![CDATA[
+			select max(lastOperationDate) as lastOperationDate from (
+				SELECT docs.t_Date_Document AS lastOperationDate
+				FROM
+					 dsccard_dbt cards
+					,ddepositr_dbt deposits
+					,dsclink_dbt links
+					,dsbdepdoc_dbt docs
+				WHERE cards.t_cardref   = :cardId
+				AND cards.t_fncash = :fnCash
+				AND deposits.t_referenc = links.t_cardaccref
+				AND cards.t_cardref = links.t_cardref
+				AND cards.t_fncash = links.t_fncash
+				AND docs.t_referenc = deposits.t_referenc
+
+				AND docs.t_kindop not in (8, 9, 14, 15, 16 )
+				AND docs.t_action <> 2
+				AND docs.t_typeoper not in (38, 39)
+				AND docs.t_mode <> 2
+				AND bitand(docs.t_flags, 131072) = 0
+				AND (docs.t_insum <> 0 OR docs.t_outsum <> 0 )
+
+				GROUP BY  docs.t_date_document
+			)
+		]]>
+	</sql-query>
+
+</hibernate-mapping>

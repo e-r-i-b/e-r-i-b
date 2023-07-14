@@ -1,0 +1,113 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="OrderStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.shop.OrderStatus</param>
+	</typedef>
+
+    <!-- заказы -->
+    <class name="com.rssl.phizic.business.shop.Order" table="ORDERS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_ORDERS</param>
+            </generator>
+        </id>
+
+        <!-- поля заказа -->
+        <property name="extendedId" column="EXTENDED_ID" type="string" not-null="true" update="false"/>      <!-- вн. id заказа -->
+        <property name="date" column="ORDER_DATE" type="calendar" not-null="true" update="false"/>           <!-- дата заказа -->
+        <property name="systemName" column="SYSTEM_NAME" type="string" not-null="true" update="false"/>      <!-- идентификатор системы в системе ЕРИБ -->
+        <property name="notificationStatus" column="STATUS" type="OrderStatus" not-null="false"/>                       <!-- статус оповещения -->
+        <property name="notificationStatusDescription" column="STATUS_DISCRIPTION" type="string" not-null="false"/>    <!-- описание статуса оповещения -->
+        <property name="notificationCount" type="long" insert="false">           <!-- количество отправленных оповещений -->
+            <column name="NOTIFICATION_COUNT"  not-null="true" default="0"/>  <!-- по умолчанию ставим 0 -->
+        </property>
+
+        <property name="amount"  type="money">      <!-- сумма заказа -->
+			<column name="AMOUNT"  not-null="false"/>
+			<column name="CURRENCY"  not-null="false"/>
+		</property>
+
+        <property name="description" column="DESCRIPTION" type="string" not-null="false"/>     <!-- описание заказа -->
+        <property name="receiverAccount" column="RECEIVER_ACCOUNT" type="string" not-null="false"/>  <!-- номер счета получателя -->
+        <property name="BIC" column="BIC" type="string" not-null="false"/>     <!-- бик банка получателя -->
+        <property name="correspondentAccount" column="CORRESPONDENT_ACCOUNT" type="string" not-null="false"/>   <!-- кор. счет банка получателя -->
+        <property name="INN" column="INN" type="string" not-null="false"/>      <!-- ИНН получателя -->
+        <property name="KPP" column="KPP" type="string" not-null="false"/>      <!-- кпп получателя -->
+        <property name="receiverName" column="RECEIVER_NAME" type="string" not-null="false"/>    <!-- наименование получателя -->
+        <many-to-one name="person" column="USER_ID"    class="com.rssl.phizic.person.Person"  fetch="join"  lazy="false" not-null="false"/>        <!-- привязанный сотрудник -->
+        <property name="uuid" column="UUID" type="string" not-null="true"/> <!-- идентификатор запроса -->
+        <property name="notificationTime" column="NOTIFICATION_TIME" type="timestamp" not-null="false"/> <!-- идентификатор запроса -->
+        <property name="additionalFields"  column="ADDITIONAL_FIELDS" type="string" not-null="false"/>
+        <property name="printDesc" column="PRINT_DESC" type="string" not-null="false"/> <!-- информация о заказе для печатной формы. -->
+    </class>
+
+    <!-- поля для ФНС-->
+    <class name="com.rssl.phizic.business.shop.FNS" table="FNS_FIELDS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_FNS_FIELDS</param>
+            </generator>
+        </id>
+
+        <property name="KBK" column="KBK" type="string" not-null="false"/>
+        <property name="OKATO" column="OKATO" type="string" not-null="false"/>
+        <property name="indexTaxationDocument" column="INDEX_TAXATION_DOCUMENT" type="string" not-null="false" />
+        <property name="paymentGround" column="TAX_PAY_REASON" type="string" not-null="false"/>
+        <property name="paymentType" column="PAYMENT_TYPE" type="string" not-null="false"/>
+        <property name="period" column="PERIOD" type="string" not-null="false"/>
+        <property name="taxStatus" column="TAX_STATUS" type="string" not-null="false"/>
+        <property name="payerINN" column="PAYER_INN" type="string" not-null="false"/>
+        <many-to-one name="order" column="ORDER_ID" class="com.rssl.phizic.business.shop.Order"  cascade="delete-orphan,save-update" fetch="join"  lazy="false" unique="true" not-null="true" update="true"/>
+    </class>
+
+    <!-- поля для магазина -->
+    <class name="com.rssl.phizic.business.shop.WebShop" table="SHOP_FIELDS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_SHOP_FIELDS</param>
+            </generator>
+        </id>
+
+        <property name="backUrl" column="BACK_URL" type="string" not-null="false"/> <!-- url редиректа -->
+
+        <many-to-one name="order" column="ORDER_ID" class="com.rssl.phizic.business.shop.Order"  cascade="delete-orphan,save-update" fetch="join"  lazy="false" unique="true" not-null="true" update="true"/>
+    </class>
+
+    <!-- Получаем УЭК-заказы, по которым еще не было отправлено оповещение
+        Опорный объект: IDX_NOT_NOTIFIED_UEC
+        Предикаты доступа:
+         CASE  WHEN ("SYSTEM_NAME"='UEC' AND ("STATUS"='NOT_SEND' OR "STATUS"='ERROR'))
+              THEN '1' ELSE NULL END ='1'
+        Кардинальность: по количеству УЭК-заказов, неотправленных или отправленных с ошибками
+        (стоп условие - ограничение на максимальный размер выборки из конфига)
+    -->
+    <sql-query name="com.rssl.phizic.business.shop.getNotNotifiedUECOrders">
+        <return class="com.rssl.phizic.business.shop.Order" alias="o"/>
+        <![CDATA[
+        select {o.*}
+        from ORDERS o
+        where
+        case
+             when SYSTEM_NAME = 'UEC' and (STATUS = 'NOT_SEND' or status='ERROR') then '1'
+             else NULL
+        end = '1'
+        and (:time > o.NOTIFICATION_TIME or o.NOTIFICATION_TIME is null)
+        and (o.NOTIFICATION_COUNT < :notifyMaxCount)
+        order by o.NOTIFICATION_TIME
+        ]]>
+    </sql-query>
+
+    <!-- количество неоплаченных ФНС. -->
+    <sql-query name="com.rssl.phizic.business.shop.countOfActiveFnsPayment">
+        <return-scalar column="CNT" type="long"/>
+        select count(fns.id) as CNT
+        from FNS_FIELDS fns, ORDERS ordr
+        where ordr.ID = fns.ORDER_ID and ordr.USER_ID = :person_id
+            and not exists (select 1 from BUSINESS_DOCUMENTS_TO_ORDERS bdto where bdto.ORDER_UUID = ordr.UUID)
+            and ordr.ORDER_DATE >= :login_date
+    </sql-query>
+</hibernate-mapping>

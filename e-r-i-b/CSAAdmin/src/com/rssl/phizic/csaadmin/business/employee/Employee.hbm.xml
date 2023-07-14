@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.csaadmin.business.employee.Employee" table="EMPLOYEES">
+
+        <id name="externalId" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_EMPLOYEES</param>
+            </generator>
+        </id>
+
+        <many-to-one name="login" class="com.rssl.phizic.csaadmin.business.login.Login" column="LOGIN_ID" not-null="false" lazy="false" cascade="save-update"/>
+
+        <property name="surname"          type="string"  column="SUR_NAME"           not-null="true"/>
+        <property name="firstName"        type="string"  column="FIRST_NAME"         not-null="true"/>
+        <property name="patronymic"       type="string"  column="PATR_NAME"          not-null="false"/>
+        <property name="info"             type="string"  column="INFO"               not-null="false"/>
+        <property name="email"            type="string"  column="E_MAIL"             not-null="false"/>
+        <property name="mobilePhone"      type="string"  column="MOBILE_PHONE"       not-null="false"/>
+        <component name="department" class="com.rssl.phizic.csaadmin.business.departments.Department" lazy="false">
+            <property name="tb" type="string" column="TB"/>
+            <property name="osb" type="string" column="OSB"/>
+            <property name="vsp" type="string" column="VSP"/>
+        </component>
+        <property name="CAAdmin"          type="boolean" column="CA_ADMIN"           not-null="true"/>
+        <property name="VSPEmployee"      type="boolean" column="VSP_EMPLOYEE"       not-null="true"/>
+        <property name="managerId"        type="string"  column="MANAGER_ID"         not-null="false"/>
+        <property name="managerPhone"     type="string"  column="MANAGER_PHONE"      not-null="false"/>
+        <property name="managerEMail"     type="string"  column="MANAGER_EMAIL"      not-null="false"/>
+        <property name="managerLeadEMail" type="string"  column="MANAGER_LEAD_EMAIL" not-null="false"/>
+        <property name="managerChannel"   type="string"  column="MANAGER_CHANNEL"    not-null="false"/>
+        <property name="sudirLogin"       type ="string" column="SUDIR_LOGIN"        not-null="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.csaadmin.business.employee.ManagerInfo" table="EMPLOYEES">
+        <id name="id" column="MANAGER_ID" type="string"/>
+        <property name="name" formula="SUR_NAME || ' ' || FIRST_NAME || decode(PATR_NAME, null, '', ' ' || PATR_NAME)" type="string"/>
+        <property name="email" column="MANAGER_EMAIL" type="string"/>
+        <property name="phone" column="MANAGER_PHONE" type="string"/>
+    </class>
+
+    <class name="com.rssl.phizic.csaadmin.business.employee.ContactCenterEmployee">
+
+        <id name="id"               type="long"/>
+        <property name="externalId" type="string"/>
+        <property name="name"       type="string"/>
+        <property name="department" type="string"/>
+        <property name="area"       type="string"/>
+    </class>
+
+    <resultset name="com.rssl.phizic.csaadmin.business.employee.queries.list.resultset">
+        <return alias="employee" class="com.rssl.phizic.csaadmin.business.employee.Employee"/>
+    </resultset>
+    <resultset name="com.rssl.phizic.csaadmin.business.employee.queries.mailManagerList.resultset">
+        <return alias="employee" class="com.rssl.phizic.csaadmin.business.employee.ContactCenterEmployee">
+            <return-property name="id"          column="ID"/>
+            <return-property name="externalId"  column="EXTERNAL_ID"/>
+            <return-property name="name"        column="NAME"/>
+            <return-property name="department"  column="DEPARTMENT"/>
+            <return-property name="area"        column="AREA"/>
+        </return>
+    </resultset>
+
+    <sql-query name="com.rssl.phizic.csaadmin.business.employee.queries.list"/>
+    <sql-query name="com.rssl.phizic.csaadmin.business.employee.queries.mailManagerList"/>
+
+    <sql-query name="com.rssl.phizic.csaadmin.business.employee.queries.checkAllowed">
+        <return-scalar column="IS_EXIST" type="boolean"/>
+        SELECT
+            count(*) AS IS_EXIST
+        FROM
+            EMPLOYEES employee
+        WHERE
+            employee.ID = :employeeId
+            AND EXISTS (SELECT 1
+                        FROM ALLOWED_DEPARTMENTS ad
+                        WHERE ad.LOGIN_ID = :initiatorLoginId AND (ad.TB || '|' || ad.OSB || '|' || ad.VSP = '*|*|*' OR
+                                                                   ad.TB || '|' || ad.OSB || '|' || ad.VSP = employee.TB || '|*|*' OR
+                                                                   ad.TB || '|' || ad.OSB || '|' || ad.VSP = employee.TB || '|' || employee.OSB || '|*' OR
+                                                                   ad.TB || '|' || ad.OSB || '|' || ad.VSP = employee.TB || '|' || employee.OSB || '|' || employee.VSP))
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.csaadmin.business.employee.queries.getNumberAdmins">
+        SELECT count(logins.id)
+        FROM LOGINS logins
+             LEFT JOIN ACCESSSCHEMES ON ACCESSSCHEMES.ID = logins.ACCESSSCHEME_ID
+             LEFT JOIN EMPLOYEES     ON EMPLOYEES.LOGIN_ID = logins.ID
+        WHERE ACCESSSCHEMES.TYPE = 'A' AND
+              EMPLOYEES.TB = :departmentTB AND
+              nvl(EMPLOYEES.OSB, 'NULL') = :departmentOSB AND
+              nvl(EMPLOYEES.VSP, 'NULL') = :departmentVSP AND
+              NOT EXISTS (SELECT blocks.login_id
+                          FROM LOGIN_BLOCK blocks
+                          WHERE blocks.login_id = logins.ID AND
+                                :toDate >= blocks.date_from AND
+                                (blocks.date_until IS NULL OR blocks.date_until > :toDate))
+    </sql-query>
+
+</hibernate-mapping>

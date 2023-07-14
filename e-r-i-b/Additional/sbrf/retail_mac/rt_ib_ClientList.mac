@@ -1,0 +1,213 @@
+import "rt_ib_xml.mac";
+class(cClientService) 
+    cClientList( inXml, outXml ) 
+   var firstname, surName, patrName;
+   var Id;
+   var birthDay;
+   var firstRes, maxRes;
+   
+   private macro fillClient(rs, outXml, parentNode, nodeDocs, nodeCl)
+      nodeClient = parentNode.appendChild( outXML.createNode(1, "client", "") );
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "displayId", "") );
+      node.text = rs.value("displayId");
+
+      node = nodeClient.appendChild( outXML.createNode(1, "longId", "") );
+      node.text = rs.value("longId");
+
+      node = nodeClient.appendChild( outXML.createNode(1, "shortName", "") );
+      node.text = StrSubst(rs.value("shortName"), strfor(1), "");
+
+      node = nodeClient.appendChild( outXML.createNode(1, "fullName", "") );
+      node.text = StrSubst(rs.value("fullName"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "surName", "") );
+      node.text = StrSubst(rs.value("surName"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "firstName", "") );
+      node.text = StrSubst(rs.value("firstName"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "patrName", "") );
+      node.text = StrSubst(rs.value("patrName"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "birthDay", "") );
+      node.text = String(rs.value("birthDay"));
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "birthPlace", "") );
+      node.text = StrSubst(rs.value("birthPlace"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "gender", "") );
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "email", "") );
+
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "homePhone", "") );
+
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "jobPhone", "") );
+
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "mobilePhone", "") );
+
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "inn", "") );
+
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "citizenship", "") );
+
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "resident", "") );
+
+
+      nodeDocs = nodeClient.appendChild( outXML.createNode(1, "documents", "") );
+      nodeCl = nodeClient;
+      SetParm( 2, outXml );
+      SetParm( 4, nodeDocs );
+      SetParm( 5, nodeClient );
+   end;//private macro fillClient(rs, outXml, parentNode)
+
+   private macro readParameters( nodeElement )
+
+    var nodeComPay;
+
+    nodeComPay = nodeElement;
+
+    while( nodeComPay )
+      if   ( nodeComPay.NodeName == "personId" )
+        Id =  nodeComPay.text ;
+      end;
+      if   ( nodeComPay.NodeName == "surName" )
+        surName =  nodeComPay.text ;
+      end;
+      if   ( nodeComPay.NodeName == "firstName" )
+        firstName = nodeComPay.text;
+      end;
+      if   ( nodeComPay.NodeName == "patrName" )
+        patrName =  nodeComPay.text ;
+      end;
+      if   ( nodeComPay.NodeName == "birthDay" )
+        birthDay =  nodeComPay.text ;
+      end;
+      if   ( nodeComPay.NodeName == "firstResult" )
+        firstRes = int( nodeComPay.text );
+      end;
+      if   ( nodeComPay.NodeName == "maxResults" )
+        maxRes = int( nodeComPay.text );
+      end;
+
+      nodeComPay = nodeComPay.nextSibling();
+    end;// while( nodeComPay )
+   
+   end;//private macro readParameters( nodeElement )
+
+   private macro getClientList(inXml, outXml)
+       var cmd, rsd;
+       var nodeDocs, nodeCl;
+       cmd = RsdCommand(
+            "SELECT * "+
+            "FROM (SELECT a.*, rownum AS rnum "+
+                "FROM (SELECT "+
+                    "party.t_PartyID          AS displayId, "+
+                    "party.t_PartyID          AS longId, "+
+                    "party.t_ShortName        AS shortName, "+
+                    "party.t_Name             AS fullName, "+
+                    "person.t_Name1           AS surName, "+
+                    "person.t_Name2           AS firstName, "+
+                    "person.t_Name3           AS patrName, "+
+                    "person.t_Born            AS birthDay, "+
+                    "person.t_BirsPlase       AS birthPlace "+
+                    "FROM "+
+                    "dpersn_dbt person "+
+                    "INNER JOIN dparty_dbt party ON person.t_PersonID = party.t_PartyID AND party.t_LegalForm = 2 "+
+                    "WHERE "+
+                    "party.t_LegalForm = 2 "+
+                    "AND (? is null or upper(person.t_Name1) LIKE upper(concat(concat('%',?),'%'))) "+
+                    "AND (? is null or upper(person.t_Name2) LIKE upper(concat(concat('%',?),'%'))) "+
+                    "AND (? is null or upper(person.t_Name3) LIKE upper(concat(concat('%',?),'%'))) "+
+                    "AND (? is NULL or to_char(person.t_Born, 'YYYY-MM-DD') = ?) "+
+                    "AND (? is NULL or person.t_personid = ?)) a "+
+                "WHERE rownum < ?) "+
+            "WHERE rnum >= ?");
+      cmd.addParam( "surname", RSDBP_IN, V_STRING);
+      cmd.value("surname") = surName;
+
+      cmd.addParam( "surname1", RSDBP_IN, V_STRING);
+      cmd.value("surname1") = surName;
+
+      cmd.addParam( "firstName", RSDBP_IN, V_STRING);
+      cmd.value("firstName") = firstName;
+
+      cmd.addParam( "firstName1", RSDBP_IN, V_STRING);
+      cmd.value("firstName1") = firstName;
+
+
+      cmd.addParam( "patrName", RSDBP_IN, V_STRING);
+      cmd.value("patrName") = patrName;
+
+      cmd.addParam( "patrName1", RSDBP_IN, V_STRING);
+      cmd.value("patrName1") = patrName; 
+
+      cmd.addParam( "birthDay", RSDBP_IN, V_STRING);
+      cmd.value("birthDay") = birthDay;
+
+      cmd.addParam( "birthDay1", RSDBP_IN, V_STRING);
+      cmd.value("birthDay1") = birthDay;
+
+      cmd.addParam( "clientId", RSDBP_IN, V_STRING);
+      cmd.value("clientId") = Id;
+
+      cmd.addParam( "clientId1", RSDBP_IN, V_STRING);
+      cmd.value("clientId1") = Id;
+      
+      cmd.addParam( "end", RSDBP_IN, V_STRING);
+      cmd.value("end") = 1 + firstRes + maxRes;
+
+      cmd.addParam( "first", RSDBP_IN, V_STRING);
+      cmd.value("first") = 1 + firstRes;
+
+      cmd.execute;
+      rsd = RsdRecordSet( cmd );
+      nodeAnswer = nodeAnswer.appendChild( outXML.createNode(1, "clients", "") );
+      while((rsd.moveNext))
+         clientId = rsd.value("displayId");
+
+         fillClient(rsd,outXml,nodeAnswer, nodeDocs, nodeCl);
+      
+         fillAddresses(inXml, outXml, clientId, nodeClient);
+
+         fillDocs(clientId, inXml, outXml, nodeDocs);
+      end;// while((rs.moveNext))
+      return outXml;
+   end;//private macro getClientList(inXml, outXml)
+   macro start(inXml, outXml)
+      var nodeParentElement;
+      var stat = 0;
+      if(not outXml )
+        outXml = CreateXMLObject();
+        if(not outXml) return; end;
+      
+        CreateBeginTag( outXml );
+
+         nodeParentElement = inXml.documentElement.selectSingleNode( "//getClientsByTemplate_q" );
+         nodeElement = nodeParentElement.firstChild();
+         
+         if( nodeElement )
+            readParameters( nodeElement );
+            outXML = getClientList( inXml, outXML );
+         end;
+       end;//if(not outXml )
+
+      return outXml;
+   end; //macro start(inXml, outXml)
+
+
+end;  //class(cBaseDeposit) 
+
+macro GetClientList( inXml, outXml )
+
+  var t = cClientList;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;
+

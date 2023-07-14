@@ -1,0 +1,2368 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<project name="builder" default="explode">
+	<import id="configs"    file="configs.ant"/>
+	<import id="jboss"      file="jboss.ant"/>
+    <import id="websphere"  file="websphere.ant"/>
+
+	<target name=".make.bin" if="module.name">
+        <echo message="Компиляция модуля ${module.name}"/>
+		<mkdir dir="${project.root}/${module.name}/bin"/>
+        <!--
+            memoryInitialSize и memoryMaximumSize выставлены поскольку при автоматической сборке
+            использование аналогичных параметров jvm не дает необходимого результата и приводит к
+            падению jvm.
+        -->
+
+        <if>
+            <equals arg1="${write2log.compile.process}" arg2="true"/>
+            <then>
+                <record name="${project.root}/${module.name}/${module.name}.log" loglevel="debug" action="start"/>
+            </then>
+        </if>
+
+		<javac debug="true" fork="true" source="1.5"
+		       destdir="${project.root}/${module.name}/bin"
+		       srcdir="${project.root}/${module.name}/src"
+               memoryInitialSize="128m"
+		       memoryMaximumSize="512m">
+			<classpath>
+				<fileset dir="${project.root}/Libraries" includes="*/*.jar"/>
+				<dirset dir="${project.root}" includes="*/bin"/>
+			</classpath>
+		</javac>
+
+        <record name="${project.root}/${module.name}/${module.name}.log" action="stop"/>
+
+		<copy todir="${project.root}/${module.name}/bin">
+			<fileset dir="${project.root}/${module.name}/src" excludes="**/*.java"/>
+		</copy>
+
+	</target>
+
+	<target name="build" depends="init.configuration" description="Сборка проекта">
+        <antcall target=".make.bin">
+			<param name="module.name" value="CommonTypes"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Utilities"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="Modulus"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="Patch"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="DataAccess"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="JUnitSupport"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Configuration"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Logging"/>
+		</antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="Notifications"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Forms"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="Locale"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Gate"/>
+		</antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="BusinessNotifications"/>
+		</antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="ModulusCommon"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Armour"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="ErmbCommon"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Messaging"/>
+		</antcall>
+	    <antcall target=".make.bin">
+            <param name="module.name" value="AuthGate"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="Security"/>
+        </antcall>
+        <if>
+            <isset property="include.CryptoPlugin"/>
+            <then>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="CryptoPlugin"/>
+                </antcall>
+            </then>
+        </if>
+        <if>
+            <isset property="include.SBRFCryptoPlugin"/>
+            <then>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="SBRFCryptoPlugin"/>
+                </antcall>
+             </then>
+        </if>
+        <if>
+            <isset property="include.JCPCryptoPlugin"/>
+            <then>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="JCPCryptoPlugin"/>
+                </antcall>
+             </then>
+        </if>
+        <antcall target=".make.bin">
+            <param name="module.name" value="GateManager"/>
+        </antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="GateCommon"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="ShopClient"/>
+        </antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="ESBERIBGate"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="CSAAuthGate"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="NodeManager"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="CSAAdminGate"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="LimitsAppListener"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="FraudMonitoringGate"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Business"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="MessagingInfo"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="FraudMonitoringBackListener"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="MDMClient"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="Operations"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="MessagingJobs"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="EventListener"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Operations"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="Way4uGate"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="BusinessERMB"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="WebCommon"/>
+		</antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebCommonClient"/>
+		</antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebCommonMobile"/>
+		</antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebCommonCSA"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="AppStarter"/>
+		</antcall>
+        <if>
+            <isset property="include.Listener"/>
+            <then>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="Listener"/>
+                </antcall>
+             </then>
+        </if>
+		<antcall target=".make.bin">
+			<param name="module.name" value="WebAdmin"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="WebClient"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="WSGate"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="MockGate"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="WSGateListener"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="SBCMSGate"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="MobileBankGate"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="DepoMobileBankGate"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="PhizGateMFM"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="IPSGate"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="SBRFXBankGate"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="WSGateClient"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="GorodSystem"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="ASBCGate"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="EniseyGate"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="MockGate"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="SmsBanking"/>
+		</antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="SBCMSService"/>
+        </antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="Scheduler"/>
+		</antcall>
+		<antcall target=".make.bin">
+			<param name="module.name" value="SBRFCODGate"/>
+		</antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="SofiaBillingGate"/>
+		</antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="CPFLGate"/>
+		</antcall>
+        <antcall target=".make.bin">
+			<param name="module.name" value="IQWaveGate"/>
+		</antcall>
+        <if>
+            <isset property="include.IQWaveListener"/>
+            <then>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="IQWaveListener"/>
+                </antcall>
+             </then>
+        </if>
+        <antcall target=".make.bin">
+            <param name="module.name" value="WebGate"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="StopListGate"/>
+        </antcall>
+
+		<antcall target=".make.bin">
+			<param name="module.name" value="WebTest"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebMobile5"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebMobile6"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebMobile7"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebMobile8"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="WebMobile9"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebSocialApi"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebATM"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="WebCurrency"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="ESBERIBListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="ShopCommon"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="ShopListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="EjbCommon"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="EjbTest"/>
+        </antcall>
+
+		<antcall target=".make.bin">
+            <param name="module.name" value="MonitoringScheduler"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="BARSGate"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="WebLog"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="WebNodeLog"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="CSABackCore"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="CSABack"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="WebCSA"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="WebCSAMAPI"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="WebCSASocialAPI"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="WebCSAATM"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="ASFilialListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+			<param name="module.name" value="WebAPI"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+			<param name="module.name" value="ERMBListMigrator"/>
+		</antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="BasketProxyListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="EjbBasketProxyListener"/>
+        </antcall>
+
+        <if>
+            <istrue value="${appserver.type.websphere}"/>
+            <then>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="WebSphereUtils"/>
+                </antcall>
+            </then>
+        </if>
+
+        <!-- Бизнес-модули и веб-модули -->
+        <if>
+            <isset property="include.PFP"/>
+            <then>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="BusinessPFP"/>
+                </antcall>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="WebPFP"/>
+                </antcall>
+            </then>
+        </if>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="SynchDictionaryListener"/>
+        </antcall>
+        <antcall target=".make.bin">
+            <param name="module.name" value="EInSynchDictionaryListener"/>
+        </antcall>
+
+        <if>
+            <isset property="include.ERMB"/>
+            <then>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="ErmbDictionaryListener"/>
+                </antcall>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="ErmbScheduler"/>
+                </antcall>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="CSAERMBListener"/>
+                </antcall>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="ErmbMbkListener"/>
+                </antcall>
+                <antcall target=".make.bin">
+                    <param name="module.name" value="ErmbEjbListener"/>
+                </antcall>
+            </then>
+        </if>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="Monitoring"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="MonitoringClient"/>
+        </antcall>
+
+        <!--TODO ???-->
+		<copy todir="${project.root}/SBRFCODGate/bin">
+			<fileset dir="${project.root}/SBRFCODGate/xml"/>
+		</copy>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="CSAAdmin"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="MDMGate"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="MDBMock"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="USCTWeb"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="USCTGate"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="PhizProxyCreditListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="PhizProxyCreditWebListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="ESBMessageListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="MultiNodeResourcesListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="MBKP2PListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="Way4NotifyListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="FraudMonitoringBackGate"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="MDMMessageListener"/>
+        </antcall>
+
+        <antcall target=".make.bin">
+            <param name="module.name" value="MDMWeb"/>
+        </antcall>
+
+        <antcall target="append.project.path"/>
+	</target>
+
+	<target name="copy_all_but_only_current_config">
+		<sync todir="${todir}">
+			<fileset dir="${srcdir}">
+				<and>
+					<filename name="**/*.*"/>
+					<not>
+						<and>
+							<filename name="**/ext/${current.config.name}/**/*.*" negate="true"/>
+							<filename name="**/ext/**/*.*"/>
+						</and>
+					</not>
+				</and>
+			</fileset>
+		</sync>
+	</target>
+
+    <target name=".make.war" if="module.name">
+        <if>
+            <not>
+                <isset property="is.build.gates.ears"/>
+            </not>
+            <then>
+                <propertycopy name="need.jar" from="ikfl.build.${application.name}.web.module.${module.name}"/>
+            </then>
+            <else>
+                <property name="need.jar" value="true"/>
+            </else>
+        </if>
+
+        <if>
+            <istrue value="${need.jar}"/>
+            <then>
+                <jar destfile="${temp.ear.dir}/${module.name}.war" basedir="${application.explode.dir}/${module.name}.war"/>
+             </then>
+        </if>
+    </target>
+
+    <target name=".make.ejb" if="module.name">
+        <if>
+            <not>
+                <isset property="is.build.gates.ears"/>
+            </not>
+            <then>
+                <propertycopy name="need.jar" from="ikfl.build.${application.name}.ejb.module.${module.name}"/>
+            </then>
+            <else>
+                <property name="need.jar" value="true"/>
+            </else>
+        </if>
+
+        <if>
+            <istrue value="${need.jar}"/>
+            <then>
+                <jar destfile="${temp.ear.dir}/${module.name}.jar" basedir="${application.explode.dir}/${module.name}.jar"/>
+             </then>
+        </if>
+    </target>
+
+    <target name=".make.gate.ear" depends=".init.application.configuration" if="application.name">
+        <property name="temp.ear.dir" value="${application.explode.dir}/temp-ear"/>
+
+        <mkdir dir="${temp.ear.dir}"/>
+        <jar destfile="${temp.ear.dir}/WebResources.war" basedir="${application.explode.dir}/WebResources.war"
+             manifest="${application.explode.dir}/WebResources.war/META-INF/MANIFEST.MF"/>
+
+        <antcall target="read.gates.web.modules">
+            <param name="group-name" value="${application.name}"/>
+        </antcall>
+
+        <antcall target="read.gates.other.modules">
+            <param name="group-name"  value="${application.name}"/>
+            <param name="rootElement" value="ejb-modules"/>
+            <param name="element"     value="module"/>
+        </antcall>
+
+        <property file="${temp.module.explode.dir}/temporary.properties"/>
+        <mkdir dir="${temp.ear.dir}"/>
+
+        <foreach list="${web-uri}"     delimiter="," target=".make.war" param="module.name" inheritall="true"/>
+        <foreach list="${ejb-modules}" delimiter="," target=".make.ejb" param="module.name" inheritall="true"/>
+
+        <ear destfile="${project.root}/ears/${application.name}.ear" appxml="${application.explode.dir}/Settings/application.xml">
+            <fileset dir="${temp.ear.dir}" includes="*.war,*.jar"/>
+            <fileset dir="${application.explode.dir}" includes="META-INF/**/*.*,lib/**,Settings/**,*.rar" excludes="META-INF/application.xml"/>
+        </ear>
+
+        <delete dir="${temp.ear.dir}"/>
+    </target>
+
+    <target name=".make.ear" depends=".init.application.configuration" if="application.name">
+        <if>
+            <and>
+                <isset property="ear.suffix"/>
+                <not>
+                    <equals arg1="${ear.suffix}" arg2="$${ear.suffix}" />
+                </not>
+            </and>
+            <then>
+                <property  name="destfilename" value="${project.root}/ears/${application.name}-${ear.suffix}.ear"/>
+            </then>
+            <else>
+                <property  name="destfilename" value="${project.root}/ears/${application.name}.ear"/>
+            </else>
+        </if>
+        <propertycopy name="current.config.dir" from="ikfl.build.${application.name}.current.config.dir"/>
+        <propertycopy name="global.config.dir" from="ikfl.build.${application.name}.global.config.dir"/>
+
+        <property name="temp.ear.dir" value="${application.explode.dir}/temp-ear"/>
+
+        <mkdir dir="${temp.ear.dir}"/>
+        <jar destfile="${temp.ear.dir}/WebResources.war" basedir="${application.explode.dir}/WebResources.war"
+             manifest="${application.explode.dir}/WebResources.war/META-INF/MANIFEST.MF"/>
+
+        <propertyselector property="module.list"
+                          delimiter=","
+                          match="ikfl\.build\.${application.name}\.web\.module\.([^\.]*)"
+                          select="\1"
+                          casesensitive="false"/>
+        <if>
+            <isset property="module.list"/>
+            <then>
+                <foreach list="${module.list}" delimiter="," target=".make.war" param="module.name" inheritall="true"/>
+            </then>
+        </if>
+
+        <propertyselector property="ejb.list"
+                          delimiter=","
+                          match="ikfl\.build\.${application.name}\.ejb\.module\.([^\.]*)"
+                          select="\1"
+                          casesensitive="false"/>
+        <if>
+            <isset property="ejb.list"/>
+            <then>
+                <foreach list="${ejb.list}" delimiter="," target=".make.ejb" param="module.name" inheritall="true"/>
+            </then>
+        </if>
+
+        <ear destfile="${destfilename}" appxml="${current.config.dir}/application.xml">
+            <fileset dir="${temp.ear.dir}" includes="*.war,*.jar"/>
+            <fileset dir="${application.explode.dir}" includes="META-INF/**/*.*,lib/**,Settings/**,*.rar" excludes="META-INF/application.xml"/>
+        </ear>
+        <delete dir="${temp.ear.dir}"/>
+    </target>
+
+    <target name=".make.ear.by.config" if=".config.name">
+        <echo message="${.config.name}"/>
+        <propertyregex property="application.name"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false" />
+
+        <propertyregex property="ear.suffix"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false"/>
+
+        <antcall target=".make.ear">
+            <param name="application.name" value="${application.name}"/>
+            <param name="ear.suffix" value="${ear.suffix}"/>
+        </antcall>
+    </target>
+
+	<target name="make.ear" depends="init.configuration, explode" description="Создание J2EE приложений">
+
+        <!-- формируем список конфигурационных файлов, для приложений которые надо собрать -->
+        <var name="filenames" value= "" />
+        <for list="${ikfl.build.app}" delimiter="," param="app">
+          <sequential>
+              <var name="filenames" value= "${filenames}${current.config.name}.@{app}.properties|"/>
+          </sequential>
+        </for>
+        <property name=".aplications.configs.list" value= "${filenames}" />
+
+        <mkdir dir="${project.root}/ears"/>
+        <foreach list="${.aplications.configs.list}" delimiter="|" target=".make.ear.by.config" param=".config.name" inheritall="true"/>
+
+        <antcall target="make.gate.ear"/>
+	</target>
+
+    <target name="make.gate.ear" depends="init.configuration, get.list.of.gates" if="build.gates.by.earGatesConfig">
+        <taskdef name="xmlTask" classname="com.oopsconsultancy.xmltask.ant.XmlTask">
+            <classpath>
+                <path>
+                    <fileset dir="${basedir}/../Libraries/ForAnt"/>
+                </path>
+            </classpath>
+        </taskdef>
+        <property name="is.build.gates.ears" value="true"/>
+
+        <foreach list="${list.of.gate.names}" delimiter="," target=".make.gate.ear" param="application.name" inheritall="true"/>
+    </target>
+
+    <target  name="make.skin.ear" depends="init.configuration" description="Упаковка скина в .ear">
+        <property name="skin.settings.dir" value="${project.root}/Skin"/>
+        <property name="skin.dir" value=""/>
+        <property name="temp.dir" value="${skin.settings.dir}/temp-ear"/>
+
+        <mkdir dir="${temp.dir}"/>
+
+        <if>
+         <equals arg1="${skin.dir}" arg2="" />
+         <then>
+            <mkdir dir="${temp.dir}/temp"/>
+            <antcall target="copy_config_skins">
+                <param name="toDirPath" value="${temp.dir}/temp/skin.war"/>
+            </antcall>
+            <copy todir="${temp.dir}/temp/skin.war">
+                <fileset dir="${skin.settings.dir}" includes="WEB-INF/*.*"/>
+            </copy>
+            <jar destfile="${temp.dir}/skin.war" basedir="${temp.dir}/temp/skin.war"/>
+            <delete dir="${temp.dir}/temp"/>
+         </then>
+         <else>
+            <copy todir="${skin.dir}">
+                <fileset dir="${skin.settings.dir}" includes="WEB-INF/*.*"/>
+            </copy>
+            <jar destfile="${temp.dir}/skin.war" basedir="${skin.dir}"/>
+         </else>
+        </if>
+
+        <ear destfile="${project.root}/skin.ear" appxml="${skin.settings.dir}/application.xml">
+            <fileset dir="${temp.dir}" includes="*.war"/>
+        </ear>
+
+        <delete dir="${temp.dir}"/>
+    </target>
+
+	<target name="after-compile"
+			description="Запускается после сборки проекта идеей"
+			depends="compile_struts"
+			>
+		<antcall target="check-operation-log"/>
+        <antcall target="checkChangeModifiers"/>
+	</target>
+
+	<target name="check-operation-log"
+			description="Проверяем что operation-log содержит все экшены из struts-config"
+			>
+		<taskdef name="check-operation-log" classname="com.rssl.phizic.business.ant.CheckOperationLogTask"
+                 classpathref="project.tasks.classpath"/>
+
+		<check-operation-log baseDir="${project.root}">
+			<fileset dir="${project.root}">
+                <include name="WebAdmin/web/WEB-INF/struts-config.xml"/>
+                <include name="WebClient/web/WEB-INF/struts-config.xml"/>
+                <include name="WebMobile5/web/WEB-INF/struts-config.xml"/>
+                <include name="WebMobile6/web/WEB-INF/struts-config.xml"/>
+                <include name="WebMobile7/web/WEB-INF/struts-config.xml"/>
+                <include name="WebMobile8/web/WEB-INF/struts-config.xml"/>
+                <include name="WebMobile9/web/WEB-INF/struts-config.xml"/>
+				<include name="WebATM/web/WEB-INF/struts-config.xml"/>
+                <include name="WebPFP/web/WEB-INF/struts-config.xml"/>
+            </fileset>
+		</check-operation-log>
+	</target>
+
+    <target name="checkChangeModifiers" description="Проверка изменения модификаторов ConfigFactory">
+        <taskdef name="checkChangeModifiers" classname="com.rssl.phizic.config.ModifiersHasNotChangedChecker"
+                 classpathref="project.tasks.classpath"/>
+
+        <checkChangeModifiers>
+
+        </checkChangeModifiers>
+    </target>
+
+	<target name="compile_struts" depends="init.configuration">
+        <!-- WebAdmin -->
+		<antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebAdmin/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebAdmin/web/WEB-INF"/>
+            <param name="tiles_name" value="tiles"/>
+		</antcall>
+		<antcall target="generate_view_config">
+			<param name="web_inf"  value="${project.root}/WebAdmin/web/WEB-INF"/>
+		</antcall>
+
+        <!-- WebClient -->
+		<antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebClient/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebClient/web/WEB-INF"/>
+            <param name="tiles_name" value="tiles"/>
+		</antcall>
+		<antcall target="generate_view_config">
+			<param name="web_inf"  value="${project.root}/WebClient/web/WEB-INF"/>
+		</antcall>
+
+        <!-- WebMobile5 -->
+        <antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebMobile5/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebMobile5/web/WEB-INF"/>
+            <param name="module.name"  value="WebMobile5"/>
+            <param name="tiles_name" value="tiles-no-common"/>
+		</antcall>
+
+        <!-- WebMobile6 -->
+        <antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebMobile6/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebMobile6/web/WEB-INF"/>
+            <param name="module.name"  value="WebMobile6"/>
+            <param name="tiles_name" value="tiles-no-common"/>
+		</antcall>
+
+        <!-- WebMobile7 -->
+        <antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebMobile7/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebMobile7/web/WEB-INF"/>
+            <param name="module.name"  value="WebMobile7"/>
+            <param name="tiles_name" value="tiles-no-common"/>
+		</antcall>
+
+        <!-- WebMobile8 -->
+        <antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebMobile8/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebMobile8/web/WEB-INF"/>
+            <param name="module.name"  value="WebMobile8"/>
+            <param name="tiles_name" value="tiles-no-common"/>
+		</antcall>
+
+        <!-- WebMobile9 -->
+        <antcall target="generate_struts_config">
+            <param name="web_inf"  value="${project.root}/WebMobile9/web/WEB-INF"/>
+        </antcall>
+        <antcall target="generate_tiles_config">
+            <param name="web_inf"  value="${project.root}/WebMobile9/web/WEB-INF"/>
+            <param name="module.name"  value="WebMobile9"/>
+            <param name="tiles_name" value="tiles-no-common"/>
+        </antcall>
+
+        <!-- WebSocialApi -->
+        <antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebSocialApi/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"      value="${project.root}/WebSocialApi/web/WEB-INF"/>
+            <param name="module.name"  value="WebSocialApi"/>
+            <param name="tiles_name"   value="tiles-no-common"/>
+		</antcall>
+
+        <!-- WebATM -->
+        <antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebATM/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebATM/web/WEB-INF"/>
+            <param name="module.name"  value="WebATM"/>
+            <param name="tiles_name" value="tiles-no-common"/>
+		</antcall>
+
+        <!-- WebCSA -->
+		<antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebCSA/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebCSA/web/WEB-INF"/>
+            <param name="tiles_name" value="tiles"/>
+            <param name="template" value="${project.root}/WebCSA/web/WEB-INF/config/tiles-global-templates.xml"/>
+		</antcall>
+		<antcall target="generate_view_config">
+			<param name="web_inf"  value="${project.root}/WebCSA/web/WEB-INF"/>
+		</antcall>
+
+        <!-- WebCSAMAPI -->
+		<antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebCSAMAPI/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebCSAMAPI/web/WEB-INF"/>
+            <param name="tiles_name" value="tiles-no-common"/>
+		</antcall>
+
+        <!-- WebCSASocialAPI -->
+		<antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebCSASocialAPI/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebCSASocialAPI/web/WEB-INF"/>
+            <param name="tiles_name" value="tiles-no-common"/>
+		</antcall>
+
+        <!-- WebCSAATM -->
+		<antcall target="generate_struts_config">
+			<param name="web_inf"  value="${project.root}/WebCSAATM/web/WEB-INF"/>
+		</antcall>
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebCSAATM/web/WEB-INF"/>
+            <param name="tiles_name" value="tiles-no-common"/>
+		</antcall>
+
+        <!-- WebTest -->
+		<antcall target="generate_tiles_config">
+			<param name="web_inf"  value="${project.root}/WebTest/web/WEB-INF"/>
+            <param name="tiles_name" value="tiles"/>
+		</antcall>
+	</target>
+
+	<xmlcatalog id="struts_xml_catalog">
+		<dtd publicId="-//Apache Software Foundation//DTD Struts Configuration 1.2//EN"
+		     location="org/apache/struts/resources/struts-config_1_2.dtd"/>
+
+        <dtd publicId="-//Apache Software Foundation//DTD Tiles Configuration 1.1//EN"
+             location="org/apache/struts/resources/tiles-config_1_1.dtd"/>
+		<classpath>
+            <fileset dir="${project.root}/Libraries" includes="**/*.jar"/>
+		</classpath>
+	</xmlcatalog>
+
+	<target name="generate_struts_config">
+		<echo message="Generating struts-config"/>
+
+		<property name="global"   value="${web_inf}/config/global-struts-config.xml"/>
+		<property name="override" value="${web_inf}/config/${current.config.name}-struts-config.xml"/>
+		<property name="output" value="${web_inf}/struts-config.xml"/>
+
+		<delete file="${output}" quiet="true"/>
+		<xslt
+				style="${project.root}/AntBuilds/xslt/struts.xslt"
+				in="${global}"
+				out="${output}"
+			>
+		      <classpath>
+		        <fileset dir="${project.root}/Libraries" includes="*/*.jar"/>
+		      </classpath>
+			<factory name="org.apache.xalan.processor.TransformerFactoryImpl"/>
+			<param name="overrideFile" expression="${override}"/>
+			<xmlcatalog refid="struts_xml_catalog"/>
+		</xslt>
+	</target>
+
+	<target name="generate_view_config">
+		<delete dir="${web_inf}">
+			<include name="view-config.xml"/>
+		</delete>
+		<copy todir="${web_inf}">
+			<fileset dir="${web_inf}/config">
+				<include name="${current.config.name}-view-config.xml"/>
+			</fileset>
+			<mapper type="glob" from="${current.config.name}-view-config.xml" to="view-config.xml"/>
+		</copy>
+	</target>
+
+	<target name="generate_tiles_config">
+		<echo message="Generating tiles-config"/>
+
+        <!-- если не задан путь для шаблона, задаем дефолтный -->
+        <if>
+            <not>
+                <isset property="template"/>
+            </not>
+            <then>
+                <property name="template" value="${project.root}/WebCommon/web/WEB-INF/tiles/tiles-global-templates.xml"/>
+            </then>
+        </if>
+
+		<property name="global"   value="${web_inf}/config/global-tiles-definitions.xml"/>
+		<property name="template" value="${project.root}/WebCommon/web/WEB-INF/tiles/tiles-global-templates.xml"/>
+		<property name="override" value="${web_inf}/config/${current.config.name}-tiles-definitions.xml"/>
+		<property name="output"   value="${web_inf}/tiles-definitions.xml"/>
+
+		<delete file="${output}" quiet="true"/>
+
+        <xslt
+                style="${project.root}/AntBuilds/xslt/${tiles_name}.xslt"
+                in="${global}"
+                out="${output}"
+                >
+                        <classpath>
+                             <fileset dir="${project.root}/Libraries/XML" includes="*.jar"/>
+                        </classpath>
+                    <factory name="org.apache.xalan.processor.TransformerFactoryImpl"/>
+                    <param name="templateFile" expression="${template}"/>
+                    <param name="overrideFile" expression="${override}"/>
+                    <xmlcatalog refid="struts_xml_catalog"/>
+                </xslt>
+
+	</target>
+
+    <target name=".explode.csa.channel.web.module" if="module.name">
+        <echo message="Сборка веб модуля ${module.name} приложения ${application.name} для CSA"/>
+        <property name="src" value="${project.root}/${module.name}"/>
+        <property name="common.src" value="${project.root}/WebCommonCSA"/>
+        <property name="dst" value="${application.explode.dir}/${module.name}.war"/>
+        <sync todir="${dst}/WEB-INF">
+            <fileset dir="${src}/web/WEB-INF">
+                <or>
+                    <filename name="*.*"/>
+                    <filename name="tiles/tiles-components.xml"/>
+                    <filename name="jsp/**/*.*"/>
+                    <filename name="tld/**/*.*"/>
+                </or>
+            </fileset>
+            <preserveintarget>
+                <filename name="classes/**"/>
+            </preserveintarget>
+        </sync>
+
+        <copy todir="${dst}/WEB-INF/jsp/common" overwrite="true">
+            <fileset dir="${common.src}/web/WEB-INF/jsp/common">
+                <filename name="*.*"/>
+            </fileset>
+        </copy>
+
+        <copy todir="${dst}/WEB-INF/jsp/common/layout" overwrite="true">
+            <fileset dir="${common.src}/web/WEB-INF/jsp/common/layout">
+                <filename name="*.*"/>
+            </fileset>
+        </copy>
+
+        <copy todir="${dst}/WEB-INF/tld" overwrite="true">
+            <fileset dir="${common.src}/web/WEB-INF/tld">
+                <filename name="*.*"/>
+            </fileset>
+        </copy>
+
+        <sync todir="${dst}/WEB-INF/classes">
+            <fileset dir="${src}/bin">
+                <filename name="**/*.*"/>
+            </fileset>
+        </sync>
+
+        <copy file="${project.root}/${module.name}/web/WEB-INF/web.xml" tofile="${dst}/WEB-INF/web.xml.tmp">
+            <filterchain>
+                <replacetokens>
+                    <token key="additionl.path" value="${additionl.path}"/>
+                </replacetokens>
+            </filterchain>
+        </copy>
+        <delete file="${dst}/WEB-INF/web.xml"/>
+        <copy file="${dst}/WEB-INF/web.xml.tmp" tofile="${dst}/WEB-INF/web.xml"/>
+        <delete file="${dst}/WEB-INF/web.xml.tmp"/>
+
+    </target>
+
+
+    <target name=".explode.csa.web.module"  if="module.name">
+        <echo message="Сборка веб модуля ${module.name} приложения ${application.name} для CSA"/>
+        <property name="src" value="${project.root}/${module.name}"/>
+        <property name="common.src" value="${project.root}/WebCommon"/>
+        <property name="dst" value="${application.explode.dir}/${module.name}.war"/>
+        <sync todir="${dst}/WEB-INF">
+            <fileset dir="${src}/web/WEB-INF">
+                <or>
+                    <filename name="*.*"/>
+                    <filename name="tiles/tiles-components.xml"/>
+                    <filename name="jsp/**/*.*"/>
+                    <filename name="tld/**/*.*"/>
+                </or>
+            </fileset>
+            <preserveintarget>
+                <filename name="classes/**"/>
+            </preserveintarget>
+        </sync>
+
+        <!-- копируем необходимые шаблоны -->
+        <copy todir="${dst}/WEB-INF/jsp/common" overwrite="true">
+            <fileset dir="${common.src}/web/WEB-INF/jsp/common">
+                <or>
+                    <filename name="window.jsp"/>
+                    <filename name="analytics.jsp"/>
+                    <filename name="roundBorder.jsp"/>
+                    <filename name="formRow.jsp"/>
+                    <filename name="layout/formHeader.jsp"/>
+                    <filename name="complexValueField.jsp"/>
+                </or>
+            </fileset>
+        </copy>
+
+        <!-- копируем необходимые шаблоны -->
+        <copy todir="${dst}/WEB-INF/jsp/common" overwrite="true">
+            <fileset dir="${project.root}/WebCommonCSA/web/WEB-INF/jsp/common">
+                <or>
+                    <filename name="monitoring/fraud/pmfso.jsp"/>
+                    <filename name="monitoring/fraud/pmfso-set.jsp"/>
+                    <filename name="monitoring/fraud/pmfso-support.jsp"/>
+                </or>
+            </fileset>
+        </copy>
+
+        <!-- копируем необходимые шаблоны -->
+        <copy todir="${dst}/WEB-INF/jsp/common/layout" overwrite="true">
+            <fileset dir="${common.src}/web/WEB-INF/jsp/common/layout">
+                <filename name="messageBlock.jsp"/>
+            </fileset>
+        </copy>
+
+        <!-- копируем скины -->
+        <copy todir="${dst}/WEB-INF/skin" overwrite="true">
+            <fileset dir="${common.src}/web/WEB-INF/skin">
+                <filename name="*.*"/>
+            </fileset>
+        </copy>
+
+         <!-- копируем необходимую tld-->
+        <copy todir="${dst}/WEB-INF/tld" overwrite="true">
+            <fileset dir="${common.src}/web/WEB-INF/tld">
+                <filename name="customized-struts-layout.tld"/>
+            </fileset>
+        </copy>
+
+        <sync todir="${dst}/WEB-INF/classes">
+			<fileset dir="${src}/bin">
+			    <filename name="**/*.*"/>
+			</fileset>
+		</sync>
+
+
+       <if>
+           <!--если указанно имя верси то добовляем передним слэш-->
+           <equals arg1="${app.version}" arg2=""/>
+           <then>
+               <property name="additionl.path" value=""/>
+           </then>
+           <else>
+               <property name="additionl.path" value="/${app.version}"/>
+           </else>
+       </if>
+
+       <copy file="${project.root}/${module.name}/web/WEB-INF/web.xml" tofile="${dst}/WEB-INF/web.xml.tmp">
+       <filterchain>
+           <replacetokens>
+               <token key="additionl.path" value="${additionl.path}"/>
+           </replacetokens>
+       </filterchain>
+       </copy>
+       <delete file="${dst}/WEB-INF/web.xml"/>
+       <copy file="${dst}/WEB-INF/web.xml.tmp" tofile="${dst}/WEB-INF/web.xml"/>
+       <delete file="${dst}/WEB-INF/web.xml.tmp"/>
+    </target>
+
+    <target name=".explode.csaadmin.web.module"  if="module.name">
+        <echo message="Сборка веб модуля ${module.name} приложения ${application.name} для CSAAdmin"/>
+        <property name="src" value="${project.root}/${module.name}"/>
+        <property name="dst" value="${application.explode.dir}/${module.name}.war"/>
+        <sync todir="${dst}/WEB-INF">
+            <fileset dir="${src}/web/WEB-INF">
+                <or>
+                    <filename name="*.*"/>
+                    <filename name="jsp/**/*.*"/>
+                    <filename name="tld/**/*.*"/>
+                </or>
+            </fileset>
+            <preserveintarget>
+                <filename name="classes/**"/>
+            </preserveintarget>
+        </sync>
+
+        <sync todir="${dst}/WEB-INF/classes">
+			<fileset dir="${src}/bin">
+			    <filename name="**/*.*"/>
+			</fileset>
+		</sync>
+
+        <if>
+            <!--если указанно имя верси то добовляем передним слэш-->
+            <equals arg1="${app.version}" arg2=""/>
+            <then>
+                <property name="additionl.path" value=""/>
+            </then>
+            <else>
+                <property name="additionl.path" value="/${app.version}"/>
+            </else>
+        </if>
+
+        <copy file="${project.root}/${module.name}/web/WEB-INF/web.xml" tofile="${dst}/WEB-INF/web.xml.tmp">
+            <filterchain>
+                <replacetokens>
+                    <token key="additionl.path" value="${additionl.path}"/>
+                </replacetokens>
+            </filterchain>
+        </copy>
+
+        <sync todir="${application.explode.dir}/WebResources.war/${app.version}">
+            <fileset dir="${project.root}/WebResources/web/csaAdmin">
+                <include name="**/*.*"/>
+            </fileset>
+        </sync>
+
+        <copy todir="${application.explode.dir}/WebResources.war" flatten="true">
+            <resources>
+               <file file="${project.root}/WebResources/web/DPmonitoring.xml"/>
+            </resources>
+        </copy>
+
+        <copy todir="${application.explode.dir}/WebResources.war/${app.version}/scripts" flatten="true">
+            <resources>
+                <file file="${project.root}/WebResources/web/scripts/gost.js"/>
+                <file file="${project.root}/WebResources/web/scripts/jquery-1.4.2.js"/>
+                <file file="${project.root}/WebResources/web/scripts/customPlaceholder.js"/>
+                <file file="${project.root}/WebResources/web/scripts/windows.js"/>
+                <file file="${project.root}/WebResources/web/scripts/DivFloat.js"/>
+                <file file="${project.root}/WebResources/web/scripts/KeyboardUtils.js"/>
+            </resources>
+        </copy>
+
+        <delete file="${dst}/WEB-INF/web.xml"/>
+        <copy file="${dst}/WEB-INF/web.xml.tmp" tofile="${dst}/WEB-INF/web.xml"/>
+        <delete file="${dst}/WEB-INF/web.xml.tmp"/>
+    </target>
+
+    <target name=".explode.main.web.module"  if="module.name">
+        <if>
+            <isset property="is.build.gates.ears"/>
+            <then>
+                <property     name="need.jar" value="true"/>
+            </then>
+            <else>
+                <propertycopy name="need.jar" from="ikfl.build.${application.name}.web.module.${module.name}"/>
+            </else>
+        </if>
+
+        <if>
+            <istrue value="${need.jar}"/>
+            <then>
+                <if>
+                    <or>
+                        <equals arg1="${module.name}" arg2="WebAdmin"/>
+                        <equals arg1="${module.name}" arg2="WebTest"/>
+                        <equals arg1="${module.name}" arg2="WebMobile5"/>
+                        <equals arg1="${module.name}" arg2="WebMobile6"/>
+                        <equals arg1="${module.name}" arg2="WebMobile7"/>
+                        <equals arg1="${module.name}" arg2="WebMobile8"/>
+                        <equals arg1="${module.name}" arg2="WebMobile9"/>
+                        <equals arg1="${module.name}" arg2="WebATM"/>
+                        <equals arg1="${module.name}" arg2="WebAPI"/>
+                        <equals arg1="${module.name}" arg2="WebSocialApi"/>
+                    </or>
+                    <then>
+                        <property name="need_web_common" value="true"/>
+                    </then>
+                </if>
+
+                <if>
+                    <equals arg1="${module.name}" arg2="WebClient"/>
+                    <then>
+                        <property name="need_web_common" value="true"/>
+                        <property name="need_web_client_common" value="true"/>
+                    </then>
+                </if>
+
+                <if>
+                    <or>
+                        <equals arg1="${module.name}" arg2="WebMobile5"/>
+                        <equals arg1="${module.name}" arg2="WebMobile6"/>
+                        <equals arg1="${module.name}" arg2="WebMobile7"/>
+                        <equals arg1="${module.name}" arg2="WebMobile8"/>
+                        <equals arg1="${module.name}" arg2="WebMobile9"/>
+                    </or>
+                    <then>
+                        <property name="need_web_common_mobile" value="true"/>
+                    </then>
+                </if>
+
+                <if>
+                    <and>
+                        <equals arg1="${need_web_common}" arg2="true"/>
+                        <not>
+                            <or>
+                                <equals arg1="${module.name}" arg2="WebMobile5"/>
+                                <equals arg1="${module.name}" arg2="WebMobile6"/>
+                                <equals arg1="${module.name}" arg2="WebMobile7"/>
+                                <equals arg1="${module.name}" arg2="WebMobile8"/>
+                                <equals arg1="${module.name}" arg2="WebMobile9"/>
+                                <equals arg1="${module.name}" arg2="WebATM"/>
+                                <equals arg1="${module.name}" arg2="WebAPI"/>
+                                <equals arg1="${module.name}" arg2="WebSocialApi"/>
+                            </or>
+                        </not>
+                    </and>
+                    <then>
+                        <property name="need_web_common_all" value="true"/>
+                    </then>
+                </if>
+
+                <echo message="Сборка веб модуля ${module.name} для приложения ${application.name}"/>
+                <property name="src" value="${project.root}/${module.name}"/>
+                <property name="dst" value="${application.explode.dir}/${module.name}.war"/>
+
+                <if>
+                    <not>
+                        <equals arg1="${module.name}" arg2="WebResources"/>
+                    </not>
+                    <then>
+                        <sync todir="${dst}/WEB-INF">
+                            <fileset dir="${src}/web/WEB-INF">
+                                <or>
+                                    <filename name="*.*"/>
+                                    <filename name="tiles/tiles-components.xml"/>
+                                    <filename name="jsp/**/*.*"/>
+                                    <filename name="jsp-${current.config.name}/**/*.*"/>
+                                </or>
+                            </fileset>
+                            <fileset dir="${project.root}/WebCommon/web/WEB-INF">
+                                <include name="tld/**/*.*"                        if="need_web_common"/>
+                                <exclude name="tld/webmodule.tld"/>
+                                <include name="tiles/tiles-components.xml"        if="need_web_common_all"/>
+                                <include name="jsp/**/*.*"                        if="need_web_common_all"/>
+                                <include name="jsp-${current.config.name}/**/*.*" if="need_web_common_all"/>
+                                <include name="skin/**/*.*"                       if="need_web_common"/>
+                            </fileset>
+                            <fileset dir="${project.root}/WebCommonMobile/web/WEB-INF">
+                                <include name="tld/**/*.*"                        if="need_web_common_mobile"/>
+                                <exclude name="tld/webmodule.tld"/>
+                                <include name="jsp/**/*.*"                        if="need_web_common_mobile"/>
+                                <include name="jsp-${current.config.name}/**/*.*" if="need_web_common_mobile"/>
+                            </fileset>
+                            <fileset dir="${project.root}/WebCommonClient/web/WEB-INF">
+                                <include name="jsp/**/*.*"                        if="need_web_client_common"/>
+                            </fileset>
+                            <preserveintarget>
+                                <filename name="classes/**"/>
+                            </preserveintarget>
+                        </sync>
+
+                        <antcall target="copy_all_but_only_current_config">
+                            <param name="todir"  value="${dst}/WEB-INF/classes"/>
+                            <param name="srcdir" value="${src}/bin"/>
+                        </antcall>
+                    </then>
+                </if>
+
+                <if>
+                   <or>
+                        <!--список web моделуй для которых будем парсить web.xml-->
+                        <equals arg1="${module.name}" arg2="WebClient"/>
+                        <equals arg1="${module.name}" arg2="WebAdmin"/>
+                        <equals arg1="${module.name}" arg2="WebTest"/>
+                   </or>
+                   <then>
+
+                       <if>
+                           <not>
+                               <!--если указанно имя верси то добовляем передним слэш(для добовления к пути)-->
+                               <equals arg1="${app.version}" arg2=""/>
+                           </not>
+                           <then>
+                               <property name="additionl.path" value="/${app.version}"/>
+                           </then>
+                           <else>
+                               <property name="additionl.path" value="${app.version}"/>
+                           </else>
+                       </if>
+
+                       <copy file="${project.root}/${module.name}/web/WEB-INF/web.xml" tofile="${dst}/WEB-INF/web.xml.tmp">
+                       <filterchain>
+                           <replacetokens>
+                               <token key="additionl.path" value="${additionl.path}"/>
+                           </replacetokens>
+                       </filterchain>
+                       </copy>
+                       <delete file="${dst}/WEB-INF/web.xml"/>
+                       <copy file="${dst}/WEB-INF/web.xml.tmp" tofile="${dst}/WEB-INF/web.xml"/>
+                       <delete file="${dst}/WEB-INF/web.xml.tmp"/>
+                   </then>
+                </if>
+
+                <!-- копирование дискрипторов приложения для работы через oracle jms -->
+                <if>
+                    <istrue value="${jms.type.oracle}"/>
+                     <then>
+                        <copy todir="${dst}/WEB-INF" overwrite="true">
+                            <fileset dir="${src}/oracleJmsConfig/" erroronmissingdir="false">
+                                <include name="orion-web.xml"/>
+                                <include name="web.xml"/>
+                            </fileset>
+                        </copy>
+                    </then>
+                </if>
+
+                <!-- копирование переопределенных в Settings/configs файлов модуля -->
+                <copy todir="${dst}" overwrite="true">
+                    <fileset dir="${current.config.dir}/${module.name}" erroronmissingdir="false"/>
+                </copy>
+
+            </then>
+        </if>
+    </target>
+
+    <target name=".explode.web.module"  if="module.name">
+        <if>
+            <equals arg1="${module.name}" arg2="WebCSA" trim="true"/>
+            <then>
+                <antcall target=".explode.csa.web.module" >
+                    <param name="module.name" value="${module.name}"/>
+                </antcall>
+            </then>
+            <else>
+                <if>
+                    <or>
+                        <equals arg1="${module.name}" arg2="WebCSAMAPI"      trim="true"/>
+                        <equals arg1="${module.name}" arg2="WebCSAATM"       trim="true"/>
+                        <equals arg1="${module.name}" arg2="WebCSASocialAPI" trim="true"/>
+                    </or>
+                    <then>
+                        <antcall target=".explode.csa.channel.web.module" >
+                            <param name="module.name" value="${module.name}"/>
+                        </antcall>
+                    </then>
+                    <else>
+                        <if>
+                            <equals arg1="${module.name}" arg2="CSAAdmin" trim="true"/>
+                            <then>
+                                <antcall target=".explode.csaadmin.web.module">
+                                    <param name="module.name" value="${module.name}"/>
+                                </antcall>
+                            </then>
+                            <else>
+                                <antcall target=".explode.main.web.module" >
+                                    <param name="module.name" value="${module.name}"/>
+                                </antcall>
+                            </else>
+                        </if>
+                    </else>
+                </if>
+            </else>
+        </if>
+    </target>
+
+    <target name=".explode.web.modules" if="application.name">
+        <if>
+            <not>
+                <isset property="is.build.gates.ears"/>
+            </not>
+            <then>
+                <propertyselector property="module.list"
+                                  delimiter=","
+                                  match="ikfl\.build\.${application.name}\.web\.module\.([^\.]*)"
+                                  select="\1"
+                                  casesensitive="false"/>
+            </then>
+        </if>
+
+        <if>
+            <isset property="module.list"/>
+            <then>
+                <foreach list="${module.list}" delimiter="," target=".explode.web.module" param="module.name" inheritall="true"/>
+            </then>
+        </if>
+    </target>
+
+    <target name=".explode.ejb" if="module.name">
+        <if>
+            <isset property="is.build.gates.ears"/>
+            <then>
+                <property     name="need.jar" value="true"/>
+            </then>
+            <else>
+                <propertycopy name="need.jar" from="ikfl.build.${application.name}.ejb.module.${module.name}"/>
+            </else>
+        </if>
+
+        <if>
+            <istrue value="${need.jar}"/>
+            <then>
+                <echo message="Сборка EJB ${module.name} для приложения ${application.name}"/>
+                <copy todir="${application.explode.dir}/${module.name}.jar">
+                    <fileset dir="${project.root}/${module.name}/bin">
+                            <filename name="**/*.*"/>
+                            <filename name="**/*Test.class" negate="true"/>
+                            <filename name="**/*TestCase.class" negate="true"/>
+                            <filename name="**/*TestCaseBase.class" negate="true"/>
+                    </fileset>
+                </copy>
+
+                <!-- копирование дискрипторов приложения для работы через oracle jms либо без него в зависимости от jms.type.oracle-->
+                <if>
+                    <istrue value="${jms.type.oracle}"/>
+                     <then>
+                        <copy todir="${application.explode.dir}/${module.name}.jar/META-INF" overwrite="true">
+                            <fileset dir="${project.root}/${module.name}/oracleJmsConfig/" erroronmissingdir="false">
+                                <include name="ejb-jar.xml"/>
+                                <include name="orion-ejb-jar.xml"/>
+                            </fileset>
+                        </copy>
+                    </then>
+                    <else>
+                        <copy todir="${application.explode.dir}/${module.name}.jar/META-INF">
+                            <fileset dir="${project.root}/${module.name}/META-INF"/>
+                        </copy>
+                    </else>
+                </if>
+                <antcall target="copy-websphere-ejb-deploy-descriptors" inheritall="true">
+                    <param name="module.name"  value="${module.name}"/>
+                </antcall>
+             </then>
+        </if>
+    </target>
+
+	<target name=".explode.ejb.modules" if="application.name">
+        <if>
+            <not>
+                <isset property="is.build.gates.ears"/>
+            </not>
+            <then>
+                <propertyselector property="module.list"
+                                  delimiter=","
+                                  match="ikfl\.build\.${application.name}\.ejb\.module\.([^\.]*)"
+                                  select="\1"
+                                  casesensitive="false"/>
+            </then>
+        </if>
+
+        <if>
+            <isset property="module.list"/>
+            <then>
+                <foreach list="${module.list}" delimiter="," target=".explode.ejb" param="module.name" inheritall="true" />
+            </then>
+        </if>
+	</target>
+
+    <target name="copy_config_skins" depends="setup_project_paths" description="Копирование необходимых скинов">
+        <taskdef name="copy_config_skins" classname="com.rssl.phizic.business.ant.SkinsSyncTask"
+                classpathref="project.tasks.classpath"/>
+        <copy_config_skins
+            root="${project.root}/Settings/configs/${current.config.name}"
+            toDirPath="${toDirPath}"
+            baseSourcePath="${project.root}/WebResources/web/skins"
+            additionalPath="${additionalPath}"/>
+    </target>
+    <!-- yuicompress - для сжатия js и css файлов -->
+    <taskdef name="yuicompress" classname="com.yahoo.platform.yui.compressor.YUICompressTask">
+		<classpath>
+			<pathelement location="../Libraries/ForAnt/yuicompressor-2.4.2.jar"/>
+            <pathelement location="../Libraries/ForAnt/YUIAnt.jar"/>
+		</classpath>
+	</taskdef>
+
+    <target name=".explode.web.resources" if="application.name">
+        <if>
+            <not>
+               <equals arg1="${app.version}" arg2=""/>
+            </not>
+            <then>
+               <property name="target.web.resources.dir" value="${application.explode.dir}/WebResources.war/${app.version}"/>
+            </then>
+            <else>
+               <property name="target.web.resources.dir" value="${application.explode.dir}/WebResources.war"/>
+            </else>
+        </if>
+
+	<!-- WebResources -->
+        <if> <!-- CSS и прочее нужно только для основного приложения, остальным нужен только манифест -->
+            <equals arg1="PhizIC" arg2="${application.name}" casesensitive="true" trim="true"/>
+            <then>
+                <antcall target=".explode.web.resources.main.app">
+                    <param name="target.web.resources.dir" value="${target.web.resources.dir}"/>
+                </antcall>
+            </then>
+        </if>
+        <if>
+            <equals arg1="CSAFrontApp" arg2="${application.name}" casesensitive="true" trim="true"/>
+            <then>
+                <antcall target=".explode.web.resources.csa.app">
+                    <param name="target.web.resources.dir" value="${target.web.resources.dir}"/>
+                </antcall>
+            </then>
+        </if>
+
+        <!--web.xml нужен всем.-->
+        <mkdir dir="${application.explode.dir}/WebResources.war/WEB-INF"/>
+        <!-- CSS и прочее нужно только для основного приложения, остальным нужен только манифест -->
+        <if>
+            <available file="${project.root}/WebResources/web/WEB-INF/${application.name}" type="dir"/>
+            <then>
+                <copy todir="${application.explode.dir}/WebResources.war/WEB-INF" overwrite="true">
+                    <fileset dir="${project.root}/WebResources/web/WEB-INF/${application.name}" includes="*.*"/>
+                </copy>
+            </then>
+            <else>
+               <copy todir="${application.explode.dir}/WebResources.war/WEB-INF" overwrite="true">
+                    <fileset dir="${project.root}/WebResources/web/WEB-INF" includes="*.*"/>
+               </copy>
+            </else>
+        </if>
+
+		<pathconvert dirsep="/" pathsep=" " property="project.jars.str">
+			<path>
+				<fileset dir="${application.explode.dir}/lib"/>
+			</path>
+			<mapper>
+				<globmapper from="${application.explode.dir}/*" to="*" handledirsep="true"/>
+			</mapper>
+		</pathconvert>
+
+		<mkdir dir="${application.explode.dir}/WebResources.war/META-INF"/>
+		<manifest file="${application.explode.dir}/WebResources.war/META-INF/MANIFEST.MF">
+			<attribute name="Class-Path" value="${project.jars.str} Settings"/>
+		</manifest>
+    </target>
+
+    <target name=".explode.web.resources.main.app" depends=".init.application.configuration,setup_project_paths">
+        <sync todir="${target.web.resources.dir}">
+            <fileset dir="${project.root}/WebResources/web">
+                <or>
+                    <filename name="cabs/*.*"/>
+                    <and>
+                        <filename name="scripts/*.*"/>
+                        <not>
+                            <filename name="scripts/*.js"/>
+                        </not>
+                    </and>
+                    <filename name="mobile/**"/>
+                    <filename name="commonSkin/**"/>
+                    <filename name="systemAll.css"/>
+                    <filename name="scripts/test/*.*"/>
+                </or>
+            </fileset>
+            <preserveintarget>
+                <filename name="images/**"/>
+            </preserveintarget>
+        </sync>
+        <if>
+            <!-- debug-mode определяется в BuildModulesTask -->
+            <equals arg1="false" arg2="${debug-mode}"/>
+            <then>
+                <!-- Вариант для продакшена -->
+                <!-- Compress JavaScripts -->
+                <yuicompress munge="yes" linebreak="5000" preserveallsemicolons="yes" outputfolder="${target.web.resources.dir}/scripts">
+                    <fileset dir="${project.root}/WebResources/web/scripts">
+                        <include name="*.js"/>
+                        <include name="pfp/*.js"/>
+                        <include name="finances/*.js"/>
+                        <include name="selfRegistration/*.js"/>
+                        <include name="rsa/*.js"/>
+                        <include name="guest/*.js"/>
+                        <include name="require/**/*.js"/>
+                        <include name="test/**/*.json"/>
+                    </fileset>
+                </yuicompress>
+            </then>
+            <else>
+                <!-- Вариант для разработки -->
+                <copy todir="${target.web.resources.dir}/scripts">
+                    <fileset dir="${project.root}/WebResources/web/scripts">
+                        <include name="*.js"/>
+                        <include name="pfp/*.js"/>
+                        <include name="finances/*.js"/>
+                        <include name="selfRegistration/*.js"/>
+                        <include name="guest/*.js"/>
+                        <include name="rsa/*.js"/>
+                        <include name="require/**/*.js"/>
+                        <include name="test/**/*.json"/>
+                    </fileset>
+                </copy>
+            </else>
+        </if>
+
+        <!-- Dojo toolkit -->
+        <if>
+            <!-- debug-mode определяется в BuildModulesTask -->
+            <equals arg1="false" arg2="${debug-mode}"/>
+            <then>
+                <!-- Вариант для продакшена -->
+                <taskdef name="buildDojo" classname="com.rssl.phizic.config.ant.BuildDojoTask"
+                         classpathref="project.tasks.classpath"/>
+                <buildDojo todir="${target.web.resources.dir}/scripts"/>
+            </then>
+            <else>
+                <!-- Вариант для разработки -->
+                <copy todir="${target.web.resources.dir}/scripts">
+                    <fileset dir="${project.root}/WebResources/web/scripts">
+                        <include name="dojo/**"/>
+                        <include name="dijit/**"/>
+                        <include name="dojox/**"/>
+                        <include name="widget/**"/>
+                    </fileset>
+                </copy>
+            </else>
+        </if>
+
+        <sync todir="${target.web.resources.dir}/images">
+            <fileset dir="${project.root}/WebResources/web/images/globals"/>
+            <fileset dir="${project.root}/WebResources/web/images/${current.config.name}"/>
+        </sync>
+
+        <mkdir dir="${application.explode.dir}/WebResources.war/skins"/>
+		
+		<copy todir="${application.explode.dir}/WebResources.war" flatten="true">
+			<resources>
+				<file file="${project.root}/WebResources/web/DPmonitoring.xml"/>
+			</resources>
+		</copy>
+
+        <sync todir="${application.explode.dir}/WebResources.war/mail">
+            <fileset dir="${project.root}/WebResources/web/mail">
+                <include name="**/*.*"/>
+            </fileset>
+        </sync>
+
+        <antcall target="copy_config_skins">
+            <param name="toDirPath" value="${application.explode.dir}/WebResources.war/skins"/>
+            <param name="additionalPath" value="${app.version}"/>
+            <param name="application.name" value="${application.name}"/>
+        </antcall>
+        <!-- Compress CSS -->
+        <yuicompress munge="yes" linebreak="5000" preserveallsemicolons="yes" outputfolder="${application.explode.dir}/WebResources.war/skins">
+            <fileset dir="${application.explode.dir}/WebResources.war/skins">
+                <include name="*/*.css"/>
+                <exclude name="*/*ie*.css"/>
+            </fileset>
+        </yuicompress>
+        <!-- Compress mobile CSS -->
+        <yuicompress munge="yes" linebreak="5000" preserveallsemicolons="yes" outputfolder="${target.web.resources.dir}/mobile">
+            <fileset dir="${target.web.resources.dir}/mobile">
+                <include name="*.css"/>
+            </fileset>
+        </yuicompress>
+        <yuicompress munge="yes" linebreak="5000" preserveallsemicolons="yes" outputfolder="${target.web.resources.dir}/commonSkin">
+            <fileset  dir="${target.web.resources.dir}/commonSkin">
+                <include name="*.css"/>
+                <exclude name="*ie*.css"/>
+            </fileset>
+        </yuicompress>
+    </target>
+
+    <target name=".explode.web.resources.csa.app">
+        <sync todir="${target.web.resources.dir}">
+            <fileset dir="${project.root}/WebResources/web">
+                <filename name="systemAll.css"/>
+            </fileset>
+        </sync>
+
+        <yuicompress munge="yes" linebreak="5000" preserveallsemicolons="yes" outputfolder="${target.web.resources.dir}/scripts">
+            <fileset dir="${project.root}/WebResources/web/scripts">
+                <or>
+                    <filename name="jquery-1.4.2.js"/>
+                    <filename name="jquery.bxSlider.min.js"/>
+                    <filename name="csa/**"/>
+                    <filename name="selfRegistration/**"/>
+                    <filename name="rsa/*.js"/>
+                    <filename name="Utils.js"/>
+                    <filename name="KeyboardUtils.js"/>
+                    <filename name="iepngfix_tilebg.js"/>
+                    <filename name="windows.js"/>
+                    <filename name="json2.js"/>
+                    <filename name="DivFloat.js"/>
+                    <filename name="Templates.js"/>
+                    <filename name="select.js"/>
+                    <filename name="customPlaceholder.js"/>
+                    <filename name="PaymentsFormHelp.js"/>
+                    <filename name="serializeToWin.js"/>
+                    <filename name="complexValueIndicator.js"/>
+                    <filename name="jquery.datePicker.js"/>
+                    <filename name="jquery.tinyscrollbar.min.js"/>
+                    <filename name="jquery.maskedinput.js"/>
+                    <filename name="layout.js"/>
+                    <filename name="jquery.ifixpng.js"/>
+                    <filename name="cookies.js"/>
+                    <filename name="jquery.Jcrop.js"/>
+                    <filename name="uploaderObject.js"/>
+                </or>
+            </fileset>
+        </yuicompress>
+
+        <copy todir="${target.web.resources.dir}">
+            <fileset dir="${project.root}/WebResources/web">
+                <filename name="scripts/csa/loginPage/libs/backgroundsize.min.htc"/>
+            </fileset>
+        </copy>
+
+        <mkdir dir="${target.web.resources.dir}/skins"/>
+        <mkdir dir="${target.web.resources.dir}/skins/${current.config.name}"/>
+        <sync todir="${target.web.resources.dir}/skins/${current.config.name}">
+            <fileset dir="${project.root}/WebResources/web/skins/${current.config.name}">
+                <include name="images/*.*"/>
+                <include name="images/cards_type/*.*"/>
+                <include name="images/csa/*.*"/>
+                <include name="images/csa/unallowedBrowsers/*.*"/>
+                <include name="images/csa/loginPage/**"/>
+                <include name="fonts/csa/loginPage/*.*"/>
+                <include name="*.*"/>
+                <include name="images/close.gif"/>
+                <include name="csa/**"/>
+                <include name="images/selfRegistration/*.*"/>
+                <include name="images/guest/*.*"/>
+                <include name="selfRegistration/*.*"/>
+            </fileset>
+            <fileset dir="${project.root}/WebResources/web/skins/green">
+                <include name="window.css"/>
+            </fileset>
+            <fileset dir="${project.root}/WebResources/web/commonSkin">
+                <include name="help.css"/>
+                <include name="clear.css"/>
+                <include name="images/error.gif"/>
+            </fileset>
+        </sync>
+
+        <mkdir dir="${target.web.resources.dir}/skins/commonSkin"/>
+        <sync todir="${target.web.resources.dir}/skins/commonSkin">
+            <fileset dir="${project.root}/WebResources/web/commonSkin">
+                <include name="base.css"/>
+                <include name="commonStyle.css"/>
+                <include name="payment.css"/>
+                <include name="roundBorder.css"/>
+                <include name="indicator-complexity.css"/>
+                <include name="datePicker.css"/>
+                <include name="help.css"/>
+                <include name="clear.css"/>
+                <include name="guest.css"/>
+            </fileset>
+            <fileset dir="${project.root}/WebResources/web/commonSkin">
+                <include name="images/*.*"/>
+                <include name="images/guest/"/>
+                <include name="images/csa/icon_businessEnvironment.gif"/>
+                <include name="images/csa/logo_businessEnvironment.jpg"/>
+                <exclude name="images/guest/promo"/>
+            </fileset>
+        </sync>
+
+        <sync todir="${target.web.resources.dir}/images">
+            <fileset dir="${project.root}/WebResources/web/skins/green/images">
+                <include name="close.gif"/>
+            </fileset>
+            <fileset dir="${project.root}/WebResources/web/skins/${current.config.name}/images">
+                <include name="help-header.png"/>
+            </fileset>
+            <fileset dir="${project.root}/WebResources/web/commonSkin/images">
+                <include name="plate.png"/>
+            </fileset>
+        </sync>
+
+		<!--копируем флэш объект для фрод мониторинга-->
+        <mkdir dir="${target.web.resources.dir}/images/swf"/>
+        <sync todir="${target.web.resources.dir}/images/swf">
+            <fileset dir="${project.root}/WebResources/web/images/${current.config.name}/svf">
+                <include name="pmfso.swf"/>
+            </fileset>
+        </sync>
+
+        <copy todir="${application.explode.dir}/WebResources.war" flatten="true">
+			<resources>
+				<file file="${project.root}/WebResources/web/DPmonitoring.xml"/>
+			</resources>
+		</copy>
+
+        <yuicompress munge="yes" linebreak="5000" preserveallsemicolons="yes" outputfolder="${target.web.resources.dir}/skins">
+            <fileset dir="${target.web.resources.dir}/skins">
+                <include name="**/*.css"/>
+                <exclude name="**/*ie*.css"/>
+                <exclude name="**/csa/loginPage/adaptive.css"/>
+            </fileset>
+        </yuicompress>
+    </target>
+
+
+    <target name=".explode.gate" if="module.name">
+        <echo message="Сборка шлюза ${module.name}"/>
+        <jar destfile="${temp.module.explode.dir}/lib/phizic/${module.name}.jar" basedir="${project.root}/${module.name}/bin"/>
+    </target>
+
+
+    <target name=".copy.gate" if="module.name">
+        <if>
+            <isset property="is.build.gates.ears"/>
+            <then>
+                <property     name="need.jar" value="true"/>
+            </then>
+            <else>
+                <propertycopy name="need.jar" from="ikfl.build.${application.name}.gate.module.${module.name}"/>
+            </else>
+        </if>
+
+        <if>
+            <istrue value="${need.jar}"/>
+            <then>
+                <echo message="Копирование шлюза ${module.name} для приложения ${application.name}"/>
+                <copy file="${temp.module.explode.dir}/lib/phizic/${module.name}.jar"
+                      tofile="${application.explode.dir}/lib/phizic/${module.name}.jar"
+                      overwrite="true"/>
+             </then>
+        </if>
+    </target>
+
+    <target name=".explode.gates" if="temp.module.explode.dir">
+        <foreach list="${full.gate.module.list}" delimiter="," target=".explode.gate" param="module.name" inheritall="true"/>
+    </target>
+
+    <target name=".copy.gates" if="application.name">
+        <if>
+            <not>
+                <isset property="is.build.gates.ears"/>
+            </not>
+            <then>
+                <propertyselector property="module.list"
+                                  delimiter=","
+                                  match="ikfl\.build\.${application.name}\.gate\.module\.([^\.]*)"
+                                  select="\1"
+                                  casesensitive="false"/>
+            </then>
+        </if>
+
+        <if>
+            <isset property="module.list"/>
+            <then>
+                <foreach list="${module.list}" delimiter="," target=".copy.gate" param="module.name" inheritall="true"/>
+            </then>
+        </if>
+    </target>
+
+    <!-- сборка модуля -->
+    <target name=".explode.module" if="module.name">
+        <echo message="Сборка модуля ${module.name}"/>
+            <jar destfile="${temp.module.explode.dir}/lib/phizic/${module.name}.jar">
+                <fileset dir="${project.root}/${module.name}/bin">
+                    <and>
+                        <filename name="**/*.*"/>
+                            <not>
+                                <and>
+                                    <filename name="**/ext/${current.config.name}/**/*.*" negate="true"/>
+                                    <filename name="**/ext/**/*.*"/>
+                                </and>
+                            </not>
+                        <filename name="**/*Test.class" negate="true"/>
+                        <filename name="**/*TestCase.class" negate="true"/>
+                        <filename name="**/*TestCaseBase.class" negate="true"/>
+                    </and>
+                </fileset>
+                 <!-- копирование переопределенных в Settings/configs файлов модуля -->
+                <fileset dir="${settings.dir}/configs/${current.config.name}/${module.name}" erroronmissingdir="false"/>
+            </jar>
+    </target>
+    <!-- копирование модуля если надо приложению-->
+    <target name=".copy.module" if="module.name">
+        <if>
+            <isset property="is.build.gates.ears"/>
+            <then>
+                <property     name="need.jar" value="true"/>
+            </then>
+            <else>
+                <propertycopy name="need.jar" from="ikfl.build.${application.name}.jar.module.${module.name}"/>
+            </else>
+        </if>
+
+        <if>
+            <istrue value="${need.jar}"/>
+            <then>
+                  <echo message="Коприование модуля ${module.name} в приложение ${application.name}"/>
+                  <copy file="${temp.module.explode.dir}/lib/phizic/${module.name}.jar"
+                        tofile="${application.explode.dir}/lib/phizic/${module.name}.jar"
+                        overwrite="true"/>
+             </then>
+        </if>
+    </target>
+    <!--собирает все модуле необходимые для приложениий собираемой конфигурации -->
+    <target name=".explode.modules" if="temp.module.explode.dir">
+        <if>
+            <isset property="full.module.list"/>
+            <then>
+                <foreach list="${full.module.list}" delimiter="," target=".explode.module" param="module.name" inheritall="true"/>
+            </then>
+        </if>
+    </target>
+
+    <!--копирует все модули необходимые конкретному приложению -->
+    <target name=".copy.modules" if="application.name">
+        <if>
+            <not>
+                <isset property="is.build.gates.ears"/>
+            </not>
+            <then>
+                <propertyselector property="module.list"
+                                  delimiter=","
+                                  match="ikfl\.build\.${application.name}\.jar\.module\.([^\.]*)"
+                                  select="\1"
+                                  casesensitive="false"/>
+            </then>
+        </if>
+
+        <if>
+            <isset property="module.list"/>
+            <then>
+                <foreach list="${module.list}" delimiter="," target=".copy.module" param="module.name" inheritall="true"/>
+            </then>
+        </if>
+    </target>
+
+    <target name=".explode.rar" if="module.name">
+        <if>
+            <isset property="is.build.gates.ears"/>
+            <then>
+                <property     name="need.jar" value="true"/>
+            </then>
+            <else>
+                <propertycopy name="need.jar" from="ikfl.build.${application.name}.rar.module.${module.name}"/>
+            </else>
+        </if>
+
+        <if>
+            <and>
+                <istrue value="${need.jar}"/>
+                <!--сейчас нужно только для oracle jms -->
+                <istrue value="${jms.type.oracle}"/>
+            </and>
+            <then>
+                <echo message="Сборка ресурс адаптера ${module.name} для приложения ${application.name}"/>
+                <jar destfile="${application.explode.dir}/${module.name}.rar">
+                    <fileset dir="${project.root}/${module.name}/">
+                        <filename name="**/*.*"/>
+                    </fileset>
+                </jar>
+             </then>
+        </if>
+    </target>
+
+    <target name=".explode.rars" if="application.name">
+        <if>
+            <not>
+                <isset property="is.build.gates.ears"/>
+            </not>
+            <then>
+                <propertyselector property="module.list"
+                                  delimiter=","
+                                  match="ikfl\.build\.${application.name}\.rar\.module\.([^\.]*)"
+                                  select="\1"
+                                  casesensitive="false"/>
+            </then>
+        </if>
+
+        <if>
+            <isset property="module.list"/>
+            <then>
+                <foreach list="${module.list}" delimiter="," target=".explode.rar" param="module.name" inheritall="true"/>
+            </then>
+        </if>
+    </target>
+
+    <target name=".explode.libraries" if="application.explode.dir">
+        <copy todir="${application.explode.dir}/lib" flatten="true">
+            <fileset dir="${project.root}/Libraries" includes="*/*.jar"
+                     excludes="For*/,JUnit/,JDBC/,J2EE/,JTA/,JAXRPC/,JavaMail/,Retail/,websphere/"/>
+        </copy>
+    </target>
+
+    <target name=".explode.application" depends=".init.application.configuration,setup_project_paths" if="application.name">
+        <if>
+            <not>
+                <or>
+                    <isset property="ikfl.build.${application.name}.global.config.dir"/>
+                    <isset property="ikfl.build.${application.name}.current.config.dir"/>
+                </or>
+            </not>
+            <then>
+                <property name="global.config.dir"  value="${settings.dir}/configs/global/gate/"/>
+                <property name="current.config.dir" value="${settings.dir}/configs/${current.config.name}/${application.name}"/>
+            </then>
+            <else>
+                <propertycopy name="global.config.dir" from="ikfl.build.${application.name}.global.config.dir"/>
+                <propertycopy name="current.config.dir" from="ikfl.build.${application.name}.current.config.dir"/>
+            </else>
+        </if>
+
+        <echo message="Сборка приложения ${application.name}"/>
+        <echo message="Explode dir:           ${application.explode.dir}"/>
+        <echo message="Global configs dir:    ${global.config.dir}"/>
+        <echo message="Custom configs dir:    ${current.config.dir}"/>
+
+        <antcall target=".create.exploded.structure">
+            <param name="application.explode.dir" value="${application.explode.dir}"/>
+        </antcall>
+
+        <antcall target=".explode.libraries" inheritall="true"/>
+        <antcall target=".explode.libraries.websphere" inheritall="true"/>
+        <antcall target=".copy.modules" inheritall="true"/>
+        <antcall target=".explode.web.modules" inheritall="true"/>
+        <antcall target=".explode.rars" inheritall="true"/>
+        <antcall target=".explode.ejb.modules" inheritall="true"/>
+        <antcall target=".copy.gates" inheritall="true"/>
+
+        <taskdef name="BuildModules"
+                 classname="com.rssl.phizic.config.ant.BuildModulesTask">
+            <classpath>
+                <fileset dir="${project.root}/Libraries" includes="*/*.jar"/>
+                <dirset dir="${project.root}" includes="*/bin"/>
+            </classpath>
+        </taskdef>
+        <BuildModules
+            confDir="${current.config.dir}"
+            destDir="${application.explode.dir}"
+            tempDir="${temp.module.explode.dir}/lib/phizic"/>
+
+        <antcall target=".explode.web.resources" inheritall="true"/>
+    </target>
+
+    <target name = ".explode.by.config" if=".config.name">
+        <propertyregex property="application.name"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false" />
+
+        <propertyregex property="ear.suffix"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false"/>
+
+        <antcall target=".explode.application">
+            <param name="application.name" value="${application.name}"/>
+            <param name="ear.suffix" value="${ear.suffix}"/>
+        </antcall>
+    </target>
+
+    <target name="moduleList" description="Получение полного списка модулей из buildIKFL.properties">
+       <propertyselector property="full.module.list.temp"
+                 delimiter=","
+                 match="${pattern}"
+                 select="\0"
+                 casesensitive="false"/>
+
+        <var name="modulenames" value= "," />
+        <for list="${full.module.list.temp}" delimiter="," param="module">
+          <sequential>
+             <propertycopy name="moduleProp" from="@{module}" override="true"/>
+             <if>
+                <istrue value="${moduleProp}"/>
+                <then>
+                    <propertyregex
+                            property="temp.module.name"
+                            override="true"
+                            input="@{module}"
+                            regexp="${pattern}"
+                            select="\2"
+                            casesensitive="false"
+                            />
+                    <if>
+                        <not>
+                            <contains string="${modulenames}" substring=",${temp.module.name}," casesensitive="false"/>
+                        </not>
+                        <then>
+                            <var name="modulenames" value= "${modulenames}${temp.module.name},"/>
+                        </then>
+                    </if>
+                </then>
+             </if>
+          </sequential>
+        </for>
+        <property name="result" value= "${modulenames}"/>
+        <mkdir dir="${settings.dir}/bin"/>
+        <propertyfile file="${settings.dir}/bin/tmp.properties" comment="Current tmp storage">
+             <entry key="${resultName}" value="${modulenames}"/>
+          </propertyfile>
+    </target>
+
+    <target name="explode" depends="init.configuration" description="Создание образов приложений для развертывания">
+
+         <antcall target=".create.exploded.structure">
+            <param name="application.explode.dir" value="${temp.module.explode.dir}"/>
+        </antcall>
+
+        <antcall target="moduleList" inheritall="true" inheritrefs="true">
+            <param name="pattern" value="ikfl\.build\.([^\.]*)\.jar\.module\.([^\.]*)"/>
+            <param name="resultName" value="full.module.list"/>
+        </antcall>
+
+        <antcall target="moduleList" inheritall="true" inheritrefs="true">
+            <param name="pattern" value="ikfl\.build\.([^\.]*)\.gate\.module\.([^\.]*)"/>
+            <param name="resultName" value="full.gate.module.list"/>
+        </antcall>
+
+        <property file="${settings.dir}/bin/tmp.properties"/>
+
+        <echo message="Сборка модулей приложений"/>
+        <echo message="Temp module Explode dir:${temp.module.explode.dir}"/>
+        <echo message="Full module list:    ${full.module.list}"/>
+        <echo message="Full gate list:    ${full.gate.module.list}"/>
+        <antcall target=".explode.modules" inheritall="true"/>
+        <antcall target=".explode.gates" inheritall="true"/>
+
+        <!-- формируем список конфигурационных файлов, для приложений которые надо собрать -->
+        <var name="filenames" value= "" />
+        <for list="${ikfl.build.app}" delimiter="," param="app">
+          <sequential>
+              <var name="filenames" value= "${filenames}${current.config.name}.@{app}.properties|"/>
+          </sequential>
+        </for>
+        <property name=".aplications.configs.list" value= "${filenames}" />
+
+        <foreach list="${.aplications.configs.list}" delimiter="|" target=".explode.by.config" param=".config.name" inheritall="true"/>
+
+        <antcall target="explode.gate.ears"/>
+    </target>
+
+    <!--
+       Собирает ear файлы для всех гейтов. Собирает исходя из того, что указанно в earsGateConfig.xml.
+       Для работы с xml используется сторонняя библиотека(таск)
+    -->
+    <target name="explode.gate.ears" if="build.gates.by.earGatesConfig">
+        <property name="is.build.gates.ears" value="true"/>
+
+        <antcall target=".create.exploded.structure">
+            <param name="application.explode.dir" value="${temp.module.explode.dir}"/>
+        </antcall>
+
+        <taskdef name="xmlTask" classname="com.oopsconsultancy.xmltask.ant.XmlTask">
+            <classpath>
+                <path>
+                    <fileset dir="${basedir}/../Libraries/ForAnt"/>
+                </path>
+            </classpath>
+        </taskdef>
+
+         <!--Разбираем конфигурационные файлы-->
+         <xmlTask source="${earGatesConfig}">
+            <call path="groups/group">
+              <param name="group-name" path="@name"/>
+
+                  <actions>
+                     <var name="earsList" value="${earsList}@{group-name}"/>
+                     <antcall target="read.gates.web.modules">
+                        <param name="group-name"  value="@{group-name}"/>
+                     </antcall>
+
+                     <antcall target="read.gates.other.modules">
+                        <param name="group-name"  value="@{group-name}"/>
+                        <param name="rootElement" value="contexts"/>
+                        <param name="element"     value="context"/>
+                     </antcall>
+
+                     <antcall target="read.gates.other.modules">
+                        <param name="group-name"  value="@{group-name}"/>
+                        <param name="rootElement" value="gate-modules"/>
+                        <param name="element"     value="module"/>
+                     </antcall>
+
+                     <antcall target="read.gates.other.modules">
+                        <param name="group-name"  value="@{group-name}"/>
+                        <param name="rootElement" value="jar-modules"/>
+                        <param name="element"     value="module"/>
+                     </antcall>
+
+                     <antcall target="read.gates.other.modules">
+                        <param name="group-name"  value="@{group-name}"/>
+                        <param name="rootElement" value="ejb-modules"/>
+                        <param name="element"     value="module"/>
+                     </antcall>
+
+                     <antcall target="read.gates.other.modules">
+                        <param name="group-name"  value="@{group-name}"/>
+                        <param name="rootElement" value="rar-modules"/>
+                        <param name="element"     value="module"/>
+                     </antcall>
+
+                     <antcall target="explode.gate" inheritall="true">
+                        <param name="application.name" value="@{group-name}"/>
+                     </antcall>
+                  </actions>
+           </call>
+        </xmlTask>
+    </target>
+
+    <!--
+        Формирует ear`ники для текущей группы.
+    -->
+    <target name="explode.gate">
+        <property file="${temp.module.explode.dir}/temporary.properties"/>
+
+        <foreach  list="${contexts}"
+                  param="context"
+                  delimiter=","
+                  target="explode.gates.by.context"
+                  inheritall="true"/>
+    </target>
+    <!--
+        Следующие 2 задачи собирают и/или копируют необходимые для работы библиотеки.
+    -->
+    <target name="explode.gates.by.context">
+        <antcall target=".explode.modules">
+           <param name="full.module.list" value="${jar-modules}"/>
+        </antcall>
+
+        <antcall target=".explode.modules">
+            <param name="full.module.list" value="${gate-modules}"/>
+        </antcall>
+
+        <antcall target="explode.gate.content">
+            <param name="application.name"        value="${context}"/>
+            <param name="application.explode.dir" value="${basedir}/../${context}.ear"/>
+
+            <param name="jar.list"  value="${jar-modules}"/>
+            <param name="web.list"  value="${web-uri}"/>
+            <param name="rar.list"  value="${rar-modules}"/>
+            <param name="ejb.list"  value="${ejb-modules}"/>
+            <param name="gate.list" value="${gate-modules}"/>
+        </antcall>
+    </target>
+    <!-- -->
+    <target name="explode.gate.content">
+        <antcall target=".create.exploded.structure">
+            <param name="application.explode.dir" value="${application.explode.dir}"/>
+        </antcall>
+
+        <antcall target=".explode.libraries"            inheritall="true"/>
+        <antcall target=".explode.libraries.websphere"  inheritall="true"/>
+        <antcall target=".copy.modules"                 inheritall="true">
+            <param name="module.list" value="${jar.list}"/>
+        </antcall>
+        <antcall target=".explode.web.modules"          inheritall="true">
+            <param name="module.list" value="${web.list}"/>
+        </antcall>
+        <antcall target=".explode.rars"                 inheritall="true">
+            <param name="module.list" value="${rar.list}"/>
+        </antcall>
+        <antcall target=".explode.ejb.modules"          inheritall="true">
+            <param name="module.list" value="${ejb.list}"/>
+        </antcall>
+        <antcall target=".copy.gates"                   inheritall="true">
+            <param name="module.list" value="${gate.list}"/>
+        </antcall>
+
+        <taskdef name="BuildModules"
+                 classname="com.rssl.phizic.config.ant.BuildModulesTask">
+            <classpath>
+                <fileset dir="${basedir}/../Libraries" includes="*/*.jar"/>
+                <dirset  dir="${basedir}/../" includes="*/bin"/>
+            </classpath>
+        </taskdef>
+
+        <BuildModules
+            confDir="${current.config.dir}"
+            destDir="${application.explode.dir}"
+            tempDir="${temp.module.explode.dir}/lib/phizic"/>
+
+        <antcall target=".explode.web.resources"        inheritall="true"/>
+    </target>
+
+</project>

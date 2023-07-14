@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="opening"
+		description="Заявка на открытие депозитного вклада"
+		>
+	<implementation class="com.rssl.phizic.business.deposits.claims.OpeningDepositClaim"/>
+	<sender class="com.rssl.phizic.business.payments.forms.meta.NullSender"/>
+	<fields>
+		<field
+			name="product"
+			description="Депозитный продукт"
+			type="string"
+			source="product">
+		</field>
+        <field
+			name="currency"
+			description="Валюта"
+			type="string"
+			source="currency">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+        <field
+		    name="period"
+		    description="Срок вклада"
+		    type="string"
+		    source="period">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+        <field name="amount"
+			description="Сумма"
+			source="amount"
+			type="money">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение суммы должно быть в диапазоне 0,01 - 999999999,99"/>
+                </validator>
+            </validators>
+		</field>
+		<field
+			name="fromAccount"
+			description="Счет списания"
+			type="string"
+			source="fromAccount">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.UserAccountValidator"/>
+			</validators>
+		</field>
+		<field
+			name="toAccount"
+			description="Счет зачисления"
+			type="string"
+			source="toAccount">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.UserAccountValidator"/>
+			</validators>
+		</field>
+		<field
+			name="minAmount"
+			type="money"
+			source="minAmount">
+		</field>
+
+	</fields>
+	<form-validators>
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">fromAccount</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+		<form-validator class="com.rssl.common.forms.validators.CompareValidator">
+			<message text="Сумма вклада не может быть меньше минимальной"/>
+			<field-ref name="obj1">minAmount</field-ref>
+			<field-ref name="obj2">amount</field-ref>
+			<parameter name="operator">le</parameter>
+		</form-validator>
+	</form-validators>
+</payment-form>

@@ -1,0 +1,153 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class table="CARD_OPERATION_CATEGORIES_RES" name="com.rssl.phizic.business.dictionaries.finances.locale.CardOperationCategoryResources">
+        <composite-id>
+            <key-property name="id"        column="ID"         type="long"/>
+            <key-property name="localeId"  column="LOCALE_ID"  type="string"/>
+        </composite-id>
+        <property name="name" column="NAME" type="string" not-null="true"/>
+    </class>
+
+    <class table="CARD_OPERATION_CATEGORIES" name="com.rssl.phizic.business.dictionaries.finances.locale.LocaledCardOperationCategory" mutable="false">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CARD_OPERATION_CATEGORIES</param>
+            </generator>
+	    </id>
+		<property name="name" type="string" column="NAME" not-null="true"/>
+	    <property name="income" type="boolean" column="INCOME" not-null="true"/>
+        <property name="cash" type="boolean" column="CASH" not-null="true"/>
+        <property name="cashless" type="boolean" column="CASHLESS" not-null="true"/>
+        <property name="visible" type="boolean" column="VISIBLE" not-null="false"/>
+        <property name="ownerId" type="long" column="LOGIN_ID" not-null="false"/>
+        <property name="externalId" type="string" column="EXTERNALID"/>
+        <property name="incompatibleOperationsAllowed" type="boolean" column="ALLOW_INCOMPATIBLE_OPERATIONS" not-null="true"/>
+        <property name="isDefault" type="boolean" column="IS_DEFAULT" not-null="false"/>
+        <property name="forInternalOperations" type="boolean" column="FOR_INTERNAL_OPERATIONS" not-null="true"/>
+        <property name="isTransfer" type="boolean" column="IS_TRANSFER" not-null="true"/>
+        <property name="idInmAPI" type="string" column="ID_IN_MAPI" not-null="false"/>
+        <property name="color" type="string" column="COLOR" not-null="false"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.finances.locale.CardOperationCategoryResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <!-- Ищет АЛФ категорию для услуги по коду услуги
+    Опорный объект: PK_PAYMENT_SERV_TO_CATEGORIES
+    Предикаты доступа: ("PAYMENTSERVICECATEGORY"."SERVICE_CODE"=:EXTRA_SERVICECODE), ("PAYMENTSERVICECATEGORY_RES".LOCALE_ID=:EXTRA_LOCALEID), ("PAYMENTSERVICECATEGORY".ID="PAYMENTSERVICECATEGORY_RES".ID)
+    Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.findCardOperationCategoryByServiceCode.multilocale">
+        <return alias="cardOpCategory" class="com.rssl.phizic.business.dictionaries.finances.locale.LocaledCardOperationCategory"/>
+        <return-join alias="cardOpCategoryRes" property="cardOpCategory.resources"/>
+        SELECT {cardOpCategory.*}, {cardOpCategoryRes.*}
+        FROM CARD_OPERATION_CATEGORIES cardOpCategory left join CARD_OPERATION_CATEGORIES_RES cardOpCategoryRes on cardOpCategory.ID = cardOpCategoryRes.ID and cardOpCategoryRes.LOCALE_ID = :extra_localeId
+        JOIN PAYMENT_SERVICES_TO_CATEGORIES paymentServiceCategory ON cardOpCategory.ID = paymentServiceCategory.CATEGORY_ID
+        WHERE paymentServiceCategory.SERVICE_CODE = :extra_serviceCode
+    </sql-query>
+
+    <!-- Список категорий операций, доступных пользователю
+    Опорный объект: PK_PAYMENT_SERV_TO_CATEGORIES
+    Предикаты доступа: ("PAYMENTSERVICECATEGORY"."LOGINID"=:EXTRA_LOGINID), ("PAYMENTSERVICECATEGORY_RES".LOCALE_ID=:EXTRA_LOCALEID), ("PAYMENTSERVICECATEGORY".ID="PAYMENTSERVICECATEGORY_RES".ID)
+    Кардинальность: количество категорий операций, доступных пользователю
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.finances.getPersonAvailableCategories.multilocale">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.locale.LocaledCardOperationCategory"/>
+        <return-join alias="categoryRes" property="category.resources"/>
+        <![CDATA[
+            select {category.*}, {categoryRes.*}
+            from CARD_OPERATION_CATEGORIES category left join CARD_OPERATION_CATEGORIES_RES categoryRes on category.ID = categoryRes.ID and categoryRes.LOCALE_ID = :extra_localeId
+            where nvl(LOGIN_ID, -1) in (:extra_loginId, -1)
+            and category.VISIBLE = '1'
+        ]]>
+    </sql-query>
+
+    <!-- Список категорий операций без "owner" (загружены при помощи "_Load3_Dictionaries")
+    Опорный объект: PK_PAYMENT_SERV_TO_CATEGORIES
+    Предикаты доступа: ("PAYMENTSERVICECATEGORY"."LOGINID"=NULL), ("PAYMENTSERVICECATEGORY_RES".LOCALE_ID=:EXTRA_LOCALEID), ("PAYMENTSERVICECATEGORY".ID="PAYMENTSERVICECATEGORY_RES".ID)
+    Кардинальность: количество категорий операций, без "owner"
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.finances.getOperationCategoriesWithOwnerNull.multilocale">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.locale.LocaledCardOperationCategory"/>
+        <return-join alias="categoryRes" property="category.resources"/>
+        <![CDATA[
+            select {category.*}, {categoryRes.*}
+            from CARD_OPERATION_CATEGORIES category left join CARD_OPERATION_CATEGORIES_RES categoryRes on category.ID = categoryRes.ID and categoryRes.LOCALE_ID = :extra_localeId
+            where nvl(LOGIN_ID, -1) = -1
+            order by decode(translate(EXTERNALID, '_0123456789', '_'), null, to_number(EXTERNALID)), EXTERNALID
+        ]]>
+    </sql-query>
+
+    <!-- Список категорий операций, доступных пользователю, с указанием типа доходности
+    Опорный объект: PK_PAYMENT_SERV_TO_CATEGORIES
+    Предикаты доступа: ("PAYMENTSERVICECATEGORY"."LOGINID"=NULL || "PAYMENTSERVICECATEGORY"."LOGINID"=:EXTRA_LOGINID), ("PAYMENTSERVICECATEGORY_RES".LOCALE_ID=:EXTRA_LOCALEID), ("PAYMENTSERVICECATEGORY".ID="PAYMENTSERVICECATEGORY_RES".ID)
+    Кардинальность: количество категорий операций, доступных пользователю
+    -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getCardOperationCategories.multilocale">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.locale.LocaledCardOperationCategory"/>
+        <return-join alias="categoryRes" property="category.resources"/>
+        <![CDATA[
+            select {category.*}, {categoryRes.*}
+            from CARD_OPERATION_CATEGORIES category left join CARD_OPERATION_CATEGORIES_RES categoryRes on category.ID = categoryRes.ID and categoryRes.LOCALE_ID = :extra_localeId
+            where nvl(LOGIN_ID, -1) in (:extra_loginId, -1)
+            and income = :extra_income
+            and visible = '1'
+            ORDER BY nvl(LOGIN_ID, -1)
+        ]]>
+    </sql-query>
+
+
+    <!-- Ищет АЛФ категорию для первой услуги заданного провайдера
+    Опорный объект: SK_SERV_PROVIDER_PAYMENT_SERV
+    Предикаты доступа: access(("PROVSERV"."SERVICE_PROVIDER_ID"=TO_NUMBER(:PROVIDERID), (("PAYMENTSERVICECATEGORY_RES".LOCALE_ID=:EXTRA_LOCALEID), ("PAYMENTSERVICECATEGORY".ID="PAYMENTSERVICECATEGORY_RES".ID))
+    Кардинальность: 1 (выставлен параметр MaxResults = 1)
+-->
+    <sql-query name="com.rssl.phizic.business.dictionaries.providers.ServiceProvider.getCardOperationCategories.multilocale">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.locale.LocaledCardOperationCategory"/>
+        <return-join alias="categoryRes" property="category.resources"/>
+        <![CDATA[
+            select
+                {category.*}, {categoryRes.*}
+            from
+                CARD_OPERATION_CATEGORIES category  left join CARD_OPERATION_CATEGORIES_RES categoryRes on category.ID = categoryRes.ID and categoryRes.LOCALE_ID = :extra_localeId
+            inner join
+                PAYMENT_SERVICES_TO_CATEGORIES paymentCategory on category.ID = paymentCategory.CATEGORY_ID
+            inner join
+                PAYMENT_SERVICES paymentService on paymentCategory.SERVICE_CODE = paymentService.CODE
+            inner join
+                SERV_PROVIDER_PAYMENT_SERV provServ on paymentService.ID = provServ.PAYMENT_SERVICE_ID
+            where
+                provServ.SERVICE_PROVIDER_ID = :extra_providerId
+        ]]>
+    </sql-query>
+
+    <!-- Список категорий операций, доступных пользователю, с указанием типа доходности и признаком необходимости получать категории для переводов
+    Опорный объект: PK_PAYMENT_SERV_TO_CATEGORIES
+    Предикаты доступа: ("PAYMENTSERVICECATEGORY"."INCOME"=:EXTRA_INCOME), ("PAYMENTSERVICECATEGORY"."LOGINID"=NULL || "PAYMENTSERVICECATEGORY"."LOGINID"=:EXTRA_LOGINID), ("PAYMENTSERVICECATEGORY"."IS_TRANSFER"=0 || "PAYMENTSERVICECATEGORY"."IS_TRANSFER"=:EXTRA_IS_TRANSFER)("PAYMENTSERVICECATEGORY_RES".LOCALE_ID=:EXTRA_LOCALEID), ("PAYMENTSERVICECATEGORY".ID="PAYMENTSERVICECATEGORY_RES".ID)
+    Кардинальность: количество категорий операций, доступных пользователю
+    -->
+    <sql-query name="com.rssl.phizic.business.finances.CardOperationService.getCardOperationCategoriesByShowTransfers.multilocale">
+        <return alias="category" class="com.rssl.phizic.business.dictionaries.finances.locale.LocaledCardOperationCategory"/>
+        <return-join alias="categoryRes" property="category.resources"/>
+        <![CDATA[
+            select {category.*}, {categoryRes.*}
+            from CARD_OPERATION_CATEGORIES category   left join CARD_OPERATION_CATEGORIES_RES categoryRes on category.ID = categoryRes.ID and categoryRes.LOCALE_ID = :extra_localeId
+            where nvl(LOGIN_ID, -1) in (:extra_loginId, -1)
+            and income = :extra_income
+            and (IS_TRANSFER = '0' OR IS_TRANSFER = :extra_showTransfer)
+            and visible = '1'
+            ORDER BY nvl(LOGIN_ID, -1)
+        ]]>
+    </sql-query>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+
+</hibernate-mapping>

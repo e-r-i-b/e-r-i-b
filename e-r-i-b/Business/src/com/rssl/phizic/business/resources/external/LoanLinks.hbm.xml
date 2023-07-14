@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="PersonRole" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.loans.PersonLoanRole</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+   <class name="com.rssl.phizic.business.resources.external.LoanLink"
+           table="LOAN_LINKS" >
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_LOAN_LINKS</param>
+            </generator>
+        </id>
+        <property name="externalId"     column="EXTERNAL_ID"/>
+        <property name="loginId" type="long" not-null="true" column="LOGIN_ID" />
+	    <property name="number"     type="string"     not-null="false"  column="ACCOUNT_NUMBER"/>
+        <property name="name"       type="string"     not-null="false"  column="LOAN_NAME"/>
+        <property name="showInMain" type="boolean"    not-null="true"   column="SHOW_IN_MAIN"/>
+        <property name="showInSystem" type="boolean"  not-null="true"   column="SHOW_IN_SYSTEM"/> 
+        <property name="showInSms" type="boolean"  not-null="true"   column="SHOW_IN_SMS" access="field"/>
+        <property name="personRole" type="PersonRole"  not-null="true"   column="PERSON_ROLE"/>
+        <property name="showOperations" type="boolean"  not-null="true"   column="SHOW_OPERATIONS"/>
+        <property name="showInMobile"   type="boolean"  not-null="true"  column="SHOW_IN_MOBILE"/>
+        <property name="showInSocial"   type="boolean"  not-null="true"  column="SHOW_IN_SOCIAL"/>
+        <property name="ermbNotification" type="boolean"    not-null="true"   column="ERMB_NOTIFICATION" access="field"/>
+        <property name="ermbSmsAlias" type="string" not-null="false" column="ERMB_SMS_ALIAS"/>
+        <property name="autoSmsAlias" type="string" not-null="false" column="SMS_AUTO_ALIAS"/>
+        <property name="showInATM"   type="boolean"  not-null="true"  column="SHOW_IN_ATM"/>
+        <property name="positionNumber" type="integer"  not-null="false"  column="POSITION_NUMBER"/>
+        <property name="closedState"  type="boolean"  not-null="false"  column="CLOSED_STATE"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.resources.external.LoanLink.list">
+        select link
+        from   com.rssl.phizic.business.resources.external.LoanLink link
+        where  link.loginId = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.LoanLink.list.inSystem">
+        select link
+        from   com.rssl.phizic.business.resources.external.LoanLink link
+        where  link.loginId = :login and link.showInSystem =true
+        order by positionNumber
+    </query>
+    
+    <query name="com.rssl.phizic.business.resources.external.LoanLink.list.inMobile">
+        select link
+        from   com.rssl.phizic.business.resources.external.LoanLink link
+        where  link.loginId = :login and link.showInMobile = true
+    </query>
+
+    <!--
+        Опорный объект: DXFK_LOANLINKS_TO_LOGINS
+        Предикаты доступа: INDEX RANGE SCAN
+        Кардинальность: Количество линков клиента
+    -->
+    <query name="com.rssl.phizic.business.resources.external.LoanLink.list.inSocial">
+        select link
+        from   com.rssl.phizic.business.resources.external.LoanLink link
+        where  link.loginId = :login and link.showInSocial = true
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.LoanLink.list.inATM">
+        select link
+        from   com.rssl.phizic.business.resources.external.LoanLink link
+        where  link.loginId = :login and link.showInATM = true
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.LoanLink.getOwnersIds">
+        select loan.loginId from com.rssl.phizic.business.resources.external.LoanLink loan
+        where loan.number = :number
+    </query>
+
+    <!--
+        Опорный объект: IND_NUMB_LOGIN_ID
+        Предикаты доступа: access("LINK"."ACCOUNT_NUMBER"=:LOANNUMBER)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.resources.external.LoanLink.setFalseClosedState">
+        update LOAN_LINKS link set link.CLOSED_STATE = '0'
+            where link.CLOSED_STATE = '1' and link.ACCOUNT_NUMBER = :extra_loanNumber
+    </sql-query>
+</hibernate-mapping>

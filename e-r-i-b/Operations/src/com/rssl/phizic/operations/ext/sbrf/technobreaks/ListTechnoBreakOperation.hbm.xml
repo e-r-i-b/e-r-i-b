@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <query name="com.rssl.phizic.operations.ext.sbrf.technobreaks.ListTechnoBreakOperation.list">
+        <![CDATA[
+         select technoBreak from com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak technoBreak
+         where (:extra_externalSystemId is null or technoBreak.adapterUUID = :extra_externalSystemId)
+         and (:extra_periodic is null or technoBreak.periodic = :extra_periodic)
+         and ((technoBreak.status = 'ENTERED' and :extra_autoBreaks = true and technoBreak.autoEnabled = true) or
+                 (:extra_onlyWorking = true) and (technoBreak.status = 'ENTERED' and technoBreak.fromDate <= :extra_currentDate and :extra_currentDate <= technoBreak.toDate) or
+                 (:extra_onlyWorking = false) and (:extra_fromDate is null or technoBreak.toDate >= :extra_fromDate) and (:extra_toDate is null or technoBreak.fromDate <= :extra_toDate)
+         )
+         and (:extra_like_message is null or technoBreak.message = '' or upper(technoBreak.message) like upper(:extra_like_message))
+         order by technoBreak.fromDate asc
+        ]]>
+    </query>
+</hibernate-mapping>

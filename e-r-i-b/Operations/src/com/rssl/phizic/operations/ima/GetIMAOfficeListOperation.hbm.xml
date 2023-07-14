@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.ima.GetIMAOfficeListOperation.list">
+        <return alias="department" class="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment"/>
+        SELECT
+            {department.*}
+        FROM DEPARTMENTS department
+        WHERE
+           department.TB = :tb AND
+           nvl(department.OSB, 'NULL') = :osb AND
+           nvl(department.OFFICE, 'NULL') != 'NULL' AND
+           department.IS_OPEN_IMA_OFFICE = 1 AND
+           (:extra_like_name is null or upper(department.NAME) like upper(:extra_like_name))
+    </sql-query>
+</hibernate-mapping>

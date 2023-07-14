@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+<!--
+Ант предназначен для самостоятельного редеплоя еарников вне проекта.
+Запускается через ws_ant.bat (или ws_ant.sh):
+<WAS_HOME>/bin/ws_ant.bat -f <путь к папке websphere>/ws_redeploy.ant
+
+-->
+<project name="ws_redeploy" default="redeployAllApplications">
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties" description="Библиотека условий Ant-Contrib Tasks">
+          <classpath>
+            <pathelement location="lib/ant-contrib-1.0b3.jar"/>
+          </classpath>
+    </taskdef>
+    <property  file = 'ws_ant.properties'/>
+    <property file = 'ws_ant.global.properties'/>
+    <path id="was.runtime">
+        <fileset dir="${was.home}/lib">
+        <include name="**/*.jar" />
+            </fileset>
+            <fileset dir="${was.home}/plugins">
+                <include name="**/*.jar" />
+            </fileset>
+    </path>
+    <property name="was.cp" value="${toString:was.runtime}" />
+
+    <target  name="redeployAllApplications">
+        <antcall target="uninstallAllApplications"/>
+        <antcall target="installAllApplications"/>
+    </target>
+
+    <target  name="startAllApplications">
+        <foreach list="${was.phizic.apps}"
+                 delimiter=","
+                 target="startApplication" 
+                 param="app.name"
+                 inheritall="true"/>
+    </target>
+
+    <target  name="installAllApplications">
+        <foreach  list="${was.phizic.apps}"
+                  delimiter=","
+                  target="installApplication"
+                  param="app.name"
+                  inheritall="true"/>
+    </target>
+
+    <target  name="uninstallAllApplications">
+        <foreach  list="${was.phizic.apps}"
+                  delimiter=","
+                  target="uninstallApplication"
+                  param="app.name"
+                  inheritall="true"/>
+    </target>
+
+
+    <target name="defaultBindings" if="app.name">
+        <taskdef
+            name="wsDefaultBindings"
+            classname="com.ibm.websphere.ant.tasks.DefaultBindings"
+            classpath="${was.cp}" />
+        <wsDefaultBindings
+                ear="${was.ears.path}/${app.name}.ear"
+                outputFile="${was.ears.tmp.path}/${app.name}.ear"
+                virtualHost="${was.virtualhost}"
+                failonerror="${was.failonerror}"/>
+     </target>
+
+    <target  name="installApplication" if="app.name">
+        <!--сначала необходимо подготовить ear-ники-->
+        <antcall target="defaultBindings">
+            <param name="app.name" value="${app.name}"/>
+        </antcall>
+        <taskdef
+                name="wsInstallApp"
+                classname="com.ibm.websphere.ant.tasks.InstallApplication"
+                classpath="${was.cp}" />
+        <propertycopy  name="map.modules.tmp" from="map.modules.to.servers.${app.name}"/>
+        <propertycopy  name="map.servers.list" from="map.servers.list.${app.name}"/>
+        <propertyregex property="map.modules"
+                       regexp="@map.servers.list@"
+                       input="${map.modules.tmp}"
+                       replace="${map.servers.list}"/>
+        <wsInstallApp
+                ear="${was.ears.tmp.path}/${app.name}.ear"
+                user="${was.user}"
+                password="${was.password}"
+				conntype = "${was.conntype}"
+                host="${was.host}"
+				port="${was.port}"
+                options="-appname ${app.name} -MapModulesToServers {${map.modules}}"/>
+     </target>
+
+    <target  name = "uninstallApplication" if="app.name">
+        <taskdef
+                name="wsUninstallApp"
+                classname="com.ibm.websphere.ant.tasks.UninstallApplication"
+                classpath="${was.cp}" />
+        <wsUninstallApp
+                application="${app.name}"
+                user="${was.user}"
+                password="${was.password}"
+                failonerror="${was.uninstall.failonerror}"
+				conntype = "${was.conntype}"
+                host="${was.host}"
+				port="${was.port}"
+				/>
+     </target>
+
+    <target  name="startApplication" if = "app.name">
+        <taskdef
+                name="wsStartApp"
+                classname="com.ibm.websphere.ant.tasks.StartApplication"
+                classpath="${was.cp}" />
+        <wsStartApp
+                application="${app.name}"
+                user="${was.user}"
+                password="${was.password}"
+                failonerror="${was.failonerror}"
+				conntype = "${was.conntype}"
+                host="${was.host}"
+				port="${was.port}" />
+    </target>
+
+    <target  name="stopApplication" if = "app.name">
+        <taskdef
+                name="wsStopApp"
+                classname="com.ibm.websphere.ant.tasks.StopApplication"
+                classpath="${was.cp}" />
+        <wsStopApp
+                application="${app.name}"
+                user="${was.user}"
+                password="${was.password}"
+                failonerror="${was.uninstall.failonerror}"
+				conntype = "${was.conntype}"
+                host="${was.host}"
+				port="${was.port}" />
+    </target>
+
+</project>

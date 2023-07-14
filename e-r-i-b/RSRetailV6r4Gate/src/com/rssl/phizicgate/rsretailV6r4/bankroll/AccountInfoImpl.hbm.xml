@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsretailV6r4.bankroll.AccountInfoImpl">
+        <id name="accountId"/>
+	    <property name="lastTransactionDate"/>
+        <property name="closeDate"/>
+	    <property name="agreementNumber"/>
+        <property name="passbook"/>
+    </class>
+
+	<sql-query name="GetAccountInfo">
+        <return alias="accountInfo" class="com.rssl.phizicgate.rsretailV6r4.bankroll.AccountInfoImpl">
+            <return-property name="accountId"           column="accountId"/>
+            <return-property name="lastTransactionDate" column="lastTransactionDate"/>
+            <return-property name="closeDate"           column="closeDate"/>
+	        <return-property name="agreementNumber"     column="agreementNumber"/>
+            <return-property name="passbook"     column="passbook"/>
+        </return>
+	    <![CDATA[
+			SELECT
+                deposits.t_referenc             AS accountId
+               ,to_char(to_date(deposits.t_final_date, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS lastTransactionDate  /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+               ,deposits.t_svodaccount          AS agreementNumber
+               ,case when deposits.t_open_close not like '%З%'
+                   then to_char(to_date(deposits.t_end_datedep, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                   else to_char(to_date(deposits.t_close_date, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS')  /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                end                             AS closeDate
+               ,case when deposits.t_givebook like 'X'
+                    then true
+                    else false
+                end                             AS passbook
+
+
+			FROM ddepositr_dbt deposits
+			WHERE deposits.t_referenc = :id
+        ]]>
+    </sql-query>
+</hibernate-mapping>

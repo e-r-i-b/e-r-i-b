@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+    <handler name="LocalResponder" type="java:org.apache.axis.transport.local.LocalResponder"/>
+    <handler name="URLMapper" type="java:org.apache.axis.handlers.http.URLMapper"/>
+    <handler name="Authenticate" type="java:org.apache.axis.handlers.SimpleAuthenticationHandler"/>
+
+    <!-- Services from FraudMonitoringAsyncInteractionService WSDL service -->
+
+    <service name="FraudMonitoringAsyncInteractionService" provider="java:RPC" style="document" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://async-interaction/fraud/monitoring/back/gate"/>
+      <parameter name="wsdlServiceElement" value="FraudMonitoringAsyncInteractionService"/>
+      <parameter name="schemaUnqualified" value="http://async-interaction/fraud/monitoring/back/gate"/>
+      <parameter name="wsdlServicePort" value="FraudMonitoringAsyncInteractionService"/>
+      <parameter name="className" value="com.rssl.phizic.gate.monitoring.fraud.ws.generated.FraudMonitoringAsyncInteractionServiceSoapBindingImpl"/>
+      <parameter name="wsdlPortType" value="FraudMonitoringAsyncInteractionService"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="send" qname="send" returnQName="retNS:Response" xmlns:retNS="http://async-interaction/fraud/monitoring/back/gate" returnType="rtns:Response_Type" xmlns:rtns="http://async-interaction/fraud/monitoring/back/gate" soapAction="http://async-interaction/fraud/monitoring/back/gate/send" >
+        <parameter qname="pns:Request" xmlns:pns="http://async-interaction/fraud/monitoring/back/gate" type="tns:Request_Type" xmlns:tns="http://async-interaction/fraud/monitoring/back/gate"/>
+      </operation>
+      <parameter name="allowedMethods" value="send"/>
+
+      <typeMapping
+              xmlns:ns="http://async-interaction/fraud/monitoring/back/gate"
+              qname="ns:ActionCode_Type"
+              type="java:com.rssl.phizic.gate.monitoring.fraud.ws.generated.ActionCode_Type"
+              serializer="org.apache.axis.encoding.ser.EnumSerializerFactory"
+              deserializer="org.apache.axis.encoding.ser.EnumDeserializerFactory"
+              encodingStyle=""
+              />
+      <typeMapping
+              xmlns:ns="http://async-interaction/fraud/monitoring/back/gate"
+              qname="ns:RiskResult_Type"
+              type="java:com.rssl.phizic.gate.monitoring.fraud.ws.generated.RiskResult_Type"
+              serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+              deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+              encodingStyle=""
+              />
+      <typeMapping
+              xmlns:ns="http://async-interaction/fraud/monitoring/back/gate"
+              qname="ns:DeviceData_Type"
+              type="java:com.rssl.phizic.gate.monitoring.fraud.ws.generated.DeviceData_Type"
+              serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+              deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+              encodingStyle=""
+              />
+      <typeMapping
+              xmlns:ns="http://async-interaction/fraud/monitoring/back/gate"
+              qname="ns:StatusHeader_Type"
+              type="java:com.rssl.phizic.gate.monitoring.fraud.ws.generated.StatusHeader_Type"
+              serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+              deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+              encodingStyle=""
+              />
+      <typeMapping
+              xmlns:ns="http://async-interaction/fraud/monitoring/back/gate"
+              qname="ns:IdentificationData_Type"
+              type="java:com.rssl.phizic.gate.monitoring.fraud.ws.generated.IdentificationData_Type"
+              serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+              deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+              encodingStyle=""
+              />
+      <typeMapping
+              xmlns:ns="http://async-interaction/fraud/monitoring/back/gate"
+              qname="ns:Response_Type"
+              type="java:com.rssl.phizic.gate.monitoring.fraud.ws.generated.Response_Type"
+              serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+              deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+              encodingStyle=""
+              />
+      <typeMapping
+              xmlns:ns="http://async-interaction/fraud/monitoring/back/gate"
+              qname="ns:Request_Type"
+              type="java:com.rssl.phizic.gate.monitoring.fraud.ws.generated.Request_Type"
+              serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+              deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+              encodingStyle=""
+              />
+      <typeMapping
+              xmlns:ns="http://async-interaction/fraud/monitoring/back/gate"
+              qname="ns:TriggeredRule_Type"
+              type="java:com.rssl.phizic.gate.monitoring.fraud.ws.generated.TriggeredRule_Type"
+              serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+              deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+              encodingStyle=""
+              />
+      <typeMapping
+              xmlns:ns="http://async-interaction/fraud/monitoring/back/gate"
+              qname="ns:DeviceResult_Type"
+              type="java:com.rssl.phizic.gate.monitoring.fraud.ws.generated.DeviceResult_Type"
+              serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+              deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+              encodingStyle=""
+              />
+
+      <requestFlow>
+        <handler type="java:com.rssl.phizic.gate.monitoring.fraud.log.FraudMonitoringBackGateLogger"/>
+      </requestFlow>
+      <responseFlow>
+        <handler type="java:com.rssl.phizic.gate.monitoring.fraud.log.FraudMonitoringBackGateLogger"/>
+      </responseFlow>
+    </service>
+
+    <transport name="http">
+        <parameter name="qs:list" value="org.apache.axis.transport.http.QSListHandler"/>
+        <parameter name="qs:wsdl" value="org.apache.axis.transport.http.QSWSDLHandler"/>
+        <parameter name="qs:method" value="org.apache.axis.transport.http.QSMethodHandler"/>
+        <requestFlow>
+            <handler type="URLMapper"/>
+            <handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+        </requestFlow>
+    </transport>
+    <transport name="local">
+        <responseFlow>
+            <handler type="LocalResponder"/>
+        </responseFlow>
+    </transport>
+</deployment>

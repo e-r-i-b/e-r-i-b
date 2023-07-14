@@ -1,0 +1,44 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+     <class name="com.rssl.phizic.business.cardProduct.locale.CardProductResources" table="CARD_PRODUCTS_RES">
+        <composite-id>
+            <key-property name="id"        column="ID"            type="long"/>
+            <key-property name="localeId"  column="LOCALE_ID"     type="string"/>
+        </composite-id>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+    </class>
+
+
+    <class name="com.rssl.phizic.business.cardProduct.locale.LocaledCardProduct" table="CARD_PRODUCTS" mutable="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CARD_PRODUCTS</param>
+            </generator>
+        </id>
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="type" type="CardProductType" column="TYPE" not-null="true"/>
+        <property name="online" type="boolean" column="IS_ONLINE" not-null="false"/>
+        <bag name="kindOfProducts" table="CARD_PRODUCT_KINDS" cascade="none" access="field"
+             lazy="false" fetch="subselect" order-by="PRODUCT_KIND_ID asc">
+            <key column="CARD_PRODUCT_ID" not-null="true"/>
+            <many-to-many column="PRODUCT_KIND_ID"
+                          class="com.rssl.phizic.business.ext.sbrf.dictionaries.CASNSICardProduct"/>
+        </bag>
+        <property name="stopOpenDate" type="calendar" column="STOP_OPEN_DATE" not-null="false"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.cardProduct.locale.CardProductResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

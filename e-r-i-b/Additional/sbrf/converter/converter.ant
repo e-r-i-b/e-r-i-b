@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+
+<project name="converter">
+    <import id="configs" file="configs.ant"/>
+    <import id="common"  file="common.ant" />
+    <import id="install"  file="install.ant" />
+
+    <target name="Convert_DB_v1.12" depends="init.installer.configuration" description="Конвертирование БД версии 1.12 в состояние БД версии 1.16">
+        <echo message="start convert DB's"/>
+        <antcall target="ConvertShadowDB">
+            <param name="file" value="converter-v1_12.sql"/>
+        </antcall>
+        <antcall target="ConvertMainDB">
+            <param name="file" value="converter-v1_12.sql"/>
+        </antcall>
+        <echo message="end converting DB's"/>
+    </target>
+
+    <target name="Convert_DB_v1.15" depends="init.installer.configuration" description="Конвертирование БД версии 1.15 в состояние БД версии 1.16">
+        <echo message="start convert DB's"/>
+        <antcall target="ConvertShadowDB">
+            <param name="file" value="converter-v1_15.sql"/>
+        </antcall>
+        <antcall target="ConvertMainDB">
+            <param name="file" value="converter-v1_15.sql"/>
+        </antcall>
+        <echo message="end converting DB's"/>
+    </target>
+
+    <target name="Convert_DB_v1.16" depends="init.installer.configuration" description="Конвертирование БД версии 1.16 в состояние БД версии 1.17">
+        <echo message="start convert DB's"/>
+        <antcall target="ConvertShadowDB">
+            <param name="file" value="converter-v1_16.sql"/>
+        </antcall>
+        <antcall target="ConvertMainDB">
+            <param name="file" value="converter-v1_16.sql"/>
+        </antcall>
+        <echo message="end converting DB's"/>
+    </target>
+
+    <target name="Convert_DB_v1.17" depends="init.installer.configuration" description="Конвертирование БД версии 1.17 в состояние БД версии 1.18">
+        <echo message="start convert DB's"/>
+        <antcall target="ConvertShadowDB">
+            <param name="file" value="converter-v1_17.sql"/>
+        </antcall>
+        <antcall target="ConvertMainDB">
+            <param name="file" value="converter-v1_17.sql"/>
+        </antcall>
+        <echo message="end converting DB's"/>
+    </target>
+
+    <target name="Convert_DB_v1.18_psi" depends="init.installer.configuration" description="Конвертирование БД версии 1.18_psi в состояние БД версии 1.18">
+        <echo message="start convert DB's"/>        
+        <antcall target="ConvertMainDB">
+            <param name="file" value="converter-v1_18_psi.sql"/>
+        </antcall>
+        <echo message="end converting DB's"/>
+    </target>
+
+    <target name="Convert_DB_v1.18" depends="init.installer.configuration" description="Конвертирование БД версии 1.18 в состояние БД версии 1.18 ветки биллинги с карт">
+        <echo message="start convert DB's"/>        
+        <antcall target="ConvertMainDB">
+            <param name="file" value="converter_1.18.sql"/>
+        </antcall>
+        <echo message="end converting DB's"/>
+    </target> 	
+
+    <target name="ConvertMainDB" description="Конвертирование структуры основной БД">
+        <echo message="Start converting main DB"/>
+        <antcall target="ConvertDbInner">
+        </antcall>
+        <echo message="End converting main DB"/>
+    </target>
+
+    <target name="ConvertShadowDB" description="Конвертирование структуры вспомогательной БД" if="shadow.database.on">
+        <echo message="Start converting shadow DB"/>
+        <antcall target="ConvertDbInner">
+            <param name="dbserver.username" value="${dbserver.shadow.username}"/>
+            <param name="dbserver.password" value="${dbserver.shadow.password}"/>
+        </antcall>
+        <echo message="End converting shadow DB"/>
+    </target>
+
+    <target name="ConvertDbInner" description="Таск для непосредственного конвертирования БД" depends="create_db_data">
+        <echo level="info" message="Подготовка данных для конвертирования БД"/>
+        <path id="jdbc.classpath">
+            <fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+        </path>
+        <!--<property name="dbserver.sql.delimiter.string" value=";"/>-->
+        <property name="dbserver.sql.delimiter.string" value="go"/>
+	<property name="dbserver.sql.delimiter.type"   value="row"/>
+
+        <echo level="info" message="Конвертирование структуры таблиц (onerror=abort)"/>
+        <sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.url.full}"
+             userid="${dbserver.table.username}" password="${dbserver.table.password}" onerror="continue"
+             delimiter="${dbserver.sql.delimiter.string}">
+            <fileset dir="${basedir}/db-data"
+                     includes="${file}"/>
+        </sql>
+        <echo level="info" message="Завершено конвертирование БД"/>
+    </target>
+
+</project>

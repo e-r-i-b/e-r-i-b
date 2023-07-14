@@ -1,0 +1,61 @@
+<!-- Use this file to deploy some handlers/chains and services      -->
+<!-- Two ways to do this:                                           -->
+<!--   java org.apache.axis.client.AdminClient deploy.wsdd          -->
+<!--      after the axis server is running                          -->
+<!-- or                                                             -->
+<!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   -->
+<!--      from the same directory that the Axis engine runs         -->
+
+<deployment
+    xmlns="http://xml.apache.org/axis/wsdd/"
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from SendPaymentSmsService WSDL service -->
+
+  <service name="SendPaymentSmsServicePort" provider="java:RPC" style="document" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"/>
+      <parameter name="wsdlServiceElement" value="SendPaymentSmsService"/>
+      <parameter name="schemaQualified" value="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"/>
+      <parameter name="wsdlServicePort" value="SendPaymentSmsServicePort"/>
+      <parameter name="className" value="com.rssl.phizic.test.ermb.messaging.paymentSms.generated.SendPaymentSmsServiceBindingImpl"/>
+      <parameter name="wsdlPortType" value="SendPaymentSmsService"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="sendPaymentSms" qname="SendPaymentSms" returnQName="retNS:SendPaymentSmsRs" xmlns:retNS="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms" returnType="rtns:SendPaymentSmsRs_Type" xmlns:rtns="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms" >
+        <parameter qname="pns:SendPaymentSmsRq" xmlns:pns="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms" type="tns:SendPaymentSmsRq_Type" xmlns:tns="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"/>
+      </operation>
+      <parameter name="allowedMethods" value="sendPaymentSms"/>
+
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"
+        qname="ns:UUIDType"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"
+        qname="ns:SendPaymentSmsRq_Type"
+        type="java:com.rssl.phizic.test.ermb.messaging.paymentSms.generated.SendPaymentSmsRq_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"
+        qname="ns:SendPaymentSmsRs_Type"
+        type="java:com.rssl.phizic.test.ermb.messaging.paymentSms.generated.SendPaymentSmsRs_Type"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"
+        qname="ns:StringType"
+        type="java:java.lang.String"
+        serializer="org.apache.axis.encoding.ser.SimpleSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.SimpleDeserializerFactory"
+        encodingStyle=""
+      />
+  </service>
+</deployment>

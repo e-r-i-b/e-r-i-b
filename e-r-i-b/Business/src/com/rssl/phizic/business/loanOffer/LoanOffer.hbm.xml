@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.loanOffer.LoanOffer" table="LOAN_OFFER">
+         <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_LOAN_OFFER</param>
+            </generator>
+        </id>
+
+        <property name="firstName" type="not-null-string" column="FIRST_NAME" not-null="true"/>
+        <property name="surName" type="not-null-string" column="SUR_NAME" not-null="true"/>
+        <property name="patrName" type="string" column="PATR_NAME" not-null="false"/>
+        <property name="birthDay" type="calendar" column="BIRTHDAY" not-null="true"/>
+
+	    <property name="duration" type="long" column="DURATION" not-null="false"/>
+        <property name="maxLimit" type="money" not-null="true">
+            <column name="MAX_LIMIT_AMOUNT" not-null="false"/>
+            <column name="CURRENCY" not-null="false"/>
+        </property>
+
+
+        <!--<many-to-one name="loanProductId" class="com.rssl.phizic.business.loans.products.LoanProductBase" column="LOAN_PRODUCT_ID" lazy="false" not-null="true"/>-->
+        <property name="isViewed" type="boolean" column="IS_VIEWED" not-null="true"/>
+        <property name="productName" type="string" column="PRODUCT_NAME" not-null="true"/>
+        <property name="percentRate" type="double" column="PROCENT_RATE" not-null="true"/>
+        <property name="endDate" type="calendar" column="END_DATE" not-null="false"/>
+        <property name="pasportNumber" type="string" column="PASPORT_NUMBER" not-null="true"/>
+        <property name="pasportSeries" type="string" column="PASPORT_SERIES" not-null="true"/>
+        <property name="terbank" type="long" column="TB" not-null="true"/>
+        <property name="month6" type="long" not-null="false"/>
+        <property name="month12" type="long" not-null="false"/>
+        <property name="month18" type="long" not-null="false"/>
+        <property name="month24" type="long" not-null="false"/>
+        <property name="month36" type="long" not-null="false"/>
+        <property name="month48" type="long" not-null="false"/>
+        <property name="month60" type="long" not-null="false"/>
+        <property name="productCode" column="PRODUCT_CODE" type="string" not-null="false"/>
+        <property name="subProductCode" column="SUB_PRODUCT_CODE" type="string" not-null="false"/>
+        <property name="productTypeCode" column="PRODUCT_TYPE_CODE" type="string" not-null="false"/>
+        <property name="campaignMemberId" column="CAMPAIGN_MEMBER_ID" type="string" not-null="false"/>
+
+    </class>
+
+      <!--
+       Опорный объект: DXFK_LOAN_OFFER
+       Предикаты доступа:    1 - filter(("LOANOFFER"."TB"=TO_NUMBER(:TB) OR TO_NUMBER(:TB)=38 AND
+                                  "LOANOFFER"."TB"=99 OR TO_NUMBER(:TB)=99 AND "LOANOFFER"."TB"=38) AND
+                                  ("LOANOFFER"."IS_VIEWED"=:ISVIEWED OR :ISVIEWED IS NULL)) AND
+                                   "END_DATE">TO_TIMESTAMP(:NOW))
+                              2 - access(UPPER(REPLACE("SUR_NAME",' ','')||REPLACE("FIRST_NAME",'
+                                  ','')||REPLACE("PATR_NAME",' ',''))=:FIO AND UPPER(REPLACE("PASPORT_SERIES",'
+                                  ','')||REPLACE("PASPORT_NUMBER",' ',''))=:SERIESANDNUMBER AND
+                                  "LOANOFFER"."BIRTHDAY"=TO_TIMESTAMP(:BIRTHDAY))
+       Кардинальность: равна количеству подходящих по условию записей
+    -->
+    <sql-query name="com.rssl.phizic.business.loanOffer.LoanOffer.getLoanOfferByPersonData">
+        <return alias="loanOffer" class="com.rssl.phizic.business.loanOffer.LoanOffer"/>
+        <![CDATA[
+            select {loanOffer.*}
+            from LOAN_OFFER loanOffer
+            where upper(replace(loanOffer.SUR_NAME, ' ', '')||replace(loanOffer.FIRST_NAME, ' ', '')||replace(loanOffer.PATR_NAME, ' ', ''))=:FIO
+            and loanOffer.birthDay = :birthDay
+            and upper(replace(loanOffer.PASPORT_SERIES, ' ', '')||replace(loanOffer.PASPORT_NUMBER, ' ', '')) in (:seriesAndNumbers)
+            and (
+                    loanOffer.TB = :tb
+                    or (:tb = 38 and loanOffer.TB = 99)
+                    or (:tb = 99 and loanOffer.TB = 38)
+                )
+            and  (:isViewed is null
+                   or loanOffer.IS_VIEWED  = :isViewed)
+            and END_DATE > :now
+        ]]>
+    </sql-query>
+
+    <!--
+      Опорный объект: LOAN_OFFER
+      Предикаты доступа:   fullscan
+   						   access("ID"=TO_NUMBER(:1))
+      Кардинальность: равна количеству подходящих по условию записей
+   -->
+    <query name="com.rssl.phizic.business.loanOffer.LoanOffer.removeLoanOfferById">
+        delete
+        from LoanOffer as loanOffer
+        where loanOffer.id = :id
+    </query>
+
+    <!-- Удаляем все предодобренные предложения на кредит.
+       Опорный объект:  LOAN_OFFER
+       Предикаты доступа: N/A
+       Кардинальность: все записи
+   -->
+    <query name="com.rssl.phizic.business.loanOffer.LoanOffer.removeAll">
+        delete from LoanOffer as loanOffer
+    </query>
+
+    <!-- Является ли предложение на кредит просмотренным
+       Опорный объект:  PK_LOAN_OFFER
+       Предикаты доступа: access("LOAN_OFFER"."ID"=TO_NUMBER(:OFFERID))
+       Кардинальность: 1
+   -->
+    <query name="com.rssl.phizic.business.loanOffer.LoanOffer.isLoanOfferViewed">
+        select 1
+        from LoanOffer as loanOffer
+            where loanOffer.id = :offerId
+            and loanOffer.isViewed = true
+    </query>
+
+</hibernate-mapping>

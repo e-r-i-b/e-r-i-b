@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+	name="StopListCardClaim"
+	description="Постановка карты в СТОП-ЛИСТ"
+	detailedDescription="Заявление на постановку карты в стоп-лист."
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.DefaultClaim"/>
+	<statemachine name="ClaimStateMachine"/>
+	
+	<fields>
+		<field  name="state"
+			source="state"
+			description="Статус заявки"
+            type="string">
+		</field>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+		<field  name="documentNumber"
+            source="document-number"
+			description="Номер документа"
+            type="string"
+            signable="true">
+		</field>
+		<field  name="documentDate"
+            source="document-date"
+			description="Дата документа"
+            type="date"
+            signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="admissionDate"
+				source="admissionDate"
+				type="date"
+				description="Дата приема плaтежа банком">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="fullName"
+				source="extra-parameters/parameter[@name='full-name']/@value"
+				description="Ф.И.О. клиента"
+				type="string"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Ф.И.О.] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+		<field  name="phone"
+				source="extra-parameters/parameter[@name='phone']/@value"
+				type="string"
+				description="Контактный телефон"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Контактный телефон]  должна содержать от 10 до 20 цифр"/>
+					<parameter name="regexp">.{10,20}$</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+		<field  name="card"
+				source="extra-parameters/parameter[@name='card']/@value"
+				description="Номер карты"
+                type="card">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="cardType"
+				source="extra-parameters/parameter[@name='card-type']/@value"
+				description="Тип карты"
+				type="string">
+		</field>
+		<field  name="actionType"
+				source="extra-parameters/parameter[@name='action-type']/@value"
+				description="Тип карты"
+				type="string">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="expireCardDate"
+				source="extra-parameters/parameter[@name='expire-card-date']/@value"
+				description="Срок действия карты"
+				type="string">
+		</field>
+		<field  name="expireBlockDate"
+				source="extra-parameters/parameter[@name='expire-block-date']/@value"
+				description="Срок блокировки"
+				type="string">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Неверный формат поля Срок блокировки. Укажите месяц и год окончания блокировки в формате ММ.ГГГГ"/>
+					<parameter name="regexp">^(0?[1-9]|1[012])[.]20\d\d$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+
+		<field  name="region1"
+				source="extra-parameters/parameter[@name='region1']/@value"
+				description="РФ"
+				type="string"/>
+		<field  name="region2"
+				source="extra-parameters/parameter[@name='region2']/@value"
+				description="США"
+				type="string"/>
+		<field  name="region3"
+				source="extra-parameters/parameter[@name='region3']/@value"
+				description="Канада"
+				type="string"/>
+		<field  name="region4"
+				source="extra-parameters/parameter[@name='region4']/@value"
+				description="Латинская и Центральная Америка"
+				type="string"/>
+		<field  name="region5"
+				source="extra-parameters/parameter[@name='region5']/@value"
+				description="Азия м Тихоокеанский регион"
+				type="string"/>
+		<field  name="region6"
+				source="extra-parameters/parameter[@name='region6']/@value"
+				description="Европа"
+				type="string"/>
+		<field  name="region7"
+				source="extra-parameters/parameter[@name='region7']/@value"
+				description="Восточная Европа, Ближний Восток и Африка"
+				type="string"/>
+		<field  name="region8"
+				source="extra-parameters/parameter[@name='region8']/@value"
+				description="Другое"
+				type="string">
+		    <validators>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Другое] не должно превышать 255"/>
+					<parameter name="regexp">.{1,255}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+		<field  name="other"
+				source="extra-parameters/parameter[@name='other']/@value"
+				description="Другой регион"
+				enabled="form.region8 == 'true'"
+				type="string">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="reason1"
+				source="extra-parameters/parameter[@name='reason1']/@value"
+				description="мошенничество"
+				type="string"/>
+		<field  name="reason2"
+				source="extra-parameters/parameter[@name='reason2']/@value"
+				description="подделанная карта"
+				type="string"/>
+		<field  name="reason3"
+				source="extra-parameters/parameter[@name='reason3']/@value"
+				description="потерянная карта"
+				type="string"/>
+		<field  name="reason4"
+				source="extra-parameters/parameter[@name='reason4']/@value"
+				description="украденная карта"
+				type="string"/>
+		<field  name="reason5"
+				source="extra-parameters/parameter[@name='reason5']/@value"
+				description="захватить карту"
+				type="string"/>
+
+      <!-- Вспомогательные поля -->
+
+   </fields>
+
+   <dictionaries>
+      <entity-list name="actionTypes">
+         <entity key="1">Занести карту в стоп-лист</entity>
+         <entity key="2">Удалить карту из стоп-листа</entity>
+      </entity-list>
+   </dictionaries>
+
+   <form-validators>
+
+	   <form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.CardAndClientCompatibles">
+			<field-ref name="cardId">card</field-ref>
+		</form-validator>
+
+	   <form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.RequiredMultiFieldValidator">
+			<message text="Необходимо выбрать хотя бы один регион блокировки"/>
+			<field-ref name="ptr1">region1</field-ref>
+		    <field-ref name="ptr2">region2</field-ref>
+		    <field-ref name="ptr3">region3</field-ref>
+			<field-ref name="ptr4">region4</field-ref>
+			<field-ref name="ptr5">region5</field-ref>
+			<field-ref name="ptr6">region6</field-ref>
+			<field-ref name="ptr7">region7</field-ref>
+			<field-ref name="ptr8">region8</field-ref>
+		</form-validator>
+
+	   <form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.RequiredMultiFieldValidator">
+			<message text="Необходимо выбрать хотя бы одну причину блокировки "/>
+			<field-ref name="ptr1">reason1</field-ref>
+			<field-ref name="ptr2">reason2</field-ref>
+			<field-ref name="ptr3">reason3</field-ref>
+			<field-ref name="ptr4">reason4</field-ref>
+			<field-ref name="ptr5">reason5</field-ref>
+		</form-validator>
+
+   </form-validators>
+</payment-form>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.limits.servises.Profile" table="PROFILES">
+
+        <id name="id" type="long" column="ID">
+              <generator class="native">
+                  <param name="sequence">S_PROFILES</param>
+              </generator>
+        </id>
+
+        <property name="firstName"      type="string"       column="FIRST_NAME"     not-null="true"/>
+        <property name="surName"        type="string"       column="SUR_NAME"       not-null="true"/>
+        <property name="patrName"       type="string"       column="PATR_NAME"      not-null="true"/>
+        <property name="passport"       type="string"       column="PASSPORT"       not-null="true"/>
+        <property name="birthDate"      type="calendar"     column="BIRTHDATE"      not-null="true"/>
+        <property name="tb"             type="string"       column="TB"             not-null="true"/>
+
+    </class>
+
+    <sql-query name="com.rssl.phizic.limits.servises.Profile.findByProfileInfo">
+        <return alias="profile" class="com.rssl.phizic.limits.servises.Profile"/>
+        <![CDATA[
+            SELECT {profile.*}
+            FROM PROFILES profile
+            WHERE
+                 UPPER(TRIM(REGEXP_REPLACE(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:sur_name||' '||:first_name||' '||:patr_name,'( )+',' ')))
+                 AND REPLACE(profile.PASSPORT,' ','') = REPLACE(:passport,' ','')
+                 AND profile.birthDate = :birth_date
+                 AND profile.tb = :tb
+        ]]>
+    </sql-query>
+</hibernate-mapping>

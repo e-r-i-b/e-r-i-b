@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.template.PackageTemplate" table="TEMPLATESPACKAGE">
+        <id name="id" type="long" node="id">
+	        <generator class="native">
+				<param name="sequence">S_TEMPLATESPACKAGE</param>
+			</generator>
+	    </id>
+
+        <property name="name" type="string"/>
+	    <property name="description" type="string"/>
+	    <property name="departmentId" column="DEPARTMENT_ID"/>
+
+	    <list name="templates" table="DOCUMENTS_PACKAGE" lazy="false">
+		  <key column="PACKAGE_ID"/>
+		  <list-index column="LIST_INDEX"/>
+          <many-to-many class="com.rssl.phizic.business.template.DocTemplate" unique="true" column="TEMPLATE_ID"/>
+        </list>
+    </class>
+
+    <class name="com.rssl.phizic.business.template.ClientsPackageTemplate" table="CLIENTSPACKAGESTEMPLATES">
+        <cache usage="read-write"/>
+
+        <id name="id" type="long">
+	        <generator class="native">
+				<param name="sequence">S_CLIENTSPACKAGESTEMPLATES</param>
+			</generator>
+	    </id>
+
+        <many-to-one name="login" class="com.rssl.phizic.auth.CommonLogin" column="LOGIN_ID" lazy="false"/>
+		<many-to-one name="packageTemplate" class="com.rssl.phizic.business.template.PackageTemplate"
+		             column="PACKAGE_ID" lazy="false"/>
+    </class>
+
+	<query name="GetPackageList">
+	   SELECT tmp FROM com.rssl.phizic.business.template.PackageTemplate tmp
+		    where tmp.departmentId = :departmentId
+	</query>
+
+	<query name="GetClientPackageList">
+	   SELECT tmp FROM com.rssl.phizic.business.template.ClientsPackageTemplate tmp
+		    where tmp.login = :login
+	</query>
+
+</hibernate-mapping>

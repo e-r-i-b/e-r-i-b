@@ -1,0 +1,32 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hobernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="TargetType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.finances.targets.TargetType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.finances.targets.AccountTarget" table="ACCOUNT_TARGETS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ACCOUNT_TARGETS</param>
+            </generator>
+        </id>
+        <property name="loginId"            column="LOGIN_ID"           type="long"         not-null="true"/>
+        <property name="dictionaryTarget"   column="DICTIONARY_TARGET"  type="TargetType"   not-null="true"/>
+        <property name="name"               column="NAME"               type="string"       not-null="true"/>
+        <property name="nameComment"        column="NAME_COMMENT"       type="string"       not-null="false"/>
+        <property name="plannedDate"        column="PLANED_DATE"        type="calendar"     not-null="true"/>
+        <property name="amount"                                         type="money"        not-null="true">
+            <column name="AMOUNT"/>
+			<column name="AMOUNT_CURRENCY"/>
+		</property>
+        <property name="claimId"            column="CLAIM_ID"           type="long"          not-null="false"/>
+        <property name="accountNum"         column="ACCOUNT_NUM"        type="string"        not-null="false"/>
+        <many-to-one name="accountLink"     column="ACCOUNT_LINK"       class="com.rssl.phizic.business.resources.external.AccountLink" lazy="false"/>
+        <property name="creationDate"       column="CREATION_DATE"      type="calendar"      not-null="true"/>
+        <property name="userImage"          column="IMAGE_ID"           type="long"         not-null="false"/>
+    </class>
+</hibernate-mapping>

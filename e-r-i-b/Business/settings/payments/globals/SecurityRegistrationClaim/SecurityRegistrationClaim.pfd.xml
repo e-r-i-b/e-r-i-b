@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="SecurityRegistrationClaim"
+              description="Заявка на регистрацию ценной бумаги"
+              detailedDescription="С помощью данной страницы Вы можете создать заявку на регистрацию новой
+              ценной бумаги. Эта операция необходима, для того чтобы зарегистрировать ценную бумагу в
+              справочнике ценных бумаг банка. После исполнения заявки Вы сможете принять на счет депо ценные
+              бумаги данного вида."
+              confirmDescription="Заявка успешно отправлена в банк. После ее обработки Вы сможете принять на счет депо ценные бумаги данного вида. Спасибо, что Вы воспользовались «Сбербанк Онлайн»!"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+    <implementation class="com.rssl.phizic.business.documents.SecurityRegistrationClaim"/>
+
+    <fields>
+        <field  name="state"
+                description="Статус заявки"
+                type="string"
+                source="state"/>
+
+        <field  name="documentNumber"
+                description="Номер заявки"
+				type="string"
+				source="document-number"/>
+
+        <field  name="documentDate"
+				description="Дата заявки"
+				type="date"
+				source="document-date"/>
+
+
+        <field  name="depositor"
+                description="Депонент"
+                type="string"
+                source="extra-parameters/parameter[@name='depositor']/@value"/>
+
+        <field  name="managerFIO"
+                description="ФИО распорядителя"
+                type="string"
+                source="extra-parameters/parameter[@name='manager-fio']/@value"/>
+
+        <field  name="depoAccount"
+                description="Счет депо"
+                type="string"
+                source="extra-parameters/parameter[@name='depo-account']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+         <!--Внешний идентификатор счета Депо-->
+        <field  name="depoExternalId"
+                description="внешний id счета депо"
+                type="string"
+                source="extra-parameters/parameter[@name='depo-external-id']/@value"/>
+
+        <field  name="securityName"
+                description="Наименование ценных бумаг"
+                type="string"
+                source="extra-parameters/parameter[@name='security-name']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, введите наименование ценной бумаги."/>
+                </validator>    
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 255 символов."/>
+					<parameter name="regexp">^.{1,255}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <field  name="issuer"
+                description="Эмитент"
+                type="string"
+                source="extra-parameters/parameter[@name='issuer']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, введите наименование эмитента."/>
+                </validator>    
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 255 символов."/>
+					<parameter name="regexp">^.{1,255}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <field  name="securityNumber"
+                description="Регистрационный номер"
+                type="string"
+                source="extra-parameters/parameter[@name='security-number']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, введите регистрационный номер."/>
+                </validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 50 символов."/>
+					<parameter name="regexp">^.{1,50}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <field  name="corrDepositary"
+                description="Депозитарий/Регистратор"
+                type="string"
+                source="extra-parameters/parameter[@name='corr-depositary']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, введите наименование депозитария или регистратора, через который осуществляется прием или перевод ценных бумаг."/>
+                </validator>    
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 255 символов."/>
+					<parameter name="regexp">^.{1,255}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+         <field  name="depositaryOperation"
+                description="Депозитарные переводы"
+                type="boolean"
+                source="extra-parameters/parameter[@name='depositary-operation']/@value">
+        </field>
+        <field  name="depositOperation"
+                description="Залоговые операции"
+                type="boolean"
+                source="extra-parameters/parameter[@name='deposit-operation']/@value">
+        </field>
+        <field  name="accountOperation"
+                description="Только учет и хранение"
+                type="boolean"
+                source="extra-parameters/parameter[@name='account-operation']/@value">
+        </field>
+        <field  name="tradeOperation"
+                description="Торговые операции"
+                type="boolean"
+                source="extra-parameters/parameter[@name='trade-operation']/@value">
+        </field>
+        <field  name="clientOperation"
+                description="Операция клиента"
+                 type="boolean"
+                source="extra-parameters/parameter[@name='client-operation']/@value">
+        </field>
+
+        <field  name="clientOperationDesc"
+                description="Наименование операции"
+                type="string"
+                enabled="form.clientOperation"
+                source="extra-parameters/parameter[@name='client-operation-desc']/@value">
+        </field>
+
+    </fields>
+    <form-validators>                                                           
+    		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.IsCheckedMultiFieldValidator">
+			<message text="Пожалуйста, укажите операции, которые Вы планируете проводить с регистрируемой
+			ценной бумагой. Для этого поставьте галочки напротив выбранных операций. Если Вы хотите ввести
+			свой вариант операции, то установите флажок в поле «Операция клиента», введите значение в поле
+			под списком операций и нажмите на кнопку Добавить. "/>
+			<field-ref name="ptr1">depositaryOperation</field-ref>
+			<field-ref name="ptr2">depositOperation</field-ref>
+			<field-ref name="ptr3">accountOperation</field-ref>
+			<field-ref name="ptr4">tradeOperation</field-ref>
+			<field-ref name="ptr5">clientOperation</field-ref>
+		</form-validator>
+
+    	<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.SecurityRegistrationClaimClientOperationsValidator"
+                        enabled="form.clientOperation">
+			<message text="Пожалуйста, проверьте, правильно ли Вы ввели названия операций."/>
+			<field-ref name="ptr1">clientOperationDesc</field-ref>
+		</form-validator>
+    </form-validators>
+</payment-form>

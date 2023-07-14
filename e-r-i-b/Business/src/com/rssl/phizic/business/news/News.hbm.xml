@@ -1,0 +1,51 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="Important" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.news.Important</param>
+    </typedef>
+    <typedef name="NewsState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.news.NewsState</param>
+    </typedef>
+    <typedef name="NewsType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.news.NewsType</param>
+    </typedef>
+
+	<class name="com.rssl.phizic.business.news.News" table="NEWS" polymorphism="explicit">
+
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_NEWS</param>
+			</generator>
+		</id>
+
+        <property name="uuid"                   type="string"       column="UUID"               not-null="true"/>
+		<property name="newsDate"               type="calendar"     column="NEWS_DATE"          not-null="true"/>
+		<property name="title"                  type="string"       column="TITLE"              not-null="true"/>
+		<property name="text"                   type="string"       column="TEXT"               not-null="true" />
+		<property name="shortText"              type="string"       column="SHORT_TEXT"         not-null="true"/>
+        <property name="state"                  type="NewsState"    insert="false"              update="false" >
+			<formula>
+                CASE
+                    WHEN START_PUBLISH_DATE is null OR START_PUBLISH_DATE > current_date
+                        THEN 'NEW'
+                    WHEN current_date > END_PUBLISH_DATE
+                        THEN 'NOT_PUBLISHED'
+                    ELSE
+                        'PUBLISHED'
+                END
+            </formula>
+		</property>
+        <property name="type"                   type="NewsType"     column="TYPE"               not-null="true"/>
+        <property name="important"              type="Important"    column="IMPORTANT"          not-null="true"/>
+        <property name="startPublishDate"       type="calendar"     column="START_PUBLISH_DATE"/>
+        <property name="endPublishDate"         type="calendar"     column="END_PUBLISH_DATE"/>
+
+        <set name="departments" table="NEWS_DEPARTMENT" cascade="none" lazy="false">
+           <key column="NEWS_ID"/>
+           <element column="TB" type="string" not-null="true"/>
+        </set>
+    </class>
+</hibernate-mapping>

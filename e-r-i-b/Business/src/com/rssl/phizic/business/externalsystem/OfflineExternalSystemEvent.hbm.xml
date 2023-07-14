@@ -1,0 +1,38 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <typedef name="AutoStopSystemType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.external.systems.AutoStopSystemType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.externalsystem.OfflineExternalSystemEvent" table="OFFLINE_EXT_SYSTEM_EVENT">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_OFFLINE_EXT_SYSTEM_EVENT</param>
+            </generator>
+        </id>
+
+        <many-to-one name="adapter" column="ADAPTER_ID" class="com.rssl.phizicgate.manager.routing.Adapter" lazy="false"/>
+
+        <property name="autoStopSystemType" type="AutoStopSystemType" column="SYSTEM_TYPE" not-null="true"/>
+        <property name="eventTime" type="calendar" column="EVENT_TIME" not-null="true"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.externalsystem.AutoStopSystemService.getExternalSystemOfflineErrors">
+        <return-scalar column="adapter" type="long"/>
+        <return-scalar column="errors" type="long"/>
+        <return-scalar column="type" type="string"/>
+        <![CDATA[
+            SELECT
+                EV.ADAPTER_ID adapter,
+                count(EV.ID) errors,
+                EV.SYSTEM_TYPE type
+            FROM
+                OFFLINE_EXT_SYSTEM_EVENT EV
+            WHERE
+                EV.EVENT_TIME >= :fromTime
+            GROUP BY EV.ADAPTER_ID, EV.SYSTEM_TYPE
+        ]]>
+    </sql-query>
+</hibernate-mapping>

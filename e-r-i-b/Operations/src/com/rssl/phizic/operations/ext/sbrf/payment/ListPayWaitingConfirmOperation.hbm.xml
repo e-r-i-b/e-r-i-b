@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <query name="com.rssl.phizic.operations.ext.sbrf.payment.ListPayWaitingConfirmOperation.list">
+        <![CDATA[
+        select document from com.rssl.phizic.business.documents.AbstractPaymentDocument document
+        where
+            document.clientLogin.id = :loginId
+            and document.dateCreated >= :extra_fromDate
+            and document.dateCreated <= :extra_toDate
+
+            and (document.state.code not in ('INITIAL', 'DRAFT','SAVED') or :notConfirmDocumentsDate is null or document.dateCreated > :notConfirmDocumentsDate)
+            and (document.state.code not in ('WAIT_CONFIRM') or :waitConfirmDocumentsDate is null or document.dateCreated > :waitConfirmDocumentsDate)
+
+            and (:extra_formName is null or :extra_formName = '' or document.formName = :extra_formName)
+            and ('ALL' in (:extra_state) or document.state.code in (:extra_state))
+            and (:extra_long_offer is null or :extra_long_offer = '' or document.longOffer = 1)
+            and (:extra_number is null or :extra_number = '' or document.documentNumber = :extra_number)
+            and (:extra_receiverName is null  or upper(document.receiverName) like upper(:extra_like_receiverName))
+            and (:extra_confirmEmployee is null or upper(document.confirmEmployee) like upper(:extra_like_confirmEmployee))
+            and (:extra_additionConfirm is null or document.additionalOperationChannel = :extra_additionConfirm)
+            and (
+                   (:extra_additionConfirm is null and (document.additionalOperationChannel is not null or document.additionalOperationChannel != ''))
+                    or document.additionalOperationChannel = :extra_additionConfirm
+                    or document.state.code = 'WAIT_CONFIRM'
+                )
+
+        order by document.dateCreated desc
+        ]]>
+    </query>
+</hibernate-mapping>

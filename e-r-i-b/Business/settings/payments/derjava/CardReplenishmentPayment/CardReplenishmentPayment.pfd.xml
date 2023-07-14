@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="CardReplenishmentPayment" description="Пополнение пластиковой карты" detailedDescription="Перевод денежных средств с вашего счета для пополнения карты"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.InternalTransfer"/>
+	<statemachine name="PaymentStateMachine"/>
+
+	<withdraw-options>
+	   <form name="RecallPayment"/>
+	   <check class="com.rssl.phizic.business.documents.metadata.checkers.DocumentStateChecker">
+		   <parameter name="state">dispatched</parameter>
+	   </check>
+	</withdraw-options>
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+			   type="string">
+		</field>
+		<field
+				name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"
+				signable="true">
+		</field>
+		<field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DatePeriodFieldValidator">
+					<message text="Дата документа должна быть не раньше текущей и не позже 10 дней – срока действия документа."/>
+					<parameter name="after">10</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field name="admissionDate"
+		       source="admission-date"
+			   type="date"
+		       description="Дата приема плaтежа банком">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="account"
+				description="Счет списания"
+				type="account"
+				source="payer-account"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="accountType"
+				description="Тип счета списания"
+				source="extra-parameters/parameter[@name='account-type']/@value"
+				type="string"
+				signable="true">
+		</field>
+
+		<field
+				name="accountCurrency"
+				description="Валюта счета списания"
+				source="extra-parameters/parameter[@name='account-currency']/@value"
+				type="string"
+				signable="true"/>
+
+		<field
+				name="receiverAccount"
+				description="Счет получателя"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-account']/@value"
+				signable="true">
+			<!--<validators>-->
+				<!--todo счет карты может принадлежит другому клиенту, поэтому заккоментарил-->
+				<!--<validator class="com.rssl.phizic.business.payments.forms.validators.UserAccountValidator"/>-->
+			<!--</validators>-->
+		</field>
+		<field
+				name="amount"
+				description="Сумма"
+				source="amount"
+				type="money"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="commissionAmount"
+				description="Сумма комиссии"
+				source="commission"
+				type="money"
+				signable="true">
+		</field>
+
+		<field
+				name="amountCurrency"
+				description="Валюта"
+				source="amount-currency"
+				type="string"
+				signable="true"/>
+
+		<field name="cardNumber"
+		       description="Карта"
+		       type="card"
+		       source="extra-parameters/parameter[@name='cardNumber']/@value"
+		       signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field  name="cardType"
+				source="extra-parameters/parameter[@name='card-type']/@value"
+				description="Тип карты"
+				type="string">
+		</field>
+	</fields>
+
+	<form-validators>
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountsNotEqualValidator">
+			<field-ref name="fromAccount">account</field-ref>
+			<field-ref name="toAccount">receiverAccount</field-ref>
+		</form-validator>
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountAndCardAccountCurrenciesEqualValidator">
+			<field-ref name="account">account</field-ref>
+			<field-ref name="card">cardNumber</field-ref>
+		</form-validator>
+		<form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">account</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+		<form-validator mode="document" class="com.rssl.phizic.business.claims.forms.validators.CardAndClientCompatibles">
+			<field-ref name="cardId">cardNumber</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

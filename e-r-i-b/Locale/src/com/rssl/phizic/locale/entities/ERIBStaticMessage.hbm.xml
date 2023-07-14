@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.locale.entities.ERIBStaticMessage" table="ERIB_STATIC_MESSAGE">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_ERIB_STATIC_MESSAGE</param>
+            </generator>
+        </id>
+        <property name="localeId"   type="string"  column="LOCALE_ID"       not-null="true"/>
+        <property name="bundle"     type="string"  column="BUNDLE"          not-null="true"/>
+        <property name="key"        type="string"  column="KEY"             not-null="true"/>
+        <property name="message"    type="string"  column="MESSAGE"         not-null="false"/>
+    </class>
+
+<!--
+        Опорный объект: I_ERIB_STATIC_MESSAGE_LBK
+        Предикаты доступа: access("MESSAGE"."LOCALE_ID"=:LOCALEID)
+        Кардинальность: до 17000 записей
+-->
+    <query name="com.rssl.phizic.locale.entities.ERIBStaticMessage.deleteLocale">
+        delete from ERIBStaticMessage message
+        where message.localeId=:localeId
+    </query>
+
+    <!--
+            Опорный объект: ATM_ERIB_MESSAGES
+            Предикаты доступа: access(DECODE(SUBSTR("KEY",-4),'.atm',"LOCALE_ID"||"KEY",NULL) LIKE 'RU%')
+            Кардинальность: порядка 20 записей
+    -->
+    <sql-query name="com.rssl.phizic.locale.entities.ERIBStaticMessage.getMessagesForLocaleRU">
+         <return class="com.rssl.phizic.locale.entities.ERIBStaticMessage">
+              <return-property name="id" column="id"/>
+              <return-property name="localeId" column="locale_id"/>
+              <return-property name="bundle" column="bundle"/>
+              <return-property name="key" column="key"/>
+              <return-property name="message" column="message"/>
+         </return>
+            select
+                messagesRu.ID as id,
+                messagesRu.LOCALE_ID as locale_id,
+                messagesRu.BUNDLE as bundle,
+                messagesRu.KEY as key,
+                messagesRu.message as message
+            from
+                ERIB_STATIC_MESSAGE messagesRu
+
+            where
+                DECODE(substr( messagesRu.KEY , -4), '.atm', messagesRu.LOCALE_ID||messagesRu.KEY, null) like 'RU%'
+            order by messagesRu.BUNDLE, messagesRu.KEY
+     </sql-query>
+
+<!--
+    Опорный объект: I_ERIB_STATIC_MESSAGE_LBK
+    Предикаты доступа: access("MESSAGESLOCALE"."LOCALE_ID"(+)=:EXTRA_LOCALE AND
+                      "MESSAGESRU"."BUNDLE"="MESSAGESLOCALE"."BUNDLE"(+) AND
+                      "MESSAGESRU"."KEY"="MESSAGESLOCALE"."KEY"(+))
+    Кардинальность: до 17000 записей
+-->
+    <sql-query name="com.rssl.phizic.locale.entities.ERIBStaticMessage.getMessagesForLocale">
+         <return-scalar column="id" type="long"/>
+         <return-scalar column="locale_id" type="string"/>
+         <return-scalar column="bundle" type="string"/>
+         <return-scalar column="key" type="string"/>
+         <return-scalar column="message" type="string"/>
+            select
+                messagesLocale.ID as id,
+                :extra_locale as locale_id,
+                messagesRu.BUNDLE as bundle,
+                messagesRu.KEY as key,
+                decode(messagesLocale.key, null, messagesRu.message, messagesLocale.MESSAGE) as message
+            from
+                ERIB_STATIC_MESSAGE messagesRu
+            left join
+                ERIB_STATIC_MESSAGE messagesLocale
+            on
+                messagesRu.KEY = messagesLocale.KEY
+                and messagesRu.BUNDLE = messagesLocale.BUNDLE
+                and messagesRu.id != messagesLocale.id
+                and messagesLocale.LOCALE_ID = :extra_locale
+            where
+                messagesRu.LOCALE_ID = 'RU'
+            order by messagesRu.BUNDLE, messagesRu.KEY
+     </sql-query>
+</hibernate-mapping>

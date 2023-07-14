@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.rssl.phizicgate.rsbankV50.clients">
+    <class name="ClientDocumentImpl">
+        <composite-id name="longId" class="com.rssl.phizicgate.rsbankV50.clients.ClientId">
+	        <key-property name="personId"  column="kPersonId" />
+		    <key-property name="paperKind" column="kPaperKind"/>
+	    </composite-id>
+	    <property name="personId" column="kPersonId" insert="false" update="false"/>
+        <property name="paperKind" column="kPaperKind" insert="false" update="false"/>
+	    <property name="documentType" type="com.rssl.phizicgate.rsbankV50.clients.ClientDocumentTypeWrapper"/>
+	    <property name="docTypeName"/>
+        <property name="docNumber"/>
+        <property name="docSeries"/>
+        <property name="docIssueDate"/>
+        <property name="docIssueBy"/>
+	    <property name="docIssueByCode"/>
+	    <property name="docIdentify"/>
+    </class>
+
+	<sql-query name="GetClientDocuments">
+		<return alias="documents" class="com.rssl.phizicgate.rsbankV50.clients.ClientDocumentImpl">
+			<return-property name="documentType" column="docType"/>
+			<return-property name="docTypeName" column="docName"/>
+			<return-property name="docNumber" column="docNumber"/>
+			<return-property name="docSeries" column="docSeries"/>
+			<return-property name="docIssueDate" column="docIssueDate"/>
+			<return-property name="docIssueBy" column="docIssueBy"/>
+		    <return-property name="docIssueByCode" column="docIssueByCode"/>
+			 <return-property name="docIdentify" column="docIdentify"/>
+		</return>
+		SELECT
+		regdoc.Client                                        AS kPersonId,
+		regdoc.RDKind                                        AS kPaperKind,
+		docInfo.Name                                         AS docType,
+		regdoc.DocNum                                        AS docNumber,
+		regdoc.Series                                        AS docSeries,
+		regdoc.IssueDate                                     AS docIssueDate,
+		CONVERT(regdoc.RegName + regdoc.RegName_2, SQL_CHAR) AS docIssueBy,
+		docInfo.Name                                         AS docName,
+		regdoc.Subdivision                                   AS docIssueByCode,
+		1                                                    AS docIdentify
+		FROM
+		regdoc_dbt AS regdoc, rdkind_dbt AS docInfo,
+		client_dbt AS client
+
+		WHERE
+		client.client = :personId AND
+		regdoc.Client = :personId AND
+		docInfo.RDKind = regDoc.RDKind AND
+		regdoc.IsMain = 'X' And
+		((Select rdkind.DocType from rdkind_dbt As rdkind where rdkind.RDKind = regdoc.RDKind) = 1)
+	</sql-query>
+
+</hibernate-mapping>

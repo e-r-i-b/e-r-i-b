@@ -1,0 +1,31 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.auth.csa.front.business.regions.Region" table="REGIONS">
+        <id name="id" type="long">
+			<generator class="com.rssl.phizic.dataaccess.common.counters.AssignedOrSequenceGenerator">
+            	<param name="sequence">S_REGIONS</param>
+			</generator>
+		</id>
+
+        <property name="synchKey"   type="string"       column="CODE"   not-null="true"/>
+        <property name="name"       type="string"       column="NAME"   not-null="true"/>
+        <property name="codeTB"     type="string"       column="CODE_TB"/>
+
+        <many-to-one name="parent" class="com.rssl.auth.csa.front.business.regions.Region" column="PARENT_ID"
+                     fetch="join"  lazy="false" not-null="false"/>
+    </class>
+
+    <!-- Поиск региона по названию на латинице. Если найденный регион является дочерним, то ищем для него родительский. -->
+    <sql-query name="com.rssl.auth.csa.front.business.regions.Region.findParentByEnName">
+        <return alias="region" class="com.rssl.auth.csa.front.business.regions.Region"/>
+        SELECT {region.*}
+        FROM REGIONS region
+        WHERE PARENT_ID is null
+        START WITH region.EN_NAME = :enName
+        CONNECT BY PRIOR PARENT_ID=ID
+    </sql-query>
+
+</hibernate-mapping>

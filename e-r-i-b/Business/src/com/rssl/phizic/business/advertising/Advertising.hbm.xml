@@ -1,0 +1,192 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef  name="AdvertisingState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.advertising.AdvertisingState</param>
+    </typedef>
+
+    <typedef name="AdvertisingAvailability" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.advertising.AdvertisingAvailability</param>
+    </typedef>
+
+    <typedef name="ProductRequirementType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.productRequirements.ProductRequirementType</param>
+	</typedef>
+
+    <typedef name="RequirementState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.productRequirements.RequirementState</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.advertising.AdvertisingBlock" table="ADVERTISINGS" polymorphism="explicit">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ADVERTISINGS</param>
+            </generator>
+        </id>
+
+        <property name="uuid"           type="string"                     column="UUID"            not-null="true"/>
+        <property name="state"          type="AdvertisingState"           column="STATE"           not-null="true"/>
+        <property name="availability"   type="AdvertisingAvailability"    column="AVAILABLE"       not-null="true"/>
+        <property name="name"           type="string"                     column="NAME"            not-null="true"/>
+        <property name="periodFrom"     type="calendar"                   column="START_DATE"       not-null="false"/>
+        <property name="periodTo"       type="calendar"                   column="END_DATE"         not-null="false"/>
+
+        <set name="departments" table="ADVERTISINGS_DEPARTMENTS" lazy="false">
+            <key column="ADVERTISING_ID"/>
+            <element column="TB" type="string" not-null="true"/>
+        </set>
+
+        <set name="requirements" table="ADVERTISING_REQUIREMENTS" cascade="all-delete-orphan" lazy="false">
+            <key column="ADVERTISING_ID"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.productRequirements.ProductRequirement"/>
+        </set>
+
+        <set name="reqAccTypes" table="ADVERTISING_REQ_ACC_TYPES" cascade="all-delete-orphan" lazy="false">
+            <key column="ADVERTISING_ID"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.productRequirements.AccTypesRequirement"/>
+        </set>
+
+        <property name="title"          type="string"                     column="TITLE"           not-null="false"/>
+        <property name="text"           type="string"                     column="TEXT"            not-null="false"/>
+
+        <bag name="buttons" table="ADVERTISING_BUTTONS" cascade="all-delete-orphan" lazy="false" fetch="subselect">
+            <key column="ADVERTISING_ID"/>			
+			<one-to-many class="com.rssl.phizic.business.advertising.AdvertisingButton"/>
+        </bag>
+
+        <list name="areas" table="ADVERTISING_AREAS" cascade="all-delete-orphan" lazy="false">
+            <key column="ADVERTISING_ID" not-null="false"/>
+			<list-index column="LIST_INDEX"/>
+			<one-to-many class="com.rssl.phizic.business.advertising.AdvertisingArea"/>
+        </list>
+
+        <many-to-one name="image"       class="com.rssl.phizic.business.image.Image"  column="IMAGE_ID" lazy="false" fetch="join" not-null="false"/>
+        <property name="showTime"       type="long"                       column="SHOW_TIME"       not-null="true"/>
+        <property name="orderIndex"     type="long"                       column="ORDER_INDEX"     not-null="true"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.advertising.AdvertisingButton" table="ADVERTISING_BUTTONS" polymorphism="explicit">
+        
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ADVERTISING_BUTTONS</param>
+            </generator>
+        </id>
+
+        <property name="uuid"           type="string"                     column="UUID"            not-null="true"/>
+        <property name="title"          type="string"                     column="TITLE"           not-null="false"/>
+        <property name="url"            type="string"                     column="URL"             not-null="false"/>
+        <many-to-one name="image"       class="com.rssl.phizic.business.image.Image"  column="IMAGE_ID" lazy="false" fetch="join" not-null="false"/>
+        <property name="show"           type="boolean"                    column="SHOW"            not-null="true"/>
+        <property name="orderIndex"     type="long"                       column="ORDER_INDEX"     not-null="true"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.advertising.AdvertisingArea" table="ADVERTISING_AREAS">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ADVERTISING_AREAS</param>
+            </generator>
+        </id>
+
+        <property name="areaName"       type="string"                     column="AREA"            not-null="true"/>
+        <property name="orderIndex"     type="long"                       column="ORDER_INDEX"     not-null="true"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.productRequirements.ProductRequirement" table="ADVERTISING_REQUIREMENTS">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ADVERTISING_REQUIREMENTS</param>
+            </generator>
+        </id>
+
+        <property name="requirementType"  type="ProductRequirementType"  column="REQUIREMENT"           not-null="true"/>
+        <property name="requirementState" type="RequirementState"        column="REQUIREMENT_STATE"     not-null="true"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.productRequirements.AccTypesRequirement" table="ADVERTISING_REQ_ACC_TYPES">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ADVERTISING_REQ_ACC_TYPES</param>
+            </generator>
+        </id>
+
+        <many-to-one name="depositProduct" class="com.rssl.phizic.business.deposits.DepositProduct" column="PRODUCT_ID"        lazy="false" not-null="false"/>
+        <property name="requirementState"  type="RequirementState"                                  column="REQUIREMENT_STATE"              not-null="true"/>
+
+    </class>
+
+    <!-- Получение списка id баннеров в порядке их отображения -->
+    <sql-query name="com.rssl.phizic.business.advertising.AdvertisingService.getBunnerList">
+        <return-scalar column="id" type="long"/>
+        <![CDATA[
+            SELECT adv.id  FROM ADVERTISINGS   adv
+            WHERE  (adv.START_DATE is null or adv.START_DATE <= :currentDate) and (adv.END_DATE is null or adv.END_DATE >= :currentDate)
+            AND adv.STATE='ACTIVE'
+            AND (adv.AVAILABLE = 'FULL' or adv.AVAILABLE = 'MAIN')
+            AND adv.ID in
+            (
+                SELECT
+                    advDepartment.ADVERTISING_ID
+                FROM
+                    ADVERTISINGS_DEPARTMENTS advDepartment
+                WHERE advDepartment.TB = :TB
+            )
+            ORDER BY adv.ORDER_INDEX, adv.NAME
+        ]]>
+	</sql-query>
+
+    <!-- Получение списка баннеров в виде сущностей AdvertisingBlock в порядке их отображения. Для мобильного API -->
+    <!--
+       Опорный объект: ADVERTISINGS_BY_TB_IDX
+       Предикаты доступа: access("ADVDEPARTMENT"."TB"=:DEPARTMENTID)
+       Кардинальность: количество баннеров для тербанка
+     -->
+    <sql-query name="com.rssl.phizic.business.advertising.AdvertisingService.getApiBunnerList">
+        <return alias="adv" class="com.rssl.phizic.business.advertising.AdvertisingBlock"/>
+        <![CDATA[
+            SELECT
+                {adv.*}
+            FROM
+                ADVERTISINGS   adv
+                left join ADVERTISINGS_DEPARTMENTS advDepartment on adv.ID = advDepartment.ADVERTISING_ID
+            WHERE
+                (adv.START_DATE is null or adv.START_DATE <= :extra_currentDate) and (adv.END_DATE is null or adv.END_DATE >= :extra_currentDate)
+                AND adv.STATE='ACTIVE'
+                AND (adv.AVAILABLE = 'FULL' or adv.AVAILABLE = 'API')
+                AND advDepartment.TB = :extra_departmentId
+            ORDER BY adv.ORDER_INDEX, adv.NAME
+        ]]>
+	</sql-query>
+
+    <!-- Получение списка требований к продуктам клиента по id баннера -->
+    <sql-query name="com.rssl.phizic.business.advertising.AdvertisingService.getRequirementsList">
+        <return alias="requirement" class="com.rssl.phizic.business.dictionaries.productRequirements.ProductRequirement"/>
+        <![CDATA[
+            SELECT {requirement.*}
+            FROM ADVERTISING_REQUIREMENTS requirement
+            WHERE requirement.ADVERTISING_ID = :advertisingId
+        ]]>
+	</sql-query>
+
+    <!-- Получение списка требований к видам вклада по id баннера -->
+    <sql-query name="com.rssl.phizic.business.advertising.AdvertisingService.getAccTypesRequirementList">
+        <return alias="requirement" class="com.rssl.phizic.business.dictionaries.productRequirements.AccTypesRequirement"/>
+        <![CDATA[
+            SELECT {requirement.*}
+            FROM ADVERTISING_REQ_ACC_TYPES requirement
+            WHERE requirement.ADVERTISING_ID = :advertisingId
+        ]]>
+	</sql-query>
+</hibernate-mapping>

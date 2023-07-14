@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://sbrf.ru/e-invoicing/uec/1"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://sbrf.ru/e-invoicing/uec/1"
+            elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:simpleType name="UUIDType">
+		<xsd:restriction base="xsd:string">
+		    <xsd:pattern value="[0-9a-fA-F]{32}"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="DateTimeType">
+	    <xsd:restriction base="xsd:string">
+	        <xsd:pattern value="[0-9]{4}-[0-9]{2}-[0-9]{2}(T[0-9]{2}:[0-9]{2}(:[0-9]{2}(\.[0-9]{6})?((-|\+)[0-9]{2}:[0-9]{2})?)?)?"/>
+	    </xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:simpleType name="String255Type">
+	    <xsd:restriction base="xsd:string">
+	        <xsd:maxLength value="255"/>
+	    </xsd:restriction>
+	</xsd:simpleType>
+
+    <xsd:simpleType name="StatusCodeType">
+        <xsd:restriction base="xsd:long">
+            <xsd:annotation>
+                <xsd:documentation>Код ошибки</xsd:documentation>
+            </xsd:annotation>
+            <xsd:enumeration value="0">
+                <xsd:annotation>
+                    <xsd:documentation>принят на исполнение (в обработке)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="40004">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Внутренняя ошибка системы
+                        ЕРИБ будет отправлять повторно с определенной периодичностью до тех пор, пока не будет получен код «0»
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="40005">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Дублирующий запрос
+                        Данная ошибка говорит о том, что запрос с идентификатором (поле RqUID) уже передавался ранее в Портал УЭК.
+                        Т.е. это ошибка формирования запроса (на стороне ЕРИБ)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="40011">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        ЕПШ временно недоступен
+                        ЕРИБ будет отправлять повторно с определенной периодичностью до тех пор, пока не будет получен код «0»
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="40014">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Платеж не найден
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="40017">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Неверное переданное состояние распоряжения на платеж
+                        Данная ошибка говорит о том, что в поле статус введено недопустимое значение.
+                        Т.е. это ошибка формирования запроса (на стороне ЕРИБ)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="StatusType">
+        <xsd:annotation>
+            <xsd:documentation>Информация о выполнении запроса</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="StatusCode" type="StatusCodeType"/>
+            <xsd:element name="StatusDesc" type="String255Type" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Текст ошибки, готовый для отображения пользователю.
+                        Заполняется в зависимости от кода ошибки в соответствии с таблицей, представленной ниже.
+                        Не приходит только в том случае если StatusCode равен 0.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="StateType">
+        <xsd:annotation>
+            <xsd:documentation>Статус документа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="PROC">
+                <xsd:annotation>
+                    <xsd:documentation>принят на исполнение (в обработке)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="APRP">
+                <xsd:annotation>
+                    <xsd:documentation>исполнен</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="DECL">
+                <xsd:annotation>
+                    <xsd:documentation>отказ в обработке</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="SPNameIDType">
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+
+<!-- Begin UECDocStatNotRq -->
+
+	<xsd:complexType name="StatNotRqDocumentsType">
+	    <xsd:sequence>
+	        <xsd:element name="Document" type="StatNotRqDocumentType" minOccurs="1" maxOccurs="unbounded"/>
+	    </xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="StatNotRqDocumentType">
+	    <xsd:sequence>
+			<xsd:element name="DocUID" type="UUIDType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Уникальный идентификатор документа во внешней системе.
+                        Заполняется значением из тега DocUID документа, переданного на оплату.
+                    </xsd:documentation>
+                </xsd:annotation>
+			</xsd:element>
+	        <xsd:element name="State" type="StateType">
+                <xsd:annotation>
+                    <xsd:documentation>Текущий статус документа</xsd:documentation>
+                </xsd:annotation>
+	        </xsd:element>
+	    </xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="StatNotRqType">
+	    <xsd:sequence>
+	        <xsd:element name="RqUID" type="UUIDType">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса</xsd:documentation>
+                </xsd:annotation>
+	        </xsd:element>
+            <xsd:element name="RqTm" type="DateTimeType">
+                <xsd:annotation>
+                    <xsd:documentation>Дата и время передачи сообщений</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+	        <xsd:element name="SPName" type="SPNameIDType">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор системы в системе ЕРИБ</xsd:documentation>
+                </xsd:annotation>
+	        </xsd:element>
+	        <xsd:element name="Documents" type="StatNotRqDocumentsType"/>
+	    </xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="UECDocStatNotRq" type="StatNotRqType" />	
+
+<!-- End UECDocStatNotRq -->
+<!-- Begin UECDocStatNotRs -->
+
+	<xsd:complexType name="ResultType">
+	    <xsd:sequence>
+	        <xsd:element name="DocUID" type="UUIDType"/>
+	        <xsd:element name="Status" type="StatusType"/>
+	    </xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="StatNotRsDocumentsType">
+	    <xsd:sequence>
+	        <xsd:element name="Result" type="ResultType" minOccurs="1" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Результат выполнения запроса</xsd:documentation>
+                </xsd:annotation>
+	        </xsd:element>
+	    </xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="StatNotRsType">
+	    <xsd:sequence>
+	        <xsd:element name="RqUID" type="UUIDType">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса</xsd:documentation>
+                </xsd:annotation>
+	        </xsd:element>
+	        <xsd:element name="RqTm" type="DateTimeType">
+                <xsd:annotation>
+                    <xsd:documentation>Дата и время передачи сообщений</xsd:documentation>
+                </xsd:annotation>
+	        </xsd:element>
+	        <xsd:element name="Documents" type="StatNotRsDocumentsType" minOccurs="1" maxOccurs="1"/>
+	    </xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="UECDocStatNotRs" type="StatNotRsType" />
+	
+<!-- End UECDocStatNotRs -->
+</xsd:schema>

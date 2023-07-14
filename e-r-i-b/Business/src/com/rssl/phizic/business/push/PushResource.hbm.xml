@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="PushPrivacyType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.messaging.mail.messagemaking.push.PushPrivacyType</param>
+    </typedef>
+
+    <typedef name="PushPublicityType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.messaging.mail.messagemaking.push.PushPublicityType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.push.PushResource" table="PUSH_PARAMS" abstract="true">
+        <id name="id" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PUSH_PARAMS</param>
+            </generator>
+        </id>
+
+        <discriminator type="string" column="TYPE"/>
+
+        <property name="key"             column="KEY"               type="string" not-null="true"/>
+
+        <property name="text"            column="TEXT"              type="string" not-null="true"/>
+        <property name="description"     column="DESCRIPTION"       type="string"/>
+
+        <property name="shortMessage"     column="SHORT_TEXT"       type="string" not-null="true"/>
+        <property name="priority"         column="PRIORITY"         type="long" />
+        <property name="typeCode"         column="CODE"             type="integer" not-null="true"/>
+        <property name="privacyType"      column="PRIVACY_TYPE"     type="PushPrivacyType" not-null="true"/>
+        <property name="publicityType"    column="PUBLICITY_TYPE"   type="PushPublicityType" not-null="true"/>
+        <property name="smsBackup"        column="SMS_BACKUP"       type="boolean" not-null="true"/>
+
+        <property name="variables"       column="VARIABLES"         type="string"/>
+        <property name="lastModified"    column="LAST_MODIFIED"     type="calendar"/>
+        <property name="previousText"    column="PREVIOUS_TEXT"     type="string"/>
+        <property name="employeeLoginId" column="EMPLOYEE_LOGIN_ID" type="long"/>
+        <property name="attributes"      column="ATTRIBUTES"        type="string"       not-null="false"/>
+
+        <subclass name="com.rssl.phizic.business.push.PushInformingResource"    discriminator-value="INFORMING"/>
+        <subclass name="com.rssl.phizic.business.push.PushConfirmationResource" discriminator-value="CONFIRMATION"/>
+        <subclass name="com.rssl.phizic.business.push.CSAPushResource" discriminator-value="CSAPUSHMESSAGE"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.push.PushParams" table="PUSH_PARAMS">
+        <id name="id"                     column="ID"               type="long"   />
+        <property name="key"              column="KEY"              type="string" not-null="true"/>
+        <property name="typeCode"         column="CODE"             type="integer" not-null="true"/>
+        <property name="privacyType"      column="PRIVACY_TYPE"     type="PushPrivacyType" not-null="true"/>
+        <property name="publicityType"    column="PUBLICITY_TYPE"   type="PushPublicityType" not-null="true"/>
+        <property name="smsBackup"        column="SMS_BACKUP"       type="boolean" not-null="true"/>
+    </class>
+
+    <!--Получение короткого сообщения пуш-шаблока по ключу
+        Опорный элемент: I_PUSH_PARAMS_KEY
+        Предикаты доступа: access("KEY"=:EXTERNALKEY)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.push.getShortMessage">
+        select push.shortMessage from com.rssl.phizic.business.push.PushResource push
+        where push.key = :externalKey
+    </query>
+
+    <!--Получение полного текста пуш-шаблока по ключу
+        Опорный элемент: I_PUSH_PARAMS_KEY
+        Предикаты доступа: access("KEY"=:EXTERNALKEY)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.push.getFullMessage">
+        select push.text from com.rssl.phizic.business.push.PushResource push
+        where push.key = :externalKey
+    </query>
+
+    <!--Получение атрибутов пуш-шаблока по ключу
+        Опорный элемент: I_PUSH_PARAMS_KEY
+        Предикаты доступа: access("KEY"=:EXTERNALKEY)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.push.getAttributes">
+        select push.attributes from com.rssl.phizic.business.push.PushResource push
+        where push.key = :externalKey
+    </query>
+
+</hibernate-mapping>

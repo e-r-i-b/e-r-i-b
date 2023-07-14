@@ -1,0 +1,264 @@
+/**
+ * SmsLogRq_Type.java
+ *
+ * This file was auto-generated from WSDL
+ * by the Apache Axis 1.4 Apr 22, 2006 (06:55:48 PDT) WSDL2Java emitter.
+ */
+
+package com.rssl.phizic.business.ermb.auxiliary.smslog.generated;
+
+public class SmsLogRq_Type  implements java.io.Serializable {
+    private java.lang.String rqUID;
+
+    private java.util.Calendar rqTime;
+
+    private com.rssl.phizic.business.ermb.auxiliary.smslog.generated.Filter_Type filter;
+
+    private com.rssl.phizic.business.ermb.auxiliary.smslog.generated.Pagination_Type pagination;
+
+    private java.lang.String sessionID;
+
+    public SmsLogRq_Type() {
+    }
+
+    public SmsLogRq_Type(
+           java.lang.String rqUID,
+           java.util.Calendar rqTime,
+           com.rssl.phizic.business.ermb.auxiliary.smslog.generated.Filter_Type filter,
+           com.rssl.phizic.business.ermb.auxiliary.smslog.generated.Pagination_Type pagination,
+           java.lang.String sessionID) {
+           this.rqUID = rqUID;
+           this.rqTime = rqTime;
+           this.filter = filter;
+           this.pagination = pagination;
+           this.sessionID = sessionID;
+    }
+
+
+    /**
+     * Gets the rqUID value for this SmsLogRq_Type.
+     * 
+     * @return rqUID
+     */
+    public java.lang.String getRqUID() {
+        return rqUID;
+    }
+
+
+    /**
+     * Sets the rqUID value for this SmsLogRq_Type.
+     * 
+     * @param rqUID
+     */
+    public void setRqUID(java.lang.String rqUID) {
+        this.rqUID = rqUID;
+    }
+
+
+    /**
+     * Gets the rqTime value for this SmsLogRq_Type.
+     * 
+     * @return rqTime
+     */
+    public java.util.Calendar getRqTime() {
+        return rqTime;
+    }
+
+
+    /**
+     * Sets the rqTime value for this SmsLogRq_Type.
+     * 
+     * @param rqTime
+     */
+    public void setRqTime(java.util.Calendar rqTime) {
+        this.rqTime = rqTime;
+    }
+
+
+    /**
+     * Gets the filter value for this SmsLogRq_Type.
+     * 
+     * @return filter
+     */
+    public com.rssl.phizic.business.ermb.auxiliary.smslog.generated.Filter_Type getFilter() {
+        return filter;
+    }
+
+
+    /**
+     * Sets the filter value for this SmsLogRq_Type.
+     * 
+     * @param filter
+     */
+    public void setFilter(com.rssl.phizic.business.ermb.auxiliary.smslog.generated.Filter_Type filter) {
+        this.filter = filter;
+    }
+
+
+    /**
+     * Gets the pagination value for this SmsLogRq_Type.
+     * 
+     * @return pagination
+     */
+    public com.rssl.phizic.business.ermb.auxiliary.smslog.generated.Pagination_Type getPagination() {
+        return pagination;
+    }
+
+
+    /**
+     * Sets the pagination value for this SmsLogRq_Type.
+     * 
+     * @param pagination
+     */
+    public void setPagination(com.rssl.phizic.business.ermb.auxiliary.smslog.generated.Pagination_Type pagination) {
+        this.pagination = pagination;
+    }
+
+
+    /**
+     * Gets the sessionID value for this SmsLogRq_Type.
+     * 
+     * @return sessionID
+     */
+    public java.lang.String getSessionID() {
+        return sessionID;
+    }
+
+
+    /**
+     * Sets the sessionID value for this SmsLogRq_Type.
+     * 
+     * @param sessionID
+     */
+    public void setSessionID(java.lang.String sessionID) {
+        this.sessionID = sessionID;
+    }
+
+    private java.lang.Object __equalsCalc = null;
+    public synchronized boolean equals(java.lang.Object obj) {
+        if (!(obj instanceof SmsLogRq_Type)) return false;
+        SmsLogRq_Type other = (SmsLogRq_Type) obj;
+        if (obj == null) return false;
+        if (this == obj) return true;
+        if (__equalsCalc != null) {
+            return (__equalsCalc == obj);
+        }
+        __equalsCalc = obj;
+        boolean _equals;
+        _equals = true && 
+            ((this.rqUID==null && other.getRqUID()==null) || 
+             (this.rqUID!=null &&
+              this.rqUID.equals(other.getRqUID()))) &&
+            ((this.rqTime==null && other.getRqTime()==null) || 
+             (this.rqTime!=null &&
+              this.rqTime.equals(other.getRqTime()))) &&
+            ((this.filter==null && other.getFilter()==null) || 
+             (this.filter!=null &&
+              this.filter.equals(other.getFilter()))) &&
+            ((this.pagination==null && other.getPagination()==null) || 
+             (this.pagination!=null &&
+              this.pagination.equals(other.getPagination()))) &&
+            ((this.sessionID==null && other.getSessionID()==null) || 
+             (this.sessionID!=null &&
+              this.sessionID.equals(other.getSessionID())));
+        __equalsCalc = null;
+        return _equals;
+    }
+
+    private boolean __hashCodeCalc = false;
+    public synchronized int hashCode() {
+        if (__hashCodeCalc) {
+            return 0;
+        }
+        __hashCodeCalc = true;
+        int _hashCode = 1;
+        if (getRqUID() != null) {
+            _hashCode += getRqUID().hashCode();
+        }
+        if (getRqTime() != null) {
+            _hashCode += getRqTime().hashCode();
+        }
+        if (getFilter() != null) {
+            _hashCode += getFilter().hashCode();
+        }
+        if (getPagination() != null) {
+            _hashCode += getPagination().hashCode();
+        }
+        if (getSessionID() != null) {
+            _hashCode += getSessionID().hashCode();
+        }
+        __hashCodeCalc = false;
+        return _hashCode;
+    }
+
+    // Type metadata
+    private static org.apache.axis.description.TypeDesc typeDesc =
+        new org.apache.axis.description.TypeDesc(SmsLogRq_Type.class, true);
+
+    static {
+        typeDesc.setXmlType(new javax.xml.namespace.QName("http://sbrf.ru/ermb/auxiliary/sms-log", "SmsLogRq_Type"));
+        org.apache.axis.description.ElementDesc elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("rqUID");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://sbrf.ru/ermb/auxiliary/sms-log", "rqUID"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"));
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+        elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("rqTime");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://sbrf.ru/ermb/auxiliary/sms-log", "rqTime"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "dateTime"));
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+        elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("filter");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://sbrf.ru/ermb/auxiliary/sms-log", "filter"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://sbrf.ru/ermb/auxiliary/sms-log", "filter_Type"));
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+        elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("pagination");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://sbrf.ru/ermb/auxiliary/sms-log", "pagination"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://sbrf.ru/ermb/auxiliary/sms-log", "pagination_Type"));
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+        elemField = new org.apache.axis.description.ElementDesc();
+        elemField.setFieldName("sessionID");
+        elemField.setXmlName(new javax.xml.namespace.QName("http://sbrf.ru/ermb/auxiliary/sms-log", "sessionID"));
+        elemField.setXmlType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"));
+        elemField.setMinOccurs(0);
+        elemField.setNillable(false);
+        typeDesc.addFieldDesc(elemField);
+    }
+
+    /**
+     * Return type metadata object
+     */
+    public static org.apache.axis.description.TypeDesc getTypeDesc() {
+        return typeDesc;
+    }
+
+    /**
+     * Get Custom Serializer
+     */
+    public static org.apache.axis.encoding.Serializer getSerializer(
+           java.lang.String mechType, 
+           java.lang.Class _javaType,  
+           javax.xml.namespace.QName _xmlType) {
+        return 
+          new  org.apache.axis.encoding.ser.BeanSerializer(
+            _javaType, _xmlType, typeDesc);
+    }
+
+    /**
+     * Get Custom Deserializer
+     */
+    public static org.apache.axis.encoding.Deserializer getDeserializer(
+           java.lang.String mechType, 
+           java.lang.Class _javaType,  
+           javax.xml.namespace.QName _xmlType) {
+        return 
+          new  org.apache.axis.encoding.ser.BeanDeserializer(
+            _javaType, _xmlType, typeDesc);
+    }
+
+}

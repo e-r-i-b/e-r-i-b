@@ -1,0 +1,55 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.addressBook.reports.RequestsCountLogEntity" table="ADDRESS_BOOK_REQUESTS_COUNT">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ADDRESS_BOOK_REQUESTS_COUNT</param>
+            </generator>
+        </id>
+        <timestamp name="synchronizationDate" column="SYNCHRONIZATION_DATE"/>
+        <property name="login"    type="long"     column="LOGIN_ID" not-null="true"/>
+        <property name="name"     type="string"   column="FIO"      not-null="true"/>
+        <property name="document" type="string"   column="DOCUMENT" not-null="false"/>
+        <property name="birthday" type="calendar" column="BIRTHDAY" not-null="false"/>
+        <property name="tb"       type="string"   column="TB"       not-null="false"/>
+        <property name="count"    type="long"     column="COUNT"    not-null="true"/>
+    </class>
+
+    <!--Получение количества синхронизированных записей клиентом с периода :FROMDATE -->
+    <!-- Опорный объект: I_ADDRESS_BOOK_REQUESTS_COUNT
+         Предикаты доступа:  логин клиента и дата синхронизации
+                            access("LOGIN_ID"=TO_NUMBER(:LOGINID) AND "SYNCHRONIZATION_DATE">TO_TIMESTAMP(:FROMDATE))
+         Кардинальность: количество синхронизаций адрессной книги, выполненных клиентом с даты fromDate.
+    -->
+    <sql-query name="com.rssl.phizic.business.addressBook.reports.RequestsCountLogEntity.contactCountByPeriodForLogin">
+        <return-scalar column="contactCount" type="long"/>
+        SELECT
+            SUM(COUNT) contactCount
+        FROM
+            ADDRESS_BOOK_REQUESTS_COUNT
+        WHERE
+            LOGIN_ID = :loginId
+            AND SYNCHRONIZATION_DATE > :fromDate
+    </sql-query>
+
+    <!--Получение количества синхронизаций произведенных клиентом с периода :FROMDATE -->
+    <!-- Опорный объект: I_ADDRESS_BOOK_REQUESTS_COUNT
+         Предикаты доступа: логин клиента и дата синхронизации
+                            access("LOGIN_ID"=TO_NUMBER(:LOGINID) AND "SYNCHRONIZATION_DATE">TO_TIMESTAMP(:FROMDATE))
+         Кардинальность: количество синхронизаций адрессной книги, выполненных клиентом с даты fromDate.
+    -->
+    <sql-query name="com.rssl.phizic.business.addressBook.reports.RequestsCountLogEntity.synchronizationCountByPeriodForLogin">
+        <return-scalar column="synchronizationCount" type="long"/>
+            SELECT
+                COUNT(1) synchronizationCount
+            FROM
+                ADDRESS_BOOK_REQUESTS_COUNT
+            WHERE
+                LOGIN_ID = :loginId
+                AND SYNCHRONIZATION_DATE > :fromDate
+    </sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<receivers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../../schemas/receivers.xsd">
+
+	<receiver className="com.rssl.phizic.business.dictionaries.PaymentReceiverPhiz" kind="P" listkind="P">
+		<field name="alias" description="Обозначение" required="true"/>
+		<field name="name" description="Наименование (ФИО)" required="true" maxlength="265"/>
+		<field name="INN" description="ИНН" maxlength="12" minlength="12">
+			<format regexp="\d{12}" message="ИНН должен содержать 12 цифр"/>
+		</field>
+		<field name="account" description="Счет" required="true" maxlength="25">
+			<format regexp="\d{20,25}" message="Номер счета должен содержать от 20 до 25 цифр"/>
+			<validators>
+				<validator>
+					<class>com.rssl.phizic.business.payments.forms.validators.AccountCurrencyValidator</class>
+					<message>Валюта счета получателя отсутствует в справочнике валют. Обновите справочник и повторите попытку.</message>
+				</validator>
+			</validators>
+		</field>
+		<field name="bankName" description="Наименование" required="true"/>
+		<field name="bankCode" description="БИК" minlength="9" maxlength="9" required="true">
+			<format regexp="\d{9}" message="БИК должен содержать 9 цифр"/>
+            <validators>
+                <validator>
+                    <class>com.rssl.phizic.business.payments.forms.validators.BICFieldValidator</class>
+                    <message>БИК банка получателя не найден в справочнике банков</message>
+                </validator>
+            </validators>
+		</field>
+		<field name="correspondentAccount" description="Корр. счет" required="true">
+			<format regexp="\d{20,25}" message="Номер корр. счета должен содержать от 20 до 25 цифр"/>
+		</field>
+<!--
+		<field name="description" description="Дополнительные сведения"/>
+-->
+		<form-validators>
+			<form-validator>
+				<class>com.rssl.phizic.business.payments.forms.validators.AccountKeyValidator</class>
+					<field-ref name="receiverAccount">account</field-ref>
+					<field-ref name="receiverBIC">bankCode</field-ref>
+					<message>Неверный ключ счета.</message>
+			</form-validator>
+		</form-validators>
+	</receiver>
+
+	<receiver className="com.rssl.phizic.business.dictionaries.PaymentReceiverJur" kind="J" listkind="J">
+		<field name="alias" description="Обозначение" required="true"/>
+		<field name="name" description="Наименование (ФИО)" required="true" maxlength="265"/>
+		<field name="INN" description="ИНН" required="true" maxlength="10" minlength="10">
+			<format regexp="\d{10}" message="ИНН должен содержать 10 цифр"/>
+		</field>
+		<field name="account" description="Счет" required="true" maxlength="25">
+			<format regexp="\d{20,25}" message="Номер счета должен содержать от 20 до 25 цифр"/>
+			<validators>
+				<validator>
+					<class>com.rssl.phizic.business.payments.forms.validators.AccountCurrencyValidator</class>
+					<message>Валюта счета получателя отсутствует в справочнике валют. Обновите справочник и повторите попытку.</message>
+				</validator>
+			</validators>
+		</field>
+		<field name="bankName" description="Наименование" required="true"/>
+		<field name="bankCode" description="БИК" minlength="9" maxlength="9" required="true">
+			<format regexp="\d{9}" message="БИК должен содержать 9 цифр"/>
+            <validators>
+                <validator>
+                    <class>com.rssl.phizic.business.payments.forms.validators.BICFieldValidator</class>
+                    <message>БИК банка получателя не найден в справочнике банков</message>
+                </validator>
+            </validators>
+		</field>
+		<field name="correspondentAccount" description="Корр. счет" required="true">
+			<format regexp="\d{20,25}" message="Номер корр. счета должен содержать от 20 до 25 цифр"/>
+		</field>
+<!--
+		<field name="description" description="Дополнительные сведения"/>
+-->
+		<form-validators>
+			<form-validator>
+				<class>com.rssl.phizic.business.payments.forms.validators.AccountKeyValidator</class>
+				<field-ref name="receiverBIC">bankCode</field-ref>
+				<field-ref name="receiverAccount">account</field-ref>
+				<message>Неверный ключ счета получателя</message>
+			</form-validator>
+		</form-validators>
+
+	</receiver>
+</receivers>

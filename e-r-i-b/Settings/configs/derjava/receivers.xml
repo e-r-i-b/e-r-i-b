@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<receivers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                       xsi:noNamespaceSchemaLocation="../../schemas/receivers.xsd">
+
+	<receiver className="com.rssl.phizic.business.dictionaries.PaymentReceiverPhiz" kind="P" listkind="PJ">
+		<field name="name"                  description="Наименование (ФИО)" required="true" maxlength="265"/>
+		<field name="INN"                   description="ИНН"                required="true" maxlength="12" minlength="10"/>
+		<field name="account"               description="Счет"               required="true">
+			<format regexp="\d{20}" message="Номер счета должен содержать 20 цифр"/>
+			<validators>
+				<validator>
+					<class>com.rssl.phizic.business.payments.forms.validators.AccountCurrencyValidator</class>
+					<message>Валюта счета получателя отсутствует в справочнике валют. Обновите справочник и повторите попытку.</message>
+				</validator>
+			</validators>
+		</field>
+		<field name="bankName"              description="Наименование"       required="true"/>
+		<field name="bankCode"              description="БИК"                required="true"/>
+		<field name="correspondentAccount"  description="Корр. счет"         required="false">
+			<format regexp="\d{20}" message="Номер корр. счета должен содержать 20 цифр"/>
+		</field>
+		<field name="description"           description="Дополнительные сведения"/>
+	</receiver>
+
+	<receiver className="com.rssl.phizic.business.dictionaries.PaymentReceiverJur" kind="J" listkind="PJ">
+		<field name="name"                  description="Наименование (ФИО)"  required="true" maxlength="265"/>
+		<field name="INN"                   description="ИНН"                 required="true" maxlength="10" minlength="10"/>
+		<field name="KPP"                   description="КПП"                 required="true">
+			<format regexp="\d{9}" message="КПП должен содержать 9 цифр"/>
+		</field>
+		<field name="account"               description="Счет"                required="true">
+			<format regexp="\d{20}" message="Номер счета должен содержать 20 цифр"/>
+			<validators>
+				<validator>
+					<class>com.rssl.phizic.business.payments.forms.validators.AccountCurrencyValidator</class>
+					<message>Валюта счета получателя отсутствует в справочнике валют. Обновите справочник и повторите попытку.</message>
+				</validator>
+			</validators>
+		</field>
+		<field name="bankName"              description="Наименование"        required="true"/>
+		<field name="bankCode"              description="БИК"                 required="true"/>
+		<field name="correspondentAccount"  description="Корр. счет"          required="false">
+			<format regexp="\d{20}" message="Номер корр. счета должен содержать 20 цифр"/>
+		</field>
+		<field name="description"           description="Дополнительные сведения"/>
+	</receiver>
+</receivers>

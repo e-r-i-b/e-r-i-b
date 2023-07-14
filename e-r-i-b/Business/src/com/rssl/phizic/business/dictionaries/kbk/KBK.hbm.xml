@@ -1,0 +1,43 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="PaymentType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.kbk.PaymentType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.kbk.KBK" table="KBK">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_KBK</param>
+            </generator>
+        </id>
+        <property name="code"          type="string"      column="CODE"         not-null="true" unique="true"/>
+        <property name="description"   type="string"      column="DESCRIPTION"  not-null="true"/>
+        <property name="appointment"   type="string"      column="APPOINTMENT"  not-null="true"/>
+        <property name="paymentType"   type="PaymentType" column="PAYMENT_TYPE" not-null="true"/>
+        <property name="minCommission" type="money" not-null="true">
+            <column name="MIN_COMMISSION_AMOUNT"/>
+            <column name="MIN_COMMISSION_CURRENCY"/>
+        </property>
+        <property name="maxCommission" type="money" not-null="true">
+            <column name="MAX_COMMISSION_AMOUNT"/>
+            <column name="MAX_COMMISSION_CURRENCY"/>
+        </property>
+        <property name="rate"          type="big_decimal" column="RATE"         not-null="true"/>
+        <property name="shortName" column="SHORT_NAME" type="string" not-null="false"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.dictionaries.kbk.KBK.getAllOrderedByCode">
+        select kbk
+        from com.rssl.phizic.business.dictionaries.kbk.KBK kbk
+        order by kbk.code
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.kbk.KBK.findByCode">
+        select kbk
+        from com.rssl.phizic.business.dictionaries.kbk.KBK as kbk
+        where kbk.code = :code
+    </query>
+</hibernate-mapping>

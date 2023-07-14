@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class name="com.rssl.phizic.gate.dictionaries.officies.LoanOffice" table="LOAN_OFFICES">
+
+        <id name="synchKey" type="big_decimal" column="ID"/>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+		<property name="address" type="string" column="ADDRESS"/>
+		<property name="info" type="string" column="INFO"/>
+		<property name="telephone" type="string" column="TELEPHONE"/>
+		<property name="main" type="boolean" column="MAIN"/>
+    </class>
+
+    <sql-query name="com.rssl.phizicgate.rsretailV6r20.dictionaries.officies.GetLoanOfficies">
+        <return class="com.rssl.phizic.gate.dictionaries.officies.LoanOffice">
+	        <return-property name="synchKey" column="fNCash"/>
+	        <return-property name="name"     column="tname"/>
+	        <return-property name="address"   column="address"/>
+	        <return-property name="telephone" column="telephone"/>
+	        <return-property name="info" column="info"/>
+	        <return-property name="main" column="main"/>
+        </return>
+        <![CDATA[
+	    SELECT
+        	grp.t_branch     AS fNCash,
+			REPLACE(t_desc, CHR(1),'') AS     tname,
+	        ''               AS address,
+	        ''               AS postIndex,
+	        ''               AS telephone,
+	        ''               AS info,
+	        '0'              AS main
+	    FROM DRTGROUP_DBT grp
+	    ORDER BY fNCash
+        ]]>
+    </sql-query>
+</hibernate-mapping>

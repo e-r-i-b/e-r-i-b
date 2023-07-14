@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<quartz xmlns="http://www.opensymphony.com/quartz/JobSchedulingData"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.opensymphony.com/quartz/JobSchedulingData http://www.opensymphony.com/quartz/xml/job_scheduling_data_1_5.xsd"
+		version="1.5">
+
+    <job>
+        <!--Джоб рассылки оповещений по изменению статусов заказов-->
+        <job-detail>
+            <name>ShopNotificationJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.einvoicing.sheduler.ShopNotificationJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>ShopNotificationTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>ShopNotificationJob</job-name>
+                <job-group>DEFAULT</job-group>
+                 <!--repeat indefinitely every 60 seconds-->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!-- Очистка заказов старше указанной в настройках даты, с которыми не связаны платежи-->
+        <job-detail>
+            <name>ClearOldOrdersJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.einvoicing.sheduler.ClearOldOrdersJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <cron>
+                <name>ClearOldOrdersTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>ClearOldOrdersJob</job-name>
+                <job-group>DEFAULT</job-group>
+                 <!-- запуск в 12pm каждый день -->
+                <cron-expression>0 0 12 * * ?</cron-expression>
+            </cron>
+        </trigger>
+    </job>
+
+    <job>
+        <!-- Уточнение статусов старых заказов/отмен платежей/возвратов-->
+        <job-detail>
+            <name>EinvoicingCheckStateJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.einvoicing.sheduler.EinvoicingCheckStateJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <cron>
+                <name>EinvoicingCheckStateTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>EinvoicingCheckStateJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!-- запуск в 12pm каждый день -->
+                <cron-expression>0 0 12 * * ?</cron-expression>
+            </cron>
+        </trigger>
+    </job>
+
+    <job>
+        <!--Джоб актуализации признака клиент сбербанка-->
+        <job-detail>
+            <name>ActualizeSberClientJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizgate.sheduler.ActualizeSberbankClientOptionJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>ActualizeSberClientTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>ActualizeSberClientJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!-- repeat indefinitely every 60 seconds -->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+</quartz>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<!-- Типы оповещений
+		1 - Изменение остатка(AccountRestChangeNotification)
+		2 - Изменение лимита
+		3 - Изменение овердрафта
+		4 - Остаток меньше неснижаемого(AccountRestChangeLowNotification)
+		5 - Изменение статуса платежа или заявки(StatusDocumentChangeNotification)
+	-->
+    <class name="com.rssl.phizicgate.rsV51.notification.AbstractNotificationImpl" abstract="true">
+        <id name="id" type="long" column="Referenc"/>
+		<property name="notificationObjectType" column="NotifyType"/>
+		<property name="objectNumber"  column="ObjectID"/>
+		<property name="dateCreated">
+	        <formula>CONVERT(CONVERT(NotifyDate, "SQL_CHAR") + ' ' + CONVERT(NotifyTime, "SQL_CHAR"), "SQL_TIMESTAMP")</formula>
+		</property>
+	    <property name="createDate" type="calendar" column="NotifyDate"/>
+		<property name="objectType" column="ObjectType"/>
+
+
+	    <union-subclass name="com.rssl.phizicgate.rsV51.notification.AccountRestChangeNotificationImpl" table="ntfntny_1">
+			<property name="oldRest" type="double" column="OldRest"/>
+			<property name="currentRest" type="double" column="NewRest"/>
+			<property name="transactionSum" type="double" column="Summa"/>
+	    </union-subclass>
+
+	    <union-subclass name="com.rssl.phizicgate.rsV51.notification.AccountRestChangeLowNotificationImpl" table="ntfntny_4">
+			<property name="rest" type="double" column="NewRest"/>
+			<property name="minRest" type="double" column="MinRest"/>
+	    </union-subclass>
+
+	    <union-subclass name="com.rssl.phizicgate.rsV51.notification.StatusDocumentChangeNotificationImpl" table="ntfntny_5">
+		    <property name="applicationKind" type="long" column="iApplicationKind"/>
+			<property name="applicationKey" type="string" column="ApplicationKey"/>
+		    <property name="transactionSum" type="double" column="Summa"/>
+			<property name="oldRest" type="double" column="OldRest"/>
+			<property name="newRest" type="double" column="NewRest"/>
+			<property name="status" type="string" column="Status"/>
+			<property name="error" type="string" column="Error"/>
+	    </union-subclass>
+
+    </class>
+	<query name="com.rssl.phizic.gate.notification.AccountRestChangeNotification.list" >
+        SELECT notify from com.rssl.phizicgate.rsV51.notification.AccountRestChangeNotificationImpl notify
+		WHERE notify.notificationObjectType = 1 AND
+			  notify.objectType = 202
+			  <!-- AND notify.currentRest - notify.oldRest > 0-->
+	</query>
+
+	<query name="com.rssl.phizic.gate.notification.AccountRestChangeLowNotification.list" >
+        SELECT notify from com.rssl.phizicgate.rsV51.notification.AccountRestChangeLowNotificationImpl notify
+		WHERE notify.notificationObjectType = 4 AND
+			  notify.objectType = 202
+	</query>
+
+	<query name="com.rssl.phizic.gate.notification.StatusDocumentChangeNotification.list" >
+        SELECT notify from com.rssl.phizicgate.rsV51.notification.StatusDocumentChangeNotificationImpl notify
+		WHERE notify.notificationObjectType = 5 AND notify.objectType = 202
+	</query>
+
+	<query name="com.rssl.phizicgate.rsV51.notification.GetGarbageNotifications" >
+        SELECT notify from com.rssl.phizicgate.rsV51.notification.AccountRestChangeNotificationImpl notify
+		WHERE :cutDate > notify.createDate
+	</query>
+<!--
+ <sql-query name="com.rssl.phizicgate.rsV51.notification.GetAccountNotification">
+	  <return class="com.rssl.phizicgate.rsV51.notification.AbstractNotificationImpl">
+		<return-property name="id" column="Id"/>
+		<return-property name="notificationObjectType" column="NotifyType"/>
+		<return-property name="objectNumber" column="ObjectID"/>
+		<return-property name="createDate" column="FullDate"/>
+		<return-property name="oldRest" column="OldRest"/>
+		<return-property name="currentRest" column="NewRest"/>
+		<return-property name="transactionSum" column="TransactionSum"/>
+		<return-property name="status" column="Status"/>
+		<return-property name="error" column="Error"/>
+		<return-property name="objectType" column="ObjectType"/>
+      </return>
+	 <![CDATA[
+	 SELECT
+		notify.Id AS Id,
+		notify.NotifyType AS NotifyType,
+		notify.ObjectID AS ObjectID,
+		CONVERT(CONVERT(notify.NotifyDate, SQL_CHAR) + ' ' + CONVERT(notify.NotifyTime, SQL_CHAR), SQL_TIMESTAMP) AS FullDate,
+		notify.OldRest AS OldRest,
+		notify.NewRest AS NewRest,
+		notify.Status AS Status,
+		notify.Error AS Error,
+		notify.ObjectType AS ObjectType,
+		notify.Summa AS TransactionSum
+        FROM ntfntfy_dbt notify
+		WHERE notify.ObjectID = 'DA'+:accountNumber AND
+			  notify.NotifyType = :notifyType AND
+			  notify.ObjectType = 202 AND
+			  notify.NewRest - notify.OldRest > 0
+		ORDER BY notify.NotifyDate,notify.NotifyTime
+    ]]>
+    </sql-query>
+-->
+</hibernate-mapping>

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<loan>
+<fields>
+<field description="Название кредитного продукта" mandatory="true" name="product-name" type="string" value="'TODO XPath'"/>
+<field description="Запрашиваемая сумма кредита" mandatory="true" name="client-request-amount" type="money"/>
+<field description="Валюта" mandatory="true" name="currency" type="string"/>
+<field description="Срок кредита(месяцев)" mandatory="true" name="client-request-term" type="string"/>
+<field description="Ежемесячные платежи" name="month-payment" type="string"/>
+<group description="Данные заемщика" name="client-data">
+<field description="Фамилия" mandatory="true" name="surname" type="string"/>
+<field description="Имя" mandatory="true" name="name" type="string"/>
+<field description="Отчество" mandatory="true" name="patronymic" type="string"/>
+<field description="Дата рождения" mandatory="true" name="birthday" type="date"/>
+<field description="Место рождения" mandatory="true" name="birth-place" type="string"/>
+<field description="Пол" dictionary="client-sex" mandatory="true" name="sex" type="string"/>
+</group>
+<group description="Документы заемщика" name="client-documents">
+<field description="Серия паспорта" mandatory="true" name="passport-series" size="4" type="string"/>
+<field description="Номер паспорта" mandatory="true" name="passport-number" size="6" type="string"/>
+<field description="Дата выдачи" mandatory="true" name="passport-date" type="date"/>
+<field description="Кем выдан паспорт (включая код подразделения, выдавшего документ)" mandatory="true" name="passport-issuer" type="string"/>
+<field description="Вид дополнительного документа" dictionary="second-document-types" mandatory="true" name="second-document" type="string"/>
+<field description="Серия заграничного паспорта" enabled="getFieldValue('second-document')=='foreign-passport'" mandatory="true" name="foreign-passport-series" size="2" type="string"/>
+<field description="Номер заграничного паспорта" enabled="getFieldValue('second-document')=='foreign-passport'" mandatory="true" name="foreign-passport-number" size="7" type="string"/>
+<field description="Дата выдачи заграничного паспорта" enabled="getFieldValue('second-document')=='foreign-passport'" mandatory="true" name="foreign-passport-date" type="date"/>
+<field description="Кем выдан заграничный паспорт " enabled="getFieldValue('second-document')=='foreign-passport'" mandatory="true" name="foreign-passport-issuer" type="string"/>
+<field description="Серия водительского удостоверения" enabled="getFieldValue('second-document')=='driving-license'" mandatory="true" name="driving-license-series" size="4" type="string"/>
+<field description="Номер водительского удостоверения" enabled="getFieldValue('second-document')=='driving-license'" mandatory="true" name="driving-license-number" size="6" type="string"/>
+<field description="Дата выдачи водительского удостоверения" enabled="getFieldValue('second-document')=='driving-license'" mandatory="true" name="driving-license-date" type="date"/>
+<field description="Номер удостоверения личности военнослужащего/сотрудника правоохранительных органов" enabled="getFieldValue('second-document')=='military-dependent-identity-card'" mandatory="true" name="military-dependent-identity-card-number" size="10" type="string"/>
+<field description="Номер военного билета" enabled="getFieldValue('second-document')=='military-card'" mandatory="true" name="military-card-number" size="12" type="string"/>
+<field description="Дата выдачи военного билета" enabled="getFieldValue('second-document')=='military-card'" mandatory="true" name="military-card-date" type="date"/>
+<field description="Свидетельство о присвоении ИНН" enabled="getFieldValue('second-document')=='inn-license'" mandatory="true" name="inn-license-number" size="12" type="string"/>
+<field description="Номер свидетельства пенсионного фонда РФ" enabled="getFieldValue('second-document')=='pensionary-certificate'" mandatory="true" name="pensionary-certificate-number" size="11" type="string"/>
+</group>
+<group description="Адрес регистрации" name="client-registration-address">
+<field description="Индекс" name="registration-address-index" size="6" type="string">
+<actions>
+<action type="onchange">
+                  if (getFieldValue('residence-address-equals')){
+                     setFieldValue('residence-address-index', getFieldValue('registration-address-index'));
+                  }
+               </action>
+</actions>
+</field>
+<field description="Регион" name="registration-address-region" type="string">
+<actions>
+<action type="onchange">
+                  if (getFieldValue('residence-address-equals')){
+                     setFieldValue('residence-address-region', getFieldValue('registration-address-region'));
+                  }
+               </action>
+</actions>
+</field>
+<field description="Город" mandatory="true" name="registration-address-sity" type="string">
+<actions>
+<action type="onchange">
+                  if (getFieldValue('residence-address-equals')){
+                     setFieldValue('residence-address-sity', getFieldValue('registration-address-sity'));
+                  }
+               </action>
+</actions>
+</field>
+<field description="Населенный пункт" mandatory="true" name="registration-address-settlement" type="string">
+<actions>
+<action type="onchange">
+                  if (getFieldValue('residence-address-equals')){
+                     setFieldValue('residence-address-settlement', getFieldValue('registration-address-settlement'));
+                  }
+               </action>
+</actions>
+</field>
+<field description="Район" name="registration-address-district" type="string">
+<actions>
+<action type="onchange">
+                  if (getFieldValue('residence-address-equals')){
+                     setFieldValue('residence-address-district', getFieldValue('registration-address-district'));
+                  }
+               </action>
+</actions>
+</field>
+<field description="Улица" mandatory="true" name="registration-address-street" type="string">
+<actions>
+<action type="onchange">
+                  if (getFieldValue('residence-address-equals')){
+                     setFieldValue('residence-address-street', getFieldValue('registration-address-street'));
+                  }
+               </action>
+</actions>
+</field>
+<field description="Дом" mandatory="true" name="registration-address-house" type="string">
+<actions>
+<action type="onchange">
+                  if (getFieldValue('residence-address-equals')){
+                     setFieldValue('residence-address-house', getFieldValue('registration-address-house'));
+                  }
+               </action>
+</actions>
+</field>
+<field description="Корпус" name="registration-address-building" type="string">
+<actions>
+<action type="onchange">
+                  if (getFieldValue('residence-address-equals')){
+                     setFieldValue('residence-address-building', getFieldValue('registration-address-building'));
+                  }
+               </action>
+</actions>
+</field>
+<field description="Квартира" name="registration-address-flat" type="string">
+<actions>
+<action type="onchange">
+                  if (getFieldValue('residence-address-equals')){
+                     setFieldValue('residence-address-flat', getFieldValue('registration-address-flat'));
+                  }
+               </action>
+</actions>
+</field>
+<field description="Дата регистрации (дд.мм.гггг)" name="registration-address-date" type="date"/>
+<field description="Время регистрации в данном регионе" mandatory="true" name="registration-address-period" type="string"/>
+</group>
+<group description="Адрес фактического проживания" name="client-residence-address">
+<field description="Совпадает с адресом регистрации по месту жительства" mandatory="true" name="residence-address-equals" type="boolean">
+<actions>
+<action type="onchange">
+                  var on=getFieldValue('residence-address-equals');
+                  if (on){
+                     setFieldValue('residence-address-index', getFieldValue('registration-address-index'));
+                     setFieldValue('residence-address-region', getFieldValue('registration-address-region'));
+                     setFieldValue('residence-address-sity', getFieldValue('registration-address-sity'));
+                     setFieldValue('residence-address-settlement', getFieldValue('registration-address-settlement'));
+                     setFieldValue('residence-address-district', getFieldValue('registration-address-district'));
+                     setFieldValue('residence-address-street', getFieldValue('registration-address-street'));
+                     setFieldValue('residence-address-house', getFieldValue('registration-address-house'));
+                     setFieldValue('residence-address-building', getFieldValue('registration-address-building'));
+                     setFieldValue('residence-address-flat', getFieldValue('registration-address-flat'));
+                  }
+                  getField('residence-address-index').disabled=on;
+                  getField('residence-address-region').disabled=on;
+                  getField('residence-address-sity').disabled=on;
+                  getField('residence-address-settlement').disabled=on;
+                  getField('residence-address-district').disabled=on;
+                  getField('residence-address-street').disabled=on;
+                  getField('residence-address-house').disabled=on;
+                  getField('residence-address-building').disabled=on;
+                  getField('residence-address-flat').disabled=on;
+               </action>
+</actions>
+</field>
+<field description="Индекс" name="residence-address-index" size="6" type="string"/>
+<field description="Регион" name="residence-address-region" type="string"/>
+<field description="Город" mandatory="true" name="residence-address-sity" type="string"/>
+<field description="Населенный пункт" mandatory="true" name="residence-address-settlement" type="string"/>
+<field description="Район" name="residence-address-district" type="string"/>
+<field description="Улица" mandatory="true" name="residence-address-street" type="string"/>
+<field description="Дом" mandatory="true" name="residence-address-house" type="string"/>
+<field description="Корпус" name="residence-address-building" type="string"/>
+<field description="Квартира" name="residence-address-flat" type="string"/>
+</group>
+<group description="Контактная информация" name="client-contact-info">
+<field description="Домашний телефон" name="home-phone-number" type="string"/>
+<field description="Рабочий телефон" name="work-phone-number" type="string"/>
+<field description="Мобильный телефон" name="mobile-phone-number" type="string"/>
+<field description="E-mail" name="e-mail" type="string"/>
+</group>
+<group description="Социальное положение" name="client-social-state">
+<field description="Образование" mandatory="true" name="education" type="string"/>
+<field description="Социальный статус" mandatory="true" name="social-state" type="string"/>
+<field description="Семейное положение" mandatory="true" name="family-state" type="string"/>
+<field description="Количество детей на иждивении" mandatory="true" name="maintenance-child-count" type="string"/>
+<field description="Количество других иждивенцев (человек)" mandatory="true" name="other-maintenance-count" type="string"/>
+</group>
+<group description="Сведения о занятости заемщика" name="client-work-info">
+<field description="Полное наименование организации" mandatory="true" name="organization-name" type="string"/>
+<field description="Фактический адрес организации" mandatory="true" name="organization-address" type="string"/>
+<field description="Телефон организации" name="organization-phone" type="string"/>
+<field description="Направление вашей деятельности" mandatory="true" name="direction-of-activity" type="string"/>
+<field description="Время работы на этом направлении деятельности" mandatory="true" name="direction-of-activity-time" type="string"/>
+<field description="Время работы в данной организации" mandatory="true" name="experience-time" type="string"/>
+<field description="Тип организации" mandatory="true" name="organization-type" type="string"/>
+<field description="Ваша должность в настоящий момент" mandatory="true" name="work-post" type="string"/>
+<field description="Направление деятельности компании" mandatory="true" name="organization-business-direction" type="string"/>
+</group>
+<group description="Данные о доходах и расходах" name="client-profit">
+<field description="Укажите Ваш персональный среднемесячный доход (в рублях)" mandatory="true" name="profit-amount" type="money"/>
+<field description="Укажите персональный среднемесячный доход супруга(и) в рублях" mandatory="true" name="spouse-profit-amount" type="money"/>
+<field description="Среднемесячный доход Вашей семьи" mandatory="true" name="family-profit-amount" type="money"/>
+<field description="Обязательные ежемесячные платежи (алименты, выплаты по суду, выплаты по кредитам (сумма ежемесячных платежей), суммы платежей по всем кредитным договорам, по которым Вы являетесь поручителем, налоги по договорам наследования и дарения)" name="expenses-amount" type="money"/>
+<field description="Расходы на содержание семьи (включая аренду жилья, коммунальные платежи, транспорт и прочее)" mandatory="true" name="family-expenses-amount" type="money"/>
+<field description="Источник дохода" name="additional-profit" type="string"/>
+<field description="Сумма дохода (в рублях)" enabled="getFieldValue('additional-profit').length&gt;0" name="additional-profit-amount" type="string"/>
+<field description="Периодичность" enabled="getFieldValue('additional-profit').length&gt;0" name="additional-profit-period" type="string"/>
+</group>
+<group description="Сведения о банковском обслуживании заемщика" name="client-bank-data">
+<field description="Депозиты" name="bank-data-deposit" type="boolean"/>
+<field description="Текущий счет" name="bank-data-account" type="boolean"/>
+<field description="Зарплатный счет (карта)" name="bank-data-card" type="boolean"/>
+<field description="Номер зарплатной карты" enabled="getFieldValue('bank-data-card')" name="bank-data-card-number" size="16" type="string"/>
+<field description="Кредиты" name="bank-data-loans" type="boolean"/>
+<field description="Дебетовая карта" name="bank-data-debit-card" type="boolean"/>
+<field description="Кредитная карта" name="bank-data-credit-card" type="boolean"/>
+<field description="Время работы с Банком" name="bank-data-cooperation-period" type="string"/>
+</group>
+<group description="Кредитная история заемщика" name="client-loans-history">
+<field description="Кредитная история" name="loans-history" type="string"/>
+<field description="Банк-кредитор 1-го кредита" mandatory="true" name="loans-bank1" type="string"/>
+<field description="Непогашенная сумма 1-го кредита" mandatory="true" name="loans-bank1-сredit-remainder" type="string"/>
+<field description="Срок окончания 1-го кредита" mandatory="true" name="loans-bank1-сredit-deadline" type="string"/>
+<field description="Наличие просроченных платежей 1-го кредита" mandatory="true" name="loans-bank1-сredit-overdue" type="boolean"/>
+<field description="Банк-кредитор 2-го кредита" mandatory="true" name="loans-bank2" type="string"/>
+<field description="Непогашенная сумма 2-го кредита" mandatory="true" name="loans-bank2-сredit-remainder" type="string"/>
+<field description="Срок окончания 2-го кредита" mandatory="true" name="loans-bank2-сredit-deadline" type="string"/>
+<field description="Наличие просроченных платежей 2-го кредита" mandatory="true" name="loans-bank2-сredit-overdue" type="boolean"/>
+</group>
+<group description="Сведения о собственности заемщика" name="client-paraphernalia">
+<field description="Сведения о собственности Заемщика" mandatory="true" name="paraphernalia-type" type="string"/>
+</group>
+</fields>
+<dictionaries>
+<entity-list name="client-sex">
+<entity key="X">мужской</entity>
+<entity key="">женский</entity>
+</entity-list>
+<entity-list name="second-document-types">
+<entity key="foreign-passport">Заграничный паспорт</entity>
+<entity key="driving-license">Водительское удостоверение</entity>
+<entity key="military-dependent-identity-card">Удостоверение личности военнослужащего/ сотрудника правоохранительных органов</entity>
+<entity key="military-card">Военный билет</entity>
+<entity key="inn-license">Свидетельство о присвоении ИНН</entity>
+<entity key="pensionary-certificate">Страховое свидетельство пенсионного фонда РФ</entity>
+</entity-list>
+</dictionaries>
+</loan>

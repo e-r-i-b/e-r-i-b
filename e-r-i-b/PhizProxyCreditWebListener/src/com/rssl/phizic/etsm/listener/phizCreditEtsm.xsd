@@ -1,0 +1,886 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://generated.listener.etsm.phizic.rssl.com"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://generated.listener.etsm.phizic.rssl.com"
+            elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+    <xsd:complexType name="StatusType">
+        <xsd:annotation>
+            <xsd:documentation>Информация о выполнении запроса</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="StatusCode" type="xsd:long">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Код ошибки
+                        Отрицательное - бизнес-ошибка
+                        Положительное - техническая ошибка
+                        Ноль - успешно.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="StatusDesc" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Begin QueryOfferRq -->
+    <xsd:element name="QueryOfferRq" type="QueryOfferRqType"/>
+
+    <xsd:complexType name="QueryOfferRqType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="ApplicationNumber">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор заявки в ETSM</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="20"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- End QueryOfferRq -->
+
+    <!-- Begin QueryOfferRs -->
+    <xsd:element name="QueryOfferRs" type="QueryOfferRsType"/>
+
+    <xsd:complexType name="QueryOfferRsType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="Status" type="StatusType"/>
+            <xsd:element name="Identity" type="IdentityType" minOccurs="0"/>
+            <xsd:element name="Offer" type="OfferType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="IdentityType">
+        <xsd:annotation>
+            <xsd:documentation>Идентификационные данные клиента</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="LastName" type="xsd:string"/>
+            <xsd:element name="FirstName" type="xsd:string"/>
+            <xsd:element name="MiddleName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="Birthday" type="xsd:date"/>
+            <xsd:element name="Registration" type="xsd:string"/>
+            <xsd:element name="IdentityCard" type="IdentityCardType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="IdentityCardType">
+        <xsd:annotation>
+            <xsd:documentation>ДУЛ</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="IdType" type="xsd:string"/>
+            <xsd:element name="IdSeries" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="IdNum" type="xsd:string"/>
+            <xsd:element name="idIssueBy" type="xsd:string"/>
+            <xsd:element name="idIssueDate" type="xsd:date"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+     <xsd:complexType name="OfferType">
+        <xsd:sequence>
+            <xsd:element name="OfferStatus" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Статус оферты (ACTIVE - действующая, DELETED - после того, как клиент подтвердил оферту или отказался от нее)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="OfferDate" type="xsd:dateTime"/>
+            <xsd:element name="ApplicationNumber">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор заявки в ETSM</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="20"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="AccauntNumber">
+				<xsd:annotation>
+					<xsd:documentation>Cчет зачислени/Номер карты</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="25"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="TypeOfIssue">
+				<xsd:annotation>
+					<xsd:documentation>Тип счета зачисления(Карта - 1/Вклад - 0)</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="ClientCategory" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Категория клиента:
+                        «A» - «Сорудник банка»
+                        «A1» - «Сотрудник дочерней организации банка»
+                        «B» - Сотрудники аккредитованных организаций-участники зарплатных проектов
+                        «B1» - Участники зарплатных проектов (не сотрудники аккредитованных компаний)
+                        «С» - Сотрудники аккредитованных организаций – не участники зарплатных проектов
+                        «С1» - Участники зарплатных проектов(не сотрудники аккредитованныху омпаний)
+                        «D» - Прочие клиенты
+                        «D1» - Прочие клиенты
+                        «D2» - Прочие клиенты
+                        «E» - Клиенты, получающие пенсию в Сбербанке Росссии
+                        «N» - Клиент с неподтвержденной занятостью
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Alternative" type="AlternativeType" minOccurs="1" maxOccurs="16"/>
+             <xsd:element name="ProductTypeCode">
+                 <xsd:annotation>
+                    <xsd:documentation>Код типа продукта</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:length value="10"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="ProductCode">
+                 <xsd:annotation>
+                    <xsd:documentation>Код продукта</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:length value="10"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="SubProductCode">
+                 <xsd:annotation>
+                    <xsd:documentation>Код суб продукта</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:length value="10"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Currency">
+                <xsd:annotation>
+                    <xsd:documentation>Валюта кредита</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="RUB"/>
+                        <xsd:enumeration value="USD"/>
+                        <xsd:enumeration value="EUR"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="department" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Подразделение для оформления заявки в формате: тер. банк (2 цифры), ОСБ (4 цифры), ВСП (5 цифр)</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="11"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="visibilityCounter" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Счетчик количества отображений оферты</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:long"/>
+				</xsd:simpleType>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AlternativeType">
+        <xsd:annotation>
+            <xsd:documentation>Альтернативные варианты кредита </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="id">
+                <xsd:annotation>
+                    <xsd:documentation>Уникальный идентификатор</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:long">
+                        <xsd:totalDigits value="17"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="AltPeriodM">
+                <xsd:annotation>
+                    <xsd:documentation>Альтернативный срок в месяцах</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:unsignedInt">
+                        <xsd:totalDigits value="4"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="AltAmount">
+                <xsd:annotation>
+                    <xsd:documentation>Альтернативный сумма кредита в рублях</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:decimal">
+                        <xsd:totalDigits value="17"/>
+                        <xsd:fractionDigits value="2"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="AltInterestRate">
+                <xsd:annotation>
+                    <xsd:documentation>Альтернативный ставка</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:decimal">
+                        <xsd:totalDigits value="6"/>
+                        <xsd:fractionDigits value="2"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="AltFullLoanCost">
+                <xsd:annotation>
+                    <xsd:documentation>Альтернативная полная стоимость кредита</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:decimal">
+                        <xsd:totalDigits value="16"/>
+                        <xsd:fractionDigits value="2"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="AltAnnuitentyPayment">
+                <xsd:annotation>
+                    <xsd:documentation>Альтернативный аннуитентный платеж</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:decimal">
+                        <xsd:totalDigits value="3"/>
+                        <xsd:fractionDigits value="3"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="AltCreditCardlimit" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Альтернативный лимит по кредитной карте</xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:decimal">
+                        <xsd:totalDigits value="17"/>
+                        <xsd:fractionDigits value="2"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- End QueryOfferRs -->
+
+    <!-- Begin DeletOfferRq -->
+    <xsd:element name="DeleteOfferRq" type="DeleteOfferRqType"/>
+
+     <xsd:complexType name="DeleteOfferRqType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="ApplicationNumber">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор заявки в ETSM</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="20"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="OfferDate" type="xsd:dateTime"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- End DeletOfferRq -->
+
+    <!-- Begin DeletOfferRs -->
+    <xsd:element name="DeleteOfferRs" type="DeleteOfferRsType"/>
+
+    <xsd:complexType name="DeleteOfferRsType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="Status" type="StatusType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- End DeletOfferRs -->
+
+    <!-- Begin AddOfficeLoanRq -->
+    <xsd:element name="AddOfficeLoanRq" type="AddOfficeLoanRqType"/>
+
+    <xsd:complexType name="AddOfficeLoanRqType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OfficeLoanClaim" type="OfficeLoanClaimType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- End AddOfficeLoanRq -->
+
+    <!-- Begin AddOfficeLoanRs -->
+    <xsd:element name="AddOfficeLoanRs" type="AddOfficeLoanRsType"/>
+
+    <xsd:complexType name="AddOfficeLoanRsType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="Status">
+				<xsd:annotation>
+					<xsd:documentation>Код возврата</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="1"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- End AddOfficeLoanRs -->
+
+    <!--Start GetOfficeLoansByFIODulBDRq -->
+    <xsd:element name="GetOfficeLoansByFIODulBDRq" type="GetOfficeLoansByFIODulBDRq"/>
+
+    <xsd:complexType name="GetOfficeLoansByFIODulBDRq">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="FIO" type="xsd:string"/>
+            <xsd:element name="DUL" type="xsd:string"/>
+            <xsd:element name="BirthDay" type="xsd:dateTime"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!--End GetOfficeLoansByFIODulBDRq -->
+
+    <!--Start GetOfficeLoansByFIODulBDRs -->
+    <xsd:element name="GetOfficeLoansByFIODulBDRs" type="GetOfficeLoansByFIODulBDRs"/>
+
+    <xsd:complexType name="GetOfficeLoansByFIODulBDRs">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OfficeLoanClaims" type="OfficeLoanClaimType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!--End GetOfficeLoansByFIODulBDRs -->
+
+    <!--Start GetOfferOfficePriorByFIODulBDRq -->
+    <xsd:element name="GetOfferOfficePriorByFIODulBDRq" type="GetOfferOfficePriorByFIODulBDRq"/>
+
+    <xsd:complexType name="GetOfferOfficePriorByFIODulBDRq">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="FIO" type="xsd:string"/>
+            <xsd:element name="DUL" type="xsd:string"/>
+            <xsd:element name="BirthDay" type="xsd:dateTime"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!--End GetOfferOfficePriorByFIODulBDRq -->
+
+    <!--Start GetOfferOfficePriorByFIODulBDRs -->
+    <xsd:element name="GetOfferOfficePriorByFIODulBDRs" type="GetOfferOfficePriorByFIODulBDRs"/>
+
+    <xsd:complexType name="GetOfferOfficePriorByFIODulBDRs">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="Status" type="StatusType"/>
+            <xsd:element name="Identity" type="IdentityType" minOccurs="0"/>
+            <xsd:element name="OfferOfficePriors" type="OfferType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!--End GetOfferOfficePriorByFIODulBDRs -->
+
+    <!-- Begin UpdateOfferOfficePriorVisibleCounterRq -->
+    <xsd:element name="UpdateOfferOfficePriorVisibleCounterRq" type="UpdateOfferOfficePriorVisibleCounterRqType"/>
+
+    <xsd:complexType name="UpdateOfferOfficePriorVisibleCounterRqType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="offerId">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор оферты</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:long"/>
+				</xsd:simpleType>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- End UpdateOfferOfficePriorVisibleCounterRq -->
+
+    <!-- Begin UpdateOfferOfficePriorVisibleCounterRs -->
+    <xsd:element name="UpdateOfferOfficePriorVisibleCounterRs" type="UpdateOfferOfficePriorVisibleCounterRsType"/>
+
+    <xsd:complexType name="UpdateOfferOfficePriorVisibleCounterRsType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="Status" type="StatusType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- End UpdateOfferOfficePriorVisibleCounter -->
+
+    <!-- OfficeLoanClaimType -->
+    <xsd:complexType name="OfficeLoanClaimType">
+        <xsd:sequence>
+            <xsd:element name="ApplicationNumber">
+				<xsd:annotation>
+					<xsd:documentation>Идентификатор заявки в ETSM</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="20"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="state" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Код статуса заявки</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:integer">
+						<xsd:maxLength value="1"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="needVisitOfficeReason" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Причина необходимости посещения ВСП</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="255"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="fioKI" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>ФИО КИ от имени которого создана заявка в TSM</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="150"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="loginKI" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Логин КИ, от имени которого создана заявка в TSM</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="fioTM" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>ФИО создателя заявки (сотрудника ТМ)</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="150"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="loginTM" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Логин создателя заявки (сотрудника ТМ)</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="department" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Подразделение для оформления заявки в формате: тер. банк (2 цифры), ОСБ (4 цифры), ВСП (5 цифр)</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="11"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="channel" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Канал продаж</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="20"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="agreementDate" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Дата подписания заявки клинтом</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:date"/>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="type" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Тип продукта. 1 - Потребительский кредит 3 - Банковские карты</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="1"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="productCode" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>В соответствии со справочником продуктов: 5 - Доверительный кредит, 10 - Потребительский кредит без обеспечения Новый продукт: Дебетовые карты с разрешенным овердрафтом для VIP-клиентов</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="10"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="subProductCode" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Код субпродукта</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="10"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="productAmount" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Сумма кредита</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+                    <xsd:restriction base="xsd:decimal">
+                        <xsd:totalDigits value="17"/>
+                        <xsd:fractionDigits value="2"/>
+                    </xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="productPeriod" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Срок кредита в месяцах</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:integer"/>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="loanAmount" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Сумма одобренного кредита</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+                    <xsd:restriction base="xsd:decimal">
+                        <xsd:totalDigits value="17"/>
+                        <xsd:fractionDigits value="2"/>
+                    </xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="loanPeriod" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Срок одобренного кредита в месяцах</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:integer"/>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="loanRate" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Ставка одобренного кредита</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+                    <xsd:restriction base="xsd:decimal">
+                        <xsd:totalDigits value="17"/>
+                        <xsd:fractionDigits value="2"/>
+                    </xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="currency" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Валюта кредита</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="20"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="paymentType" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Тип погашения кредита </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="20"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="firstName" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Имя</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="255"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="surName" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Фамилия</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="255"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="birthDay" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Дата рождения</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:date"/>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="patrName" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Очество</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="255"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="citizen" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Гражданство</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="255"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="documentSeries" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Серия документа</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="4"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="documentNumber" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Номер документа</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="6"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="passportIssueDate" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Дата выдачи документа</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:date"/>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="passportIssueByCode" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Код подразделения</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="20"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="passportIssueBy" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Орган, выдавший документ</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="100"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="hasOldPassport">
+				<xsd:annotation>
+					<xsd:documentation>Наличие в действующем паспорте отметки о ранее выданном (Паспорт менялся)</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:boolean"/>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="oldDocumentSeries" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Серия предыдущего паспорта</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="4"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="oldDocumentNumber" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Номер предыдущего паспорта</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="6"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="oldPassportIssueDate" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Дата выдачи предыдущего паспорта</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:date"/>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="oldPassportIssueBy" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Орган, выдавший предыдущий паспорт</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="100"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="createDate" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Дата запроса</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:dateTime"/>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="typeOfIssue" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Тип выдачи кредита</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+                        <xsd:maxLength value="1"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="acctId" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Номер счета вклада в Сбербанке</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+                        <xsd:maxLength value="25"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="cardNum" nillable="true">
+				<xsd:annotation>
+					<xsd:documentation>Номер банковской карты (кроме Сберкарт)</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+                        <xsd:minLength value="13"/>
+                        <xsd:maxLength value="19"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+            <xsd:element name="preapproved">
+				<xsd:annotation>
+					<xsd:documentation>Признак предодобренного предложения. 1 - предодобренное 0 - нет</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:boolean"/>
+				</xsd:simpleType>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <!-- OfficeLoanClaimType-->
+</xsd:schema>

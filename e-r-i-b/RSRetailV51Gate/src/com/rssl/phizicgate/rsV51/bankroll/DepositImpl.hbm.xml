@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsV51.deposit.DepositImpl">
+	   <id name="id" />
+
+       <property name="description"/>
+	</class>
+
+    <sql-query name="GetClientDeposits">
+	    <return alias="accounts" class="com.rssl.phizicgate.rsV51.deposit.DepositImpl">
+	        <return-property name="id"        column="depositId" />
+	        <return-property name="description" column="accType"/>
+	    </return>
+		<![CDATA[
+SELECT
+   owned.Referenc         AS depositId,
+   owned.Type_Account     AS accType
+
+   FROM depositr_dbt AS owned
+	WHERE owned.CodClient = :clientId And (owned.Action = 0 OR owned.Action = 1)
+    AND(( CONVERT(SUBSTRING(owned.Account, 1, 5), SQL_INTEGER) >=42302 and CONVERT(SUBSTRING(owned.Account, 1, 5), SQL_INTEGER) <=42307)
+    OR (CONVERT(SUBSTRING(owned.Account, 1, 5), SQL_INTEGER) >=42602 and CONVERT(SUBSTRING(owned.Account, 1, 5), SQL_INTEGER) <=42608) )
+UNION
+SELECT
+	deposited.Referenc     AS depositId,
+	deposited.Type_Account AS accType
+
+FROM depositr_dbt AS deposited, sbtrast_dbt AS sbtrast
+   WHERE sbtrast.CodClient = :clientId AND sbtrast.ReferenceKind = 0
+    AND deposited.Referenc = sbtrast.Referenc
+    AND (deposited.Action = 0 OR deposited.Action = 1)
+    AND (sbtrast.Action = 0 OR sbtrast.Action = 1)
+    AND(( CONVERT(SUBSTRING(deposited.account, 1, 5), SQL_INTEGER) >=42302 and CONVERT(SUBSTRING(deposited.account, 1, 5), SQL_INTEGER) <=42307)
+    OR (CONVERT(SUBSTRING(deposited.account, 1, 5), SQL_INTEGER) >=42602 and CONVERT(SUBSTRING(deposited.account, 1, 5), SQL_INTEGER) <=42608))
+UNION
+SELECT
+	deposited.Referenc     AS depositId,
+	deposited.Type_Account AS accType
+
+FROM depositr_dbt AS deposited, sbtrast_dbt AS sbtrast
+   WHERE sbtrast.CodClient = :clientId AND sbtrast.ReferenceKind = 1
+    AND deposited.MainContractID = sbtrast.Referenc
+    AND (deposited.Action = 0 OR deposited.Action = 1)
+    AND (sbtrast.Action = 0 OR sbtrast.Action = 1)
+    AND(( CONVERT(SUBSTRING(deposited.account, 1, 5), SQL_INTEGER) >=42302 and CONVERT(SUBSTRING(deposited.account, 1, 5), SQL_INTEGER) <=42307)
+    OR (CONVERT(SUBSTRING(deposited.account, 1, 5), SQL_INTEGER) >=42602 and CONVERT(SUBSTRING(deposited.account, 1, 5), SQL_INTEGER) <=42608))
+         ]]>
+    </sql-query>
+	<sql-query name="GetDepositInfo">
+		<return alias="accounts" class="com.rssl.phizicgate.rsV51.deposit.DepositImpl">
+		    <return-property name="id"        column="depositId" />
+		    <return-property name="description" column="accType"/>
+		</return>
+		<![CDATA[
+SELECT
+   owned.Referenc         AS depositId,
+   owned.Type_Account     AS accType
+
+FROM depositr_dbt AS owned
+	WHERE owned.Referenc = :depositId
+	    ]]>
+	</sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,259 @@
+<%@ page contentType="text/html;charset=windows-1251" language="java" %>
+<%@ taglib uri="http://jakarta.apache.org/struts/tags-tiles" prefix="tiles" %>
+<head>
+<title>Помощь. Редактирование автоплатежа</title>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+
+
+<link type="text/css" rel="stylesheet" href="${globalUrl}/commonSkin/help.css"/>
+<link rel="stylesheet" type="text/css" href="${skinUrl}/roundBorder.css"/>
+<link rel="icon" type="image/x-icon" href="${skinUrl}/images/favicon.ico"/>
+
+
+<script type="text/javascript" src="${initParam.resourcesRealPath}/scripts/Utils.js"></script>
+<script type="text/javascript" src="${initParam.resourcesRealPath}/scripts/jquery-1.4.2.js"></script>
+<script type="text/javascript" src="${initParam.resourcesRealPath}/scripts/jquery.ifixpng.js"></script>
+<script type="text/javascript" src="${initParam.resourcesRealPath}/scripts/layout.js"></script>
+<script type="text/javascript" src="${initParam.resourcesRealPath}/scripts/DivFloat.js"></script>
+
+<!--[if IE 6]>
+		<c:if test="${contextName eq 'PhizIC'}">
+         	<link rel="stylesheet" type="text/css" href="${globalUrl}/commonSkin/ie.css"/>
+        </c:if>
+	<link type="text/css" rel="stylesheet" href="${skinUrl}/ie.css"/>
+<![endif]-->
+
+<script type="text/javascript">
+var skinUrl = '${skinUrl}';
+var globalUrl = '${globalUrl}';
+var scroll = new DivFloat("help-left-section");
+scroll.doOnScroll();
+</script>
+
+    <%@ include file="/WEB-INF/jsp/common/script-vaultonline.jsp"  %>
+</head>
+<body >
+<tiles:insert definition="googleTagManager"/>
+
+   <div class="help-container">
+        <div id="help-header">
+            <p class="helpTitle">Справочное руководство по Сбербанк Онлайн</p>
+        </div>
+
+        <!-- end help-header -->
+        <div class="clear"></div>
+
+        <div id="help-content">
+            <div id="help-left-section">
+                <p class="sidebarTitle">разделы руководства</p>
+								<ul class="help-menu">
+									<!--<li><a href="/PhizIC/help.do?id=/login">Вход и регистрация</a></li>-->
+									<li><a href="/PhizIC/help.do?id=/private/registration">Регистрация</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/accounts">Главная</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/payments">
+									Переводы и платежи</a>
+										</li>
+									<li><a href="/PhizIC/help.do?id=/private/connectUdbo/connectUdbo">Больше Сбербанк Онлайн</a></li>									
+									<li><a href="/PhizIC/help.do?id=/private/cards/list">Карты</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/accounts/list">Вклады и счета</a></li>
+									
+									<li><a href="/PhizIC/help.do?id=/private/loans/list">Кредиты</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/depo/list">Счета депо</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/security/list ">Сертификаты</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/ima/list">Металлические счета</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/npf/list">Пенсионные программы</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/insurance/list">Страховые программы</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/mobilebank/main">Мобильный банк</a></li>
+									<li><a href="/PhizIC/help.do?id=/private/PersonMenu">Личное меню</a></li>
+																		<ul class="page-content">
+											<li><a href="/PhizIC/help.do?id=/private/graphics/finance">Мои финансы</a></li>
+											<li><a href="/PhizIC/help.do?id=/private/favourite/list/favouriteLinks#p5">Мобильные приложения</a></li>
+											<li><a href="/PhizIC/help.do?id=/private/payments/internetShops/orderList">Мои Интернет-заказы</a></li>
+											<li><a href="/PhizIC/help.do?id=/private/loyalty/detail">Спасибо от Сбербанка</a></li>											
+											<li><a href="/PhizIC/help.do?id=/private/favourite/list/favouriteLinks#p2">Избранное</a></li>
+											<li><a href="/PhizIC/help.do?id=/private/favourite/list/PaymentsAndTemplates">Мои шаблоны</a></li>
+											
+											<li><a class="parentItem" href="/PhizIC/help.do?id=/private/favourite/list/AutoPayments">Мои автоплатежи</a>
+									<ul>
+										
+										<li><a class="active-menu" href="/PhizIC/help.do?id=/private/payments/payment/EditAutoSubscriptionPayment/null/LongOffer">
+											Редактирование автоплатежа</a></li>
+										</ul>	
+</li>
+										</ul></li>
+									<li><a href="/PhizIC/help.do?id=/private/payments/common/all">История операций</a></li>									
+										<li><a href="/PhizIC/help.do?id=/private/mail/sentList">Вопрос в Контактный центр банка</a></li>
+										<li><a href="/PhizIC/help.do?id=/private/news/list">События</a></li>
+										<li><a href="/PhizIC/help.do?id=/private/userprofile">Настройки</a></li>
+										</ul>
+                        
+						  <a href="/PhizIC/faq.do" class="faq-help">
+                    <span>Часто задаваемые вопросы о Сбербанк Онлайн</span>
+                </a>
+            </div>
+            <!-- end help-left-section -->
+            <div id="help-workspace">
+                <div class="contextTitle">Заявка на редактирование автоплатежа</div>
+								<ul class="page-content">
+									<li><a href="#p2">Создать заявку</a></li>
+									<li><a href="#p3">Подтвердить заявку</a></li>
+									<li><a href="#p4">Просмотреть заявку</a></li>
+
+								</ul>
+
+										<p> На этой странице Вы можете подать в банк заявку на изменение реквизитов автоплатежа. 
+										 Для этого Вам нужно на странице просмотра информации по автоплатежу нажать на ссылку 
+										<b>Редактировать</b>. Откроется форма редактирования автоплатежа.</p>
+								<div class="help-important">
+									<p>
+										<span class="help-attention">Обратите 
+										внимание</span>: в системе "Сбербанк Онлайн" Вы можете переходить на нужную страницу не только с помощью 
+										пунктов верхнего меню, ссылок бокового меню, но и с помощью ссылок, расположенных под главным меню. Данные 
+										ссылки показывают путь от главной страницы до той, с которой Вы перешли на текущую страницу. Вы можете использовать эти ссылки для 
+										перехода на интересующую страницу.  
+									</p>
+								</div>
+										<h2><a id="p2">Создать заявку</a></h2>
+									<p>Вы можете изменить параметры автоплатежа. Для этого на странице просмотра автоплатежа нажмите на ссылку <b>Редактировать</b>. 
+									Откроется страница создания заявки на редактирование автоплатежа, на которой Вы можете изменить счет списания и необходимые параметры автоплатежа: </p>
+									<ul>
+									<li> 
+									В поле "Счет списания" Вы можете изменить счет или карту, с которой будет осуществляться автоплатеж.
+									</li> 
+									
+									<li>
+									В поле "Тип автоплатежа" автоматически будет подставлен тип редактируемого автоплатежа: "Регулярный на фиксированную сумму" или "По выставленному счету".
+									</li>
+									<li>
+									В поле "Повторяется" выберите из выпадающего списка, как часто будет совершаться автоплатеж: "еженедельно", "ежемесячно" или "ежеквартально". 
+									</li>
+									<li>
+									Для типа платежа "Регулярный на фиксированную сумму" Вы можете изменить частоту выполнения автоплатежа, выбрав в поле "Оплачивать" нужное значение. Далее в поле "Дата ближайшего платежа" укажите дату, когда начнется исполнение автоплатежа. 
+									Для этого нажмите на кнопку <IMG border="0" src="${globalUrl}/commonSkin/images/datePickerCalendar.gif" alt=" height="20" width="20""> и щелкните по интересующей Вас дате или введите дату начала платежа вручную.										 
+									<p>Затем в поле "Сумма" укажите сумму, которая будет перечисляться поставщику услуг по данному автоплатежу.</p>
+									</li>
+									<li>
+									Для платежа "По выставленному счету" Вы можете изменить частоту выполнения автоплатежа, выбрав в поле "Оплачивать" нужное значение. Далее в поле "Ожидаемая дата оплаты счета" укажите дату, когда будет совершаться автоплатеж. 
+									Для этого нажмите на кнопку <IMG border="0" src="${globalUrl}/commonSkin/images/datePickerCalendar.gif" alt=" height="20" width="20""> и щелкните по интересующей Вас дате или введите дату вручную.										 
+									<p>Затем в поле "Максимальный размер платежа" укажите максимальную сумму, до которой будут перечисляться средства по данному автоплатежу в течение месяца.</p>
+									</li>
+									<li>В поле "Название" впишите название, под которым автоплатеж будет сохранен в системе.
+									</li>	
+									</ul>
+									<p>После того как все необходимые изменения внесены, нажмите на кнопку <b>Оформить заявку</b>. В результате Вы перейдете на страницу подтверждения заявки. 
+									<p>Для того чтобы вернуться на страницу детальной информации по автоплатежу, нажмите на ссылку  <b>Назад</b>.</p>
+									<p> Если Вы хотите перейти на страницу <b>
+									Переводы и платежи</b>, нажмите на ссылку <b>Отменить</b>.</p>
+
+
+												<div class="help-important">
+													<p>
+														<span class="help-attention">Обратите 
+																		внимание</span>: Вы можете контролировать процесс выполнения операции с помощью
+																		линии вверху формы, на которой будет выделено состояние операции на данный момент.
+																		Например, если Вы находитесь на странице подтверждения, то будет выделен отрезок 
+																		"Подтверждение".  
+		</p>
+		</div>
+										<h2><a id="p3">Подтвердить заявку</a></h2>
+										
+
+											<p>Далее необходимо подтвердить заявку. После 
+								того как Вы нажали на кнопку <b>Оформить заявку</b>, 
+								Вам откроется заполненная форма заявки, в 
+								которой нужно проверить правильность указанных 
+								сведений, после чего выполнить одно из следующих 
+								действий:
+									</p>
+									<ul>
+									<li><b>Подтвердить заявку</b>.
+									Для того чтобы подтвердить заявку, нажмите на кнопку <b>Подтвердить</b>.
+									Далее Вам необходимо выбрать, 
+									каким способом Вы хотите ее подтвердить:</p>
+										<ul>
+									<li>Если Вы хотите подтвердить операцию SMS-паролем, 
+										нажмите на кнопку <b>Подтвердить по SMS</b>;
+										<div class="help-important">
+									<p>
+										<span class="help-attention">Обратите 
+										внимание</span>: перед вводом пароля убедитесь, что реквизиты операции совпадают с 
+										текстом SMS-сообщения. Будьте осторожны, если данные не совпадают, ни в коем случае не вводите пароль
+										и никому его не сообщайте, даже сотрудникам банка. 
+									</p>
+								</div> 
+
+									</li>
+										<li>Если Вы хотите подтвердить операцию другим способом, нажмите на 
+                                        ссылку <b>Другой способ подтверждения</b>. Затем 
+                                        выберите один из предложенных вариантов:</p>
+                                        <ul><li><p><b>Пароль с чека</b> - подтверждение паролем с чека, распечатанного в банкомате.</li>
+                                        <li><p><b>Push-пароль из уведомления в мобильном приложении</b> - подтверждение 
+                                        паролем, полученным на мобильное устройство в виде Push-сообщения.</p></li>
+                                        </ul>
+										</ul>
+											Затем откроется всплывающее окно,	в котором укажите нужный пароль и нажмите на кнопку <b>Подтвердить</b>. 
+											В результате Вы перейдете на страницу просмотра заявки.
+									</li>
+								<div class="help-important">
+									<p>
+										<span class="help-attention">Обратите 
+										внимание</span>: если сумма платежа превышает установленный лимит, то Вам необходимо подтвердить заявку,
+										позвонив в контактный центр банка. 
+									</p>
+								</div> 
+
+									<li><b>Изменить реквизиты</b>. Если при проверке заявки выяснилось, 
+									что документ необходимо отредактировать, то 
+									нажмите на ссылку <b>Редактировать</b>. В результате 
+									Вы вернетесь на страницу заполнения 
+									реквизитов заявки.
+									</li>
+									<li><b>Отменить операцию</b>. Если Вы передумали совершать операцию, то 
+									нажмите на ссылку <b>Отменить</b>. В 
+									результате Вы вернетесь на страницу <b>
+									Переводы и платежи</b>.
+									</li>
+									</ul>
+									
+														
+								<h2><a id="p4">Просмотреть заявку</a></h2>
+
+										 <p>После подтверждения заявки Вы перейдете 
+									на страницу просмотра заявки, на которой 
+									увидите заполненный документ.</p>
+
+ 										   <p>О том, что заявка передана в банк, 
+ 										   свидетельствует отображаемый на форме документа штамп "Принято к исполнению". </p>
+ 										   <p>Со страницы просмотра заявки Вы можете 
+									вернуться на страницу <b>Переводы и платежи</b>. 
+									Для этого щелкните по ссылке <b>Перейти к 
+									странице платежей</b>.</p>
+									
+								<p>Если Вы хотите получить подробную информацию по выполнению операций на любой странице системы, то нажмите на ссылку <b>Помощь</b> в боковом меню или внизу страницы нажмите на ссылку <b>Помощь онлайн</b>.</p>
+								<p>Кроме того, в системе "Сбербанк Онлайн" на каждой странице можно обратиться к помощи персонального консультанта, который ответит на все Ваши вопросы. 
+								Чтобы запустить помощника, нажмите на ссылку <b>Часто задаваемые вопросы</b> в боковом меню. В результате откроется окно, в котором содержатся 
+								ответы на часто задаваемые вопросы по работе с системой "Сбербанк Онлайн". 
+								<!-- Если Вы не хотите, чтобы консультант отображался на страницах системы, 
+								то измените настройки отображения помощника, щелкнув по кнопке <b>Настройки</b> - <b>Настройка интерфейса</b> - <b>Личное меню</b>. Для того чтобы 
+								скрыть помощника, Вам нужно в блоке <b>Дополнительные настройки</b> убрать галочку в поле "Отображать персонального консультанта" и нажать на кнопку <b>Сохранить</b>. --></p>
+
+								<div class="help-linked">
+									<h2>Также рекомендуем посмотреть</h2>
+									<ul class="page-content">
+										<li><a href="/PhizIC/help.do?id=/private/longOffers/info">Просмотр регулярного платежа</a></li>
+										<li><a href="/PhizIC/help.do?id=/private/payments/payment/RefuseLongOffer/refuse-long-offer-extended-fields">Отмена регулярного платежа</a></li>
+
+									</ul>
+								</div>
+									<!-- <div class="help-to-top"><a href="#top">в начало 
+									раздела</a></div> -->
+								<div class="clear"></div>
+
+   </div>
+            <!-- end help-workspace -->
+        </div>
+        <!-- end help-content -->
+
+        <div class="clear"></div>
+    </div>
+</body>

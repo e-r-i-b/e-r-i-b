@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="DepositClosingClaim"
+		description="Заявка на закрытие счета или вклада"
+		detailedDescription="Подача в банк заявки на закрытие счета или досрочное закрытие срочного вклада."
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.DepositClosingClaim"/>
+	<statemachine name="PaymentStateMachine"/>
+
+	<fields>
+		<field
+				name="deposit"
+				description="Вклад для закрытия"
+				type="deposit"
+				source="extra-parameters/parameter[@name='deposit-id']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"/>   
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+		<field
+				name="depositDescription"
+				description="Название депозита"
+				type="string"
+				source="extra-parameters/parameter[@name='deposit-description']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="contractNumber"
+				description="Номер договора"
+				type="string"
+				source="extra-parameters/parameter[@name='contract-number']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="openingDate"
+				description="Дата открытия"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='opening-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='opening-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='opening-date']/@value,1,4))"
+				signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="finishingDate"
+				description="Дата окончания"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='finishing-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='finishing-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='finishing-date']/@value,1,4))"
+				signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="closingDate"
+				description="Дата закрытия"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='closing-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='closing-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='closing-date']/@value,1,4))"				
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="destination-account"
+				description="Перечислить на счет"
+				type="account"
+				source="extra-parameters/parameter[@name='destination-account']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="destination-accountType"
+				source="extra-parameters/parameter[@name='destination-accountType']/@value"
+				description="Тип счета перечисления"
+				type="string"/>
+		<field
+				name="destination-amountCurrency"
+				source="extra-parameters/parameter[@name='destination-amountCurrency']/@value"
+				description="Валюта счета перечисления"
+				type="string"/>
+		<field
+				name="destination-amount"
+				source="extra-parameters/parameter[@name='destination-amount']/@value"
+				description="Сумма на счете перечисления"
+				type="string"/>
+
+	</fields>
+</payment-form>

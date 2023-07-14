@@ -1,0 +1,863 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documents xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="./../../schemas/gate-documents-config.xsd">
+
+    <document description="Перевод со вклада на обезличенный металлический счет"   class="com.rssl.phizic.gate.payments.AccountToIMATransfer">
+        <sender class="com.rssl.phizicgate.manager.services.selectors.way.IMADocumentSenderWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizicgate.esberibgate.documents.senders.InternalTransfer.AccountToIMATransferSender"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.esberibgate.documents.senders.AccoutToIMATransferSender"/>
+        </sender>
+    </document>
+
+    <document description="Перевод с обезличенного металлического счета на вклада" class="com.rssl.phizic.gate.payments.IMAToAccountTransfer">
+        <sender class="com.rssl.phizicgate.manager.services.selectors.way.IMADocumentSenderWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizicgate.esberibgate.documents.senders.InternalTransfer.IMAToAccountTransferSender"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.esberibgate.documents.senders.IMAToAccoutTransferSender"/>
+        </sender>
+    </document>
+
+    <document description="Перевод с карты на обезличенный металлический счет"   class="com.rssl.phizic.gate.payments.CardToIMATransfer">
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.CardToIMATransferSender"/>
+    </document>
+
+    <document description="Перевод с обезличенного металлического счета на карту" class="com.rssl.phizic.gate.payments.IMAToCardTransfer">
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.IMAToCardTransferSender"/>
+    </document>
+
+	<document description="Перевод между счетами." class="com.rssl.phizic.gate.payments.ClientAccountsTransfer">
+		<sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="mq-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.InternalTransfer.AccountToAccountTransferSender"/>
+            <parameter name="ws-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.ClientAccountsTransferSender"/>
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector"/>
+            <parameter name="default-delegate"  value="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        </sender>
+
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.ClientAccountsTransferSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+
+        <commission-calculator class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBCommissionCalculatorSelector">
+            <!--Шина комиссий не считает-->
+            <parameter name="esb-erib-calculator" value="com.rssl.phizic.gate.impl.documents.NullCommissionCalculator"/>
+            <parameter name="default-calculator" value="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        </commission-calculator>
+	</document>
+
+    <document description="Перевод между счетами. (Длительное поручение)" class="com.rssl.phizic.gate.payments.longoffer.ClientAccountsLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.ClientAccountsTransferSender"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Длительные поручения для перевода между счетами не поддерживаются"/>
+        </sender>
+    </document>
+
+    <document description="Перевод со счета карту" class="com.rssl.phizic.gate.payments.AccountToCardTransfer">
+        <commission-calculator class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBCommissionCalculatorSelector">
+            <!--Шина комиссий не считает-->
+            <parameter name="esb-erib-calculator" value="com.rssl.phizic.gate.impl.documents.NullCommissionCalculator"/>
+            <parameter name="default-calculator" value="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        </commission-calculator>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="mq-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.InternalTransfer.AccountToCardTransferSender"/>
+            <parameter name="ws-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.AccountToCardTransferSender"/>
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector"/>
+            <parameter name="default-delegate"  value="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        </updater>
+    </document>
+
+    <document description="Перевод с карты на счет" class="com.rssl.phizic.gate.payments.CardToAccountTransfer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="mq-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.InternalTransfer.CardToAccountTransferSender"/>
+            <parameter name="ws-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.CardToAccountTransferSender"/>
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector"/>
+            <parameter name="default-delegate"  value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Вы не можете списать деньги с Вашей карты на счет. Пожалуйста, укажите счет, с которого хотите выполнить перевод."/>
+        </sender>
+    </document>
+
+    <document description="Перевод с карты на счет. (Создание копилки)" class="com.rssl.phizic.gate.payments.longoffer.CreateCardToAccountLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardToAccountLongOfferSender"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Длительные поручения для перевода с карты на счет не поддерживаются"/>
+        </sender>
+    </document>
+
+    <document description="Приостановка копилки" class="com.rssl.phizic.gate.payments.longoffer.RefuseCardToAccountLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на приостановку копилки. Пожалуйста, обратитесь в банк."/>
+        </sender>
+    </document>
+
+    <document description="Закрытие копилки" class="com.rssl.phizic.gate.payments.longoffer.CloseCardToAccountLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на закрытие копилки. Пожалуйста, обратитесь в банк."/>
+        </sender>
+    </document>
+
+    <document description="Восстановление копилки" class="com.rssl.phizic.gate.payments.longoffer.RecoverCardToAccountLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на восстановление копилки. Пожалуйста, обратитесь в банк."/>
+        </sender>
+    </document>
+
+    <document description="Перевод с карты на счет. (Создание копилки)" class="com.rssl.phizic.gate.payments.longoffer.EditCardToAccountLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EditCardToAccountLongOfferSender"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Длительные поручения для перевода с карты на счет не поддерживаются"/>
+        </sender>
+    </document>
+
+    <document description="Перевод с карты на карту стороннего банка (по отношению к Сбербанку)" class="com.rssl.phizic.gate.payments.ExternalCardsTransferToOtherBank">
+        <commission-calculator class="com.rssl.phizicgate.manager.services.selectors.way.CommissionCalculatorWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizicgate.esberibgate.documents.commissionCalculators.BankTransfer.CardToCardIntraBankTransferCommissionCalculator"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+        </commission-calculator>
+        <sender class="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizicgate.esberibgate.documents.senders.BankTransfer.CardToCardIntraBankTransferSender"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.services.selectors.way.DocumentUpdaterWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+            <parameter name="message"      value="Уточнение статуса не поддерживается."/>
+        </updater>
+    </document>
+
+    <document description="Автоплатеж с карты на карту (между моими картами)" class="com.rssl.phizic.gate.payments.autosubscriptions.InternalCardsTransferLongOffer">
+        <commission-calculator class="com.rssl.phizic.business.payments.CreateP2PAutoSubcriptionCommissionCalculator"/>
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.CardToCardAutoSubscriptionSender"/>
+    </document>
+
+    <document description="Автоплатеж с карты на карту (на карту частного лица)" class="com.rssl.phizic.gate.payments.autosubscriptions.ExternalCardsTransferToOurBankLongOffer">
+        <commission-calculator class="com.rssl.phizic.business.payments.CreateP2PAutoSubcriptionCommissionCalculator"/>
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.CardToCardAutoSubscriptionSender"/>
+    </document>
+
+    <document description="Автоплатеж с карты на карту (на карту частного лица)" class="com.rssl.phizic.gate.payments.autosubscriptions.ExternalCardsTransferToOtherBankLongOffer">
+        <commission-calculator class="com.rssl.phizic.business.payments.CreateP2PAutoSubcriptionCommissionCalculator"/>
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.CardToCardAutoSubscriptionSender"/>
+    </document>
+
+    <document description="Редактирование автоперевода P2P (между моими картами) " class="com.rssl.phizic.gate.payments.autosubscriptions.EditInternalP2PAutoTransfer">
+        <commission-calculator class="com.rssl.phizic.business.payments.CreateP2PAutoSubcriptionCommissionCalculator"/>
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.EditP2PAutoSubscriptionSender"/>
+    </document>
+
+    <document description="Редактирование автоперевода P2P (на чужую карту)" class="com.rssl.phizic.gate.payments.autosubscriptions.EditExternalP2PAutoTransfer">
+        <commission-calculator class="com.rssl.phizic.business.payments.CreateP2PAutoSubcriptionCommissionCalculator"/>
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.EditP2PAutoSubscriptionSender"/>
+    </document>
+
+    <document description="Возобновление действия автоплатежа с карты на карту" class="com.rssl.phizic.gate.payments.autosubscriptions.RecoveryCardToCardLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardToCardAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на возобновление выполнения автоплатежа. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardToCardAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+    <document description="Приостановка действия автоплатежа с карты на карту" class="com.rssl.phizic.gate.payments.autosubscriptions.DelayCardToCardLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardToCardAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на возобновление выполнения автоплатежа. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardToCardAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+    <document description="Закрытие автоплатежа с карты на карту" class="com.rssl.phizic.gate.payments.autosubscriptions.CloseCardToCardLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardToCardAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на возобновление выполнения автоплатежа. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardToCardAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <document description="Перевод с карты на карту Сбербанку (не мою)" class="com.rssl.phizic.gate.payments.ExternalCardsTransferToOurBank">
+        <commission-calculator class="com.rssl.phizicgate.manager.services.selectors.way.CommissionCalculatorWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizicgate.esberibgate.documents.commissionCalculators.BankTransfer.CardToCardOurBankTransferCommissionCalculator"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+        </commission-calculator>
+        <sender class="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizicgate.esberibgate.documents.senders.BankTransfer.CardToCardOurBankTransferSender"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.services.selectors.way.DocumentUpdaterWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+            <parameter name="message"      value="Уточнение статуса не поддерживается."/>
+        </updater>
+    </document>
+
+    <document description="Перевод между картами (моими картами)" class="com.rssl.phizic.gate.payments.InternalCardsTransfer">
+        <sender class="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizicgate.esberibgate.documents.senders.InternalTransfer.CardToCardTransferSender"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.services.selectors.way.DocumentUpdaterWaySelector">
+            <parameter name="mq-delegate"  value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="ws-delegate"  value="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+            <parameter name="message"      value="Уточнение статуса не поддерживается."/>
+        </updater>
+   </document>
+
+    <document description="Перевод юридическому лицу c карты на счет в другой банк внутри Сбербанка России."
+              class="com.rssl.phizic.gate.payments.CardJurIntraBankTransfer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardJurIntraBankTransferSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Вы не можете перевести деньги с карты на счет организации. Пожалуйста, укажите счет, с которого хотите выполнить перевод."/>
+        </sender>
+    </document>
+
+    <document description="Перевод юридическому лицу c карты на счет в другой банк внутри Сбербанка России(Длительное поручение)."
+              class="com.rssl.phizic.gate.payments.longoffer.CardJurIntraBankTransferLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Длительные поручения для перевода с карты на счет в другой банк внутри Сбербанка России не поддерживается."/>
+        </sender>
+    </document>
+
+    <document description="Перевод юридическому лицу c карты на счет в другой банк через платежную систему России."
+              class="com.rssl.phizic.gate.payments.CardJurTransfer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardJurTransferSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Вы не можете перевести деньги с Вашей карты на счет организации,  открытый в другом банке. Пожалуйста, укажите счет, с которого хотите выполнить перевод."/>
+        </sender>
+    </document>
+
+    <document description="Перевод юридическому лицу c карты на счет в другой банк через платежную систему России(Длительное поручение)."
+              class="com.rssl.phizic.gate.payments.longoffer.CardJurTransferLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Длительные поручения для перевода с карты на счет в другой банк через платежную систему России не поддерживаются"/>
+        </sender>
+    </document>
+
+    <document description="Перевод юридическому лицу cо счета на счет в другой банк внутри Сбербанка России."
+              class="com.rssl.phizic.gate.payments.AccountJurIntraBankTransfer">
+<!--Данный перевод всегда через прямую интеграцию(на шине операций нет).-->
+        <commission-calculator class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <sender class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+    </document>
+
+    <document description="Перевод юридическому лицу cо счета на счет в другой банк через платежную систему России."
+              class="com.rssl.phizic.gate.payments.AccountJurTransfer">
+        <!--Данный перевод всегда через прямую интеграцию(на шине операций нет).-->
+        <commission-calculator class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <sender class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+    </document>
+
+    <document description="Перевод физическому лицу c карты на счет в другой банк внутри Сбербанка России."
+              class="com.rssl.phizic.gate.payments.CardIntraBankPayment">
+        <commission-calculator class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBCommissionCalculatorSelector">
+            <parameter name="esb-erib-calculator" value="com.rssl.phizicgate.esberibgate.documents.ConsiderTariffCommissionCalculator"/>
+            <parameter name="default-calculator" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете перевести деньги с Вашей карты на счет частного лица, открытый в другом банке. Пожалуйста, выберите другой счет списания."/>
+        </commission-calculator>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="mq-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.BankTransfer.CardToAccountPhizOurBankTransferSender"/>
+            <parameter name="ws-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.CardIntraBankPaymentSender"/>
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector"/>
+            <parameter name="default-delegate"  value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Вы не можете перевести деньги с карты на счет частного лица. Пожалуйста, укажите счет, с которого хотите выполнить перевод."/>
+        </sender>
+    </document>
+
+    <document description="Перевод физическому лицу c карты на счет в другой банк внутри Сбербанка России(Длительное поручение)."
+              class="com.rssl.phizic.gate.payments.longoffer.CardIntraBankPaymentLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardIntraBankPaymentSender"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Длительные поручения для перевода с карты на счет в другой банк через платежную систему России не поддерживаются"/>
+        </sender>
+    </document>
+
+    <document description="Перевод физическому лицу c карты на счет в другой банк через платежную систему России."
+              class="com.rssl.phizic.gate.payments.CardRUSPayment">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="mq-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.BankTransfer.CardToAccountPhizIntraBankTransferSender"/>
+            <parameter name="ws-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.CardRUSPaymentSender"/>
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector"/>
+            <parameter name="default-delegate"  value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Вы не можете перевести деньги с Вашей карты на счет частного лица, открытый в другом банке. Пожалуйста, выберите другой счет списания."/>
+        </sender>
+        <commission-calculator class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBCommissionCalculatorSelector">
+            <parameter name="esb-erib-calculator" value="com.rssl.phizicgate.esberibgate.documents.ConsiderTariffCommissionCalculator"/>
+            <parameter name="default-calculator" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете перевести деньги с Вашей карты на счет частного лица, открытый в другом банке. Пожалуйста, выберите другой счет списания."/>
+        </commission-calculator>
+    </document>
+
+    <document description="Перевод физическому лицу c карты на счет в другой банк через платежную систему России(Длительное поручение)."
+              class="com.rssl.phizic.gate.payments.longoffer.CardRUSPaymentLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardRUSPaymentSender"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Длительные поручения для перевода с карты на счет в другой банк через платежную систему России не поддерживается."/>
+        </sender>
+    </document>
+
+    <document description="Перевод физическому лицу в другой банк внутри Сбербанка России"
+	          class="com.rssl.phizic.gate.payments.AccountIntraBankPayment">
+        <!--Данный перевод всегда через прямую интеграцию(на шине операций нет).-->
+        <sender class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <commission-calculator class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+	</document>
+
+    <document description="Перевод физическому лицу в другой банк внутри Сбербанка России(Длительное поручение)"
+              class="com.rssl.phizic.gate.payments.longoffer.AccountIntraBankPaymentLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="mq-delegate"        value="com.rssl.phizicgate.esberibgate.documents.senders.LongOffer.AccountToAccountOurBankPaymentLongOfferSender"/>
+            <parameter name="ws-delegate"        value="com.rssl.phizicgate.esberibgate.documents.senders.AccountIntraBankPaymentLongOfferSender"/>
+            <parameter name="esb-erib-delegate"  value="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate"   value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Длительные поручения для перевода физическому лицу в другой банк внутри Сбербанка России не поддерживаются"/>
+        </sender>
+    </document>
+
+    <document description="Перевод физическому лицу cо счета на счет в другой банк через платежную систему России."
+              class="com.rssl.phizic.gate.payments.AccountRUSPayment">
+        <!--Данный перевод всегда через прямую интеграцию(на шине операций нет).-->
+        <sender class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <commission-calculator class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+    </document>
+
+    <document description="Перевод физическому лицу cо счета на счет в другой банк через платежную систему России(Длительное поручение)"
+	          class="com.rssl.phizic.gate.payments.longoffer.AccountRUSPaymentLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="mq-delegate"        value="com.rssl.phizicgate.esberibgate.documents.senders.LongOffer.AccountToAccountIntraBankPaymentLongOfferSender"/>
+            <parameter name="ws-delegate"        value="com.rssl.phizicgate.esberibgate.documents.senders.AccountRUSPaymentLongOfferSender"/>
+            <parameter name="esb-erib-delegate"  value="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate"   value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Длительные поручения для перевода физическому лицу cо счета на счет в другой банк через платежную систему России не поддерживаются"/>
+        </sender>
+	</document>
+
+	<document description="Оплата налогов со счета" class="com.rssl.phizic.gate.payments.AccountRUSTaxPayment">
+        <sender class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        <commission-calculator class="com.rssl.phizic.business.payments.forms.meta.TaxPaymentCommissionCalculator"/>
+	</document>
+    
+    <document description="Оплата налогов с карты" class="com.rssl.phizic.gate.payments.CardRUSTaxPayment">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.CardRUSTaxPaymentSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете оплатить налоги с карты. Пожалуйста, выберите счет, с которого необходимо списать деньги."/>
+        </sender>
+	</document>
+
+	<document description="Оплата товаров и услуг со счета"
+	          class="com.rssl.phizic.gate.payments.systems.AccountPaymentSystemPayment">
+        <commission-calculator class="com.rssl.phizicgate.manager.services.routable.senders.BillingPaymentTwoPhaseTransactionService"/>
+        <!--Для биллинговых платежй со счетов всегда используется 2-фазная транзакция-->
+        <sender class="com.rssl.phizicgate.manager.services.routable.senders.BillingPaymentTwoPhaseTransactionService"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.senders.BillingPaymentTwoPhaseTransactionService"/>
+    </document>
+
+    <document description="Оплата товаров и услуг с карты"
+              class="com.rssl.phizic.gate.payments.systems.CardPaymentSystemPayment">
+        <commission-calculator class="com.rssl.phizicgate.manager.ext.sbrf.documents.CardPaymentSystemPaymentDocumentServiceSelector">
+            <parameter name="esb-erib-document-service" value="com.rssl.phizicgate.esberibgate.payment.recipients.BillingPaymentDocumentService"/>
+            <parameter name="mq-delegate"               value="com.rssl.phizicgate.esberibgate.documents.services.PaymentSystemPayment.CardPaymentSystemPaymentService"/>
+        </commission-calculator>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.CardPaymentSystemPaymentDocumentServiceSelector">
+            <parameter name="esb-erib-document-service" value="com.rssl.phizicgate.esberibgate.payment.recipients.BillingPaymentDocumentService"/>
+            <parameter name="mq-delegate"               value="com.rssl.phizicgate.esberibgate.documents.services.PaymentSystemPayment.CardPaymentSystemPaymentService"/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.CardPaymentSystemPaymentDocumentServiceSelector">
+            <parameter name="esb-erib-document-service" value="com.rssl.phizicgate.esberibgate.payment.recipients.BillingPaymentDocumentService"/>
+            <parameter name="mq-delegate"               value="com.rssl.phizicgate.esberibgate.documents.services.PaymentSystemPayment.CardPaymentSystemPaymentService"/>
+        </updater>
+    </document>
+
+    <!--offline-->
+    <document description="ДП оплаты товаров и услуг с карты" class="com.rssl.phizic.gate.payments.longoffer.CardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentAutoSubSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentAutoSubSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать автоплатеж. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentAutoSubSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="ДП оплаты товаров и услуг с карты, созданное сотрудником" class="com.rssl.phizic.gate.payments.longoffer.EmployeeCardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentAutoSubSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentEmployeeAutoSubSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать автоплатеж. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentEmployeeAutoSubSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Редактирование ДП оплаты товаров и услуг с карты (арм клиента)" class="com.rssl.phizic.gate.payments.longoffer.EditCardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.EditAutoSubscriptionSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EditAutoSubscriptionSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать автоплатеж. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EditAutoSubscriptionSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Редактирование ДП оплаты товаров и услуг с карты сотрудником (арм сотрудника)" class="com.rssl.phizic.gate.payments.longoffer.EmployeeEditCardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentAutoSubSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EditEmployeeAutoSubscriptionSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать автоплатеж. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EditEmployeeAutoSubscriptionSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Приостановка действия ДП оплаты товаров и услуг с карты (арм клиента)" class="com.rssl.phizic.gate.payments.longoffer.DelayCardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.EditAutoSubscriptionSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на приостановление выполнения автоплатежа. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Редактирование автопоиска счетов(арм клиента)" class="com.rssl.phizic.gate.payments.basket.EditInvoiceSubscription">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.BillingEditClaimDocumentInvoiceSubSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на редактирование автопоиска счетов. Пожалуйста, обратитесь в банк."/>
+        </sender>
+	</document>
+
+    <!--offline-->
+    <document description="Приостановка действия автопоиска счетов(арм клиента)" class="com.rssl.phizic.gate.payments.basket.DelayInvoiceSubscription">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на приостановление автопоиска счетов. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Возобновление действия автопоиска счетов(арм клиента)" class="com.rssl.phizic.gate.payments.basket.RecoveryInvoiceSubscription">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на возобновление автопоиска счетов. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Заявка на закрытие автопоиска счетов(арм клиента)" class="com.rssl.phizic.gate.payments.basket.CloseInvoiceSubscription">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на закрытие автопоиска счетов. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Оплата задолженности" class="com.rssl.phizic.gate.payments.basket.InvoiceAcceptPayment">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.InvoiceAcceptPayment.InvoiceAcceptSelector"/>
+            <parameter name="esb-mq-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.InvoiceAcceptPayment.InvoiceAcceptPaymentSender"/>
+            <parameter name="autopay-mq-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.InvoiceAcceptSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете оплатить задолженность. Пожалуйста, обратитесь в банк."/>
+        </sender>
+    </document>
+
+    <!--offline-->
+    <document description="Приостановка действия ДП оплаты товаров и услуг с карты (арм сотрудника)" class="com.rssl.phizic.gate.payments.longoffer.EmployeeDelayCardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentAutoSubSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EmployeeAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на приостановление выполнения автоплатежа. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EmployeeAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Возобновление действия ДП оплаты товаров и услуг с карты (арм клиента)" class="com.rssl.phizic.gate.payments.longoffer.RecoveryCardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.EditAutoSubscriptionSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на возобновление выполнения автоплатежа. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Возобновление действия ДП оплаты товаров и услуг с карты (арм сотрудника)" class="com.rssl.phizic.gate.payments.longoffer.EmployeeRecoveryCardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentAutoSubSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EmployeeAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на возобновление выполнения автоплатежа. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EmployeeAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Заявка на закрытие автоплатежа оплаты товаров и услуг с карты (арм клиента)" class="com.rssl.phizic.gate.payments.longoffer.CloseCardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.EditAutoSubscriptionSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на закрытие автоплатежа. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+    <!--offline-->
+    <document description="Заявка на закрытие автоплатежа оплаты товаров и услуг с карты (арм сотрудника)" class="com.rssl.phizic.gate.payments.longoffer.EmployeeCloseCardPaymentSystemPaymentLongOffer">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentAutoSubSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EmployeeAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать заявку на закрытие автоплатежа. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.EmployeeAutoSubscriptionProcessSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+	</document>
+
+   <!-- BUG032405
+    <document description="ДП оплаты товаров и услуг со счета"
+              class="com.rssl.phizic.gate.payments.longoffer.AccountPaymentSystemPaymentLongOfer">
+        <sender class="com.rssl.phizgate.common.payments.RestrictionSender">
+            <parameter name="message" value="Вы не можете создать автоплатеж на оплату устуг с вклада. Пожалуйста, выберите рублевую карту"/>
+        </sender>
+    </document>
+    -->
+
+	<document description="Погашение кредита"
+	          class="com.rssl.phizic.gate.payments.LoanTransfer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.LoanPaymentSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message"
+                       value="Данная операция временно недоступна, повторите попытку позже."/>
+        </sender>
+	</document>
+
+    <document description="Погашение кредита(длительное поручение)"
+              class="com.rssl.phizic.gate.payments.longoffer.LoanTransferLongOffer">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.LoanPaymentSender"/>
+            <parameter name="is-long-offer-mode" value="true"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Длительные поручения для погашения кредита не поддерживаются"/>
+        </sender>
+    </document>
+    
+    <document description="Заявка об утере сберегательной книжки"
+              class="com.rssl.phizic.gate.claims.LossPassbookApplicationClaim">
+        <!--todo использовать "ESBERIBPaymetSenderSelector" после того как во всех ТБ на КСШ будет реализован фукционал подачи заявки об утере сберкнижки (CHG039252)-->
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBLossPassbookApplicationSelector">
+            <parameter name="mq-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.StopAccountOperationClaim.LossPassbookApplicationClaimSender"/>
+            <parameter name="ws-delegate"       value="com.rssl.phizicgate.esberibgate.documents.senders.LossPassbookApplicationClaimSender"/>
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector"/>
+            <parameter name="default-delegate"  value="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBLossPassbookApplicationUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+        </updater>
+    </document>
+
+    <document description = "Заявка на блокировку карты"
+			class = "com.rssl.phizic.gate.cms.claims.CardBlockingClaim">
+        <sender class="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector">
+            <parameter name="mq-delegate"   value="com.rssl.phizicgate.esberibgate.documents.senders.BlockingCardClaim.BlockingCardClaimSender"/>
+            <parameter name="ws-delegate"   value="com.rssl.phizicgate.esberibgate.documents.senders.BlockingCardSender"/>
+        </sender>
+	</document>
+    
+    <document description="Заявка на перевыпуск карты"
+              class = "com.rssl.phizic.gate.payments.ReIssueCardClaim">
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.ReissueCardSender"/>
+    </document>
+
+    <document description="Списание платы за обслуживание"
+	          class="com.rssl.phizic.gate.payments.ChargeOffPayment">
+        <sender class="com.rssl.phizicgate.manager.services.routable.documents.OfficeRoutableDocumentService"/>
+	</document>
+
+    <document description="Отмена выполнения регулярного платежа"
+	          class="com.rssl.phizic.gate.payments.RefuseLongOffer">
+        <sender class="com.rssl.phizicgate.manager.services.selectors.way.DocumentSenderWaySelector">
+            <parameter name="mq-delegate"   value="com.rssl.phizicgate.esberibgate.documents.senders.LongOffer.RefuseLongOfferSender"/>
+            <parameter name="ws-delegate"   value="com.rssl.phizicgate.esberibgate.documents.senders.RefuseLongOfferSender"/>
+        </sender>
+	</document>
+
+    <!--offline-->
+    <document description="Поручение на перевод/прием перевода ценных бумаг"
+	          class="com.rssl.phizic.gate.claims.SecuritiesTransferClaim">
+         <sender class="com.rssl.phizicgate.esberibgate.documents.senders.SecuritiesTransferClaimSender"/>
+         <updater class="com.rssl.phizicgate.esberibgate.documents.senders.SecuritiesTransferClaimSender"/>
+	</document>
+
+    <!--offline-->
+    <document description="Заявка на регистрацию новой ценной бумаги"
+	          class="com.rssl.phizic.gate.claims.SecurityRegistrationClaim">
+         <sender class="com.rssl.phizicgate.esberibgate.documents.senders.SecurityRegistrationClaimSender"/>
+         <updater class="com.rssl.phizicgate.esberibgate.documents.senders.SecurityRegistrationClaimSender"/>
+	</document>
+
+    <!--offline-->
+    <document description="Поручение на получение анкетных данных"
+	          class="com.rssl.phizic.gate.claims.DepositorFormClaim">
+         <sender class="com.rssl.phizicgate.esberibgate.documents.senders.DepositorFormClaimSender"/>
+         <updater class="com.rssl.phizicgate.esberibgate.documents.senders.DepositorFormClaimSender"/>
+	</document>
+
+    <document description="Заявка на получение электронного документа на электронную почту"
+                 class="com.rssl.phizic.gate.claims.GetPrivateOperationScanClaim">
+         <sender class="com.rssl.phizicgate.esberibgate.documents.senders.GetPrivateOperationScanClaim.GetPrivateOperationScanClaimSender"/>
+	</document>
+
+    <document description="Заявка на изменение параметров подписки получения отчетов по карте"
+                 class="com.rssl.phizic.gate.claims.CardReportDeliveryClaim">
+         <sender class="com.rssl.phizicgate.esberibgate.documents.senders.CardReportDeliveryClaim.CardReportDeliveryClaimSender"/>
+	</document>
+
+    <document description="Заявка на досрочное погашение кредитов"
+                 class="com.rssl.phizic.gate.payments.loan.EarlyLoanRepaymentClaim">
+         <sender class="com.rssl.phizicgate.esberibgate.documents.senders.EarlyLoanRepaymentClaim.EarlyLoanRepaymentClaimSender"/>
+	</document>
+
+    <document description="Заявка на досрочное погашение кредитов"
+                 class="com.rssl.phizic.business.documents.CancelEarlyLoanRepaymentClaimImpl">
+         <sender class="com.rssl.phizicgate.esberibgate.documents.senders.EarlyLoanRepaymentClaim.CancelEarlyLoanRepaymentClaimSender"/>
+	</document>
+
+    <document description="Отзыв документа по депозитарию"
+	          class="com.rssl.phizic.gate.claims.RecallDepositaryClaim">
+         <sender class="com.rssl.phizicgate.esberibgate.documents.senders.RecallDepositaryClaimSender"/>
+	</document>
+
+    <document description="Открытие вклада путем перевода со счета"
+            class="com.rssl.phizic.gate.claims.AccountOpeningClaim">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AccountOpeningClaimFromAccountSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Данная операция временно недоступна, повторите попытку позже."/>
+        </sender>
+    </document>
+
+    <document description="Открытие счета ОМС с переводом на него денежных средств со вклада"
+              class="com.rssl.phizic.gate.claims.IMAOpeningClaim">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.IMAOpeningClaimFromAccountSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Данная операция временно недоступна, повторите попытку позже."/>
+        </sender>
+    </document>
+
+   <document description="Открытие вклада путем перевода с карты"
+            class="com.rssl.phizic.gate.claims.AccountOpeningFromCardClaim">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AccountOpeningClaimFromCardSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Данная операция временно недоступна, повторите попытку позже."/>
+        </sender>
+    </document>
+
+    <document description="Открытие счета ОМС с переводом на него денежных средств с карты"
+              class="com.rssl.phizic.gate.claims.IMAOpeningFromCardClaim">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.IMAOpeningClaimFromCardSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Данная операция временно недоступна, повторите попытку позже."/>
+        </sender>
+    </document>
+
+    <document description="Открытие бессрочного вклада без первоначального взноса"
+            class="com.rssl.phizic.gate.claims.DemandAccountOpeningClaim">
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.DemandAccountOpeningClaimSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Данная операция временно недоступна, повторите попытку позже."/>
+        </sender>
+    </document>
+
+    <document description="Закрытие вклада путем перевода остатка на счет"
+              class="com.rssl.phizic.gate.payments.AccountClosingPaymentToAccount">        
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AccountClosingPaymentToAccountSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Данная операция временно недоступна, повторите попытку позже."/>
+        </sender>
+    </document>
+
+    <document description="Закрытие вклада путем перевода остатка на карту" 
+              class="com.rssl.phizic.gate.payments.AccountClosingPaymentToCard">        
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.AccountClosingPaymentToCardSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Данная операция временно недоступна, повторите попытку позже."/>
+        </sender>
+    </document>
+
+    <!--offline-->
+    <document description="Заявка на выписку из Пенсионного Фонда РФ"
+	          class="com.rssl.phizic.gate.claims.pfr.PFRStatementClaim">
+         <sender class="com.rssl.phizicgate.esberibgate.pfr.PFRSender"/>
+         <updater class="com.rssl.phizicgate.esberibgate.pfr.PFRSender"/>
+	</document>
+
+     <!-- сендеры для автоплатежей -->
+    <document description="Создание автоплатежа" class="com.rssl.phizic.gate.payments.autopayment.CreateAutoPayment">
+        <sender class="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+    </document>
+
+    <document description="Редактирование автолпатежа" class="com.rssl.phizic.gate.payments.autopayment.EditAutoPayment">
+        <sender class="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+    </document>
+
+    <document description="Отмена автоплатежа" class="com.rssl.phizic.gate.payments.autopayment.RefuseAutoPayment">
+        <sender class="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+    </document>
+
+    <document description="заявка на регистрацию в программе лояльности" class="com.rssl.phizic.gate.claims.LoyaltyProgramRegistrationClaim">
+        <sender class="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+        <updater class="com.rssl.phizicgate.manager.services.routable.senders.IqWaveTransferSender"/>
+    </document>
+
+    <document description="Заявка на изменение неснижаемого остатка" class="com.rssl.phizic.gate.claims.AccountChangeMinBalanceClaim">
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.AccountChangeMinBalanceSender"/>
+    </document>
+
+    <document description="Заявка на изменение порядка уплаты процентов по вкладу" class="com.rssl.phizic.gate.claims.AccountChangeInterestDestinationClaim">
+        <sender class="com.rssl.phizicgate.esberibgate.documents.senders.AccountChangeInterestDestinationSender"/>
+    </document>
+
+    <document description="Расширенная заявка на кредит" class="com.rssl.phizic.gate.payments.loan.ETSMLoanClaim">
+        <sender class="com.rssl.phizicgate.esberibgate.loanclaim.etsm.ETSMLoanClaimSender"/>
+    </document>
+
+    <document description="Создание подписки на инвойсы"
+              class="com.rssl.phizic.gate.payments.basket.CreateInvoiceSubscription">
+        <commission-calculator class="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentInvoiceSubSender"/>
+        <sender class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetSenderSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentInvoiceSubSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+            <parameter name="message" value="Вы не можете создать автоплатеж. Пожалуйста, обратитесь в банк."/>
+        </sender>
+        <updater class="com.rssl.phizicgate.manager.ext.sbrf.documents.ESBERIBPaymetUpdaterSelector">
+            <parameter name="esb-erib-delegate" value="com.rssl.phizicgate.esberibgate.documents.senders.BillingPaymentDocumentInvoiceSubSender"/>
+            <parameter name="default-delegate" value="com.rssl.phizgate.common.payments.RestrictionSender"/>
+        </updater>
+    </document>
+    
+    <document description="Заявка на выписка по карте на e-mail" 
+            class="com.rssl.phizic.gate.payments.ReportByCardClaim">
+        <sender class="com.rssl.phizic.business.cards.ReportByCardClaimSender"/>
+    </document>
+
+    <revoke-payment
+			class="com.rssl.phizic.gate.documents.WithdrawDocument"
+			document-type-field="withdrawType"/>
+
+</documents>

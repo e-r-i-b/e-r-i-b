@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.dictionaries.payment.services.ListPaymentServicesOperation.list">
+        <return-scalar column="hasChild" type="boolean"/>
+        <return alias="paymentService" class="com.rssl.phizic.business.dictionaries.payment.services.PaymentService"/>
+        <![CDATA[
+            SELECT
+                {paymentService.*},
+                (select count(*) from PAYMENT_SERV_PARENTS paymentParents where paymentParents.PARENT_ID = paymentService.ID and ROWNUM < 2) as hasChild
+            FROM PAYMENT_SERVICES paymentService LEFT JOIN PAYMENT_SERV_PARENTS parents ON paymentService.ID = parents.SERVICE_ID
+            WHERE
+                ((:extra_parent IS NULL AND paymentService.IS_CATEGORY = '1') OR parents.PARENT_ID = :extra_parent)
+            ORDER BY paymentService.name
+        ]]>
+    </sql-query>
+</hibernate-mapping>

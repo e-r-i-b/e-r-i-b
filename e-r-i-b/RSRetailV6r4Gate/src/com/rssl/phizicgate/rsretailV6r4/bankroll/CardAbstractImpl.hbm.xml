@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.rssl.phizicgate.rsretailV6r4.bankroll">
+	<sql-query name="GetCardPrimaryAccountId">
+        <return-scalar column="accountId" type="long"/>
+	    <![CDATA[
+	        SELECT * FROM(
+                SELECT t_cardAccRef AS accountId
+                FROM dscLink_dbt
+                WHERE t_CardRef = :cardId
+                ORDER BY t_mainAcc DESC
+            )WHERE ROWNUM<2
+        ]]>
+    </sql-query>
+
+	<sql-query name="GetCardBalance">
+		<return-scalar type="double" column="openingBalance"/>
+		<![CDATA[
+			select * from (
+				select docs.t_rest as openingBalance
+				from dsccard_dbt cards
+					,dsclink_dbt links
+					,dsbdepdoc_dbt docs
+				where
+					cards.t_cardref = :cardId
+				and links.t_cardref = cards.t_cardref
+				and docs.t_referenc = links.t_cardaccref
+				and links.t_maincard = 'X'
+				and docs.t_date_document = (
+					select max(docs.t_date_document)
+					from dsbdepdoc_dbt docs
+						,dsclink_dbt links
+						,dsccard_dbt cards
+					where cards.t_cardref = :cardId
+						and docs.t_date_document < :toDate
+						and links.t_cardref = cards.t_cardref
+						and docs.t_referenc = links.t_cardaccref
+						and links.t_maincard = 'X'
+				)
+				order by docs.t_date_document desc
+						,docs.t_numdaydoc desc
+			) where rownum < 2
+		]]>
+	</sql-query>
+
+</hibernate-mapping>

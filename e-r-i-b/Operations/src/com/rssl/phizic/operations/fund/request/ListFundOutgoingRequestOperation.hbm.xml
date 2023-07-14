@@ -1,0 +1,73 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+     <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="FundRequestState">
+        <param name="enumClass">com.rssl.phizic.common.types.fund.FundRequestState</param>
+     </typedef>
+
+     <class name="com.rssl.phizic.business.fund.initiator.FundListRequest">
+        <id name="id" type="long"/>
+        <property name="state" type="FundRequestState"/>
+        <property name="requiredSum" type="big_decimal"/>
+        <property name="closedDate" type="calendar"/>
+        <property name="createdDate" type="calendar"/>
+         <property name="accumulatedSum" type="big_decimal"/>
+     </class>
+
+
+     <!--Получить запросы инициатора по логину и дате
+        Опорный элемент: I_FUND_I_REQUESTS_LOGIN
+        Предикаты доступа: access("REQ"."LOGIN_ID"=TO_NUMBER(:LOGIN_ID) AND "REQ"."CREATED_DATE">=TO_TIMESTAMP(:FROM_DATE))
+        Кардинальность: 0-количество запросов клиента за месяц
+    -->
+    <sql-query name="com.rssl.phizic.operations.fund.request.ListFundOutgoingRequestOperation.getByLoginAndDate">
+        <return class="com.rssl.phizic.business.fund.initiator.FundListRequest">
+            <return-property name="id"                  column="reqId"/>
+            <return-property name="state"               column="reqState"/>
+            <return-property name="requiredSum"         column="reqRequiredSum"/>
+            <return-property name="closedDate"          column="reqClosedDate"/>
+            <return-property name="createdDate"         column="reqCreatedDate"/>
+            <return-property name="accumulatedSum"   column="reqAccumulatedSum"/>
+        </return>
+        <![CDATA[
+            select
+                request.ID as reqId,
+                case
+                    when request.STATE = 'CLOSED'
+                        then 'CLOSED'
+                    when request.STATE = 'SYNC_CLOSED'
+                        then 'CLOSED'
+                    else
+                        case
+                            when current_date >= request.EXPECTED_CLOSED_DATE
+                                then 'CLOSED'
+                            else 'OPEN'
+                        end
+                end as reqState,
+                request.REQUIRED_SUM as reqRequiredSum,
+                case
+                    when request.STATE = 'CLOSED'
+                        then request.CLOSED_DATE
+                    when request.STATE = 'SYNC_CLOSED'
+                        then request.CLOSED_DATE
+                    else
+                        case
+                            when current_date >= request.EXPECTED_CLOSED_DATE
+                                then request.EXPECTED_CLOSED_DATE
+                            else request.CLOSED_DATE
+                        end
+                end as reqClosedDate,
+                request.CREATED_DATE as reqCreatedDate,
+                (
+                    select sum(resp.SUM) from FUND_INITIATOR_RESPONSES resp where resp.REQUEST_ID = request.ID and resp.STATE = 'SUCCESS'
+                ) as reqAccumulatedSum
+            from FUND_INITIATOR_REQUESTS request
+            where request.LOGIN_ID = :extra_login_id
+                and request.CREATED_DATE >= :extra_from_date
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

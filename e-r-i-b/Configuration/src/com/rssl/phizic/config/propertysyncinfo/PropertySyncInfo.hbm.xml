@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+
+    <typedef name="PropertySyncInfoStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.config.propertysyncinfo.PropertySyncInfoStatus</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.config.propertysyncinfo.PropertySyncInfo" table="PROPERTY_SYNC_INFO">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PROPERTY_SYNC_INFO</param>
+            </generator>
+        </id>
+
+        <property name="nodeId"                     type="long"                               column="NODE_ID"                         not-null="true"/>
+        <property name="status"                     type="PropertySyncInfoStatus"             column="STATE"                           not-null="true"/>
+        <property name="operationDate"              type="calendar"                           column="OPERATION_DATE"                  not-null="true"/>
+        <property name="guid"                       type="string"                             column="GUID"                            not-null="true"/>
+    </class>
+
+    <!--Опорный элемент: I_PROP_SYNC_INFO_GUID
+        Предикат доступа: "GUID"=:GUID
+        Кардинальность: Ограничена числом блоков
+        Источник выборки: сотрудник
+        Интенсивность выборки: 1 вызов на нажатие сотрудником кнопки "обновить" в окне информации о синхронизации настроек
+    -->
+    <sql-query name="com.rssl.phizic.config.propertysyncinfo.PropertySyncInfo.list">
+        <return-scalar column="NODE_ID" type="long"/>
+        <return-scalar column="STATE" type="string"/>
+            select NODE_ID, STATE
+            from PROPERTY_SYNC_INFO
+            where GUID = :guid and OPERATION_DATE > :start_date
+    </sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.loanclaim.creditProduct.type.CreditSubProductType" table="CREDIT_PRODUCT_SUB_TYPE">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CREDIT_PRODUCT_TYPE </param>
+            </generator>
+        </id>
+
+        <property name="code" type="string" column="CODE" not-null="false"/>
+
+        <many-to-one name="creditProduct"
+                     class="com.rssl.phizic.business.loanclaim.creditProduct.CreditProduct"
+                     column="CREDIT_PRODUCT_ID"
+                     not-null="true"
+                     fetch="join"
+                     lazy="false"/>
+
+        <property name="terbank" type="string" column="TB" not-null="true"/>
+
+        <property name="currency" type="currency" column="TO_CURRENCY" not-null="true"/>
+
+    </class>
+
+    <query name="com.rssl.phizic.business.loanclaim.creditProduct.type.CreditSubProductType.getAllByCreditProduct">
+        select creditSubProductType
+        from com.rssl.phizic.business.loanclaim.creditProduct.type.CreditSubProductType as creditSubProductType
+        where creditSubProductType.creditProduct = :creditProduct
+    </query>
+
+</hibernate-mapping>

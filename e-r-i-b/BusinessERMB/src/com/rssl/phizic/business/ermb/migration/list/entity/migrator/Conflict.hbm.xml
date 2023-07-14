@@ -1,0 +1,77 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="Status" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.ermb.migration.list.entity.migrator.ConflictStatus</param>
+    </typedef>
+
+	<class name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict" table="CONFLICTS">
+		<id name="phone"                type="string"   column="PHONE"/>
+        <property name="status"         type="Status"   column="STATUS"         not-null="true"/>
+        <property name="ownerId"        type="long"     column="OWNER_ID"       not-null="false"/>
+        <property name="manually"       type="boolean"  column="MANUALLY"       not-null="true"/>
+        <property name="employeeInfo"   type="string"   column="EMPLOYEE_INFO"  not-null="false"/>
+
+		<set name="clients" table="PHONES_TO_CONFLICTED_CLIENTS" cascade="save-update" lazy="false">
+			<key column="PHONE"/>
+		    <many-to-many class="com.rssl.phizic.business.ermb.migration.list.entity.migrator.ConflictedClient" column="CONFLICTED_CLIENT_ID"/>
+		</set>
+   </class>
+
+	<sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict.findUnresolvedPhonesByClient">
+        <return-scalar column="phone" type="string"/>
+        <![CDATA[
+            select conflict.PHONE
+            from
+                CONFLICTS conflict
+                join PHONES phone on phone.PHONE= conflict.PHONE
+            where
+                phone.CLIENT_ID = :clientId
+                and conflict.STATUS = 'UNRESOLVED'
+                and conflict.MANUALLY = '1'
+        ]]>
+    </sql-query>
+
+	<sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict.findByCsvClientId">
+        <return alias="conflict" class="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict"/>
+        <![CDATA[
+            select {conflict.*}
+            from
+                CONFLICTS conflict
+                join PHONES phone on phone.PHONE = conflict.PHONE
+            where
+                phone.CLIENT_ID = :clientId
+        ]]>
+    </sql-query>
+
+	<sql-query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict.findManuallyByCsvClientId">
+        <return alias="conflict" class="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict"/>
+        <![CDATA[
+            select {conflict.*}
+            from
+                CONFLICTS conflict
+                join PHONES phone on phone.PHONE = conflict.PHONE
+            where
+                phone.CLIENT_ID = :clientId
+                and conflict.MANUALLY = '1'
+        ]]>
+    </sql-query>
+
+	<query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict.setDecision">
+        update com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict conflict
+        set
+            conflict.status = :status,
+            conflict.ownerId = :ownerId,
+            conflict.employeeInfo = :employeeInfo
+        where
+            conflict.phone = :phone
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict.findByPhone">
+        select conflict
+        from com.rssl.phizic.business.ermb.migration.list.entity.migrator.Conflict conflict
+        where conflict.phone = :phone
+    </query>
+</hibernate-mapping>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef  name="OperationContextState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.csaadmin.business.operation.OperationContextState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.csaadmin.business.operation.OperationContext" table="OPERATION_CONTEXT">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_OPERATION_CONTEXT</param>
+            </generator>
+        </id>
+
+        <many-to-one name="session" column="SESSION_ID" class="com.rssl.phizic.csaadmin.business.session.Session" lazy="false" not-null="true"/>
+        <property name="state"        type="OperationContextState"   column="STATE"         not-null="true"/>
+        <property name="context"      type="text"                    column="CONTEXT"    not-null="true" access="field"/>
+    </class>
+
+</hibernate-mapping>

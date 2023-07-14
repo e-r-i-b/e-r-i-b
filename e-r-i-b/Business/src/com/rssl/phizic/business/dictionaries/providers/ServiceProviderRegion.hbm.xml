@@ -1,0 +1,53 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.providers.ServiceProviderRegion" table="SERVICE_PROVIDER_REGIONS">
+		 <composite-id>
+             <key-many-to-one name="serviceProvider" column="SERVICE_PROVIDER_ID" class="com.rssl.phizic.business.dictionaries.providers.ServiceProviderBase" lazy="false"/>
+             <key-many-to-one name="region"          column="REGION_ID"           class="com.rssl.phizic.business.dictionaries.regions.Region"            lazy="false"/>
+		 </composite-id>
+         <property name="showInPromoBlock"         type="boolean"         column="SHOW_IN_PROMO_BLOCK"    not-null="true"/>
+    </class>
+
+    <!--доступен ли поставщик для региона-->
+    <sql-query name="com.rssl.phizic.business.dictionaries.providers.ServiceProviderRegion.providerAllowedInRegion">
+        <return-scalar column="allowed" type="string"/>
+        <![CDATA[
+            SELECT
+                CASE
+                    WHEN not exists(SELECT REGION_ID FROM SERVICE_PROVIDER_REGIONS
+                        WHERE SERVICE_PROVIDER_ID = :providerId)
+                    THEN 'true'
+                    WHEN EXISTS (
+                        SELECT REGION_ID FROM SERVICE_PROVIDER_REGIONS
+                        WHERE SERVICE_PROVIDER_ID = :providerId
+                        AND REGION_ID IN  (
+                            SELECT regions.id
+                            FROM REGIONS regions
+                            START WITH regions.ID = :regionId
+                            CONNECT BY regions.PARENT_ID = PRIOR regions.ID
+
+                            UNION ALL
+
+                            SELECT regions.id
+                            FROM REGIONS regions
+                            START WITH regions.ID = :regionId
+                            CONNECT BY regions.ID = PRIOR regions.parent_id
+                            )
+                        )
+                    THEN 'true'
+                    ELSE 'false'
+                END AS allowed
+            FROM dual
+        ]]>
+    </sql-query>
+
+    <!-- запрос регионов, которые привязаны к поставщику -->
+    <query name="com.rssl.phizic.business.dictionaries.providers.ServiceProviderRegion.getRegionsProvider">
+        select provider.regions from com.rssl.phizic.business.dictionaries.providers.ServiceProviderBase provider
+        where provider.id = :providerId
+    </query>
+
+</hibernate-mapping>

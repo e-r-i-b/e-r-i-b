@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<listener>
+		<listener-class>com.rssl.phizic.init.InitializerListenerBase</listener-class>
+	</listener>
+
+    <servlet>
+        <servlet-name>NodeLogReceiverServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.web.node.logging.LogReceiverServlet</servlet-class>
+        <init-param>
+            <param-name>receive-operation-confirm-log</param-name>
+            <param-value>true</param-value>
+        </init-param>
+<!--        <init-param>
+            <param-name>receive-operation-confirm-log-dbinstance-name</param-name>
+            <param-value>Log</param-value>
+        </init-param>-->
+        <init-param>
+            <param-name>receive-operation-confirm-log-queue-name</param-name>
+            <param-value>jms/node/OperationConfirmLogQueue</param-value>
+        </init-param>
+        <init-param>
+            <param-name>receive-operation-confirm-log-queue-factory-name</param-name>
+            <param-value>jms/node/LoggingQCF</param-value>
+        </init-param>
+        <init-param>
+            <param-name>operation-confirm-log-timeout</param-name>
+            <param-value>1000</param-value>
+        </init-param>
+        <init-param>
+            <param-name>operation-confirm-log-pack-size</param-name>
+            <param-value>100</param-value>
+        </init-param>
+        <init-param>
+            <param-name>operation-confirm-log-flush-try-count</param-name>
+            <param-value>2</param-value>
+        </init-param>
+        <init-param>
+            <param-name>operation-confirm-log-threads-count</param-name>
+            <param-value>3</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>receive-logon-log</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <!--        <init-param>
+                    <param-name>receive-logon-log-dbinstance-name</param-name>
+                    <param-value>Log</param-value>
+                </init-param>-->
+        <init-param>
+            <param-name>receive-logon-log-queue-name</param-name>
+            <param-value>jms/node/LogonLogQueue</param-value>
+        </init-param>
+        <init-param>
+            <param-name>receive-logon-log-queue-factory-name</param-name>
+            <param-value>jms/node/LoggingQCF</param-value>
+        </init-param>
+        <init-param>
+            <param-name>logon-log-timeout</param-name>
+            <param-value>1000</param-value>
+        </init-param>
+        <init-param>
+            <param-name>logon-log-pack-size</param-name>
+            <param-value>100</param-value>
+        </init-param>
+        <init-param>
+            <param-name>logon-log-flush-try-count</param-name>
+            <param-value>2</param-value>
+        </init-param>
+        <init-param>
+            <param-name>logon-log-threads-count</param-name>
+            <param-value>3</param-value>
+        </init-param>
+
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <filter>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>WebLog</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <resource-ref id="WebNodeLog_ResourceRef_JDBC_PhizIC">
+        <res-ref-name>jdbc/PhizIC</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+</web-app>

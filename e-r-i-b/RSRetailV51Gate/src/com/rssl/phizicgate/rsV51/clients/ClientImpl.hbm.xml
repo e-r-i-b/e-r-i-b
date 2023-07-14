@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.rssl.phizicgate.rsV51.clients" catalog="RSRetailV51">
+    <class name="ClientImpl" entity-name="FullClient">
+        <cache usage="read-only"/>
+
+        <id name="longId" column="PersonID"/>
+
+        <property name="shortName"     type="string" column="shortName"/>
+        <property name="fullName"      type="string" column="fullName"/>
+
+        <property name="surName"       type="string" column="surName"/>
+        <property name="firstName"     type="string" column="firstName"/>
+        <property name="patrName"      type="string" column="patrName"/>
+        <property name="birthDay"      type="calendar" column="birthDay"/>
+        <property name="birthPlace"    type="string" column="birthPlace"/>
+    </class>
+
+    <class name="ClientImpl" entity-name="LigthClient">
+        <cache usage="read-only"/>
+
+        <id name="longId" column="PersonID"/>
+
+        <property name="shortName"     type="string" column="shortName"/>
+        <property name="fullName"      type="string" column="fullName"/>
+
+	    <property name="surName"       type="string" column="surName"/>
+	    <property name="firstName"     type="string" column="firstName"/>
+	    <property name="patrName"      type="string" column="patrName"/>
+	    <property name="birthDay"      type="calendar" column="birthDay"/>
+	    <property name="birthPlace"    type="string" column="birthPlace"/>
+    </class>
+
+
+
+    <sql-query name="GetFullClientInfo">
+        <return alias="person" entity-name="FullClient">
+            <return-property name="longId"       column="longId"/>
+            <return-property name="shortName"    column="shortName"/>
+            <return-property name="fullName"     column="fullName"/>
+
+            <return-property name="surName"      column="surName"/>
+            <return-property name="firstName"    column="firstName"/>
+            <return-property name="patrName"     column="patrName"/>
+            <return-property name="birthDay"     column="birthDay"/>
+            <return-property name="birthPlace"   column="birthPlace"/>
+        </return>
+        SELECT
+                party.PartyID          AS longId,
+                party.ShortName        AS shortName,
+                party.Name             AS fullName,
+
+                person.Name1           AS surName,
+                person.Name2           AS firstName,
+                person.Name3           AS patrName,
+                person.Born            AS birthDay,
+                person.BirsPlase       AS birthPlace
+        FROM
+            persn_dbt AS person, party_dbt AS party
+/*            INNER JOIN party_dbt AS party ON person.PersonID = party.PartyID AND party.LegalForm = 2 */
+        WHERE
+            person.PersonID = :personId AND
+	        party.PartyID = person.PersonID
+/*	     AND party.LegalForm = 2 */
+    </sql-query>
+
+    <sql-query name="GetLightClientByName" fetch-size="500">
+        <return alias="party" entity-name="LigthClient">
+            <return-property name="longId"       column="longId"/>
+            <return-property name="shortName"    column="shortName"/>
+            <return-property name="fullName"     column="fullName"/>
+
+	        <return-property name="surName"      column="surName"/>
+	        <return-property name="firstName"    column="firstName"/>
+	        <return-property name="patrName"     column="patrName"/>
+	        <return-property name="birthDay"     column="birthDay"/>
+	        <return-property name="birthPlace"   column="birthPlace"/>
+        </return>
+        SELECT
+                party.PartyID          AS longId,
+                party.ShortName        AS shortName,
+                party.Name             AS fullName,
+
+				person.Name1           AS surName,
+				person.Name2           AS firstName,
+				person.Name3           AS patrName,
+				person.Born            AS birthDay,
+				person.BirsPlase       AS birthPlace
+        FROM
+			persn_dbt AS person, party_dbt AS party
+/*			INNER JOIN party_dbt AS party ON person.PersonID = party.PartyID AND party.LegalForm = 2 */
+        WHERE
+	      party.PartyID = person.PersonID
+          AND party.LegalForm = 2
+          AND person.Name1 LIKE :surNameLikePattern
+		  AND person.Name2 LIKE :firstNameLikePattern
+		  AND person.Name3 LIKE :patrNameLikePattern
+
+
+    </sql-query>
+
+</hibernate-mapping>

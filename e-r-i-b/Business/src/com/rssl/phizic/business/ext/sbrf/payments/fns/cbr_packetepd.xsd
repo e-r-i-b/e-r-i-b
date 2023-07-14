@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+<!--Центральный Банк Российской Федерации.
+Унифицированные форматы электронных банковских сообщений.
+
+Схемы с описанием прикладных частей электроных сообщений, используемых в расчетной сети Банка России.
+
+июнь 2010  г.-->
+<!--e-mail:  wlad@e-burg.cbr.ru-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ed="urn:cbr-ru:ed:v2.0" xmlns:lt="urn:cbr-ru:ed:leaftypes:v2.0" targetNamespace="urn:cbr-ru:ed:v2.0" elementFormDefault="qualified" attributeFormDefault="unqualified" version="2.4.8">
+	<xs:import namespace="urn:cbr-ru:ed:leaftypes:v2.0" schemaLocation="cbr_ed_leaftypes.xsd"/>
+	<xs:import namespace="urn:cbr-ru:dsig:v1.1" schemaLocation="cbr_dsig.xsd"/>
+	<xs:include schemaLocation="cbr_ed_objects.xsd"/>
+	<xs:include schemaLocation="cbr_ed101.xsd"/>
+	<xs:annotation>
+		<xs:documentation>Прикладные части ЭС</xs:documentation>
+	</xs:annotation>
+	<xs:element name="PacketEPD" type="ed:PacketEPD"/>
+	<xs:complexType name="PacketEPD">
+		<xs:annotation>
+			<xs:documentation>Пакет ЭПД</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="ed:ED">
+				<xs:choice maxOccurs="unbounded">
+					<xs:element ref="ed:ED101">
+						<xs:annotation>
+							<xs:documentation>Платежное поручение</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:choice>
+				<xs:attribute name="EDReceiver" type="lt:EDDrawerIDType">
+					<xs:annotation>
+						<xs:documentation>Уникальный идентификатор получателя ЭД. Обязателен для заполнения ТПК УОС</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="EDQuantity" type="lt:EDQuantityType" use="required">
+					<xs:annotation>
+						<xs:documentation>Количество ЭПД в пакете (поле 153)</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="Sum" type="lt:KopeckAmountType" use="required">
+					<xs:annotation>
+						<xs:documentation>Общая сумма ЭПД в пакете (поле 154)</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="SystemCode" type="lt:TwoDigitCodeType" use="required">
+					<xs:annotation>
+						<xs:documentation>Признак системы обработки (поле 240)</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

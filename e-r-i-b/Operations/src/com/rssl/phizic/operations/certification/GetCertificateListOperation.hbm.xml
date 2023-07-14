@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <query name="com.rssl.phizic.operations.certification.GetCertificateListOperation.list">
+        select cert
+        from com.rssl.phizic.security.certification.CertOwn as cert
+        where cert.owner = :userLogin
+	            and ( cert.status = :extra_status or  :extra_status is null ) and cert.status in ('N','A','E','B')
+				and (cert.startDate >= :extra_startDate or :extra_startDate is null or :extra_startDate = '')
+				and (:extra_endDate > cert.endDate or :extra_endDate is null or :extra_endDate = '')
+        order by cert.status
+    </query>
+</hibernate-mapping>

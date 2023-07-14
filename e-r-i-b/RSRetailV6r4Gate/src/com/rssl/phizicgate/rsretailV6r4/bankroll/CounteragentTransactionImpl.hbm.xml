@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsretailV6r4.bankroll.ReceiverTransaction">
+        <id name="operationId"/>
+
+	    <property name="counteragent"/>
+        <property name="receiverAccount" type="string"/>
+	    <property name="receiverBank"/>
+	    <property name="receiverBIC"/>
+    </class>
+
+ <sql-query name="GetCounteragent">      
+	  <return alias="trans" class="com.rssl.phizicgate.rsretailV6r4.bankroll.ReceiverTransaction">
+		<return-property name="operationId"      column="operationId"/>
+        <return-property name="counteragent"     column="counteragent"/>
+	    <return-property name="receiverAccount"  column="receiverAccount"/>
+	    <return-property name="receiverBank"     column="receiverBank"/>
+	    <return-property name="receiverBIC"      column="receiverBIC"/>
+      </return>
+	 SELECT
+	    paym.t_iApplicationKind || 0 ||
+	    paym.t_ApplicationKey || paym.t_AttrID AS operationId,
+	    paym.t_RecivFIO          AS counteragent,
+		REPLACE( rsb_struct.getString('t_Accnt',T_FMTBLOBDATA_XXXX,0), CHR(0), '' ) AS receiverAccount,
+        REPLACE( rsb_struct.getString('t_Bank' ,T_FMTBLOBDATA_XXXX,0), CHR(0), '' ) AS receiverBank,
+        REPLACE( rsb_struct.getString('t_BIC'  ,T_FMTBLOBDATA_XXXX,0), CHR(0), '' ) AS receiverBIC
+
+        FROM dsbdepdoc_dbt opers LEFT JOIN drt_paym_dbt paym ON
+	      paym.t_ApplicationKey=opers.t_ApplicationKey And
+		  paym.t_iApplicationKind=opers.t_iApplicationKind AND
+		  paym.t_AttrID = 'РЕКВ_ПОЛ'
+		 WHERE opers.t_Referenc = :id AND opers.t_Date_Document = :date AND opers.t_NumDayDoc = :dayNumber
+    </sql-query>
+</hibernate-mapping>

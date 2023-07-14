@@ -1,0 +1,36 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.finances.GetListOfOperationsOperation.list">
+        <return alias="operation" class="com.rssl.phizic.business.finances.CardOperation"/>
+        <![CDATA[
+            SELECT
+                {operation.*}
+            FROM
+                CARD_OPERATIONS operation INNER JOIN CARD_OPERATION_CATEGORIES category ON category.ID = operation.CATEGORY_ID
+            WHERE
+                operation.LOGIN_ID = :extra_loginId AND
+                operation.CARD_NUMBER in (:extra_cardNumbers) AND
+                operation.OPERATION_DATE >= :extra_fromDate and :extra_toDate >= operation.OPERATION_DATE AND
+                operation.LOAD_DATE <= :extra_maxLoadDate AND
+                (:extra_income IS NULL OR category.INCOME = :extra_income) AND
+                (:extra_showCash = '1' OR operation.IO_CASH = '0') AND (:extra_cash IS NULL OR operation.IO_CASH = :extra_cash) AND
+                category.VISIBLE = '1'
+            ORDER BY operation.OPERATION_DATE
+        ]]>
+    </sql-query>
+
+
+    <sql-query name="com.rssl.phizic.operations.finances.GetListOfOperationsOperation.getClientsBudgetList">
+        <return-scalar column="category" type="long"/>
+        SELECT
+            budgets.CATEGORY_ID as category
+        FROM
+            CLIENTS_BUDGET budgets LEFT JOIN CARD_OPERATION_CATEGORIES category ON category.ID = budgets.CATEGORY_ID
+        WHERE
+            budgets.LOGIN_ID = :extra_loginId  and
+            (:extra_showTransfer = '1' or category.IS_TRANSFER = '0')
+    </sql-query>
+</hibernate-mapping>

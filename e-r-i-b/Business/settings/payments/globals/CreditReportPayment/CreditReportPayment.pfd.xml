@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="CreditReportPayment" description="Оплата кредитного отчета"
+              detailedDescription="Кредитная история – это документ, который отражает Вашу кредитную историю, т.е. обобщенную информацию по кредитным обязательствам и их состоянию на текущий момент. Для получения кредитного отчета заполните поля формы и нажмите на кнопку «Продолжить»"
+              confirmDescription="Платеж успешно отправлен в банк. После его обработки средства будут списаны с Вашего счета и переведены на счет получателя. Спасибо, что Вы воспользовались «Сбербанк Онлайн»!"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.CreditReportPaymentImpl"/>
+	<statemachine name="BillingPaymentStateMachine"/>
+    <extended-metadata-loader
+            class="com.rssl.phizic.business.payments.forms.meta.receivers.PaymentSystemPaymentMetadataLoader"/>
+	<fields>
+
+		<field  name="documentNumber"
+                description="Номер документа"
+                type="string"
+                source="document-number"
+                signable="true">
+		</field>
+
+        <field  name="billingDocumentNumber"
+                source="billing-document-number"
+                type = "string"
+                description="Номер операции в БС"
+                signable="true">
+        </field>
+
+		<field  name="documentDate"
+                description="Дата документа"
+                type="date"
+                source="document-date"
+                signable="true">
+        </field>
+
+        <field  name="documentTime"
+				description="Время документа"
+				source="document-time"
+                type="string">
+        </field>
+
+        <field  name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Источник списания средств: счет, карта"
+                type="resource">
+
+            <validators>
+                <validator  mode="draft-template|pre-template|template|by-template|prepare|document|mobile"  class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator  mode="draft-template|pre-template|template|by-template|prepare|document|mobile"  class="com.rssl.phizic.business.payments.forms.validators.CheckResourceVisibilityValidator"/>
+                <validator  mode="draft-template|pre-template|template|by-template|prepare|document|mobile"  class="com.rssl.phizic.business.documents.AllowedExternalJurAccountPaymentValidator"/>
+            </validators>
+        </field>
+
+        <field  name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+		<field  name="fromAccountSelect"
+                description="Счет/карта списания"
+                type="string"
+                source="payer-account"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getNumber()">
+		</field>
+
+        <field  name="fromAccountType"
+                source="extra-parameters/parameter[@name='from-account-type']/@value"
+                description="Тип (описание) источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getValue().getDescription()">
+        </field>
+
+        <field  name="fromAccountName"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                description="Наименование источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getName()">
+        </field>
+
+        <field  name="exactAmount"
+                description="Сумма списания (зачисления)"
+                source="exact-amount"
+                type="string">
+        </field>
+
+        <field  name="amountCurrency"
+                description="Валюта"
+                source="amount-currency"
+                type="string"
+                value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+                signable="true">
+        </field>
+
+        <field  name="fromResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                type="string"
+                value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+                signable="true">
+        </field>
+
+        <field  name="destinationCurrency"
+                description="Валюта"
+                source="destination-amount-currency"
+                type="string"
+                signable="true">
+        </field>
+
+        <field  name="codeService"
+                description="Идентификатор услуги в биллинговой системе"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='codeService']/@value">
+        </field>
+
+        <field  name="nameService"
+                description="Наименование услуги в биллинговой системе"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='nameService']/@value">
+        </field>
+
+        <field  name="phoneNumber"
+                description="Телефон для обращений клиентов"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='receiver-phone-number']/@value">
+        </field>
+
+        <field  name="authorizeCode"
+                description="Код авторизации"
+                type="string"
+                source="extra-parameters/parameter[@name='AUTHORIZE_CODE']/@value">
+        </field>
+
+        <!--Данные получателя-->
+        <field  name="recipient"
+                description="Идентифкатор поставщика услуг"
+                type="long"
+                subType="static"
+                source="recipient">
+        </field>
+
+        <field  name="receiverId"
+                description="Внешний идентификатор получателя"
+                type="string"
+                subType="static"
+                source="receiverId">
+        </field>
+
+        <field  name="billingCode"
+                description="Идентфикатор билинговой системы"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='provider-billing-code']/@value">
+        </field>
+
+        <field  name="receiverName"
+                description="Наименование получателя"
+                type="string"
+                subType="static"
+                source="receiver-name"
+                signable="true">
+        </field>
+
+        <field  name="nameOnBill"
+                description="Наименование получателя, выводимое в чеке"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='name-on-bill']/@value">
+        </field>
+
+        <field  name="receiverDescription"
+                source="extra-parameters/parameter[@name='receiver-description']/@value"
+                subType="static"
+                description="Описание получателя"
+                type="string">
+        </field>
+
+		<field  name="receiverAccount"
+                description="Счет зачисления"
+                type="string"
+                subType="static"
+                source="receiver-account"
+                signable="true">
+        </field>
+
+		<field  name="receiverINN"
+                description="ИНН"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='receiver-inn']/@value"
+                signable="true">
+        </field>
+
+		<field  name="receiverKPP"
+                description="КПП"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='receiver-kpp']/@value"
+                signable="true">
+        </field>
+
+        <field  name="receiverBIC"
+                description="БИК"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='receiver-bic']/@value"
+                signable="true">
+        </field>
+
+		<field  name="receiverBankName"
+                description="Наименование банка Получателя"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='receiver-bank']/@value"
+                signable="true">
+        </field>
+
+		<field  name="receiverCorAccount"
+                description="Кор.Счет"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='receiver-cor-account']/@value"
+                signable="true">
+        </field>
+
+        <field  name="commission"
+                description="Сумма коммисии"
+                source="commission"
+                type="money"
+                signable="true"
+                value="'Значение только для чтения: не должно приходить от клиента и сеттиться в БД'">
+        </field>
+
+        <field  name="commissionCurrency"
+                description="Сумма коммисии"
+                source="commission-currency"
+                type="string"
+                signable="true"
+                value="'Значение только для чтения: не должно приходить от клиента и сеттиться в БД'">
+        </field>
+
+		<field  name="admissionDate"
+                description="Плановая дата исполнения платежа"
+                source="admission-date"
+                type="date"
+                signable="false">
+        </field>
+
+		<field  name="operationCode"
+                description="Код валютной операции"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='operation-code']/@value"
+                signable="true"
+                value="((form.receiverAccount != null &amp;&amp; (form.receiverAccount.substring(0,5) == '40820' || form.receiverAccount.substring(0,3) == '426')) || (form.fromAccountSelect != null &amp;&amp; (form.fromAccountSelect.substring(0,5) == '40820' || form.fromAccountSelect.substring(0,3) == '426'))) ? '{VO99090}' : ''"/>
+
+		<field  name="state"
+                source="state"
+                description="Статус платежа"
+                type="string">
+        </field>
+
+		<field  name="promoCode"
+                source="promoCode"
+                description="Промо-код"
+                type="string">
+        </field>
+
+		<field  name="operationDate"
+                source="operation-date-short-year"
+                description="Дата отправки платежа"
+                type="string">
+        </field>
+
+        <field  name="operationTime"
+			    source="operation-time"
+			    description="Время отправки платежа"
+			    type="string">
+        </field>
+
+		<field  name="chargeOffDate"
+                source="execution-date"
+                description="Дата исполнения платежа"
+                type="date">
+        </field>
+
+        <field  name="bankDetails"
+                description="Банковские реквизиты"
+                type="boolean"
+                subType="static"
+                source="extra-parameters/parameter[@name='bank-details']/@value">
+        </field>
+
+        <field  name="cardAccountFrom"
+                source="cardAccountFrom"
+                description="Номер счета карты списания"
+                value="xpath:phiz:document('active-cards.xml')/entity-list/entity[@key=$fromAccountSelect]/field[@name='cardAccount']"/>
+
+        <field  name="fromAccountNumber"
+                source="fromAccountNumber"
+                description="Номер счета списания"
+                value="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink' ? form.cardAccountFrom : form.fromAccountSelect"/>
+
+        <field  name="isWithCommission"
+                source="extra-parameters/parameter[@name='auto-sub-with-commision']/@value"
+                description="c комиссией"
+                type="boolean">
+        </field>
+
+        <field  name="personRegionName"
+                source="extra-parameters/parameter[@name='person-region-name']/@value"
+                description="Выбранный пользователем регион"
+                type="string">
+        </field>
+
+        <field  name="fromResourceLink"
+                source="extra-parameters/parameter[@name='from-resource-link']/@value"
+                description="Ссылка на ресурс списания"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getCode()">
+        </field>
+
+        <field  name="reasonForAdditionalConfirm"
+                source="extra-parameters/parameter[@name='reason-for-additional-confirm']/@value"
+                description="Причина дополнительного подтверждения платежа в КЦ"
+                type="string">
+        </field>
+
+        <field  name="checkStatusCountResult"
+                source="extra-parameters/parameter[@name='check-status-count-result']/@value"
+                description="Признак превышения допустимого значения проверок статуса платежа во ВС"
+                type="boolean">
+        </field>
+
+	</fields>
+
+	<form-validators>
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountKeyValidator">
+			<message text="Вы неправильно указали счет получателя. Пожалуйста, проверьте номер счета. "/>
+			<field-ref name="receiverBIC">receiverBIC</field-ref>
+			<field-ref name="receiverAccount">receiverAccount</field-ref>
+		</form-validator>
+
+		<form-validator mode="draft-template|by-template|prepare|document|mobile" class="com.rssl.phizic.business.payments.forms.validators.PaymentCurrencyPermittedValidator"
+                enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.AccountLink'">
+            <message text="Вы не можете оплатить услуги со счета в иностранной валюте. Пожалуйста, выберите рублевый счет"/>
+            <field-ref name="amountCurrency">amountCurrency</field-ref>
+            <parameter name="currencies">RUB;RUR</parameter>
+        </form-validator>
+
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.FromResourceFilterValidator"
+            enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.AccountLink'">
+            <message text="Вы не можете создать платеж по выбранному счету. Пожалуйста, создайте новый платеж."/>
+			<field-ref name="fromResource">fromResource</field-ref>
+		</form-validator>
+
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.FromResourceFilterValidator"
+            enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Вы не можете создать платеж по выбранной карте. Пожалуйста, создайте новый платеж."/>
+			<field-ref name="fromResource">fromResource</field-ref>
+		</form-validator>
+
+        <form-validator  mode="draft-template|pre-template|template|by-template|prepare|document|mobile" class="com.rssl.phizic.business.payments.forms.validators.BillingPaymentChargeOffCardValidator">
+            <message text="Вы не можете создать платеж по выбранной карте. Пожалуйста, выберите другую карту."/>
+			<field-ref name="fromResource">fromResource</field-ref>
+            <field-ref name="recipient">recipient</field-ref>
+        </form-validator>
+
+    </form-validators>
+</payment-form>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding='windows-1251'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="MessageType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.logging.settings.MessageType</param>
+    </typedef>
+
+    <typedef name="PushEventType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.logging.push.PushEventType</param>
+        <param name="identifierMethod">toValue</param>
+        <param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+	<class name="com.rssl.phizic.logging.settings.UserMessageLogRecord" table="USER_MESSAGES_LOG">
+
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence"> S_USER_MESSAGES_LOG</param>
+			</generator>
+		</id>
+
+        <property name="loginId" type="long" column="LOGIN_ID"/>
+        <property name="additionDate" type="calendar" column="ADDITION_DATE"/>
+        <property name="type" type="MessageType" column="TYPE"/>
+        <property name="messageId" type="string" column="MESSAGE_ID" not-null="false"/>
+        <property name="typeCode" type="PushEventType" column="TYPE_CODE"/>
+
+	</class>
+
+</hibernate-mapping>

@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<struts-config>
+
+    <form-beans>
+        <form-bean name="FilterForm" type="com.rssl.phizic.web.common.FilterForm"/>
+        <!-- Прохождение ПФП -->
+        <form-bean name="EditPersonalFinanceProfileForm" type="com.rssl.phizic.web.pfp.EditPersonalFinanceProfileForm"/>
+        <form-bean name="EditPfpPersonalDataForm" type="com.rssl.phizic.web.pfp.EditPfpPersonalDataForm"/>
+        <form-bean name="ChangePersonRiskProfileForm" type="com.rssl.phizic.web.pfp.ajax.risk.profile.ChangePersonRiskProfileForm"/>
+        <form-bean name="EditPfpTargetForm" type="com.rssl.phizic.web.pfp.ajax.EditPfpTargetForm"/>
+        <form-bean name="EditPfpLoanForm" type="com.rssl.phizic.web.pfp.ajax.loan.EditPfpLoanForm"/>
+        <form-bean name="ShowRecommendationForm" type="com.rssl.phizic.web.pfp.recomendation.show.ShowRecommendationForm"/>
+        <form-bean name="ChooseCreditCardForm" type="com.rssl.phizic.web.pfp.recomendation.show.ChooseCreditCardForm"/>
+        <form-bean name="EditPfpRiskProfileForm" type="com.rssl.phizic.web.pfp.EditPfpRiskProfileForm"/>
+        <form-bean name="ShowPfpRiskProfileForm" type="com.rssl.phizic.web.pfp.ShowPfpRiskProfileForm"/>
+        <form-bean name="EditPfpPortfolioListForm" type="com.rssl.phizic.web.pfp.EditPfpPortfolioListForm"/>
+        <form-bean name="EditPfpPortfolioForm" type="com.rssl.phizic.web.pfp.EditPfpPortfolioForm"/>
+        <form-bean name="ChangeStartAmountForm" type="com.rssl.phizic.web.pfp.ajax.ChangeStartAmountForm"/>
+        <form-bean name="ChoosePfpProductForm" type="com.rssl.phizic.web.pfp.ChoosePfpProductForm"/>
+        <form-bean name="ChoosePfpInsuranceProductForm" type="com.rssl.phizic.web.pfp.ChoosePfpInsuranceProductForm"/>
+        <form-bean name="ListPFPPassingJournalForm" type="com.rssl.phizic.web.pfp.admin.ListPFPPassingJournalForm"/>
+        <form-bean name="AddPfpProductForm" type="com.rssl.phizic.web.pfp.addproduct.AddPfpProductForm"/>
+        <form-bean name="ShowPfpResultForm" type="com.rssl.phizic.web.pfp.ShowPfpResultForm"/>
+        <form-bean name="ShowPfpFinancePlanForm" type="com.rssl.phizic.web.pfp.ShowPfpFinancePlanForm"/>
+        <form-bean name="DownloadForm" type="com.rssl.phizic.web.common.download.DownloadForm"/>
+    </form-beans>
+
+    <global-exceptions>
+        <exception key="error.accessDeny"
+                   scope="request"
+                   type="java.security.AccessControlException"
+                   handler="com.rssl.phizic.web.actions.DefaultExceptionHandler"/>
+        <exception key="error.errorHeader"
+                   scope="request"
+                   type="java.lang.Exception"
+                   handler="com.rssl.phizic.web.actions.GlobalExceptionHandler"/>
+    </global-exceptions>
+    
+    <global-forwards>
+        <forward name="ShowErrorPage" path="/WEB-INF/jsp/common/pfp/errorPage.jsp" redirect="false"/>
+        <forward name="ShowEmptyErrorPage" path="/WEB-INF/jsp/common/pfp/errorPage.jsp" redirect="false"/>
+    </global-forwards>
+
+    <action-mappings>
+        <!-- Подтверждение клиентом согласия с условиями ПФП -->
+        <action path="/agree"
+                type="com.rssl.phizic.web.pfp.AgreePfpAction"
+                name="EditPersonalFinanceProfileForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/agreePfp.jsp"/>
+            <forward name="Success" path="/editPersonalData.do" redirect="true"/>
+        </action>
+
+        <!-- ПФП нулевой шаг-->
+        <action path="/edit"
+                type="com.rssl.phizic.web.pfp.EditPersonalFinanceProfileAction"
+                name="EditPersonalFinanceProfileForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/editPfp.jsp"/>
+            <forward name="Agree" path="/agree.do" redirect="true"/>
+        </action>
+
+        <!-- ПФП Страница для заполнения личных данных клиента -->
+        <action path="/editPersonalData"
+                type="com.rssl.phizic.web.pfp.EditPfpPersonalDataAction"
+                name="EditPfpPersonalDataForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/editPfpPersonalData.jsp"/>
+        </action>
+
+        <!-- ПФП Ajax Редактирование целей клиента -->
+        <action path="/async/editPfpTarget"
+                type="com.rssl.phizic.web.pfp.ajax.EditPfpTargetAction"
+                name="EditPfpTargetForm"
+                scope="request"
+                parameter="unused">
+            <forward name="EditResult" path="/WEB-INF/jsp/common/pfp/personTarget/editTargetResult.jsp"/>
+            <forward name="RemoveResult" path="/WEB-INF/jsp/common/pfp/personTarget/removeTargetResult.jsp"/>
+        </action>
+
+        <!-- Редактирование кредитов клиента -->
+        <action path="/async/editPfpLoan"
+                type="com.rssl.phizic.web.pfp.ajax.loan.EditPfpLoanAction"
+                name="EditPfpLoanForm"
+                scope="request"
+                parameter="unused">
+            <forward name="EditResult" path="/WEB-INF/jsp/common/pfp/personLoan/editLoanResult.jsp"/>
+            <forward name="RemoveResult" path="/WEB-INF/jsp/common/pfp/personLoan/removeLoanResult.jsp"/>
+        </action>
+
+        <!-- Изменение риск профиля клиентом -->
+        <action path="/async/change/personRiskProfile"
+                type="com.rssl.phizic.web.pfp.ajax.risk.profile.ChangePersonRiskProfileAction"
+                name="ChangePersonRiskProfileForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Change" path="/WEB-INF/jsp/common/pfp/riskProfile/changeRiskProfile.jsp"/>
+        </action>
+
+        <!--Рекомендации по использованию кредитной карты -->
+        <action path="/showRecommendations"
+                type="com.rssl.phizic.web.pfp.recomendation.show.ShowRecommendationAction"
+                name="ShowRecommendationForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/recomendations/showRecommendations.jsp"/>
+        </action>
+
+        <!--Эффект использования кредитной карты и её выбор -->
+         <action path="/chooseCard"
+                 type="com.rssl.phizic.web.pfp.recomendation.show.ChooseCreditCardAction"
+                 name="ChooseCreditCardForm"
+                 scope="request"
+                 parameter="unused">
+             <forward name="Start" path="/WEB-INF/jsp/common/pfp/recomendations/chooseCard.jsp"/>
+         </action>
+
+
+        <!-- ПФП Страница для определения риск профиля клиента -->
+        <action path="/editRiskProfile"
+                type="com.rssl.phizic.web.pfp.EditPfpRiskProfileAction"
+                name="EditPfpRiskProfileForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/editPfpRiskProfile.jsp"/>
+        </action>
+
+        <!-- ПФП Страница для определения риск профиля клиента -->
+        <action path="/showRiskProfile"
+                type="com.rssl.phizic.web.pfp.ShowPfpRiskProfileAction"
+                name="ShowPfpRiskProfileForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/showPfpRiskProfile.jsp"/>
+        </action>
+
+        <!-- ПФП Страница для отображения портфелей клиента -->
+        <action path="/editPortfolioList"
+                type="com.rssl.phizic.web.pfp.EditPfpPortfolioListAction"
+                name="EditPfpPortfolioListForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/editPfpPortfolioList.jsp"/>
+        </action>
+
+        <!-- ПФП Страница для определения риск профиля клиента -->
+        <action path="/editPortfolio"
+                type="com.rssl.phizic.web.pfp.EditPfpPortfolioAction"
+                name="EditPfpPortfolioForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/editPfpPortfolio.jsp"/>
+            <forward name="PortfolioList" path="/editPortfolioList.do" redirect="true"/>
+        </action>
+
+        <!-- ПФП Ajax Изменение суммы для формирования портфеля -->
+        <action path="/async/changeStartAmount"
+                type="com.rssl.phizic.web.pfp.ajax.ChangeStartAmountAction"
+                name="ChangeStartAmountForm"
+                scope="request"
+                parameter="unused">
+            <forward name="ChangeResult" path="/WEB-INF/jsp/common/pfp/changeStartAmountResult.jsp"/>
+        </action>
+
+        <!-- ПФП Выбор продуктов для добавления в портфель -->
+        <action path="/editPortfolio/chooseProduct"
+                type="com.rssl.phizic.web.pfp.ChoosePfpProductAction"
+                name="ChoosePfpProductForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/chooseProduct/choosePfpProduct.jsp"/>
+        </action>
+
+        <!-- ПФП Выбор страховых и пенсионных продуктов для добавления в портфель -->
+        <action path="/editPortfolio/chooseProduct/insurance"
+                type="com.rssl.phizic.web.pfp.ChoosePfpInsuranceProductAction"
+                name="ChoosePfpInsuranceProductForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/chooseProduct/choosePfpInsurance.jsp"/>
+        </action>
+
+        <!-- ПФП Форма добавления продукта -->
+        <action path="/addProduct"
+                type="com.rssl.phizic.web.pfp.addproduct.AddPfpProductAction"
+                name="AddPfpProductForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/addProduct/addProduct.jsp"/>
+            <forward name="BackToPortfolio" path="/editPortfolio.do" redirect="true"/>            
+        </action>
+
+        <action path="/showFinancePlan"
+                type="com.rssl.phizic.web.pfp.ShowPfpFinancePlanAction"
+                name="ShowPfpFinancePlanForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/showFinancePlan.jsp"/>
+            <forward name="EditPortfolio" path="/editPortfolio.do" redirect="true"/>
+        </action>
+
+        <action path="/showPfpResult"
+                type="com.rssl.phizic.web.pfp.ShowPfpResultAction"
+                name="ShowPfpResultForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start"   path="/WEB-INF/jsp/common/pfp/showPfpResult.jsp"/>
+            <forward name="Agree" path="/agree.do" redirect="true"/>
+        </action>
+
+        <action path="/passingPfpJournal"
+                type="com.rssl.phizic.web.pfp.admin.ListPFPPassingJournalAction"
+                name="ListPFPPassingJournalForm"
+                scope="request"
+                parameter="unused">
+            <forward name="Start" path="/WEB-INF/jsp/common/pfp/admin/listPfpPassingJournal.jsp"/>
+        </action>
+
+        <action path="/async/clearFilter"
+                type="com.rssl.phizic.web.common.FilterAction"
+                name="FilterForm"
+                scope="request"
+                validate="false"
+                parameter="unused">
+        <forward name="Start" path="/WEB-INF/jsp/common/pfp/admin/asyncFilter.jsp"/>
+        </action>
+
+        <action path="/download"
+                type="com.rssl.phizic.web.common.download.DownloadAction"
+                name="DownloadForm"
+                scope="request"
+                validate="false"
+                parameter="unused"/>
+
+    </action-mappings>
+
+    <controller processorClass="com.rssl.phizic.web.modulus.WebModuleRequestProcessor"/>
+
+    <message-resources
+			factory="com.rssl.phizic.web.struts.MultiPropertyMessageResourcesFactory"
+			parameter="com.rssl.phizic.business.documents.payments.forms.validator; com.rssl.phizic.web.pfp.resource"
+			key="pfpBundle"/>
+
+    <message-resources
+            factory="com.rssl.phizic.web.struts.MultiPropertyMessageResourcesFactory"
+            parameter="com.rssl.phizic.business.documents.payments.forms.validator; com.rssl.phizic.web.pfp.admin.resource"
+            key="pfpJournalBundle"/>
+    
+    <plug-in className="org.apache.struts.tiles.TilesPlugin">
+        <set-property
+                property="definitions-config"
+                value="/WEB-INF/tiles/tiles-components.xml, /WEB-INF/tiles/tiles-module-templates.xml"/>
+    </plug-in>
+
+    <plug-in className="com.rssl.phizic.web.struts.layout.SkinPlugin">
+        <set-property property="templates" value="list;wide-list;no-pagination;simple-pagination"/>
+    </plug-in>
+    
+</struts-config>

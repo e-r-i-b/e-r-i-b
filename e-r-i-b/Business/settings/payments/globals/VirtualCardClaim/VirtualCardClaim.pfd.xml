@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="VirtualCardClaim" description="Заявка на виртуальную карту"
+              detailedDescription="Заполните поля формы и нажмите на кнопку «Отправить заявку»."
+              confirmDescription="Ваша заявка успешно отправлена в банк! Спасибо, что воспользовались системой «Сбербанк Онлайн»!"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.VirtualCardClaim"/>
+	<statemachine name="LoanOfferMachine"/>
+
+    <fields>
+         <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true">
+
+		</field>
+
+        <field name="creationDate"
+               description="Дата создания"
+               type="date"
+               source="creation-date"
+               signable="true"/>
+
+        <field name="operationDate"
+               description="Дата подтверждения"
+               type="date"
+               source="operation-date"
+               signable="true"/>
+
+		<field name="documentDate"
+               description="Дата документа"
+               type="date"
+               source="document-date"
+               signable="true"/>
+
+		<field name="сardProduct"
+               description="Вид карты"
+               type="string"
+               source="extra-parameters/parameter[@name='сardProduct']/@value"
+               signable="true">
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+        <field  name="cardProductId"
+                source="extra-parameters/parameter[@name='cardProductId']/@value" 
+                description="Идентификатор карточного продукта"
+                type="long"
+                signable="true"/>
+
+		<field name="kindCardProduct"
+               description="Вид карты (кодовое значение)"
+               type="long"
+               source="extra-parameters/parameter[@name='kindCardProduct']/@value"
+               signable="true">
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+		<field name="subKindCardProduct"
+               description="Подвид карты"
+               type="long"
+               source="extra-parameters/parameter[@name='subKindCardProduct']/@value"
+               signable="true">
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+		<field name="currencyNameCardProduct"
+               description="Валюта"
+               type="string"
+               source="extra-parameters/parameter[@name='currencyNameCardProduct']/@value"
+               signable="true">
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+		<field name="currencyCodeCardProduct"
+               description="Цифровой код валюты"
+               type="string"
+               source="extra-parameters/parameter[@name='currencyCodeCardProduct']/@value"
+               signable="true">
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+		<field name="surName"
+               description="Фамилия"
+               type="string"
+               source="extra-parameters/parameter[@name='surName']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='surName']"
+               signable="true"/>
+
+		<field name="firstName"
+               description="Имя"
+               type="string"
+               source="extra-parameters/parameter[@name='firstName']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='firstName']"
+               signable="true"/>
+
+        <field name="patrName"
+               description="Отчество"
+               source="extra-parameters/parameter[@name='patrName']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='patrName']"
+               signable="true"/>
+
+        <field name="mobilePhone"
+               description="Мобильный телефон"
+               type="string"
+               source="extra-parameters/parameter[@name='mobilePhone']/@value"
+               signable="true"
+               category="phone"
+               inital="xpath:phiz:document('currentPersonData.xml')//field[@name = 'mobilePhone']">
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				    <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					    <message text="Укажите номер телефона – ровно 10 цифр. Например, 9115108989."/>
+					    <parameter name="regexp">^\d{3}(\*|\d){3}\d{4}$</parameter>
+				    </validator>
+               </validators>
+        </field>
+
+        <field name="mobileOperator"
+               description="Оператор мобильной связи"
+               type="string"
+               source="extra-parameters/parameter[@name='mobileOperator']/@value"
+               signable="true">
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+        <field name="mobileTariff"
+               description="Тариф мобильного банка"
+               type="string"
+               source="extra-parameters/parameter[@name='mobileTariff']/@value"
+               signable="true">
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+        <field name="codeMobileOperator"
+               description="Код оператора мобильной связи"
+               type="string"
+               source="extra-parameters/parameter[@name='codeMobileOperator']/@value"
+               signable="true">
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>    
+
+        <field name="card-number"
+               description="Номер карты под которой зашел клиент"
+               source="extra-parameters/parameter[@name='card-number']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='cardNumber']"
+               signable="true"/>
+
+		<field name="state"
+               source="state"
+               description="Статус заявки"
+               type="string"/>
+
+        <field
+                name="exactAmount"
+                description="Сумма списания (зачисления)"
+                source="exact-amount"
+                type="string"
+                value="'destination-field-exact'">
+        </field>  
+
+    </fields>
+</payment-form>    

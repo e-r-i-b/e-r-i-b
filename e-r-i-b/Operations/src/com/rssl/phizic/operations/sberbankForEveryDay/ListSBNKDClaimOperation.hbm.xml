@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!--Получение списка заявок СБНКД-->
+<!--Опорный объект:  IDX_ISSUE_CARD_OWNER_DATE
+    Предикаты доступа: ("ISSUECARD"."OWNER_ID"=TO_NUMBER(:EXTRA_LOGINID) AND
+              "ISSUECARD"."CREATION_DATE">=TO_TIMESTAMP(:EXTRA_FROMDATE) AND "ISSUECARD"."CREATION_DATE"<=TO_TIMESTAMP(:EXTRA_TODATE))
+    Кардинальность: 10, 20, 50 (стоп условие - количество записей на странице. Пагинация)
+
+-->
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.sberbankForEveryDay.ListSBNKDClaimOperation.list">
+        <return alias="issueCard" class="com.rssl.phizic.gate.claims.sbnkd.impl.IssueCardDocumentImpl"/>
+        <![CDATA[
+            select {issueCard.*}
+            from ISSUE_CARD_CLAIM issueCard
+            where
+                issueCard.OWNER_ID = :extra_loginId
+                AND (issueCard.CREATION_DATE >= :extra_fromDate)
+                AND (issueCard.CREATION_DATE <= :extra_toDate)
+        ]]>
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RecallPayment" description="Отзыв перевода"
+              detailedDescription="Используйте данную форму для отзыва перевода"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+    <implementation class="com.rssl.phizic.business.documents.RecallDocument"/>
+    <sender class="com.rssl.phizic.business.payments.forms.meta.WithdrawBusinessDocumentSender"/>
+	<extended-metadata-loader class="com.rssl.phizic.business.forms.RecallPaymentMetadataLoader"/>
+	<list-form name="$calculated"/>
+	<need-parent value="true"/>
+    <fields>
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+		       type="string"/>
+	    <field
+			    name="recalledDocumentNumber"
+			    description="Номер отзываемого документа"
+			    type="string"
+			    source="extra-parameters/parameter[@name='recalled-document-number']/@value">
+        </field>
+	    <field
+			    name="amountCurrency"
+			    description="Валюта"
+			    source="extra-parameters/parameter[@name='recalled-document-amount-currency']/@value"
+			    type="string"/>
+		<field
+				name="amount"
+				description="Сумма"
+				source="extra-parameters/parameter[@name='recalled-document-amount']/@value"
+				type="money">
+		</field>
+	    <field
+			    name="parentId"
+			    description="Ссылка на отзываемый платеж"
+			    source="extra-parameters/parameter[@name='parent-id']/@value"
+			    type="string">
+        </field>
+	    <field
+			    name="recalled-document-form-name"
+			    description="Форма отзываемого документа"
+			    source="extra-parameters/parameter[@name='recalled-document-form-name']/@value"
+			    type="string">
+        </field>
+    </fields>
+	<dictionaries>
+		<entity-list name="paymentDescriptors">
+            <entity key="InternalPayment">Перевод между счетами</entity>
+            <entity key="RurPayment">Перевод физическому лицу</entity>
+			<entity key="RurPayJurSB">Оплата покупок и услуг</entity>
+			<entity key="PurchaseCurrencyPayment">Покупка иностранной валюты</entity>
+			<entity key="SaleCurrencyPayment">Продажа иностранной валюты</entity>
+			<entity key="ConvertCurrencyPayment">Конверсия иностранной валюты</entity>
+			<entity key="AccountOpeningClaim">Заявка на открытие счета</entity>
+			<entity key="AccountClosingClaim">Заявка на закрытие счета</entity>
+        </entity-list>
+	</dictionaries>
+</payment-form>

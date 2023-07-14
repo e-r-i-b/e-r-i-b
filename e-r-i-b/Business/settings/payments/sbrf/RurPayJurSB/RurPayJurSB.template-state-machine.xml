@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/state-machine.xsd">
+
+    <states description="Машина состояний шаблона бил. платежа" name="BillingPaymentStateMachine"
+            inital-state="INIT_TEMPLATE">
+
+        <state id="INIT_TEMPLATE" description="Состояние первого шага оплаты"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <events>
+                <event name="SAVEASTEMPLATE" description="Сохранение документа клиентом" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DisallowAdditionalCardTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ServiceProviderInfoSaveHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                    </handlers>
+                    <next-states default="DRAFTTEMPLATE"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="DRAFTTEMPLATE" description="Неполностью заполненный шаблон"
+               client-form="/private/payments/template.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <events>
+                <event name="EDIT_TEMPLATE" description="Редактирование шаблона"  type="client">
+                    <next-states default="DRAFTTEMPLATE"/>
+                </event>
+                <event name="SAVEASTEMPLATE" description="Сохранение документа клиентом"  type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DisallowAdditionalCardTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ServiceProviderInfoSaveHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.PrepareTemplateHandler">
+                            <enabled class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.filters.PrepareBillingTemplateHandlerFilter"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                    </handlers>
+                    <next-states default="DRAFTTEMPLATE">
+                        <next-state condition="com.rssl.phizic.business.documents.templates.stateMachine.conditions.BillingTemplateRequisitesSufficientCondition" state="SAVED_TEMPLATE">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.BarsReceiverNameHandler">
+                                    <enabled class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.filters.BarsReceiverNameHandlerFilter"/>
+                                </handler>
+                                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeactivateEditEventTemplateHandler"/>
+                            </handlers>
+                        </next-state>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+
+        <state id="SAVED_TEMPLATE" description="Вы подтвердили документ в Шаблонах документов."
+               client-form="/private/payments/template/confirm.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <forms>
+                <form application="PhizIC" url="/private/template/services-payments/edit.do" description="Первый шаг создания шаблона платежа договорному поставщику услуг">
+                    <filters>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.EditEventEnabledFormFilter"/>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.FormTypeFormFilter">
+                            <parameters>
+                                <parameter name="formTypes" value="INTERNAL_PAYMENT_SYSTEM_TRANSFER"/>
+                            </parameters>
+                        </filter>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.TemplateStateFormFilter">
+                            <parameters>
+                                <parameter name="states" value="DRAFTTEMPLATE"/>
+                                <parameter name="invert" value="true"/>
+                            </parameters>
+                        </filter>
+                    </filters>
+                </form>
+                <form application="PhizIC" url="/private/template/jurPayment/edit.do" description="Первый шаг создания шаблона платежа недоговорному поставщику услуг">
+                    <filters>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.EditEventEnabledFormFilter"/>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.FormTypeFormFilter">
+                            <parameters>
+                                <parameter name="formTypes" value="EXTERNAL_PAYMENT_SYSTEM_TRANSFER"/>
+                            </parameters>
+                        </filter>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.TemplateStateFormFilter">
+                            <parameters>
+                                <parameter name="states" value="DRAFTTEMPLATE"/>
+                                <parameter name="invert" value="true"/>
+                            </parameters>
+                        </filter>
+                    </filters>
+                </form>
+            </forms>
+
+            <events>
+                <event name="EDIT_TEMPLATE" description="Редактирование шаблона" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeniedEditTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ActivateEditEventTemplateHandler">
+                            <parameter name="value" value="true"/>
+                        </handler>
+                    </handlers>
+                    <next-states default="SAVED_TEMPLATE"/>
+                </event>
+                <!--
+                    данный переход - следствие следующих требовани:
+                    1. При нажатии клиентом кнопки редактировать -> переходим на форму первого шага редактирования шаблона платежа
+                    2. Если клиент при этом не предпринимает никаких действий (отказывается от изменения), шаблон оставляем с текущем статусе, иначе начинаем редактировать шаблон
+                -->
+                <event name="SAVEASTEMPLATE" description="Сохранение документа клиентом"  type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DisallowAdditionalCardTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+
+                        <!--Хендлер выполняется при редантировании шаблона платежа-->
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.PrepareEditTemplateHandler"/>
+
+                        <!--Хендлер выполняется при редантировании шаблона платежа-->
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ExternalPaymentTemplateHandler"/>
+
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ServiceProviderInfoSaveHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.PrepareTemplateHandler">
+                            <enabled class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.filters.PrepareBillingTemplateHandlerFilter"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeactivateEditEventTemplateHandler"/>
+                    </handlers>
+                    <next-states default="DRAFTTEMPLATE"/>
+                </event>
+                <event name="CONFIRM" description="Подтверждение шаблона" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DisallowExternalAccountTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                    </handlers>
+                    <next-states default="WAIT_CONFIRM_TEMPLATE"/>
+                </event>
+                <event name="CONFIRM_TEMPLATE" description="Подтверждение шаблона" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DisallowExternalAccountTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                            <parameter name="state" value="EXECUTED"/>
+                        </handler>
+                    </handlers>
+                    <next-states default="TEMPLATE"/>
+                </event>
+                <event name="CONFIRM_TEMPLATE" description="Подтверждение шаблона" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.TestClientBlockedHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.SetConfirmEmployeeInfoTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.SetCreatedEmployeeInfoTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                            <parameter name="state" value="EXECUTED"/>
+                        </handler>
+                    </handlers>
+                    <next-states default="TEMPLATE"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="WAIT_CONFIRM_TEMPLATE" description="Шаблон, ожидающий дополнительного подтверждения"
+			   client-form="/private/payments/template/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <forms>
+                <form application="PhizIC" url="/private/template/services-payments/edit.do" description="Первый шаг создания шаблона платежа договорному поставщику услуг">
+                    <filters>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.EditEventEnabledFormFilter"/>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.FormTypeFormFilter">
+                            <parameters>
+                                <parameter name="formTypes" value="INTERNAL_PAYMENT_SYSTEM_TRANSFER"/>
+                            </parameters>
+                        </filter>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.TemplateStateFormFilter">
+                            <parameters>
+                                <parameter name="states" value="DRAFTTEMPLATE"/>
+                                <parameter name="invert" value="true"/>
+                            </parameters>
+                        </filter>
+                    </filters>
+                </form>
+                <form application="PhizIC" url="/private/template/jurPayment/edit.do" description="Первый шаг создания шаблона платежа недоговорному поставщику услуг">
+                    <filters>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.EditEventEnabledFormFilter"/>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.FormTypeFormFilter">
+                            <parameters>
+                                <parameter name="formTypes" value="EXTERNAL_PAYMENT_SYSTEM_TRANSFER"/>
+                            </parameters>
+                        </filter>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.TemplateStateFormFilter">
+                            <parameters>
+                                <parameter name="states" value="DRAFTTEMPLATE"/>
+                                <parameter name="invert" value="true"/>
+                            </parameters>
+                        </filter>
+                    </filters>
+                </form>
+            </forms>
+
+            <events>
+                <event name="EDIT_TEMPLATE" description="Редактирование шаблона" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeniedEditTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ActivateEditEventTemplateHandler">
+                            <parameter name="value" value="true"/>
+                        </handler>
+                    </handlers>
+                    <next-states default="WAIT_CONFIRM_TEMPLATE"/>
+                </event>
+                <!--
+                    данный переход - следствие следующих требовани:
+                    1. При нажатии клиентом кнопки редактировать -> переходим на форму первого шага редактирования шаблона платежа
+                    2. Если клиент при этом не предпринимает никаких действий (отказывается от изменения), шаблон оставляем с текущем статусе, иначе начинаем редактировать шаблон
+                -->
+                <event name="SAVEASTEMPLATE" description="Сохранение документа клиентом"  type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DisallowAdditionalCardTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+
+                        <!--Хендлер выполняется при редантировании шаблона платежа-->
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.PrepareEditTemplateHandler"/>
+
+                        <!--Хендлер выполняется при редантировании шаблона платежа-->
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ExternalPaymentTemplateHandler"/>
+
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ServiceProviderInfoSaveHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.PrepareTemplateHandler">
+                            <enabled class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.filters.PrepareBillingTemplateHandlerFilter"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeactivateEditEventTemplateHandler"/>
+                    </handlers>
+                    <next-states default="DRAFTTEMPLATE"/>
+                </event>
+                <event name="CONFIRM" description="Дополнительное подтверждение через КЦ" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.TestClientBlockedHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.SetConfirmEmployeeInfoTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                            <parameter name="state" value="EXECUTED"/>
+                        </handler>
+                    </handlers>
+                    <next-states default="TEMPLATE"/>
+                </event>
+                <event name="RECOVERDELETED" description="Восстановить, удаленный клиетом шаблон" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.RecoverTemplateActivityStateHandler"/>
+                    </handlers>
+                    <next-states default="TEMPLATE">
+                        <next-state condition="com.rssl.phizic.business.documents.templates.stateMachine.conditions.RecoverTemplateStateCondition" state="WAIT_CONFIRM_TEMPLATE">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ClearEmployeeConfirmInfoHandler"/>
+                                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                    <parameter name="state" value="EXECUTED"/>
+                                </handler>
+                            </handlers>
+                        </next-state>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+
+        <state id="TEMPLATE" description="Вы сохранили документ в Шаблонах документов."
+			   client-form="/private/payments/template/view.do"
+			   system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <forms>
+                <form application="PhizIC" url="/private/template/services-payments/edit.do" description="Первый шаг создания шаблона платежа договорному поставщику услуг">
+                    <filters>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.EditEventEnabledFormFilter"/>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.FormTypeFormFilter">
+                            <parameters>
+                                <parameter name="formTypes" value="INTERNAL_PAYMENT_SYSTEM_TRANSFER"/>
+                            </parameters>
+                        </filter>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.TemplateStateFormFilter">
+                            <parameters>
+                                <parameter name="states" value="DRAFTTEMPLATE"/>
+                                <parameter name="invert" value="true"/>
+                            </parameters>
+                        </filter>
+                    </filters>
+                </form>
+                <form application="PhizIC" url="/private/template/jurPayment/edit.do" description="Первый шаг создания шаблона платежа недоговорному поставщику услуг">
+                    <filters>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.EditEventEnabledFormFilter"/>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.FormTypeFormFilter">
+                            <parameters>
+                                <parameter name="formTypes" value="EXTERNAL_PAYMENT_SYSTEM_TRANSFER"/>
+                            </parameters>
+                        </filter>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.TemplateStateFormFilter">
+                            <parameters>
+                                <parameter name="states" value="DRAFTTEMPLATE"/>
+                                <parameter name="invert" value="true"/>
+                            </parameters>
+                        </filter>
+                    </filters>
+                </form>
+            </forms>
+
+            <events>
+                <event name="EDIT_TEMPLATE" description="Редактирование шаблона" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeniedEditTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ActivateEditEventTemplateHandler">
+                            <parameter name="value" value="true"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                            <parameter name="state" value="EXECUTED"/>
+                        </handler>
+                    </handlers>
+                    <next-states default="TEMPLATE"/>
+                </event>
+                <!--
+                    данный переход - следствие следующих требовани:
+                    1. При нажатии клиентом кнопки редактировать -> переходим на форму первого шага редактирования шаблона платежа
+                    2. Если клиент при этом не предпринимает никаких действий (отказывается от изменения), шаблон оставляем с текущем статусе, иначе начинаем редактировать шаблон
+                -->
+                <event name="SAVEASTEMPLATE" description="Сохранение документа клиентом"  type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DisallowAdditionalCardTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckAccountTemplateForSomeTBHandler"/>
+
+                        <!--Хендлер выполняется при редантировании шаблона платежа-->
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.PrepareEditTemplateHandler"/>
+
+                        <!--Хендлер выполняется при редантировании шаблона платежа-->
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ExternalPaymentTemplateHandler"/>
+
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ServiceProviderInfoSaveHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.PrepareTemplateHandler">
+                            <enabled class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.filters.PrepareBillingTemplateHandlerFilter"/>
+                        </handler>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ClearAdditionalConfirmRowAction"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeactivateEditEventTemplateHandler"/>
+                    </handlers>
+                    <next-states default="DRAFTTEMPLATE"/>
+                </event>
+                <event name="RECOVERDELETED" description="Восстановить, удаленный клиетом шаблон" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.RecoverTemplateActivityStateHandler"/>
+                    </handlers>
+                    <next-states default="TEMPLATE">
+                        <next-state condition="com.rssl.phizic.business.documents.templates.stateMachine.conditions.RecoverTemplateStateCondition" state="WAIT_CONFIRM_TEMPLATE">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ClearEmployeeConfirmInfoHandler"/>
+                                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.CheckBillingStatusHandler"/>
+                                <handler class="com.rssl.phizic.business.payments.forms.meta.MonitoringDocumentHandler">
+                                    <parameter name="state" value="EXECUTED"/>
+                                </handler>
+                            </handlers>
+                        </next-state>
+                    </next-states>
+                </event>
+			</events>
+		</state>
+    </states>
+
+</config>

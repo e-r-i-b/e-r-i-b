@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="IssueCardClaim"
+              description="Выпуск пластиковой карты"
+			  detailedDescription="Подача в банк заявки на выпуск пластиковой карты."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.DefaultClaim"/>
+	<statemachine name="ClaimStateMachine"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<field name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"/>        
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+
+		<field name="dateCreated"
+		       source="date-created"
+		       description="Дата создания"
+			   type="string"/>
+
+		<field name="department"
+		       source="department"
+		       description="Офис банка"
+			   type="string"/>
+
+		<field name="selectCard"
+		       source="extra-parameters/parameter[@name='select-card']/@value"
+		       description="Карта"
+			   type="string">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="selectDesign"
+		       source="extra-parameters/parameter[@name='select-design']/@value"
+		       description="Дизайн карты"
+			   type="string"/>
+
+		<field name="currency"
+		       source="extra-parameters/parameter[@name='currency']/@value"
+		       description="Валюта"
+			   type="string">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="selectUrgency"
+		       source="extra-parameters/parameter[@name='select-urgency']/@value"
+		       description="Срочночть выпуска"
+			   type="string">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="cardType"
+		       source="extra-parameters/parameter[@name='card-type']/@value"
+		       description="Тип карты"
+			   type="boolean"/>
+
+		<field name="smsInform"
+		       source="extra-parameters/parameter[@name='sms-inform']/@value"
+		       description="Услуга SMS-информирования"
+			   type="boolean"/>
+
+		<field name="fullName"
+		       description="Ф.И.О."
+		       type="string"
+		       source="extra-parameters/parameter[@name='full-name']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Ф.И.О.] не должно превышать 255"/>
+					<parameter name="regexp">.{1,255}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+		<field name="nameInLatin"
+		       source="extra-parameters/parameter[@name='nameInLatin']/@value"
+		       description="Имя (latinskimi bukvami)"
+			   type="string">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Имя (latinskimi bukvami)] не должно превышать 30"/>
+					<parameter name="regexp">.{1,30}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Используйте только латинские буквы"/>
+					<parameter name="regexp">[A-Za-z]*</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="surnameInLatin"
+		       source="extra-parameters/parameter[@name='surnameInLatin']/@value"
+		       description="Фамилия (latinskimi bukvami)"
+			   type="string">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Фамилия (latinskimi bukvami)] не должно превышать 30"/>
+					<parameter name="regexp">.{1,30}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Используйте только латинские буквы"/>
+					<parameter name="regexp">[A-Za-z]*</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="gender"
+			   source="extra-parameters/parameter[@name='gender']/@value"
+			   type="string"
+			   description="Пол"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Пол] не должно превышать 1"/>
+					<parameter name="regexp">.{1}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			 </validators>
+		 </field>
+
+		<field 	name="birthDay"
+				description="Дата рождения"
+				type="date"
+				source="extra-parameters/parameter[@name='birthDay']/@value"
+				signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="citizen"
+		       source="extra-parameters/parameter[@name='citizen']/@value"
+				type="string"
+		       description="Гражданство"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Гражданство] не должно превышать 50"/>
+					<parameter name="regexp">.{1,50}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+		    </validators>
+		 </field>
+
+		 <field name="status"
+			   source="extra-parameters/parameter[@name='status']/@value"
+			   type="string"
+			   description="Статус"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Статус] не должно превышать 30"/>
+					<parameter name="regexp">.{1,30}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			 </validators>
+		</field>
+
+		<field name="inn"
+			   source="extra-parameters/parameter[@name='inn']/@value"
+			   type="string"
+			   description="ИНН"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				 <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [ИНН]  должна содержать 12 цифр"/>
+					<parameter name="regexp">\d{12}$</parameter>
+				</validator>
+			 </validators>
+		 </field>
+
+		<field name="passportSeries"
+			   source="extra-parameters/parameter[@name='passport-series']/@value"
+			   type="string"
+			   description="Серия паспорта"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Серия] должно быть 4"/>
+					<parameter name="regexp">\d{4}$</parameter>
+				</validator>
+			 </validators>
+		</field>
+
+		<field name="passportNumber"
+			   source="extra-parameters/parameter[@name='passport-number']/@value"
+			   type="string"
+			   description="Номер паспорта"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Номер] должно быть 6"/>
+					<parameter name="regexp">\d{6}$</parameter>
+				</validator>
+			 </validators>
+		 </field>
+
+		<field
+				name="passportIssueDate"
+				description="Дата выдачи паспорта"
+				type="date"
+				source="extra-parameters/parameter[@name='passport-issue-date']/@value"
+				signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="passportIssueBy"
+			   source="extra-parameters/parameter[@name='passport-issue-by']/@value"
+			   type="string"
+			   description="Кем выдан паспорт"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Кем выдан] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			 </validators>
+		 </field>
+
+		<field name="registrationPostalCode"
+			   source="extra-parameters/parameter[@name='registrationPostalCode']/@value"
+			   type="string"
+			   description="Индекс адреса прописки"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				 <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Индекс адреса прописки]  должна содержать 6 цифр"/>
+					<parameter name="regexp">\d{6}$</parameter>
+				</validator>
+			 </validators>
+		 </field>
+
+		<field name="registrationAddress"
+			   source="extra-parameters/parameter[@name='registrationAddress']/@value"
+			   type="string"
+			   description="Адрес прописки"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Адрес прописки] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			 </validators>
+		 </field>
+
+		 <field name="registrationPhone"
+			   source="extra-parameters/parameter[@name='registrationPhone']/@value"
+			   type="string"
+			   description="Телефон прописки"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				 <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Телефон прописки]  должна содержать от 10 до 20 цифр"/>
+					<parameter name="regexp">\d{10,20}$</parameter>
+				</validator>
+			 </validators>
+		 </field>
+
+		<field name="residencePostalCode"
+			   source="extra-parameters/parameter[@name='residencePostalCode']/@value"
+			   type="string"
+			   description="Индекс адреса проживания"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				 <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Индекс адреса проживания]  должна содержать 6 цифр"/>
+					<parameter name="regexp">\d{6}$</parameter>
+				</validator>
+			 </validators>
+		 </field>
+
+		<field name="residenceAddress"
+			   source="extra-parameters/parameter[@name='residenceAddress']/@value"
+			   type="string"
+			   description="Адрес проживания"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Адрес проживания] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			 </validators>
+		 </field>
+
+		<field name="residencePhone"
+			   source="extra-parameters/parameter[@name='residencePhone']/@value"
+			   type="string"
+			   description="Телефон проживания"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Телефон проживания]  должна содержать от 10 до 20 цифр"/>
+					<parameter name="regexp">\d{10,20}$</parameter>
+				</validator>
+			 </validators>
+		 </field>
+
+		<field name="codeWord"
+			   source="extra-parameters/parameter[@name='code-word']/@value"
+			   type="string"
+			   description="Кодовое слово"
+			   signable="true">
+			 <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				 <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Кодовое слово] не должно превышать 50"/>
+					<parameter name="regexp">.{1,50}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			 </validators>
+		 </field>
+
+		<field name="eMail"
+			   source="extra-parameters/parameter[@name='e-mail']/@value"
+			   type="string"
+			   description="E-Mail"
+			   signable="true">
+			 <validators>				
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [E-Mail] не должно превышать 30"/>
+					<parameter name="regexp">.{1,30}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			 </validators>
+		 </field>
+	</fields>
+</payment-form>

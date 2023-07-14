@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="LoanCardOffer" description="Заявка на предодобренную кредитную карту"
+              detailedDescription=" Прекрасный выбор! Теперь укажите отделение, в котором Вам будет удобно забрать карту (поле отмечено *).
+                      &lt;br/&gt; &lt;br/&gt;
+                                    &lt;b&gt;Важно!&lt;/b&gt; Если Ваши паспортные данные изменились,
+                                    то перед отправкой заявки Вам необходимо обратиться в отделение банка и предоставить новые данные.
+                                    Мы не сможем выпустить Вам карту по старому паспорту."
+
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.LoanCardOfferClaim"/>
+	<statemachine name="LoanOfferMachine"/>
+    <extended-metadata-loader class="com.rssl.phizic.business.forms.CardOfferMetadataLoader"/>
+
+    <fields>
+        
+        <field name="loan"
+               description="Идентификатор заявки"
+               type="long"
+               source="extra-parameters/parameter[@name='loan']/@value">
+             <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+         </field>
+
+        <field name="offerId"
+               description="Идентификатор предложения"
+               type="string"
+               source="extra-parameters/parameter[@name='offer-id']/@value">
+         </field>
+
+        <field name="changeLimit"
+               description="Предложение на изменение лимита"
+               type="string"
+               source="extra-parameters/parameter[@name='changeLimit']/@value">
+         </field>
+
+        <field name="offerType"
+               description="Тип предодобренного предложения"
+               type="long"
+               source="extra-parameters/parameter[@name='offer-type']/@value">
+         </field>
+
+         <field name="documentNumber"
+               description="Номер заявки"
+               type="string"
+               source="document-number"
+               signable="true">
+		</field>
+
+		<field name="documentDate"
+               description="Дата заявки"
+               type="date"
+               source="document-date"
+               signable="true"/>
+
+		<field name="creditCard"
+               description="Кредитная карта на специальных условиях"
+               type="string"
+               source="extra-parameters/parameter[@name='credit-card']/@value"
+               signable="true">
+
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+        <field name="credit-card-office"
+                description="Отделение для получения карты"
+                type="string"
+                source="extra-parameters/parameter[@name='credit-card-office']/@value">
+             <validators>
+                <validator mode="document" class="com.rssl.phizic.web.actions.payments.forms.CreditCardOfficeRequiredFieldValidator" enabled="form.offerType != 2">
+                    <message text="Выберите отделение для получения карты"/>
+                </validator>
+            </validators>
+         </field>       
+
+		<field name="passportNumber"
+               description="Номер паспорта"
+               type="string"
+               source="extra-parameters/parameter[@name='passport-number']/@value"
+               signable="true">
+
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+		<field name="idWay"
+               description="Идентификатор клиента в way"
+               type="string"
+               source="extra-parameters/parameter[@name='Id-way']/@value"
+               signable="true">
+
+        </field>
+
+		<field name="tb"
+               description="Тербанк"
+               type="string"
+               source="extra-parameters/parameter[@name='tb']/@value"
+               signable="true">
+
+        </field>
+
+		<field name="vsp"
+               description="ВСП"
+               type="string"
+               source="extra-parameters/parameter[@name='vsp']/@value"
+               signable="true">
+
+        </field>
+
+		<field name="osb"
+               description="ОСБ"
+               type="string"
+               source="extra-parameters/parameter[@name='osb']/@value"
+               signable="true">
+
+        </field>
+
+        <field name="vspOffer"
+               description="ВСП заявки"
+               type="string"
+               source="extra-parameters/parameter[@name='vsp-offer']/@value"
+               signable="true">
+
+        </field>
+
+		<field name="osbOffer"
+               description="ОСБ заявки"
+               type="string"
+               source="extra-parameters/parameter[@name='osb-offer']/@value"
+               signable="true">
+
+        </field>
+
+        <field name="tbOffer"
+               description="Тербанк заявки"
+               type="string"
+               source="extra-parameters/parameter[@name='tb-offer']/@value"
+               signable="true">
+
+        </field>
+
+        <field name="cardTypeCode"
+               description="код карты по «СПООБК»."
+               type="string"
+               source="extra-parameters/parameter[@name='card-type-code']/@value"
+               signable="true">
+
+        </field>
+
+         <field name="first-year-service"
+                description="Первый год обслуживания"
+                type="string"
+                source="extra-parameters/parameter[@name='first-year-service']/@value">
+             <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.offerType != 2"/>
+            </validators>
+         </field>
+
+         <field name="first-year-service-currency"
+                description="Первый год обслуживания (валюта)"
+                type="string"
+                source="extra-parameters/parameter[@name='first-year-service-currency']/@value">
+             <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.offerType != 2"/>
+            </validators>
+         </field>
+
+         <field name="next-year-service-currency"
+                description="Последующие годы обслуживания (валюта)"
+                type="string"
+                source="extra-parameters/parameter[@name='next-year-service-currency']/@value">
+             <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.offerType != 2"/>
+            </validators>
+         </field>
+
+        <field name="next-year-service"
+               description="Последующие годы обслуживания"
+               type="string"
+               source="extra-parameters/parameter[@name='next-year-service']/@value">
+            <validators>
+               <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.offerType != 2"/>
+           </validators>
+        </field>        
+
+        <field  name="interestRate"
+                type="string"
+                source="extra-parameters/parameter[@name='interest-rate']/@value"
+                description="Процентная ставка">
+
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.offerType != 2"/>
+               </validators>
+        </field>
+
+		<field name="state"
+               source="state"
+               description="Статус заявки"
+               type="string"/>        
+
+        <field
+                name="amount"
+                source="destination-amount"
+                description="Сумма"
+                type="money"
+                signable="true">
+            <validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение должно быть указано без копеек в диапазоне от 1 до 99999999."/>
+					<parameter name="minValue">1</parameter>
+					<parameter name="maxValue">99999999</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.RegexpMoneyFieldValidator">
+					<message text="Значение должно быть указано без копеек в диапазоне от 1 до 99999999."/>
+					<parameter name="regexp">^\d{1,8}$</parameter>
+				</validator>
+			</validators>
+        </field>
+
+        <field
+                name="currency"
+                source="destination-amount-currency"
+                description="Валюта"
+                type="string"
+                signable="true">
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field name="surName"
+               description="Фамилия"
+               type="string"
+               source="extra-parameters/parameter[@name='surName']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='surName']"
+               signable="true"/>
+
+		<field name="firstName"
+               description="Имя"
+               type="string"
+               source="extra-parameters/parameter[@name='firstName']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='firstName']"
+               signable="true"/>
+
+        <field name="patrName"
+               description="Отчество"
+               source="extra-parameters/parameter[@name='patrName']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='patrName']"
+               signable="true"/>
+
+        <field name="card-number"
+               description="Номер карты под которой зашел клиент"
+               source="extra-parameters/parameter[@name='card-number']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='cardNumber']"
+               signable="true"/>
+   </fields>
+</payment-form>

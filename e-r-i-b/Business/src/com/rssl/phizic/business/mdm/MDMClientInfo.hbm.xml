@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="DocumentType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+			<param name="enumClass">com.rssl.phizic.person.PersonDocumentType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.mdm.MDMCardInfo" mutable="false">
+        <id name="id"/>
+        <property name="passport"  type="string"   access="field"/>
+        <property name="tb"        type="string"   access="field"/>
+        <property name="birthDate" type="calendar" access="field"/>
+
+        <property name="surname"      type="string"       access="field"/>
+        <property name="firstName"    type="string"       access="field"/>
+        <property name="patrName"     type="string"       access="field"/>
+        <property name="citizenship"  type="string"       access="field"/>
+        <property name="documentKind" type="DocumentType" access="field"/>
+        <property name="series"       type="string"       access="field"/>
+        <property name="no"           type="string"       access="field"/>
+        <property name="issuedby"     type="string"       access="field"/>
+        <property name="issueday"     type="calendar"     access="field"/>
+        <property name="isActual"     type="boolean"      access="field"/>
+        <property name="subdivision"  type="string"       access="field"/>
+        <property name="endDay"       type="calendar"     access="field"/>
+        <property name="entryDay"     type="string"       access="field"/>
+    </class>
+
+     <class name="com.rssl.phizic.business.mdm.MDMPersonInfo" mutable="false">
+        <id name="id"/>
+        <property name="passport"  type="string"   access="field"/>
+        <property name="tb"        type="string"   access="field"/>
+        <property name="birthDate" type="calendar" access="field"/>
+
+        <property name="surname"      type="string"       access="field"/>
+        <property name="firstName"    type="string"       access="field"/>
+        <property name="patrName"     type="string"       access="field"/>
+
+        <property name="sex"          type="string"       access="field"/>
+        <property name="citizenship"  type="string"       access="field"/>
+        <property name="birthPlace"   type="string"       access="field"/>
+        <property name="resident"     type="long"         access="field"/>
+        <property name="taxPayerid"   type="string"       access="field"/>
+        <property name="changeDay"    type="calendar"     access="field"/>
+        <property name="literate"     type="string"       access="field"/>
+        <property name="actAddress"   type="string"       access="field"/>
+        <property name="email"        type="string"       access="field"/>
+        <property name="mobphone"     type="string"       access="field"/>
+        <property name="riskLevel"    type="string"       access="field"/>
+        <property name="life_state"   type="string"       access="field"/>
+        <property name="death_date"   type="string"       access="field"/>
+        <property name="vip_state"    type="string"       access="field"/>
+    </class>
+
+    <resultset name="com.rssl.phizic.business.mdm.MDMCardInfo.getCardInfo.resultset">
+        <return class="com.rssl.phizic.business.mdm.MDMCardInfo">
+            <return-property name="id"           column="ID" />
+            <return-property name="passport"     column="C_DOC_SERIES"/>
+            <return-property name="tb"           column="TB"/>
+            <return-property name="birthDate"    column="BIRTHDAY"/>
+
+            <return-property name="surname"      column="SUR_NAME"/>
+            <return-property name="firstName"    column="FIRST_NAME"/>
+            <return-property name="patrName"     column="PATR_NAME"/>
+            <return-property name="citizenship"  column="CITIZEN_RF"/>
+            <return-property name="documentKind" column="DOC_TYPE"/>
+            <return-property name="series"       column="DOC_SERIES"/>
+            <return-property name="no"           column="DOC_NUMBER"/>
+            <return-property name="issuedby"     column="DOC_ISSUE_BY"/>
+            <return-property name="issueday"     column="DOC_ISSUE_DATE"/>
+            <return-property name="isActual"     column="DOC_MAIN"/>
+            <return-property name="subdivision"  column="DOC_ISSUE_BY_CODE"/>
+            <return-property name="endDay"       column="DOC_TIME_UP_DATE"/>
+            <return-property name="entryDay"     column="ENTRYDAY"/>
+        </return>
+    </resultset>
+
+    <resultset name="com.rssl.phizic.business.mdm.MDMPersonInfo.getPersonInfo.resultset">
+         <return class="com.rssl.phizic.business.mdm.MDMPersonInfo">
+            <return-property name="id"           column="ID"/>
+            <return-property name="passport"     column="DOC_SERIES"/>
+            <return-property name="tb"           column="TB"/>
+            <return-property name="birthDate"    column="BIRTHDAY"/>
+
+            <return-property name="surname"      column="SUR_NAME"/>
+            <return-property name="firstName"    column="FIRST_NAME"/>
+            <return-property name="patrName"     column="PATR_NAME"/>
+
+            <return-property name="sex"          column="SEX"/>
+            <return-property name="citizenship"  column="CITIZEN_RF"/>
+            <return-property name="birthPlace"   column="BIRTH_PLACE"/>
+            <return-property name="resident"     column="RESIDENTAL"/>
+            <return-property name="taxPayerid"   column="TAX_DOC_NUMBER"/>
+            <return-property name="changeDay"    column="LAST_UPDATE_DATE"/>
+            <return-property name="literate"     column="LITERATE"/>
+            <return-property name="actAddress"   column="UNPARSEABLE"/>
+            <return-property name="email"        column="EMAIL_ADDRESS"/>
+            <return-property name="mobphone"     column="MOBILE_PHONE"/>
+            <return-property name="riskLevel"    column="RISKLEVEL"/>
+            <return-property name="life_state"   column="LIFE_STATE"/>
+            <return-property name="death_date"   column="DEATH_DATE"/>
+            <return-property name="vip_state"    column="TARIF_PLAN_CODE"/>
+        </return>
+    </resultset>
+
+    <!--
+        Выгрузка паспортных данных клиента
+        Опорный объект: IDX_USR_LOGIN
+        Предикаты доступа:  6 - access("CLIENT"."LOGIN_ID"=TO_NUMBER(:LOGINID1) OR "CLIENT"."LOGIN_ID"=TO_NUMBER(:LOGINID2))
+        Кардинальность:    0/100 (INDEX UNIQUE SCAN)
+        Не более 100 элементов, ограничение задано в коде.
+    -->
+    <sql-query name="com.rssl.phizic.business.mdm.MDMCardInfo.getCardInfo"
+               resultset-ref="com.rssl.phizic.business.mdm.MDMCardInfo.getCardInfo.resultset">
+            select
+                client.ID,
+                u_passport.DOC_SERIES C_DOC_SERIES,
+                department.TB,
+                client.BIRTHDAY,
+
+                client.SUR_NAME,
+                client.FIRST_NAME,
+                client.PATR_NAME,
+                client.CITIZEN_RF,
+                m_document.DOC_TYPE,
+                m_document.DOC_SERIES,
+                m_document.DOC_NUMBER,
+                m_document.DOC_ISSUE_BY,
+                m_document.DOC_ISSUE_DATE,
+                m_document.DOC_MAIN,
+                m_document.DOC_ISSUE_BY_CODE,
+                m_document.DOC_TIME_UP_DATE,
+                '' ENTRYDAY
+
+            FROM USERS client
+            LEFT JOIN DOCUMENTS u_passport on u_passport.PERSON_ID = client.ID and u_passport.DOC_TYPE = 'PASSPORT_WAY'
+            LEFT JOIN DOCUMENTS m_document on m_document.PERSON_ID = client.ID and m_document.DOC_MAIN = '1'
+            LEFT JOIN DEPARTMENTS department on department.ID = client.DEPARTMENT_ID
+            WHERE client.LOGIN_ID in (:extra_loginIds)
+    </sql-query>
+
+    <!--
+       Выгрузка анкетных данных клиента
+       Опорный объект: IDX_USR_LOGIN
+       Предикаты доступа: 8 - access("CLIENT"."LOGIN_ID"=TO_NUMBER(:LOGINID1) OR "CLIENT"."LOGIN_ID"=TO_NUMBER(:LOGINID2))
+       Кардинальность:    0/100 (INDEX UNIQUE SCAN)
+       Не более 100 элементов, ограничение задано в коде.
+   -->
+    <sql-query name="com.rssl.phizic.business.mdm.MDMPersonInfo.getPersonInfo"
+            resultset-ref="com.rssl.phizic.business.mdm.MDMPersonInfo.getPersonInfo.resultset">
+        SELECT
+            client.ID,
+            u_passport.DOC_SERIES,
+            department.TB,
+
+            case when client.GENDER = 'M' then 1 when client.GENDER = 'F' then 2 else null end SEX,
+            client.SUR_NAME,
+            client.FIRST_NAME,
+            client.PATR_NAME,
+            client.CITIZEN_RF,
+            client.BIRTHDAY,
+            client.BIRTH_PLACE,
+            client.RESIDENTAL,
+            document.DOC_NUMBER TAX_DOC_NUMBER,
+            client.LAST_UPDATE_DATE,
+            '' LITERATE,
+            address.UNPARSEABLE,
+            subscrioption.EMAIL_ADDRESS,
+            subscrioption.MOBILE_PHONE,
+            '' RISKLEVEL,
+            '' LIFE_STATE,
+            '' DEATH_DATE,
+            client.TARIF_PLAN_CODE
+        FROM USERS client
+            LEFT JOIN PERSONAL_SUBSCRIPTION_DATA subscrioption ON subscrioption.LOGIN_ID = client.LOGIN_ID
+            LEFT JOIN USER_ADDED_DOCUMENTS document ON document.LOGIN_ID = client.LOGIN_ID AND document.DOCUMENT_TYPE = 'INN'
+            LEFT JOIN ADDRESS address ON address.ID = client.REGISTRATION_ADDRESS
+            LEFT JOIN DOCUMENTS u_passport on u_passport.PERSON_ID = client.ID and u_passport.DOC_TYPE = 'PASSPORT_WAY'
+            LEFT JOIN DEPARTMENTS department on department.ID = client.DEPARTMENT_ID
+        WHERE client.LOGIN_ID in (:extra_loginIds)
+    </sql-query>
+</hibernate-mapping>

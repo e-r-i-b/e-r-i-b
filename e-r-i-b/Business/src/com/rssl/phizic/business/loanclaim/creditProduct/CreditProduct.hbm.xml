@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.loanclaim.creditProduct.CreditProduct" table="CREDIT_PRODUCT">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CREDIT_PRODUCT</param>
+            </generator>
+        </id>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="code" type="string" column="CODE" not-null="false"/>
+        <property name="ensuring" type="boolean" column="ENSURING_STATUS" not-null="true"/>
+        <property name="codeDescription" type="string" column="CODE_DESCRIPTION" not-null="false"/>
+
+        <set name="creditSubProductTypes"
+             table="CREDIT_PRODUCT_SUB_TYPE"
+             cascade="all-delete-orphan"
+             lazy="false"
+             inverse="true"
+             sort="com.rssl.phizic.business.loanclaim.creditProduct.type.CreditSubProductTypeComparator">
+            <key column="CREDIT_PRODUCT_ID" not-null="true"/>
+            <one-to-many class="com.rssl.phizic.business.loanclaim.creditProduct.type.CreditSubProductType"/>
+        </set>
+
+    </class>
+</hibernate-mapping>

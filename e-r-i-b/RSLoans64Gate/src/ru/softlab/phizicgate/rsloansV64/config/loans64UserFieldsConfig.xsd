@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="requests" type="requestsType">
+		<xs:annotation>
+			<xs:documentation>Список запросов, использующие пользовательские поля</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:complexType name="requestsType">
+		<xs:sequence>
+			<xs:element type="requestType" name="request" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="requestType">
+		<xs:annotation>
+			<xs:documentation>Описание полей конкретного запроса</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element type="fieldType" name="field" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute type="xs:string" name="name" use="required"/>
+		<xs:attribute type="xs:string" name="description" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="fieldType">
+		<xs:annotation>
+			<xs:documentation>Описание поля</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element type="xs:string" name="parser" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Класс, для преобразовавания значения</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute type="xs:string" name="loansId" use="required">
+			<xs:annotation>
+				<xs:documentation>Идентификатор пользовательского поля в RS-Loans64</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute type="xs:string" name="tag" use="required">
+			<xs:annotation>
+				<xs:documentation>Тег или имя поля, которое используется при передаче в ИКФЛ этого поля</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute type="xs:string" name="description" use="required">
+			<xs:annotation>
+				<xs:documentation>Описание поля</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>		
+		<xs:attribute type="xs:string" name="value">
+			<xs:annotation>
+				<xs:documentation>Значение, которое используется при передаче в Лоанс</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	
+</xs:schema>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<sql-query name="com.rssl.phizic.operations.claims.GetClaimListOperation.list">
+        <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+            select {document.*}
+            from business_documents document
+                left join logins on document.login_id = logins.id
+                left join paymentforms on document.form_id = paymentforms.id,
+                departments department
+            where
+                department = :department
+                AND (department.main = '1' OR  document.department_id = :department)
+                and paymentforms.name in (
+                    'AccountClosingClaim',
+                    'ClosingClaim',
+                    'DefaultClaim',
+                    'DepositCardClaim',
+                    'DepositClosingClaim',
+                    'DepositOpeningClaim',
+                    'BankcellLeasingClaim',
+                    'DepositReplenishmentClaim',
+                    'SecuritiesOperationsClaim',
+                    'InternalTransferClaim',
+                    'UnblockingCardClaim',
+                    'SMSInformationClaim',
+                    'NotReIssueCardClaim',
+                    'ReIssueCardClaim',
+                    'CardChargeLimitClaim',
+                    'IssueCardClaim',
+                    'BlockingCardClaim',
+                    'IssueAdditionalCardClaim',
+                    'StopListCardClaim',
+                    'CardMootTransClaim')
+                 and document.state_code not in ('INITIAL', 'TEMPLATE', 'DRAFT', 'SAVED', 'SENDED')
+                 and logins.deleted = '0'
+            order by document.creation_date desc, document.changed DESC
+		]]>
+	</sql-query>
+
+</hibernate-mapping>

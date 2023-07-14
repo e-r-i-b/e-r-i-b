@@ -1,0 +1,96 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<typedef name="ReceiverState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.ReceiverState</param>
+	</typedef>
+
+	<class name="com.rssl.phizic.business.dictionaries.PaymentReceiverBase" table="RECEIVERS" polymorphism="explicit">
+
+		<id name="id" type="long" node="id">
+            <generator class="native">
+                <param name="sequence">S_RECEIVERS</param>
+            </generator>
+		</id>
+
+		<discriminator column="KIND"/>
+
+		<many-to-one name="login" class="com.rssl.phizic.auth.LoginImpl" column="LOGIN_ID" lazy="false"/>
+
+		<property name="name"           type="not-null-string" column="RECEIVER_NAME"/>
+		<property name="kind"           type="string"          column="KIND" insert="false" update="false"/>
+		<property name="alias"          type="not-null-string" column="ALIAS"/>
+		<property name="description"    type="not-null-string" column="DESCRIPTION"/>
+		<property name="state"          type="ReceiverState"   column="STATUS"/>
+		<property name="ground"         type="not-null-string" column="GROUND"/>
+		<property name="uniqueNumber"   type="string"          column="UNIQUE_NUMBER"/>
+
+		<subclass name="com.rssl.phizic.business.dictionaries.PaymentReceiverPhiz"
+		          extends="com.rssl.phizic.business.dictionaries.PaymentReceiverBase"
+				  discriminator-value="P">
+			<property name="account"                type="not-null-string" column="RECEIVER_ACCOUNT"/>
+			<property name="INN"                    type="not-null-string" column="RECEIVER_INN"/>
+			<property name="bankName"               type="string" column="BANK_NAME"/>
+			<property name="correspondentAccount"   type="string" column="RECEIVER_CORR_ACCOUNT"/>
+			<property name="bankCode"               type="string" column="BANK_CODE"/>
+			<property name="codeType"               type="string" column="CODE_TYPE"/>
+
+			<subclass name="com.rssl.phizic.business.dictionaries.PaymentReceiverJur"
+						  extends="com.rssl.phizic.business.dictionaries.PaymentReceiverPhiz"
+						  discriminator-value="J">
+					<property name="KPP"    type="string"   column="RECEIVER_KPP"/>
+
+                    <subclass name="com.rssl.phizic.business.dictionaries.BillingPaymentReceiver"
+                              extends="com.rssl.phizic.business.dictionaries.PaymentReceiverJur"
+                              discriminator-value="B">
+                        <property name="serviceProviderKey"     type="string"           column="SERVICE_PROVIDER_KEY"/>
+
+                        <many-to-one name="serviceProvider"
+                                     class="com.rssl.phizic.business.dictionaries.providers.BillingServiceProvider"
+                                     fetch="join"
+                                     not-null="false"
+                                     property-ref="synchKey"
+                                     formula="SERVICE_PROVIDER_KEY"/>
+                    </subclass>
+
+					<subclass name="com.rssl.phizic.business.dictionaries.receivers.personal.PaymentReceiverJurCommision"
+							  extends="com.rssl.phizic.business.dictionaries.PaymentReceiverJur"
+							  discriminator-value="G">
+						<property name="commision" type="double" column="COMMISSION"/>
+					</subclass>
+			</subclass>
+		</subclass>
+
+		<subclass name="com.rssl.phizic.business.dictionaries.contact.ContactReceiver"
+		          discriminator-value="C">
+			<join table="CONTACT_RECEIVERS">
+				<key column="ID"/>
+				<many-to-one name="receiverId"
+				             class="com.rssl.phizic.business.dictionaries.PaymentReceiverBase"
+				             column="RECEIVER_ID" lazy="false"/>
+
+				<property name="surName"    type="not-null-string" column="SUR_NAME"/>
+	            <property name="firstName"  type="not-null-string" column="FIRST_NAME"/>
+	            <property name="patrName"   type="string" column="PATR_NAME" />
+	            <property name="addInfo"    type="string" column="ADD_INFO" />
+	            <property name="birthDay"   type="string" column="BIRTH_DAY"/>
+
+				<many-to-one name="bank" class="com.rssl.phizic.gate.dictionaries.ContactMember" column="CONTACT_BANK_CODE" lazy="false"/>
+			</join>
+		</subclass>
+		<filter name="active_receiver"/>
+	</class>
+
+	<query name="com.rssl.phizic.operations.dictionaries.EditPaymentReceiverOperation.getPaymentReceiverKindById">
+        select receiver from com.rssl.phizic.business.dictionaries.PaymentReceiverBase as receiver
+			where receiver.login.id = :loginId  and receiver.id = :extra_id
+	</query>
+
+	<filter-def name="active_receiver"
+	            condition="STATUS='ACTIVE' and (KIND!='B' OR (select SERVICE_PROVIDERS.STATE from SERVICE_PROVIDERS WHERE SERVICE_PROVIDERS.EXTERNAL_ID=SERVICE_PROVIDER_KEY) = 'ACTIVE')">
+	</filter-def>
+
+</hibernate-mapping>

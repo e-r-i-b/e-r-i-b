@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding='windows-1251'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="TranslitMode" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.messaging.TranslitMode</param>
+    </typedef>
+
+    <typedef  name="MailFormat"  class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.messaging.MailFormat</param>
+    </typedef>
+
+	<typedef  name="NotificationType"  class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.messaging.info.UserNotificationType</param>
+    </typedef>
+
+	<typedef  name="NotificationChannel"  class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.messaging.info.NotificationChannel</param>
+    </typedef>
+
+	<class name="com.rssl.phizic.business.messaging.info.SubscriptionImpl" table="SUBSCRIPTIONS">
+
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_SUBSCRIPTIONS</param>
+			</generator>
+		</id>
+
+        <property name="loginId"          type="long"                column="LOGIN_ID"           not-null="true"/>
+        <property name="notificationType" type="NotificationType"    column="NOTIFICATION_TYPE"  not-null="true"/>
+        <property name="channel"          type="NotificationChannel" column="CHANNEL"            not-null="true"/>
+        <property name="TB"               type="string"              column="TB"                 not-null="true"/>
+	</class>
+
+	<class name="com.rssl.phizic.business.messaging.info.PersonalSubscriptionData" table="PERSONAL_SUBSCRIPTION_DATA">
+		<id name="id" type="long" column="LOGIN_ID">
+			<generator class="foreign">
+				<param name="property">login</param>
+			</generator>
+		</id>
+		<one-to-one name="login" class="com.rssl.phizic.auth.CommonLogin" constrained="true" lazy="false"/>
+		<property name="emailAddress" type="string" column="EMAIL_ADDRESS"/>
+		<property name="mobilePhone" type="string" column="MOBILE_PHONE"/>
+		<property name="smsTranslitMode" type="TranslitMode" column="SMS_ENCODING"/>
+        <property name="mailFormat" type="MailFormat" column="MAIL_FORMAT"/>
+	</class>
+
+    <!-- Удаление подписок клиента
+        Опорный объект: DXSUBSCRIB_TO_LOGINS
+        Предикаты доступа: "LOGIN_ID"=TO_NUMBER(:LOGINID)
+        Кардинальность: для одного клиента может быть не более 3x записей
+    -->
+    <query name="com.rssl.phizic.messaging.removeSubscriptions">
+        delete from com.rssl.phizic.business.messaging.info.SubscriptionImpl subscription
+        where subscription.loginId = :loginId
+    </query>
+
+
+    <!--Поиск подписок клиента
+        Опорный объект: UNIQ_SUBSCRIPTION
+        Предикаты доступа: LOGIN_ID"=TO_NUMBER(:LOGINID) AND "NOTIFICATION_TYPE"=:TYPES
+        Кардинальность: для одного клиента может быть не более 3x записей
+    -->
+    <query name="com.rssl.phizic.messaging.findSubscriptions">
+        select subscription from com.rssl.phizic.business.messaging.info.SubscriptionImpl subscription
+         where subscription.loginId = :loginId
+           and subscription.notificationType in (:types)
+    </query>
+
+</hibernate-mapping>

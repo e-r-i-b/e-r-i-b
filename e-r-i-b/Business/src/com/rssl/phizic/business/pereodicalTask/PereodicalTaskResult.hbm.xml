@@ -1,0 +1,46 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+        <typedef name="UnloadPereodicalType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		    <param name="enumClass">com.rssl.phizic.business.pereodicalTask.unload.UnloadPereodicalType</param>
+	    </typedef>
+       <class name="com.rssl.phizic.business.pereodicalTask.PereodicalTaskResult"
+              table="PEREODICAL_TASK_RESULT">
+
+            <id name="id" type="long" column="ID">
+                <generator class="native">
+                    <param name="sequence">S_PEREODICAL_TASK_RESULT</param>
+                </generator>
+            </id>
+
+            <many-to-one name="task"
+                         class="com.rssl.phizic.business.pereodicalTask.PereodicalTask"
+                         column="TASK_ID"
+                         fetch="join"
+                         lazy="false"
+                         cascade="delete-orphan"/>
+
+            <property name="successlResultCount" type="long" column="SUCCESS_COUNT"/>
+            <property name="totalResultCount" type="long" column="TOTAL_COUNT"/>
+            <property name="startDate" type="calendar" column="START_DATE"/>
+            <property name="endDate" type="calendar" column="END_DATE"/>
+
+       </class>
+
+        <query name="com.rssl.phizic.business.pereodicalTask.PereodicalTaskResult.getResultByTask">
+            select result
+            from com.rssl.phizic.business.pereodicalTask.PereodicalTaskResult result
+            where result.task = :task
+        </query>
+
+        <query name="com.rssl.phizic.business.pereodicalTask.PereodicalTaskResult.getLastResultByTask">
+            select result
+            from com.rssl.phizic.business.pereodicalTask.PereodicalTaskResult result
+            where result.id = ( select max(r.id)
+                                from com.rssl.phizic.business.pereodicalTask.PereodicalTaskResult r
+                                where r.task = :task)
+        </query>
+
+</hibernate-mapping>

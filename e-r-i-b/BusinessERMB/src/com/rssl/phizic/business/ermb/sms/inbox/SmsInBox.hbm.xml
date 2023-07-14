@@ -1,0 +1,34 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hobernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="UUID" class="com.rssl.phizic.dataaccess.hibernate.UUIDType"/>
+    <typedef name="PhoneNumber" class="com.rssl.phizic.dataaccess.hibernate.PhoneNumberType"/>
+
+    <class name="com.rssl.phizic.business.ermb.sms.inbox.SmsInBox" table="ERMB_SMS_INBOX">
+        <id name="uuid"        type="UUID"        column="RQ_UID"/>
+        <property name="time"  type="calendar"    column="RQ_TIME" not-null="true"/>
+        <property name="phone" type="PhoneNumber" column="PHONE"   not-null="true"/>
+        <property name="text"  type="string"      column="TEXT"    not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.ermb.sms.inbox.SmsInBox.deleteByInterval">
+		delete from com.rssl.phizic.business.ermb.sms.inbox.SmsInBox smsInBox
+		where :time > smsInBox.time 
+	</query>
+
+    <!--Найти дубликат смс (по телефону и тексту) -->
+    <!--
+        Опорный объект: UI_ERMB_SMS_INBOX
+        Предикаты доступа: "PHONE"=:PHONE AND "TEXT"=:TEXT
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.ermb.sms.inbox.SmsInBox.findDuplicate">
+        from
+            SmsInBox
+        where
+            phone = :phone
+            and text = :text
+    </query>
+</hibernate-mapping>

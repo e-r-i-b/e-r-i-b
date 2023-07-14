@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="additionalCardType">
+        <param name="enumClass">com.rssl.phizic.gate.bankroll.AdditionalCardType</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="ReportDeliveryType">
+        <param name="enumClass">com.rssl.phizic.gate.bankroll.ReportDeliveryType</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="ReportDeliveryLanguage">
+        <param name="enumClass">com.rssl.phizic.gate.bankroll.ReportDeliveryLanguage</param>
+    </typedef>
+
+   <class name="com.rssl.phizic.business.resources.external.CardLink"
+           table="CARD_LINKS" >
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CARD_LINKS</param>
+            </generator>
+        </id>
+        <property name="externalId"     column="EXTERNAL_ID"/>
+        <property name="loginId" type="long" not-null="true" column="LOGIN_ID" />
+	    <property name="number" column="CARD_NUMBER"/>
+        <property name="name"       type="string"     not-null="false"  column="CARD_NAME"/>
+        <property name="showInMain" type="boolean"    not-null="true"   column="SHOW_IN_MAIN"/>
+        <property name="showInSystem" type="boolean"  not-null="true"   column="SHOW_IN_SYSTEM"/>
+        <property name="showInSms" type="boolean"  not-null="true"   column="SHOW_IN_SMS" access="field"/>
+        <property name="expireDate" type="calendar"   not-null="false"   column="EXPIRE_DATE"/>
+        <property name="showOperations" type="boolean"  not-null="true"   column="SHOW_OPERATIONS"/>
+        <property name="cardPrimaryAccount" type="string"    not-null="false"  column="CARD_PRIMARY_ACCOUNT"/>
+        <property name="showInMobile"   type="boolean"  not-null="true"  column="SHOW_IN_MOBILE"/>
+        <property name="showInSocial"   type="boolean"  not-null="true"  column="SHOW_IN_SOCIAL"/>
+        <property name="main" type="boolean" not-null="false" column="IS_MAIN"/>
+        <property name="mainCardNumber" type="string" not-null="false" column="MAIN_CARD_NUMBER"/>
+        <property name="OTPGet" type="boolean" not-null="false" column="OTP_GET"/>
+        <property name="OTPUse" type="boolean" not-null="false" column="OTP_USE"/>
+        <property name="description" type="string" not-null="false" column="DESCRIPTION"/>
+        <property name="kind" type="long" not-null="false" column="KIND"/>
+        <property name="subkind" type="long" not-null="false" column="SUB_KIND"/>
+        <property name="showInATM"   type="boolean"  not-null="true"  column="SHOW_IN_ATM"/>
+        <property name="currency" type="currency" column="CURRENCY" not-null="false"/>
+        <property name="ermbNotification" type="boolean"    not-null="true"   column="ERMB_NOTIFICATION" access="field"/>
+        <property name="ermbSmsAlias" type="string" not-null="false" column="ERMB_SMS_ALIAS"/>
+        <property name="autoSmsAlias" type="string" not-null="false" column="SMS_AUTO_ALIAS"/>
+        <property name="userId"       type="string" not-null="false" column="MB_USER_ID"/>
+        <property name="gflTB" type="string" column="GFL_TB" not-null="false"/>
+        <property name="gflOSB" type="string" column="GFL_OSB" not-null="false"/>
+        <property name="gflVSP" type="string" column="GFL_VSP" not-null="false"/>
+        <property name="additionalCardType"     type="additionalCardType"     column="ADDITIONAL_CARD_TYPE"/>
+        <property name="positionNumber"   type="integer"  not-null="false" column="POSITION_NUMBER"/>
+        <property name="clientId"               type="string"                 column="CLIENT_ID"/>
+        <property name="useReportDelivery"      type="false-if-null-boolean"  column="USE_REPORT_DELIVERY"/>
+        <property name="emailAddress"           type="string"                 column="EMAIL_ADDRESS"/>
+        <property name="reportDeliveryType"     type="ReportDeliveryType"     column="REPORT_DELIVERY_TYPE"/>
+        <property name="reportDeliveryLanguage" type="ReportDeliveryLanguage" column="REPORT_DELIVERY_LANGUAGE"/>
+        <property name="creationDate" type="calendar" column="CREATION_DATE" not-null="true"/>
+       <property name="contractNumber" type="string" column="CONTRACT_NUMBER" not-null="false"/>
+        <property name="closedState"  type="boolean"  not-null="false"  column="CLOSED_STATE"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.resources.external.CardLink.list">
+        select link
+        from   com.rssl.phizic.business.resources.external.CardLink link
+        where  link.loginId = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.CardLink.list.inSystem">
+        select link
+        from   com.rssl.phizic.business.resources.external.CardLink link
+        where  link.loginId = :login and link.showInSystem =true
+        order by positionNumber
+    </query>
+    
+    <query name="com.rssl.phizic.business.resources.external.CardLink.list.inMobile">
+        select link
+        from   com.rssl.phizic.business.resources.external.CardLink link
+        where  link.loginId = :login and link.showInMobile =true
+    </query>
+
+    <!--
+        Опорный объект: DXFK_CARDLINKS_TO_LOGINS
+        Предикаты доступа: INDEX RANGE SCAN
+        Кардинальность: Количество линков клиента
+    -->
+    <query name="com.rssl.phizic.business.resources.external.CardLink.list.inSocial">
+        select link
+        from   com.rssl.phizic.business.resources.external.CardLink link
+        where  link.loginId = :login and link.showInSocial =true
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.CardLink.list.inATM">
+        select link
+        from   com.rssl.phizic.business.resources.external.CardLink link
+        where  link.loginId = :login and link.showInATM = true
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.CardLink.findCardByLoginAndNumber">
+        select link
+        from   com.rssl.phizic.business.resources.external.CardLink link
+        where  link.number = :number and link.loginId = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.CardLink.findCardBydNumberActivPerson">
+        SELECT card
+               FROM com.rssl.phizic.business.resources.external.CardLink card, com.rssl.phizic.business.persons.ActivePerson person
+               where card.number = :number and card.loginId = :loginId and person.login.id = card.loginId and person.status = 'A' and
+                     (person.trustingPersonId = null or person.trustingPersonId = '')
+
+
+    </query>
+
+    <!--найти линк карты по номеру карты-->
+    <!--
+        Опорный объект: UNIQ_CARD_NUMBER
+        Предикаты доступа: "CARD_NUMBER"=:CARDNUMBER
+        Кардинальность: 1/0
+    -->
+    <query name="com.rssl.phizic.business.resources.external.CardLink.findCardByNumber">
+        SELECT card
+        FROM com.rssl.phizic.business.resources.external.CardLink card
+        where card.number = :number
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.CardLink.getOwnersIds">
+        select card.loginId from com.rssl.phizic.business.resources.external.CardLink card
+        where card.number = :number
+    </query>
+
+    <!--поиск карт по логину, тербанку и отделению (P2P)-->
+    <query name="com.rssl.phizic.business.resources.external.CardLink.findByLoginTbOsb">
+        select link from com.rssl.phizic.business.resources.external.CardLink link
+        where link.loginId = :login and link.gflTB = :tb and link.gflOSB = :branch
+    </query>
+
+    <!--
+        Опорный объект: UNIQ_CARD_NUMBER
+        Предикаты доступа: access("LINK"."CARD_NUMBER"=:CARDNUMBER)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.resources.external.CardLink.setFalseClosedState">
+        update CARD_LINKS link set link.CLOSED_STATE = '0'
+            where link.CLOSED_STATE = '1' and link.CARD_NUMBER = :extra_cardNumber
+    </sql-query>
+</hibernate-mapping>

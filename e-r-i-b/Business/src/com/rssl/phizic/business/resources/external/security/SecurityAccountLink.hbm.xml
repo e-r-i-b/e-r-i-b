@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.resources.external.security.SecurityAccountLink" table="SECURITY_ACCOUNT_LINKS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_SECURITY_ACCOUNT_LINKS</param>
+            </generator>
+        </id>
+        <property name="externalId"  type="string"    column="EXTERNAL_ID" not-null="true"/>
+        <property name="loginId" type="long" not-null="true" column="LOGIN_ID" />
+        <property name="number"     type="string"     not-null="true"  column="SERIAL_NUMBER"/>
+        <property name="name"       type="string"     not-null="true"  column="SECURITY_NAME"/>
+        <property name="onStorageInBank" type="boolean" not-null="true" column="ON_STORAGE_IN_BANK"/>
+        <property name="showInSystem" type="boolean" not-null="true" column="SHOW_IN_SYSTEM"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.resources.external.security.SecurityAccountLink.list">
+        select link
+        from   com.rssl.phizic.business.resources.external.security.SecurityAccountLink link
+        where  link.loginId = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.security.SecurityAccountLink.list.inSystem">
+        select link
+        from   com.rssl.phizic.business.resources.external.security.SecurityAccountLink link
+        where  link.loginId = :login  and link.showInSystem = true
+    </query>
+</hibernate-mapping>

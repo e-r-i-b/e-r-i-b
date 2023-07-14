@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="ErmbOperationStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.ermb.ErmbOperationStatus</param>
+	</typedef>
+
+    <typedef name="ErmbTariffStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.ermb.ErmbTariffStatus</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.ermb.ErmbTariff" table="ERMB_TARIF">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ERMB_TARIF</param>
+            </generator>
+        </id>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+
+        <property name="connectionCost" type="money">
+		    <column name="CONNECT_COST_AMOUNT"/>
+		    <column name="CONNECT_COST_CURRENCY"/>
+	    </property>
+
+        <property name="chargePeriod" type="integer" column="CHARGE_PERIOD" not-null="true"/>
+        <property name="gracePeriod" type="integer" column="GRACE_PERIOD" not-null="true"/>
+
+        <property name="gracePeriodCost" type="money">
+		    <column name="GRACE_PERIOD_COST_AMOUNT"/>
+		    <column name="GRACE_PERIOD_COST_CURRENCY"/>
+	    </property>
+
+        <property name="graceClass" type="money">
+		    <column name="CLASS_GRACE_AMOUNT"/>
+		    <column name="CLASS_GRACE_CURRENCY"/>
+	    </property>
+
+        <property name="premiumClass" type="money">
+		    <column name="CLASS_PREMIUM_AMOUNT"/>
+		    <column name="CLASS_PREMIUM_CURRENCY"/>
+	    </property>
+
+        <property name="socialClass" type="money">
+		   <column name="CLASS_SOCIAL_AMOUNT"/>
+		   <column name="CLASS_SOCIAL_CURRENCY"/>
+	    </property>
+
+        <property name="standardClass" type="money">
+           <column name="CLASS_STANDARD_AMOUNT"/>
+           <column name="CLASS_STANDARD_CURRENCY"/>
+        </property>
+
+        <property name="noticeConsIncomCardOperation" type="ErmbOperationStatus" column="OP_NOTICE_CONS_INCOM_CARD"
+                   not-null="true"/>
+        <property name="noticeConsIncomAccountOperation" type="ErmbOperationStatus" column="OP_NOTICE_CONS_INCOM_ACC"
+                   not-null="true"/>
+        <property name="cardInfoOperation" type="ErmbOperationStatus" column="OP_CARD_INFO"
+                   not-null="true"/>
+        <property name="accountInfoOperation" type="ErmbOperationStatus" column="OP_ACC_INFO"
+                   not-null="true"/>
+        <property name="cardMiniInfoOperation" type="ErmbOperationStatus" column="OP_CARD_MINI_INFO"
+                   not-null="true"/>
+        <property name="accountMiniInfoOperation" type="ErmbOperationStatus" column="OP_ACC_MINI_INFO"
+                   not-null="true"/>
+        <property name="reIssueCardOperation" type="ErmbOperationStatus" column="OP_RE_ISSUE_CARD"
+                   not-null="true"/>
+        <property name="jurPaymentOperation" type="ErmbOperationStatus" column="OP_JUR_PAYMENT"
+                   not-null="true"/>
+        <property name="transfersToThirdPartiesOperation" type="ErmbOperationStatus" column="OP_TRANSFERT_THIRD_PARTIES"
+                   not-null="true"/>
+
+        <property name="code" type="string" column="CODE" not-null="false"/>
+        <property name="description" type="string" column="DESCRIPTION" not-null="false"/>
+        <property name="tariffStatus" type="ErmbTariffStatus" column="STATUS" not-null="true"/>
+
+    </class>
+
+     <query name="com.rssl.phizic.business.ermb.ErmbTariff.changeTariff">
+        update com.rssl.phizic.business.ermb.ErmbProfileImpl profile
+        set profile.tarif.id = :toTariffId
+        where profile.tarif.id = :fromTariffId
+    </query>
+
+</hibernate-mapping>

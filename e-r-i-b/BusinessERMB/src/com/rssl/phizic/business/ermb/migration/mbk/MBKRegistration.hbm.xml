@@ -1,0 +1,28 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="MBKRegistrationResultCode" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.gate.mobilebank.MBKRegistrationResultCode</param>
+    </typedef>
+
+	<class name="com.rssl.phizic.business.ermb.migration.mbk.MBKRegistrationResult" table="MBK_REGISTRATION_RESULTS">
+		<id name="id"                   type="long"                         access="field"  column="ID"/>
+        <property name="resultCode"     type="MBKRegistrationResultCode"    access="field"  column="RESULT_CODE"    not-null="true"/>
+        <property name="errorDescr"     type="string"                       access="field"  column="ERROR_DESCR"    not-null="false"/>
+        <property name="lastModified"   type="date"                         access="field"  column="LAST_MODIFIED"  not-null="true"/>
+   </class>
+
+    <!--
+        Опорный объект: MBK_REGISTRATION_RESULTS_PK
+        Предикаты доступа: "ID"=TO_NUMBER(:IDS)
+        Кардинальность: 1
+      -->
+    <query name="com.rssl.phizic.business.ermb.migration.mbk.MBKRegistrationResult.removeByIds">
+        delete from
+            MBKRegistrationResult
+        where
+            id in (:ids)
+    </query>
+</hibernate-mapping>

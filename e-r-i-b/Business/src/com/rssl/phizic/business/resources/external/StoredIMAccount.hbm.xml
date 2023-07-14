@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="state">
+        <param name="enumClass">com.rssl.phizic.gate.ima.IMAccountState</param>
+    </typedef>
+    
+    <class name="com.rssl.phizic.business.resources.external.StoredIMAccount" table="STORED_IMACCOUNT">
+        <id name="storedId" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_STORED_IMACCOUNT</param>
+            </generator>
+        </id>
+
+        <many-to-one name="resourceLink"  class="com.rssl.phizic.business.resources.external.IMAccountLink" column="RESOURCE_ID"   lazy="false" unique="true"/>
+
+        <property name="entityUpdateTime" type="calendar" column="ENTITY_UPDATE_TIME"/>
+        <property name="closingDate"      type="calendar" column="CLOSING_DATE"/>
+        <property name="name"             type="string"   column="NAME"/>
+        <property name="agreementNumber"  type="string"   column="AGREEMENT_NUMBER"/>
+        <property name="openDate"         type="calendar" column="OPEN_DATE"/>
+        <property name="state"            type="state"    column="STATE"/>
+
+        <property name="departmentId"     type="long"     column="DEPARTMENT_ID"/>
+
+        <property name="officeOSB"        type="string"   column="OFFICE_OSB"/>
+        <property name="officeTB"         type="string"   column="OFFICE_TB"/>
+        <property name="officeVSP"        type="string"   column="OFFICE_VSP"/>
+
+        <property name="balance"           type="money">
+            <column  name="BALANCE_AMOUNT"/>
+            <column  name="BALANCE_AMOUNT_CURRENCY"/>
+        </property>
+
+        <property name="maxSumWrite"       type="money" not-null="false">
+            <column  name="MAX_SUM_AMOUNT"/>
+            <column  name="MAX_SUM_AMOUNT_CURRENCY"/>
+        </property>
+    </class>
+</hibernate-mapping>

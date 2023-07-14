@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xsd:simpleType name="MSISDN_TYPE">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[0-9]{11,15}"/>
+		</xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ClientToAdd_Type">
+        <xsd:sequence>
+            <xsd:element name="MSISDN" type="MSISDN_TYPE"/>
+            <xsd:element name="ChangedAt" type="xsd:dateTime"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ClientSToAdd_Type">
+        <xsd:sequence>
+            <xsd:element name="ClientToAdd" type="ClientToAdd_Type" maxOccurs="1000"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="FullListNeeded_Type">
+	    <xsd:restriction base="xsd:long">
+            <xsd:enumeration value="0"/>
+            <xsd:enumeration value="1"/>
+	    </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="body_Type">
+        <xsd:sequence>
+            <xsd:element name="Login" type="xsd:string"/>
+            <xsd:element name="Pwd" type="xsd:string"/>
+            <xsd:element name="RequestId" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="ClientSToAdd" type="ClientSToAdd_Type"/>
+            <xsd:element name="FullListNeeded" type="FullListNeeded_Type"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="body" type="body_Type"/>
+</xsd:schema>

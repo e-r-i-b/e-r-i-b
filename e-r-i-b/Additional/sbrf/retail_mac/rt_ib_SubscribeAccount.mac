@@ -1,0 +1,169 @@
+import "rt_ib_xml.mac";
+class(cBaseDeposit) 
+    cSubscribeAccount( inXml, outXml ) 
+
+  // ------------------------------------------------------------
+  // Вычитать параметры из входного документа
+  // ------------------------------------------------------------
+   var referenc;
+
+   private macro readParameters( nodeElement )
+      var nodeComPay;
+      nodeComPay = nodeElement;
+      while( nodeComPay )
+         if   ( nodeComPay.NodeName == "accountReferenc" )
+            referenc = int( nodeComPay.text );
+         end;
+         nodeComPay = nodeComPay.nextSibling();
+      end;// while( nodeComPay )
+   end;//private macro readParameters( nodeElement )
+   
+   private macro deleteSubscription(referenc)
+      var cmd, rs;
+      cmd = RsdCommand("delete from ntfolnk_dbt where ObjectID = ?");
+      cmd.addParam( "referenc", RSDBP_IN, V_STRING);
+      cmd.value("referenc") = referenc;
+      cmd.execute;
+
+      cmd = RsdCommand("delete from ntfobj_dbt where ObjectID = ?");
+      cmd.addParam( "referenc", RSDBP_IN, V_STRING);
+      cmd.value("referenc") = referenc;
+      cmd.execute;
+   end;//private macro deleteSubscription(referenc)
+
+   private macro createSubscription(accRs)
+      var cmd, rs;
+      var i;
+      var lnk_id, obj_id;
+      i=1;
+      while(i<6)
+         cmd = RsdCommand("select max(referenc) as id from ntfolnk_dbt");
+         cmd.execute;
+         rs = RsdRecordSet(cmd);
+         //Переходим на следующую запись RsdRecordSet. Если он только проинициализирован, то на 1-ю
+         rs.moveNext();
+         //Проверяем тип значения перед приведением типов, V_UNDEF - в записи NULL,  26 - в записи умалчиваемое или null значение
+         if((ValType(rs.value("id")) != V_UNDEF) and (ValType(rs.value("id")) != 26))
+            lnk_id = int(rs.value("id"));
+         else
+            lnk_id = 0;
+         end;
+         cmd = RsdCommand("insert into ntfolnk_dbt (referenc, iscur, branch, objecttype, objectid, notifytype) values "+
+                  "(?, ?, ?, ?, ?, ?)");
+         cmd.addParam( "referenc", RSDBP_IN, V_STRING);
+         cmd.value("referenc") = lnk_id+1;
+
+         cmd.addParam( "isCur", RSDBP_IN, V_STRING);
+         cmd.value("isCur") = accRs.value("t_iscur");
+
+         cmd.addParam( "branch", RSDBP_IN, V_STRING);
+         cmd.value("branch") = accRs.value("t_fncash");
+
+         cmd.addParam( "objectType", RSDBP_IN, V_STRING);
+         cmd.value("objectType") = "202";
+
+         cmd.addParam( "objectid", RSDBP_IN, V_STRING);
+         cmd.value("objectid") = "DA" + accRs.value("t_account");
+
+         cmd.addParam( "notifytype", RSDBP_IN, V_STRING);
+         cmd.value("notifytype") = i;
+
+         cmd.execute;
+         i=i+1;
+      end;//while(i<6)
+      cmd = RsdCommand("select max(referenc) as id from ntfobj_dbt");
+      cmd.execute;
+      rs = RsdRecordSet(cmd);
+      //Переходим на следующую запись RsdRecordSet. Если он только проинициализирован, то на 1-ю
+      rs.moveNext();
+      //Проверяем тип значения перед приведением типов, V_UNDEF - в записи NULL,  26 - в записи умалчиваемое или null значение
+      if((ValType(rs.value("id")) != V_UNDEF) and (ValType(rs.value("id")) != 26))
+         obj_id = int(rs.value("id"));
+      else
+         obj_id = 0;
+      end;
+      cmd = RsdCommand("insert into ntfobj_dbt (iscur, branch, objecttype, objectid, referenc) values "+
+                     "(?, ?, ?, ?, ?)");
+      cmd.addParam( "iscur", RSDBP_IN, V_STRING);
+      cmd.value("iscur") = accRs.value("t_iscur");
+
+      cmd.addParam( "branch", RSDBP_IN, V_STRING);
+      cmd.value("branch") = accRs.value("t_fncash");
+
+      cmd.addParam( "objecttype", RSDBP_IN, V_STRING);
+      cmd.value("objecttype") = "202";
+
+      cmd.addParam( "objectid", RSDBP_IN, V_STRING);
+      cmd.value("objectid") = "DA" + accRs.value("t_account");
+
+      cmd.addParam( "referenc", RSDBP_IN, V_STRING);
+      cmd.value("referenc") = obj_id+1;
+
+      cmd.execute;
+   end;//private macro createSubscription(accRs)
+   
+   private macro subscribeAccount(inXml, outXml)
+      var cmd, rs, accCmd, accRs;
+      var accNumber;
+      accCmd = RsdCommand("SELECT * from ddepositr_dbt where t_referenc = ?");
+      accCmd.addParam( "referenc", RSDBP_IN, V_STRING);
+      accCmd.value("referenc") = referenc;
+      accCmd.execute;
+      accRs = RsdRecordSet(accCmd);
+      if((accRs.moveNext))
+         accNumber = accRs.value("t_account");
+      else
+         return outXml;
+      end;
+      cmd = RsdCommand("SELECT * from ntfobj_dbt where ObjectID = ?");
+
+      cmd.addParam( "id", RSDBP_IN, V_STRING);
+      cmd.value("id") = "DA"+accNumber;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+      if ( (rs.moveNext))
+        deleteSubscription("DA"+accNumber);
+      end;
+      createSubscription(accRs);
+      
+      return outXml;
+   end;//private macro subscribeAccount(inXml, outXml)
+   
+   macro start(inXml, outXml)
+       var nodeParentElement;
+    var stat = 0;
+
+    if(not outXml )
+      outXml = CreateXMLObject();
+      if(not outXml) return; end;
+
+      CreateBeginTag( outXml );
+
+      nodeParentElement = inXml.documentElement.selectSingleNode( "//subscribeAccount_q" );
+      nodeElement = nodeParentElement.firstChild();
+
+      if( nodeElement )
+
+        readParameters( nodeElement );
+
+        outXML = subscribeAccount( inXml, outXML );
+                 
+      end;
+
+    end;//if(not outXml )
+
+    return outXml;
+      
+   end; //macro start(inXml, outXml)
+
+end;  //class(cBaseDeposit) 
+
+macro SubscribeAcount( inXml, outXml )
+
+  var t = cSubscribeAccount;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;
+

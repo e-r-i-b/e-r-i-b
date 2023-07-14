@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+	<class name="ru.softlab.phizicgate.rsloansV64.loans.ScheduleItemImpl">
+		<id name="date"/>
+		<property name="principalAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="principalAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="interestsAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="interestsAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="commissionAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="commissionAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="totalAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="totalAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="totalPaymentAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="totalPaymentAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+		<property name="earlyPaymentAmount" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType" insert="false"
+	              update="false">
+		    <column name="earlyPaymentAmountVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+	</class>
+
+	<sql-query name="GetSchedule">
+	    <return alias="loans" class="ru.softlab.phizicgate.rsloansV64.loans.ScheduleItemImpl">
+	        <return-property name="date"              column="tdate"/>
+	        <return-property name="principalAmount">
+				<return-column name="principalAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="interestsAmount">
+				<return-column name="interestsAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="commissionAmount">
+				<return-column name="commissionAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="totalAmount">
+				<return-column name="totalAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="totalPaymentAmount">
+				<return-column name="totalPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="earlyPaymentAmount">
+				<return-column name="earlyPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		</return>
+    	<![CDATA[
+    	SELECT
+    	planpay.t_plannedpaydate as tdate
+    	,planpay.t_plannedpaysum as principalAmountVal
+    	,planpay.t_plannedpercentsum as interestsAmountVal
+    	,0 as commissionAmountVal
+    	,0 as totalAmountVal
+    	,0 as totalPaymentAmountVal
+    	,0 as earlyPaymentAmountVal
+    	,credit.t_curcode   as AmountCur
+    	FROM
+        dcrd_op_dbt    credOp
+    	,dduty_crd_dbt duty
+    	,dplanpay_dbt  planpay
+		,dcredit_c_dbt credit
+    	WHERE
+    	credit.t_creditnumber = :creditNumber
+    	and credit.t_creditnumber = credOp.t_creditnumber_ref
+    	and duty.T_DUTYID = planpay.T_OBJECTID_REF
+    	and planpay.T_OBJECTTYPEID_REF = 6
+		and credOp.t_credoperid = planPay.t_credoperid_ref
+		and duty.t_dutytype = 0
+		and credOp.t_isdeleted = 0
+		and credOp.t_opertypenumber_ref = 32
+		and credOp.t_credoperdate =
+		(
+			select max(credOp1.t_credoperdate) from dcrd_op_dbt credOp1
+    	    WHERE credit.t_creditnumber = credOp1.t_creditnumber_ref
+			and credOp1.t_credoperid = planPay.t_credoperid_ref
+			and credOp1.t_isdeleted = 0
+			and credOp1.t_opertypenumber_ref = 32
+		)
+		ORDER BY tdate
+		]]>
+	</sql-query>
+
+	<sql-query name="GetScheduleComm">
+	    <return alias="loans" class="ru.softlab.phizicgate.rsloansV64.loans.ScheduleItemImpl">
+	        <return-property name="date"              column="tdate"/>
+	        <return-property name="principalAmount">
+				<return-column name="principalAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+	        <return-property name="interestsAmount">
+				<return-column name="interestsAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="commissionAmount">
+				<return-column name="commissionAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="totalAmount">
+				<return-column name="totalAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="totalPaymentAmount">
+				<return-column name="totalPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		    <return-property name="earlyPaymentAmount">
+				<return-column name="earlyPaymentAmountVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		</return>
+    	<![CDATA[
+    	SELECT
+    	planpay.t_plannedpaydate as tdate
+    	,0 as principalAmountVal
+    	,0 as interestsAmountVal
+    	,planpay.t_plannedpaysum as commissionAmountVal
+    	,0 as totalAmountVal
+    	,0 as totalPaymentAmountVal
+    	,0 as earlyPaymentAmountVal
+    	,credit.t_curcode   as AmountCur
+    	FROM
+        dcrd_op_dbt    credOp
+    	,dduty_crd_dbt duty
+    	,dplanpay_dbt  planpay
+		,dcredit_c_dbt credit
+    	WHERE
+    	credit.t_creditnumber = :creditNumber
+    	and credit.t_creditnumber = credOp.t_creditnumber_ref
+    	and duty.T_DUTYID = planpay.T_OBJECTID_REF
+    	and planpay.T_OBJECTTYPEID_REF = 6
+		and credOp.t_credoperid = planPay.t_credoperid_ref
+		and duty.t_dutytype <> 0
+		and credOp.t_isdeleted = 0
+		and credOp.t_opertypenumber_ref = 32
+		and credOp.t_credoperdate =
+		(
+			select max(credOp1.t_credoperdate) from dcrd_op_dbt credOp1
+    	    WHERE credit.t_creditnumber = credOp1.t_creditnumber_ref
+			and credOp1.t_credoperid = planPay.t_credoperid_ref
+			and credOp1.t_isdeleted = 0
+			and credOp1.t_opertypenumber_ref = 32
+		)
+		]]>
+	</sql-query>
+
+	<sql-query name="ru.softlab.phizicgate.rsloansV64.loans.getEarlyPaymentCommission">
+     	select trim(claim.GetUsFiledValue(7, credit.t_credittypeid_ref, 15022))
+    	from  dcredit_c_dbt credit
+    	where credit.T_CREDITNUMBER = :creditNumber
+	</sql-query>
+</hibernate-mapping>

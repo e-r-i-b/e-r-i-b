@@ -1,0 +1,29 @@
+<!-- Use this file to deploy some handlers/chains and services      -->
+<!-- Two ways to do this:                                           -->
+<!--   java org.apache.axis.client.AdminClient deploy.wsdd          -->
+<!--      after the axis server is running                          -->
+<!-- or                                                             -->
+<!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   -->
+<!--      from the same directory that the Axis engine runs         -->
+
+<deployment
+    xmlns="http://xml.apache.org/axis/wsdd/"
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from eribRates WSDL service -->
+
+  <service name="eribRates" provider="java:RPC" style="rpc" use="encoded">
+      <parameter name="wsdlTargetNamespace" value="http://sbrf.srb.ru/erib/rates"/>
+      <parameter name="wsdlServiceElement" value="eribRates"/>
+      <parameter name="schemaQualified" value="http://sbrf.srb.ru/erib/rates"/>
+      <parameter name="wsdlServicePort" value="eribRates"/>
+      <parameter name="className" value="com.rssl.phizic.ws.currency.sbrf.EribRatesImpl"/>
+      <parameter name="wsdlPortType" value="eribRates"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="doIFX" qname="DoIFX" returnQName="resp" returnType="rtns:string" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="http://sbrf.srb.ru/erib/rates/DoIFX" >
+        <parameter qname="req" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <parameter name="allowedMethods" value="doIFX"/>
+
+  </service>
+</deployment>

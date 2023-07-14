@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.dictionaries.pages.staticmessages.StaticMessage" table="STATIC_MESSAGES">
+
+        <id name="key" type="string" column="KEY"/>
+	    <property name="text"       type="text"           column="TEXT"       not-null="true"/>
+	</class>
+
+    <class name="com.rssl.phizic.business.dictionaries.pages.staticmessages.ImageMessage" table="IMAGES_MESSAGES">
+        <composite-id>
+            <key-property name="messageKey" column="MESSAGE_KEY" type="string"/>
+            <key-many-to-one name="image" column="IMAGE_ID" class="com.rssl.phizic.business.image.Image" lazy="false"/>
+        </composite-id>
+    </class>
+
+    <!--поиск привязанных к сообщению картинок-->
+    <query name="com.rssl.phizic.business.dictionaries.pages.staticmessages.StaticMessage.fingAttachedImages">
+        select imageMessage.image
+        from com.rssl.phizic.business.dictionaries.pages.staticmessages.ImageMessage as imageMessage
+        where imageMessage.messageKey = :messageKey
+    </query>
+</hibernate-mapping>

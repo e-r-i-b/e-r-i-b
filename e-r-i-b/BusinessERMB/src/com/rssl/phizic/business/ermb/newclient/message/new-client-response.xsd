@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xsd:simpleType name="MSISDN_TYPE">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[0-9]{11,15}"/>
+		</xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="Result_Type">
+	    <xsd:restriction base="xsd:long">
+            <xsd:enumeration value="0"/>
+            <xsd:enumeration value="1205230001"/>
+            <xsd:enumeration value="1205230002"/>
+            <xsd:enumeration value="1205230003"/>
+            <xsd:enumeration value="1205230004"/>
+            <xsd:enumeration value="1205230005"/>
+            <xsd:enumeration value="1205238888"/>
+	    </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ClientResult_Type">
+        <xsd:sequence>
+            <xsd:element name="MSISDN" type="MSISDN_TYPE"/>
+            <xsd:element name="Result" type="Result_Type"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ClientResultS_Type">
+        <xsd:sequence>
+            <xsd:element name="ClientResult" type="ClientResult_Type" maxOccurs="1000"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="OperationResult_Type">
+	    <xsd:restriction base="xsd:long">
+            <xsd:enumeration value="0"/>
+            <xsd:enumeration value="1205241111"/>
+            <xsd:enumeration value="1205242222"/>
+            <xsd:enumeration value="1205242229"/>
+	    </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="body_Type">
+        <xsd:sequence>
+            <xsd:element name="OperationResult" type="OperationResult_Type"/>
+            <xsd:element name="ClientResultS" type="ClientResultS_Type" minOccurs="0"/>
+            <xsd:element name="ErrorDescription" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="body" type="body_Type"/>
+</xsd:schema>

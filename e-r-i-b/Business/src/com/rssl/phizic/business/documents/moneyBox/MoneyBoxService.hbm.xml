@@ -1,0 +1,28 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <!--получить список копилок клиента, ожидающих подтверждения, по разным параметрам
+        Опорный элемент: IDX_BD_LCDK
+        Предикаты доступа:  access("DOCUMENT"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "DOCUMENT"."CREATION_DATE">=TO_TIMESTAMP(:FROMDATE)
+                      AND "DOCUMENT"."KIND"='MB' AND "DOCUMENT"."CREATION_DATE" IS NOT NULL)
+        Кардинальность: заявки на создание копилки указанного клиента за указанный период.
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.moneyBox.MoneyBoxService.findSavedClaimsBase">
+        <return alias="document" class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+            select {document.*}
+            from BUSINESS_DOCUMENTS document
+            where
+                document.KIND = 'MB' and
+                document.LOGIN_ID = :login_id and
+                document.CREATION_DATE >= :from_date and
+                document.STATE_CODE = 'SAVED' and
+                (:cardNumber is null or PAYER_ACCOUNT = :cardNumber) and
+                (:accountNumber is null or RECEIVER_ACCOUNT = :accountNumber) and
+                ((:forEmployee = 1 AND  document.CREATED_EMPLOYEE_LOGIN_ID is not null) OR (:forEmployee = 0 AND document.CREATED_EMPLOYEE_LOGIN_ID is null))
+        ]]>
+    </sql-query>
+</hibernate-mapping>

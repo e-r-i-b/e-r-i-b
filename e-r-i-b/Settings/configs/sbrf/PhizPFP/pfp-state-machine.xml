@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../../../schemas/state-machine.xsd">
+    <states name="PfpStateMachine" inital-state="INITIAL" description="машина состояний для механизма прохождения ПФП">
+        <state id="INITIAL"
+               description="Начальное состояние прохождения планирования"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/editPersonalData.do">
+            <handlers>
+                <handler class="com.rssl.phizic.business.pfp.handlers.SetPfpEmployeeInfoHandler"/>
+            </handlers>
+            <events>
+                <event name="SAVE_PERSONAL_DATA" description="Cохранение личных данных" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.pfp.handlers.CheckTargetHandler"/>
+                        <handler class="com.rssl.phizic.business.pfp.handlers.SaveCreditCardInformationHandler"/>
+                    </handlers>
+                    <next-states default="EDIT_RISK_PROFILE_FORM">
+                        <next-state condition="com.rssl.phizic.business.pfp.conditions.OfferCreditCardCondition"
+                                                            state="SHOW_RECOMMENDATIONS"/>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+        <state id="SHOW_RECOMMENDATIONS"
+               description="Рекомендации по использованию кредитной карты"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/showRecommendations.do">
+            <events>
+                <event name="CHOOSE_CARD" description="Выбор кредитной карты" type="client">
+                    <next-states default="CHOOSE_CARD"/>
+                </event>
+                <event name="BACK" description="Возвращение к просмотру личных данных" type="client">
+                    <next-states default="INITIAL"/>
+                </event>
+            </events>
+        </state>
+        <state  id="CHOOSE_CARD"
+                description="Эффект использования кредитной карты"
+                system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+                client-form="/chooseCard.do">
+            <events>
+                <event name="EDIT_RISK_PROFILE" description="Заполнение ответов на вопросы для определения риск профиля" type="client">
+                    <next-states default="EDIT_RISK_PROFILE_FORM"/>
+                </event>
+                <event name="BACK" description="Возвращение к просмотру личных данных" type="client">
+                    <next-states default="SHOW_RECOMMENDATIONS"/>
+                </event>
+            </events>
+        </state>
+        <state id="EDIT_RISK_PROFILE_FORM"
+               description="Заполнение ответов на вопросы для определения риск профиля"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/editRiskProfile.do">
+            <events>
+                <event name="SAVE_RISK_PROFILE" description="Cохранение риск профиля клиента" type="client">
+                    <next-states default="SHOW_RISK_PROFILE_FORM">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.pfp.handlers.CreatePersonRiskProfileHandler"/>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="BACK" description="Возвращение к просмотру рекомендациий по использованию кредитной карты" type="client">
+                    <next-states default="INITIAL">
+                        <next-state condition="com.rssl.phizic.business.pfp.conditions.OfferCreditCardCondition"
+                                                            state="CHOOSE_CARD"/>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+        <state id="SHOW_RISK_PROFILE_FORM"
+               description="Просмотр риск профиля клиентом"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/showRiskProfile.do">
+                <handlers>
+                    <handler class="com.rssl.phizic.business.pfp.handlers.CreatePersonRiskProfileHandler"/>
+                </handlers>
+                <events>
+                    <event name="INIT_PERSON_PORTFOLIOS" description="Инициализация портфелей клиента" type="client">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.pfp.handlers.InitPersonPortfolioListHandler">
+                                <enabled class="com.rssl.phizic.business.pfp.filters.EmptyPortfolioFilter"/>
+                            </handler>
+                        </handlers>
+                        <next-states default="EDIT_PERSON_PORTFOLIOS">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.pfp.handlers.InvestmentProductRiskMessageHandler"/>
+                            </handlers>
+                        </next-states>
+                    </event>
+                    <event name="BACK" description="Возвращение к просмотру ответов на вопросы" type="client">
+                        <next-states default="EDIT_RISK_PROFILE_FORM"/>
+                    </event>
+                </events>
+        </state>
+        <state id="EDIT_PERSON_PORTFOLIOS"
+               description="Формирование клиентских портфелей"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/editPortfolioList.do">
+                <events>
+                    <event name="COMPLETE_PORTFOLIOS" description="Завершение формирования портфелей" type="client">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.pfp.handlers.SetPfpStartPlaningDateHandler"/>
+                        </handlers>
+                        <next-states default="FINANCE_PLAN"/>
+                    </event>
+                    <event name="BACK" description="Возвращение к просмотру риск-профиля" type="client">
+                        <next-states default="SHOW_RISK_PROFILE_FORM"/>
+                    </event>
+                </events>
+        </state>
+        <state  id="FINANCE_PLAN"
+                description="Финансовый прогноз"
+                system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+                client-form="/showFinancePlan.do">
+                <events>
+                    <event name="COMPLETE" description="Завершение планирования" type="client">                        
+                        <next-states default="COMPLITE">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.pfp.handlers.CheckTargetHandler"/>
+                                <handler class="com.rssl.phizic.business.pfp.handlers.CheckNegativeAmountsInFinancePlanHandler"/>
+                                <handler class="com.rssl.phizic.business.pfp.handlers.SetPfpExecutionDateHandler"/>
+                            </handlers>
+                        </next-states>
+                    </event>
+                    <event name="BACK" description="Возвращение к формированию клиентских портфелей" type="client">
+                        <next-states default="EDIT_PERSON_PORTFOLIOS">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.pfp.handlers.CheckTargetHandler"/>
+                            </handlers>
+                        </next-states>
+                    </event>
+                </events>
+        </state>
+        <state id="COMPLITE"
+               description="Просмотр информации о прохождении ПФП"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/showPfpResult.do">
+            <events>
+                <event name="BACK" description="Возвращение к просмотру финансового плана" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.pfp.handlers.ClearPlanMoneyHandler"/>
+                    </handlers>
+                    <next-states default="FINANCE_PLAN"/>
+                </event>
+            </events>
+        </state>
+        <!--статус для старых планирований-->
+        <state id="COMPLITE_OLD"
+               description="Просмотр информации о прохождении ПФП"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver"
+               client-form="/showPfpResult.do">
+            <handlers>
+                <handler class="com.rssl.phizic.business.pfp.handlers.NeedUpdatePFPMessageHandler"/>
+            </handlers>
+            <events>
+                <event name="BACK" description="Возвращение к просмотру финансового плана" type="client">
+                    <next-states default="FINANCE_PLAN"/>
+                </event>
+            </events>
+        </state>
+    </states>
+</config>

@@ -1,0 +1,365 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="InvoiceStatus">
+        <param name="enumClass">com.rssl.phizic.common.types.basket.InvoiceStatus</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.basket.invoice.Invoice" table="INVOICES">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_INVOICES</param>
+            </generator>
+        </id>
+
+        <property name="loginId"                type="long"                     column="LOGIN_ID"                   not-null="true"/>
+        <property name="autoPayId"              type="string"                   column="AUTOPAY_ID"                 not-null="true"/>
+        <property name="autoPaySubscriptionId"  type="string"                   column="AUTOPAY_SUBSCRIPTION_ID"    not-null="true"/>
+        <property name="invoiceSubscriptionId"  type="long"                     column="INVOICE_SUBSCRIPTION_ID"    not-null="false"/>
+        <property name="state"                  type="InvoiceStatus"            column="STATE"                      not-null="true"/>
+        <property name="stateDesc"              type="string"                   column="STATE_DESC"                 not-null="true"/>
+        <property name="commission"             type="big_decimal"              column="COMMISSION"                 not-null="false"/>
+        <property name="execPaymentDate"        type="calendar"                 column="EXEC_PAYMENT_DATE"          not-null="true"/>
+        <property name="delayedPayDate"         type="calendar"                 column="DELAYED_PAY_DATE"           not-null="false"/>
+        <property name="creatingDate"           type="calendar"                 column="CREATING_DATE"              not-null="true"/>
+        <property name="nonExecReasonCode"      type="string"                   column="NON_EXEC_REASON_CODE"       not-null="false"/>
+        <property name="nonExecReasonDesc"      type="string"                   column="NON_EXEC_REASON_DESC"       not-null="false"/>
+        <property name="codeRecipientBs"        type="string"                   column="CODE_RECIPIENT_BS"          not-null="false"/>
+        <property name="recName"                type="string"                   column="REC_NAME"                   not-null="false"/>
+        <property name="codeService"            type="string"                   column="CODE_SERVICE"               not-null="false"/>
+        <property name="nameService"            type="string"                   column="NAME_SERVICE"               not-null="false"/>
+        <property name="recInn"                 type="string"                   column="REC_INN"                    not-null="true"/>
+        <property name="recCorAccount"          type="string"                   column="REC_COR_ACCOUNT"            not-null="false"/>
+        <property name="recKpp"                 type="string"                   column="REC_KPP"                    not-null="false"/>
+        <property name="recBic"                 type="string"                   column="REC_BIC"                    not-null="true"/>
+        <property name="recAccount"             type="string"                   column="REC_ACCOUNT"                not-null="true"/>
+        <property name="recNameOnBill"          type="string"                   column="REC_NAME_ON_BILL"           not-null="false"/>
+        <property name="recPhoneNumber"         type="string"                   column="REC_PHONE_NUMBER"           not-null="false"/>
+        <property name="recTb"                  type="string"                   column="REC_TB"                     not-null="true"/>
+        <property name="requisites"             type="string"                   column="REQUISITES"                 not-null="true"/>
+        <property name="paymentId"              type="long"                     column="PAYMENT_ID"                 not-null="false"/>
+        <property name="cardNumber"             type="string"                   column="CARD_NUMBER"                not-null="true"/>
+        <property name="isNew"                  type="boolean"                  column="IS_NEW"                     not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.finances.financeCalendar.CalendarDayExtractByInvoiceSubscriptionDescription" mutable="false">
+        <id name="id"/>
+        <property name="type"/>
+        <property name="payDate"/>
+        <property name="serviceName"/>
+        <property name="accountingEntityName"/>
+        <property name="receiverName"/>
+        <property name="requisites"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.basket.invoice.FakeInvoice">
+        <id name="id" type="long"/>
+        <property name="name" type="string"/>
+        <property name="state" type="InvoiceStatus"/>
+        <property name="requisites" type="string"/>
+        <property name="creatingDate" type="calendar"/>
+        <property name="entityName" type="string"/>
+        <property name="providerName" type="string"/>
+        <property name="imageId" type="long"/>
+        <property name="isNew" type="boolean"/>
+        <property name="delayedDate" type="calendar"/>
+        <property name="autoSubExternalId" type="string"/>
+    </class>
+
+    <!-- Информация по инвойсту для операции удаления/приостановки -->
+    <class name="com.rssl.phizic.business.basket.invoice.InvoiceUpdateInfo">
+         <id name="id" type="long"/>
+         <property name="name" type="string"/>
+         <property name="status" type="InvoiceStatus"/>
+         <property name="requisites" type="string"/>
+         <property name="loginId" type="long"/>
+         <property name="subscriptionId" type="long"/>
+         <property name="confirmStrategyType" type="ConfirmStrategyType"/>
+         <property name="creationType" type="CreationType"/>
+    </class>
+
+    <!-- Получает информацию по отложенным счетам для финансового календаря
+        Опорный объект: IDX_INVOICES_TO_LOGIN_STATE
+        Предикаты доступа: "INVOICE"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "INVOICE"."STATE"='DELAYED'
+        Кардинальность: Кардинальность равна количеству отложенных платежей у клиента.
+    -->
+    <sql-query name="com.rssl.phizic.business.basket.invoice.Invoice.findDelayedInvoicesToFinanceCalendar">
+        <return class="com.rssl.phizic.business.finances.financeCalendar.CalendarDayExtractByInvoiceSubscriptionDescription">
+            <return-property name="id" column="invoiceId"/>
+            <return-property name="type" column="type"/>
+            <return-property name="payDate" column="payDate"/>
+            <return-property name="serviceName" column="serviceName"/>
+            <return-property name="accountingEntityName" column="entityName"/>
+            <return-property name="receiverName" column="receiverName"/>
+            <return-property name="requisites" column="requisites"/>
+        </return>
+        <![CDATA[
+            SELECT
+                invoice.ID as invoiceId,
+                'invoice' as type,
+                invoice.DELAYED_PAY_DATE as payDate,
+                invoice.NAME_SERVICE as serviceName,
+                accEntity.NAME as entityName,
+                invoice.REC_NAME as receiverName,
+                invoice.REQUISITES as requisites
+            FROM INVOICES invoice
+            INNER JOIN INVOICE_SUBSCRIPTIONS subscription ON invoice.INVOICE_SUBSCRIPTION_ID = subscription.ID
+            LEFT JOIN ACCOUNTING_ENTITY accEntity ON subscription.ACCOUNTING_ENTITY_ID = accEntity.ID
+            WHERE invoice.LOGIN_ID = :loginId
+            AND invoice.STATE = 'DELAYED'
+            AND invoice.CREATING_DATE > :invoiceFromDate
+            AND (invoice.DELAYED_PAY_DATE between :fromDate and :toDate)
+            AND invoice.CARD_NUMBER IN (:cardNumbers)
+        ]]>
+    </sql-query>
+
+
+    <!-- Получает информацию по отложенным и текущим счетам для финансового календаря
+        Опорный объект: IDX_INVOICES_TO_LOGIN_STATE
+        Предикаты доступа: "INVOICE"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND ("INVOICE"."STATE"='DELAYED' OR "INVOICE"."STATE"='NEW')
+        Кардинальность: Кардинальность равна количеству отложенных и текущих платежей у клиента.
+    -->
+    <sql-query name="com.rssl.phizic.business.basket.invoice.Invoice.findDelayedAndNewInvoicesToFinanceCalendar">
+        <return class="com.rssl.phizic.business.finances.financeCalendar.CalendarDayExtractByInvoiceSubscriptionDescription">
+            <return-property name="id" column="invoiceId"/>
+            <return-property name="type" column="type"/>
+            <return-property name="payDate" column="payDate"/>
+            <return-property name="serviceName" column="serviceName"/>
+            <return-property name="accountingEntityName" column="entityName"/>
+            <return-property name="receiverName" column="receiverName"/>
+            <return-property name="requisites" column="requisites"/>
+        </return>
+        <![CDATA[
+            SELECT
+                invoice.ID as invoiceId,
+                'invoice' as type,
+                invoice.DELAYED_PAY_DATE as payDate,
+                invoice.NAME_SERVICE as serviceName,
+                accEntity.NAME as entityName,
+                invoice.REC_NAME as receiverName,
+                invoice.REQUISITES as requisites
+            FROM INVOICES invoice
+            INNER JOIN INVOICE_SUBSCRIPTIONS subscription ON invoice.INVOICE_SUBSCRIPTION_ID = subscription.ID
+            LEFT JOIN ACCOUNTING_ENTITY accEntity ON subscription.ACCOUNTING_ENTITY_ID = accEntity.ID
+            WHERE invoice.LOGIN_ID = :loginId
+            AND (invoice.STATE = 'DELAYED' OR invoice.STATE = 'NEW')
+            AND invoice.CREATING_DATE > :invoiceFromDate
+            AND (decode(invoice.STATE, 'DELAYED', invoice.DELAYED_PAY_DATE, :toDate) between :invoiceFromDate AND :toDate)
+            AND invoice.CARD_NUMBER IN (:cardNumbers)
+        ]]>
+    </sql-query>
+
+    <!-- Получает список счетов для отображения на форме "счета к оплате"
+        Опорный элемент: IDX_INVOICES_TO_LOGIN_STATE
+        Предикаты доступа:  "INV"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "INV"."STATE"='NEW'
+        Кардинальность: до 50
+    -->
+    <sql-query name="com.rssl.phizic.business.basket.invoice.Invoice.list">
+        <return class="com.rssl.phizic.business.basket.invoice.FakeInvoice" alias="sel"/>
+        SELECT inv.ID id, inv.NAME_SERVICE name, inv.STATE state, inv.REQUISITES requisites, inv.CREATING_DATE creatingDate,
+        ent.NAME entityName, inv.REC_NAME providerName, providers.IMAGE_ID imageId, inv.IS_NEW isNew, inv.DELAYED_PAY_DATE delayedDate, subscriptions.AUTOSUB_EXTERNAL_ID autoSubExternalId
+        FROM (
+            SELECT *
+            FROM (
+                SELECT *
+                FROM INVOICES
+                WHERE INVOICES.LOGIN_ID = :loginId
+                AND ((INVOICES.STATE = 'NEW') OR (:getDelayed = 'true' and INVOICES.STATE = 'DELAYED' AND CURRENT_DATE >= INVOICES.DELAYED_PAY_DATE))
+                AND INVOICES.CREATING_DATE > :fromDate
+                ORDER BY INVOICES.CREATING_DATE
+            )
+            WHERE :limit >= rownum
+        ) inv
+        join INVOICE_SUBSCRIPTIONS subscriptions on inv.INVOICE_SUBSCRIPTION_ID = subscriptions.ID
+        left join ACCOUNTING_ENTITY ent on subscriptions.ACCOUNTING_ENTITY_ID = ent.ID
+        left join SERVICE_PROVIDERS providers on subscriptions.RECIPIENT_ID = providers.ID
+    </sql-query>
+
+    <!-- Получает список исключительно отложенных счетов для отображения на форме "список счетов" для сотрудника
+    Опорный элемент: IDX_INVOICES_TO_LOGIN_STATE
+    Предикаты доступа:  "INV"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "INV"."STATE"='NEW'
+    Кардинальность: до 50
+-->
+    <sql-query name="com.rssl.phizic.business.basket.invoice.Invoice.list.delayed">
+        <return class="com.rssl.phizic.business.basket.invoice.FakeInvoice" alias="sel"/>
+        SELECT inv.ID id, inv.NAME_SERVICE name, inv.STATE state, inv.REQUISITES requisites, inv.CREATING_DATE creatingDate,
+        ent.NAME entityName, inv.REC_NAME providerName, providers.IMAGE_ID imageId, inv.IS_NEW isNew, inv.DELAYED_PAY_DATE delayedDate, subscriptions.AUTOSUB_EXTERNAL_ID autoSubExternalId
+        FROM (
+            SELECT *
+            FROM (
+                SELECT *
+                FROM INVOICES
+                WHERE INVOICES.LOGIN_ID = :loginId
+                AND INVOICES.STATE = 'DELAYED'
+                AND INVOICES.CREATING_DATE > :fromDate
+                ORDER BY INVOICES.DELAYED_PAY_DATE
+            )
+            WHERE :limit >= rownum
+        ) inv
+        join INVOICE_SUBSCRIPTIONS subscriptions on inv.INVOICE_SUBSCRIPTION_ID = subscriptions.ID
+        left join ACCOUNTING_ENTITY ent on subscriptions.ACCOUNTING_ENTITY_ID = ent.ID
+        left join SERVICE_PROVIDERS providers on subscriptions.RECIPIENT_ID = providers.ID
+    </sql-query>
+
+
+    <!-- Пометить инвойс как просмотренный.
+         Опорный объект: IDX_INVOICES_TO_ID
+         Предикаты доступа: "ID"=TO_NUMBER(:ID)
+         Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.basket.invoice.BusinessInvoiceService.markViewed">
+        <![CDATA[
+        update com.rssl.phizic.business.basket.invoice.Invoice
+        set isNew = false
+        where id=:id
+        ]]>
+    </query>
+
+    <!-- Считает количество потенциально отображаемых счетов пользователя
+        Опорный элемент: IDX_INVOICES_TO_LOGIN_STATE
+        Предикаты доступа:  "INV"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "INV"."STATE"='NEW'
+        Кардинальность: до 50
+    -->
+    <sql-query name="com.rssl.phizic.business.basket.invoice.Invoice.count">
+        <return-scalar column="cnt" type="long"/>
+            SELECT COUNT(*) cnt
+            FROM INVOICES
+            WHERE INVOICES.LOGIN_ID = :loginId
+            AND (INVOICES.STATE = 'NEW' OR INVOICES.STATE = 'DELAYED')
+            AND INVOICES.CREATING_DATE > :fromDate
+    </sql-query>
+
+
+    <!-- Получение самого "свежего" инвойса по PaymentId(autoPayId)
+         Опорный объект: INDEX_INVOICES_AUTOPAY_ID
+         Предикаты доступа: "INVOICES"."AUTOPAY_ID"=:AUTOPAY_ID
+         Кардинальность: поступившее количество инвойсов по одному платежу от АС «AutoPay» за все время существования подписки.
+    -->
+    <sql-query name="com.rssl.phizic.business.basket.invoice.BusinessInvoiceService.findLastByPaymentId">
+        <return-scalar column="STATE"               type="string"/>
+        <return-scalar column="ID"                  type="long"/>
+        <return-scalar column="DELAYED_PAY_DATE"    type="calendar"/>
+        <return-scalar column="PAYMENT_ID"          type="long"/>
+        <return-scalar column="IS_NEW"              type="boolean"/>
+        <![CDATA[
+            SELECT invoices.STATE,
+                   invoices.ID,
+                   invoices.DELAYED_PAY_DATE,
+                   invoices.PAYMENT_ID,
+                   invoices.IS_NEW
+            from INVOICES invoices
+            where invoices.AUTOPAY_ID = :autoPayId
+            and invoices.STATE != 'ERROR'
+            order by invoices.CREATING_DATE desc
+        ]]>
+    </sql-query>
+
+    <!-- Обновление инвойса по id заданным статусом.
+         Опорный объект: IDX_INVOICES_TO_ID
+         Предикаты доступа: "ID"=TO_NUMBER(:ID)
+         Кардинальность:  1
+    -->
+    <query name="com.rssl.phizic.business.basket.invoice.BusinessInvoiceService.setStateByID">
+        <![CDATA[
+        update com.rssl.phizic.business.basket.invoice.Invoice
+        set state = :state
+        where id=:id
+        ]]>
+    </query>
+
+    <!-- Перевод всех "новых" инвойсов в рамках подписки в статус INACTIVE
+         Опорный объект: IDX_INVOICES_TO_SUB
+         Предикаты доступа: "INVOICE_SUBSCRIPTION_ID"=TO_NUMBER(:SUBSCRIPTION_ID)
+         Кардинальность:  все инвойсы по подписке в статусах NEW и DELEYED.  <=Количество уникальных AUTOPAY_ID в таблице.
+    -->
+    <query name="com.rssl.phizic.business.basket.invoice.BusinessInvoiceService.inactivateAllByAutoSubId">
+        <![CDATA[
+            update com.rssl.phizic.business.basket.invoice.Invoice
+            set state = 'INACTIVE' where invoiceSubscriptionId = :subscriptionId AND (state = 'NEW' OR state = 'DELAYED')
+        ]]>
+    </query>
+
+    <!-- Получение данных инвойса необходмых для обновления статуса.
+         Опорный объект: IDX_INVOICES_TO_ID
+         Предикаты доступа: "ID"=TO_NUMBER(:ID)
+         Кардинальность:  1
+    -->
+    <sql-query name="com.rssl.phizic.business.basket.invoice.Invoice.getUpdateInfoById">
+        <return-scalar column="LOGIN_ID" type="long"/>
+        <return-scalar column="STATE" type="string"/>
+        <![CDATA[
+            SELECT LOGIN_ID, STATE FROM INVOICES
+            WHERE ID=:id
+        ]]>
+    </sql-query>
+
+    <!-- Изменение статуса инвойса и даты отложенности
+         Опорный объект: IDX_INVOICES_TO_ID
+         Предикаты доступа: "ID"=TO_NUMBER(:ID)
+         Кардинальность:  1
+    -->
+    <query name="com.rssl.phizic.business.basket.invoice.Invoice.setStateAndDelayDateById">
+        update com.rssl.phizic.business.basket.invoice.Invoice
+        set state=:state, delayedPayDate=:delayedPayDate, isNew=false
+        where id=:id
+    </query>
+
+    <!--Обновление инвойса при оплате.
+        Опорный объект: IDX_INVOICES_TO_ID
+        Предикаты доступа: ("ID"=TO_NUMBER(:ID))
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.basket.invoice.Invoice.payInvoice">
+        update com.rssl.phizic.business.basket.invoice.Invoice
+        set paymentId=:paymentId, state='PAID'
+        where id=:id
+    </query>
+
+    <!--
+        Опорный объект: IDX_INVOICES_TO_ID
+        Предикаты доступа: ("INVOICE"."ID"=TO_NUMBER(:INVOICEID)), ("INVOICE"."INVOICE_SUBSCRIPTION_ID"="SUBSCRIPTION"."ID")
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.basket.invoiceSubscription.InvoiceSubscription.getInvoiceWithConfirmStrategyTypeById">
+        <return-scalar type="string" column="CONFIRM_STRATEGY_TYPE"/>
+        <return alias="invoice" class="com.rssl.phizic.business.basket.invoice.Invoice"/>
+        <![CDATA[
+            select {invoice.*}, subscription.CONFIRM_STRATEGY_TYPE from INVOICES invoice
+                inner join INVOICE_SUBSCRIPTIONS subscription on invoice.INVOICE_SUBSCRIPTION_ID = subscription.ID
+            where invoice.ID = :invoiceId
+        ]]>
+    </sql-query>
+
+    <!--
+        Опорный объект: IDX_INVOICES_TO_ID
+        Предикаты доступа: ("INVOICE"."ID"=TO_NUMBER(:INVOICEID)), ("INVOICE"."INVOICE_SUBSCRIPTION_ID"="SUBSCRIPTION"."ID")
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.basket.invoice.InvoiceUpdateInfo.findById">
+        <return class="com.rssl.phizic.business.basket.invoice.InvoiceUpdateInfo">
+            <return-property name="id"                      column="ID"/>
+            <return-property name="name"                    column="NAME"/>
+            <return-property name="status"                  column="STATUS"/>
+            <return-property name="loginId"                 column="LOGIN_ID"/>
+            <return-property name="subscriptionId"          column="INVOICE_SUBSCRIPTION_ID"/>
+            <return-property name="confirmStrategyType"     column="CONFIRM_STRATEGY_TYPE"/>
+            <return-property name="creationType"            column="CREATION_TYPE"/>
+            <return-property name="requisites"              column="REQUISITES"/>
+        </return>
+        <![CDATA[
+            select invoice.ID as ID,
+                    invoice.NAME_SERVICE as NAME,
+                    invoice.STATE as STATUS,
+                    invoice.LOGIN_ID as LOGIN_ID,
+                    invoice.INVOICE_SUBSCRIPTION_ID as INVOICE_SUBSCRIPTION_ID,
+                    subscription.CONFIRM_STRATEGY_TYPE as CONFIRM_STRATEGY_TYPE,
+                    subscription.CREATION_TYPE as CREATION_TYPE,
+                    invoice.REQUISITES as REQUISITES
+            from INVOICES invoice
+                inner join INVOICE_SUBSCRIPTIONS subscription on invoice.INVOICE_SUBSCRIPTION_ID = subscription.ID
+            where invoice.ID = :invoiceId
+        ]]>
+    </sql-query>
+</hibernate-mapping>

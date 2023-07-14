@@ -1,0 +1,44 @@
+/**********************************************************************\
+|  Общая часть макроса автопроводки и макроса online-проводки          |
+|                                                                      |
+|  27.11.2007                                                          |
+|  Данилов А.А.                                                        |
+|  Департамент систем электронного банковского обслуживания            |
+|  R-Style Softlab                                                     |
+\**********************************************************************/
+
+import DeposInter, CommonInter;
+private var Global_depparm  = TBFile( "depparm.dbt" , "r", 0, null, "sbbank.def" );
+private var Global_groupmem = TBfile( "groupmem.dbt", "r", 0, null, "sbbank.def" );
+
+
+macro CheckClosedDayInBank (branch:integer, isCur:integer):bool
+   var IsClosed = true;
+
+   Global_depparm.rewind();  Global_depparm.clear(); 
+   Global_groupmem.rewind(); Global_groupmem.clear(); 
+
+   Global_depparm.rec.FNCash  = branch;
+   Global_depparm.rec.FlagCur = isCur;
+
+   if ( Global_depparm.getEQ())
+      Global_groupmem.rec.Branch = Global_depparm.rec.FNCash;
+      Global_groupmem.rec.Date   = Global_depparm.rec.OperDate;
+      Global_groupmem.rec.Group  = 0;
+      Global_groupmem.rec.Oper   = 0;
+
+      if ( Global_groupmem.getGE() 
+                 and  (Global_groupmem.rec.Branch == Global_depparm.rec.FNCash) 
+                 and  (Global_groupmem.rec.Date     == Global_depparm.rec.OperDate))
+          while (Global_groupmem.next())
+             if (Global_groupmem.rec.DayClosed == "X")
+                return true;
+             end;
+          end;
+
+         IsClosed = false;
+      end;
+   end;
+
+   return IsClosed;
+end;

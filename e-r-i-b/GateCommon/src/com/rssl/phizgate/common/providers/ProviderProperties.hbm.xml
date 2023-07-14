@@ -1,0 +1,26 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizgate.common.providers.ProviderPropertiesEntry" table="PROVIDER_PROPERTIES">
+        <id name="providerId" type="long" column="PROVIDER_ID"/>
+
+        <property name="mbCheckEnabled"          type="boolean"    column="MB_CHECK_ENABLED"          not-null="true"/>
+        <property name="mcheckoutDefaultEnabled" type="boolean"    column="MCHECKOUT_DEFAULT_ENABLED" not-null="true"/>
+        <property name="einvoiceDefaultEnabled"  type="boolean"    column="EINVOICE_DEFAULT_ENABLED"  not-null="true"/>
+        <property name="mbCheckDefaultEnabled"   type="boolean"    column="MB_CHECK_DEFAULT_ENABLED"  not-null="true"/>
+        <property name="updateDate"              type="calendar"   column="UPDATE_DATE"               not-null="false"/>
+        <property name="useESB"                  type="boolean"    column="USE_ESB"                   not-null="true"/>
+    </class>
+
+    <!--
+         Опорный объект: PK_PROVIDER_PROPERTIES
+         Предикаты доступа: access("PROP"."PROVIDER_ID"=TO_NUMBER(:providerId))
+         Кардинальность: 1
+      -->
+    <query name="com.rssl.phizgate.common.providers.ProviderPropertiesEntry.isUseESBProvider">
+        select prop.useESB from com.rssl.phizgate.common.providers.ProviderPropertiesEntry prop
+         where prop.providerId = :providerId
+    </query>
+</hibernate-mapping>

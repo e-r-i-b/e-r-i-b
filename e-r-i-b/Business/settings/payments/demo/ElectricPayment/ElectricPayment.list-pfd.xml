@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../PaymentList.xsd"
+		title="Список платежей за электроэнергию"
+	>
+	<filter>
+		<fields>
+			<field name="state" description="Статус"/>
+			<field name="state_list" description="Вспомогательный статус"/>
+			<field name="number" description="Номер">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+						<parameter name="regexp">\d{0,18}</parameter>
+					</validator>
+				</validators>			
+			</field>		
+			<field name="minAmount" description="Минимальная сумма" type="money"/>
+			<field name="maxAmount" description="Максимальная сумма" type="money"/>
+			<field name="fromDate" description="Начальная дата" type="date"/>
+			<field name="toDate" description="Конечная дата" type="date"/>
+			<field name="payerAccount" description="Счет списания"/>
+			<field name="fio" description="ФИО"/>
+			<field name="month" description="Месяц">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+						<parameter name="regexp">[1-9]|1[012]</parameter>
+					</validator>			
+				</validators>
+			</field>						
+			<field name="year" description="Год">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+						<parameter name="regexp">20\d\d</parameter>
+					</validator>			
+				</validators>
+			</field>			
+			<field name="consumption" description="Расход">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+						<parameter name="regexp">\d{1,5}</parameter>
+					</validator>			
+				</validators>
+			</field>	
+			<field name="isShowCounter" description="Показать счетчик" type="boolean"/> 		
+			<field name="isShowTarif"  description="Показать тариф" type="boolean"/> 		
+		</fields>
+		<form-validators>
+			<form-validator class="com.rssl.common.forms.validators.CompareValidator">
+				<message text="Конечная дата должна быть больше либо равна начальной"/>
+				<field-ref name="obj1">fromDate</field-ref>
+				<field-ref name="obj2">toDate</field-ref>
+				<parameter name="operator">le</parameter>
+			</form-validator>
+		</form-validators>
+	</filter>
+	<hql-query>
+		<returnKey property="id"/>
+		<return    property="dateCreated"/>
+		<return    property="chargeOffAccount"/>
+		<return    property="chargeOffAmount.decimal"/>
+		<return    property="chargeOffAmount.currency.code"/>
+		<return    property="state.code"/>
+		<return    property="attributes.abonentName.value"/>
+		<return    property="attributes.monthSelect.value"/>
+		<return    property="attributes.yearSelect.value"/>
+		<return    property="attributes.counterCurr.value"/>
+		<return    property="attributes.counterPrev.value"/>
+		<return    property="attributes.consumption.value"/>
+		<return    property="attributes.tarif.value"/>
+
+       <![CDATA[
+            select payment
+				from com.rssl.phizic.business.documents.payments.RurPayment as payment
+				where payment.formName = 'ElectricPayment'
+			        and payment.owner.id = :loginId
+				    and (:state_list is null      or :state_list = '' or payment.state.code in (:state))
+                    and (:number is null          or :number = '' or payment.id = :number)
+                    and (:minAmount is null       or payment.chargeOffAmount.decimal >= :minAmount)
+                    and (:maxAmount is null       or payment.chargeOffAmount.decimal <= :maxAmount)
+                    and (:fromDate is null        or payment.dateCreated >= :fromDate)
+                    and (:toDate is null          or payment.dateCreated <= :toDate  )
+                    and (:payerAccount is null    or :payerAccount = '' or payment.chargeOffAccount = :payerAccount)
+                    and (:fio   is null or :fio   = ''
+                    or payment.attributes['abonentName'].stringValue like '%'||coalesce(:fio,'')||'%')
+                    and (:month is null or :month = '' or payment.attributes['monthSelect'].stringValue = :month)
+                    and (:year  is null or :year  = '' or payment.attributes['yearSelect' ].stringValue = :year)
+                    and (:consumption is null or :consumption = ''
+                    or payment.attributes['consumption'].stringValue = :consumption)
+                order by payment.dateCreated desc
+            ]]>
+ 	</hql-query>
+</payment-list>

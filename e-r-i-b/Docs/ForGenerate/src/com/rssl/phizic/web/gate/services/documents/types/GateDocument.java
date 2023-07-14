@@ -1,0 +1,192 @@
+package com.rssl.phizic.web.gate.services.documents.types;
+
+import com.rssl.phizic.common.types.DateSpan;
+
+import java.util.Calendar;
+import java.util.List;
+
+/**
+ * @author egorova
+ * @ created 25.05.2009
+ * @ $Author$
+ * @ $Revision$
+ */
+public interface GateDocument
+{
+   Long getId();
+	void setId(Long id);
+   Calendar getDateCreated();
+	void setDateCreated(Calendar calendar);
+   Long getInternalOwnerId();
+	void setInternalOwnerId(Long internalOwnerId);
+   String getExternalOwnerId();
+	void setExternalOwnerId(String externalOwnerId);
+   Office getOffice();
+   void setOffice(Office office);
+   String getType();
+	void setType(String type);
+   Money getCommission();
+   void setCommission(Money commission);
+   CommissionOptions getCommissionOptions();
+	void setCommissionOptions(CommissionOptions commissionOptions);
+   String getDocumentNumber();
+	void setDocumentNumber(String documentNumber);
+   Calendar getAdmissionDate();
+	void setAdmissionDate(Calendar admissionDate);
+   String getExternalId();
+	void setExternalId(String externalId);
+	Calendar getClosingDate();
+   void setClosingDate(Calendar closingDate);
+   GateDocument getTransferPayment();
+	void setTransferPayment(GateDocument gateDocument);
+   String getClosedAccount();
+	void setClosedAccount(String closedAccount);
+   String getChargeOffAccount();
+    void setChargeOffAccount(String chargeOffAccount);
+   Money getChargeOffAmount();
+   void setChargeOffAmount(Money chargeOffAmount);
+	Calendar getChargeOffDate();
+   void setChargeOffDate(Calendar chargeOffDate);
+	String getGround();
+	void setGround(String ground);
+   String getDepositConditionsId();
+   DateSpan getPeriod();
+    void setPeriod(DateSpan period);
+   String getTransferAccount();
+    void setTransferAccount(String transferAccount);
+   Calendar getVisitDate();
+   void setVisitDate(Calendar visitDate);
+   boolean isAutomaticRenewal();
+	void setAutomaticRenewal(boolean automaticRenewal);
+   String getOfficeExternalId();
+	void setOfficeExternalId(String officeExternalId);
+	String getAccount();
+	void setAccount(String account);
+    String getDestinationAccount();
+	void setDestinationAccount(String destinationAccount);
+    Money getDestinationAmount();
+	void setDestinationAmount(Money destinationAmount);
+   String getOperationCode();
+	void setOperationCode(String operationCode);
+	String getReceiverAccount();
+	void setReceiverAccount(String receiverAccount);
+	String getReceiverPointCode();
+	void setReceiverPointCode(String receiverPointCode);
+	List<PaymentSystemField> getExtendedFields();
+	void setExtendedFields(List<PaymentSystemField> extendedFields);
+	public String getDestination();
+	void setDestination(String getDestination);
+	String getPayPeriods();
+	void setPayPeriods(String payPeriods);
+	RecipientInfoImpl getRecipientInfo();
+	void setRecipientInfo(RecipientInfoImpl info);
+	Money getPaymentSum();
+	void setPaymentSum(Money sum);
+	String getClientBranchCode();
+	void setClientBranchCode(String clientBranchCode);
+	String getReceiverName();
+	void setReceiverName(String receiverName);
+	String getIdFromPaymentSystem();
+	void setIdFromPaymentSystem(String idFromPaymentSystem);
+   String getReceiverBIC();
+	void setReceiverBIC(String receiverBIC);
+   String getReceiverCorAccount();
+	void setReceiverCorAccount(String receiverCorAccount);
+   String getReceiverINN();
+	void setReceiverINN(String receiverINN);
+   String getReceiverKPP();
+	void setReceiverKPP(String receiverKPP);
+   String getReceiverBankName();
+	void setReceiverBankName(String receiverBankName);
+	String getReceiverAlias();
+	void setReceiverAlias(String receiverAlias);
+	String getTransitAccount();
+   void setTransitAccount(String transitAccount);
+   String getReceiverCountryCode();
+	void setReceiverCountryCode(String receiverCountryCode);
+   String getReceiverSWIFT();
+	void setReceiverSWIFT(String receiverSWIFT);
+   String getConditions(); //переделанный enum
+	void setConditions(String conditions);
+   String getPayerId();
+	void setPayerId(String payerId);
+	String getRegisterNumber();
+   void setRegisterNumber(String registerNumber);
+    String getRegisterString();
+   void setRegisterString(String registerString);
+   String getTaxKBK();
+	void setTaxKBK(String taxKBK);
+   String getTaxOKATO();
+	void setTaxOKATO(String taxOKATO);
+   Calendar getTaxDocumentDate();
+	void setTaxDocumentDate(Calendar taxDocumentDate);
+   String getTaxDocumentNumber();
+	void setTaxDocumentNumber(String taxDocumentNumber);
+   String getTaxPeriod();
+	void setTaxPeriod(String taxPeriod);
+   String getTaxGround();
+	void setTaxGround(String taxGround);
+   String getTaxPaymentType();
+	void setTaxPaymentType(String taxPaymentType);
+   String getTaxPaymentStatus();
+	void setTaxPaymentStatus(String taxPaymentStatus);
+   String getWithdrawExternalId();
+	void setWithdrawExternalId(String withdrawExternalId);
+   Long getWithdrawInternalId();
+	void setWithdrawInternalId(Long withdrawInternalId);
+	String getWithdrawType(); //Class<? extends GateDocument>
+	void setWithdrawType(String withdrawType);
+   GateDocument getEditedDocument();
+	void setEditedDocument(GateDocument editedDocument);
+   Money getLoanAmount();
+	void setLoanAmount(Money loanAmount);
+   Money getSelfAmount();
+	void setSelfAmount(Money selfAmount);
+   Money getObjectAmount();
+	void setObjectAmount(Money objectAmount);
+   DateSpan getDuration();
+	void setDuration(DateSpan duration);
+   String getConditionsId();
+	void setConditionsId(String conditionsId);
+   List<QuestionnaireAnswer> getQuestionnaireIterator();
+	void setQuestionnaireIterator(List<QuestionnaireAnswer> iterator);
+   List<GateDocument> getGuarantorClaimsIterator();
+	void setGuarantorClaimsIterator(List<GateDocument> iterator);
+   Money getApprovedAmount();
+	void setApprovedAmount(Money approvedAmount);
+   DateSpan getApprovedDuration();
+	void setApprovedDuration(DateSpan approvedDuration);
+	String getClaimNumber();
+	void setClaimNumber(String claimNumber);
+	String getPayerName();
+	void setPayerName(String payerName);
+	public String getCardNumber();
+	void setCardNumber(String cardNumber);
+	String getBlockingReason();    //BlockReason
+	void setBlockingReason(String setBlockingReason);
+	String getCardExternalId();
+	void setCardExternalId(String cardExternalId);
+   String getDepositAccount();
+	void setDepositAccount(String depositAccount);
+   	int getAccountAction();
+	void setAccountAction(int accountAction);
+   String getExternalDepositId();
+	void setExternalDepositId(String externalDepositId);
+	State getState();
+	void setState(String state);
+   String getName();
+	void setName(String name);
+   String getReceiverFirstName();
+	void setReceiverFirstName(String receiverFirstName);
+   String getReceiverPartName();
+	void setReceiverPartName(String receiverPartName);
+   Calendar getReceiverBornDate();
+	void setReceiverBornDate(Calendar receiverBornDate);
+
+	//Это временные типы в GateDocument не нужны, нужны для листов
+//	PaymentSystemField getPaymentSystemField();
+//	void setPaymentSystemField(PaymentSystemField paymentSystemField);
+//	QuestionnaireAnswer getQuestionnaireAnswer();
+//	void setQuestionnaireAnswer(QuestionnaireAnswer questionnaireAnswer);
+
+}

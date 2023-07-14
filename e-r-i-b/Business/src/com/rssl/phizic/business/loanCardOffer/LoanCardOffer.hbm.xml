@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    
+    <typedef name="LoanCardOfferType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.loanCardOffer.LoanCardOfferType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.loanCardOffer.LoanCardOffer" table="LOAN_CARD_OFFER">
+         <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_LOAN_CARD_OFFER</param>
+            </generator>
+        </id>
+
+        <property name="firstName" type="not-null-string" column="FIRST_NAME" not-null="true"/>
+        <property name="surName" type="not-null-string" column="SUR_NAME" not-null="true"/>
+        <property name="patrName" type="string" column="PATR_NAME" not-null="false"/>
+        <property name="birthDay" type="calendar" column="BIRTHDAY" not-null="true"/>
+        
+        <property name="maxLimit" type="money" not-null="true">
+            <column name="MAX_LIMIT_AMOUNT" not-null="false"/>
+            <column name="MAX_LIMIT_CURRENCY" not-null="false"/>
+        </property>
+
+	    <property name="cardNumber" type="string" column="CARD_NUMBER" not-null="false"/>
+	    <property name="offerType" type="LoanCardOfferType" column="OFFER_TYPE" not-null="true"/>
+	    <property name="newCardType" type="string" column="NEW_CARD_TYPE" not-null="false"/>
+	    <property name="isViewed" type="boolean" column="IS_VIEWED" not-null="true"/>
+	    <property name="seriesAndNumber" type="string" column="SERIES_NUMBER" not-null="true"/>
+	    <property name="idWay" type="long" column="ID_WAY" not-null="false"/>
+	    <property name="terbank" type="long" column="TB" not-null="true"/>
+	    <property name="osb" type="long" column="OSB" not-null="true"/>
+	    <property name="vsp" type="long" column="VSP" not-null="false"/>
+        <property name="loadDate" type="calendar" column="LOAD_DATE" not-null="false"/>
+        <property name="viewDate" type="calendar" column="VIEW_DATE" not-null="false"/>
+        <property name="transitionDate" type="calendar" column="TRANSITION_DATE" not-null="false"/>
+        <property name="registrationDate" type="calendar" column="REGISTRATION_DATE" not-null="false"/>
+        <property name="offerUsed" type="boolean" column="IS_OFFER_USED" not-null="true"/>
+
+        <filter name="byTypeFilter"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.loanCardOffer.LoanCardOffer.getLoanCardOfferByPersonData">
+        <return alias="loanCardOffer" class="com.rssl.phizic.business.loanCardOffer.LoanCardOffer"/>
+        <![CDATA[
+            select {loanCardOffer.*}
+            from LOAN_CARD_OFFER loanCardOffer
+            where upper(replace(loanCardOffer.SUR_NAME, ' ', '')||replace(loanCardOffer.FIRST_NAME, ' ', '')||replace(loanCardOffer.PATR_NAME, ' ', ''))=:FIO
+            and loanCardOffer.birthDay = :birthDay
+            and upper(replace(loanCardOffer.SERIES_NUMBER, ' ', '')) in (:seriesAndNumbers)
+            and (
+                    loanCardOffer.TB = :tb
+                    or (:tb = 38 and loanCardOffer.TB = 99)
+                    or (:tb = 99 and loanCardOffer.TB = 38)
+                    or :tb =
+                        (select dr.TB_ERIB from departments_recording dr
+                        where ltrim(dr.OSB_SPOOBK2, '0') = ltrim(to_char(loanCardOffer.OSB), '0') and dr.TB_SPOOBK2 = to_char(loanCardOffer.TB)
+                        and rownum < 2 )
+            )
+            and loanCardOffer.MAX_LIMIT_AMOUNT >= (select min(min_step.VALUE_AMOUNT) from CARD_AMOUT_STEP  min_step where loanCardOffer.MAX_LIMIT_CURRENCY = min_step.VALUE_CURRENCY)
+            and loanCardOffer.MAX_LIMIT_AMOUNT <= (select max(max_step.VALUE_AMOUNT) from CARD_AMOUT_STEP  max_step where loanCardOffer.MAX_LIMIT_CURRENCY = max_step.VALUE_CURRENCY)
+            and loanCardOffer.IS_OFFER_USED = '0'
+            order by loanCardOffer.id  desc
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.loanCardOffer.LoanCardOffer.getViewedLoanCardOfferByPersonData">
+        <return alias="loanCardOffer" class="com.rssl.phizic.business.loanCardOffer.LoanCardOffer"/>
+        <![CDATA[
+            select {loanCardOffer.*}
+            from LOAN_CARD_OFFER loanCardOffer
+            where  loanCardOffer.IS_VIEWED = :isViewed
+            and upper(replace(loanCardOffer.SUR_NAME, ' ', '')||replace(loanCardOffer.FIRST_NAME, ' ', '')||replace(loanCardOffer.PATR_NAME, ' ', ''))=:FIO
+            and loanCardOffer.birthDay = :birthDay
+            and upper(replace(loanCardOffer.SERIES_NUMBER, ' ', '')) in (:seriesAndNumbers)
+            and (
+                    loanCardOffer.TB = :tb
+                    or (:tb = 38 and loanCardOffer.TB = 99)
+                    or (:tb = 99 and loanCardOffer.TB = 38)
+                    or :tb =
+                        (select dr.TB_ERIB from departments_recording dr
+                        where ltrim(dr.OSB_SPOOBK2, '0') = ltrim(to_char(loanCardOffer.OSB), '0') and dr.TB_SPOOBK2 = to_char(loanCardOffer.TB)
+                        and rownum < 2)
+                )
+            and loanCardOffer.MAX_LIMIT_AMOUNT >= (select min(min_step.VALUE_AMOUNT) from CARD_AMOUT_STEP  min_step where loanCardOffer.MAX_LIMIT_CURRENCY = min_step.VALUE_CURRENCY)
+            and loanCardOffer.MAX_LIMIT_AMOUNT <= (select max(max_step.VALUE_AMOUNT) from CARD_AMOUT_STEP  max_step where loanCardOffer.MAX_LIMIT_CURRENCY = max_step.VALUE_CURRENCY)
+            and loanCardOffer.IS_OFFER_USED = '0'
+            order by loanCardOffer.id  desc
+        ]]>
+    </sql-query>
+
+  <query name="com.rssl.phizic.business.loanCardOffer.LoanCardOffer.removeAll">
+        delete
+        from LoanCardOffer as loanCardOffer
+    </query>
+
+    <!-- Пометить предложение на кредитную карту как использованное
+       Опорный объект:  PK_LOAN_CARD_OFFER
+       Предикаты доступа: access("LOANCARDOFFER"."ID"=TO_NUMBER(:ID))
+       Кардинальность: 1
+   -->
+    <query name="com.rssl.phizic.business.loanCardOffer.LoanCardOffer.markLoanCardOfferAsUsed">
+        update LoanCardOffer loanCardOffer
+        set  loanCardOffer.offerUsed = true
+        where loanCardOffer.id = :id
+    </query>
+
+    <!-- Обновить дату регистрации заявки на кредитную карту
+       Опорный объект:  PK_LOAN_CARD_OFFER
+       Предикаты доступа: access("LOANCARDOFFER"."ID"=TO_NUMBER(:ID))
+       Кардинальность: 1
+   -->
+    <query name="com.rssl.phizic.business.loanCardOffer.LoanCardOffer.updateLoanCardOfferRegistrationDate">
+        update LoanCardOffer loanCardOffer
+        set  loanCardOffer.registrationDate = :now
+        where loanCardOffer.id = :id
+    </query>
+
+    <!-- Обновить дату перехода на страницу оформления заявки на кредитную карту
+       Опорный объект:  PK_LOAN_CARD_OFFER
+       Предикаты доступа: access("LOANCARDOFFER"."ID"=TO_NUMBER(:ID))
+       Кардинальность: 1
+   -->
+    <query name="com.rssl.phizic.business.loanCardOffer.LoanCardOffer.updateLoanCardOfferTransitionDate">
+        update LoanCardOffer loanCardOffer
+        set  loanCardOffer.transitionDate = :now
+        where loanCardOffer.id = :id
+    </query>
+
+    <!-- Является ли предложение на кредитную карту просмотренным
+       Опорный объект:  PK_LOAN_CARD_OFFER
+       Предикаты доступа: access("LOAN_CARD_OFFER"."ID"=TO_NUMBER(:OFFERID))
+       Кардинальность: 1
+   -->
+    <query name="com.rssl.phizic.business.loanOffer.LoanCardOffer.isLoanCardOfferViewed">
+        select 1
+        from LoanCardOffer as loanCardOffer
+            where loanCardOffer.id = :offerId
+            and loanCardOffer.isViewed = true
+    </query>
+
+    <filter-def name="byTypeFilter" condition="OFFER_TYPE = :offerType">
+        <filter-param name="offerType" type="string"/>
+    </filter-def>
+
+</hibernate-mapping>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.mail.archive.ArchiveDeletedMailOperation.list">
+        <return alias="mail"          class="com.rssl.phizic.business.mail.Mail"/>
+		<![CDATA[
+        SELECT
+            {mail.*}
+        FROM
+            MAIL mail
+        WHERE
+            mail.CREATION_DATE <= :extra_toDate            
+        AND
+            (mail.DIRECTION = 'CLIENT' AND mail.DELETED = '1' AND mail.ID not  in (
+                SELECT m.ID FROM
+                    MAIL m
+                JOIN
+                    RECIPIENTS r ON m.ID = r.MAIL_ID
+                WHERE
+                    m.STATE != 'EMPLOYEE_DRAFT'
+                AND
+                   r.STATE = 'NEW'
+                )
+            OR
+            mail.DIRECTION = 'ADMIN' AND mail.ID in (
+                SELECT m.ID FROM
+                    MAIL m
+                 JOIN
+                    RECIPIENTS r ON m.ID = r.MAIL_ID
+                WHERE
+                   r.DELETED = '1'
+                AND
+                   r.STATE !='NEW'
+                )
+            )
+        OR (
+               mail.PARENT_ID is not null
+            AND
+               mail.deleted = '1'
+            AND
+               mail.STATE = 'EMPLOYEE_DRAFT'
+            AND
+               mail.DIRECTION = 'CLIENT'
+            )
+        ORDER BY
+            mail.CREATION_DATE DESC
+        ]]>
+    </sql-query>
+</hibernate-mapping>

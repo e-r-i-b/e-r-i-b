@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+
+<project name="PhizIC" default="prepare.image">
+
+	<import id="configs" file="configs.ant"/>
+	<property file="PhizIC.properties"/>
+
+	<loadproperties srcfile="${basedir}/${ant.project.name}.properties">
+		<filterchain>
+			<containsregex pattern="^${ant.project.name}\." replace="" flags="i"/>
+		</filterchain>
+	</loadproperties>
+
+	<target name="reload" depends="init.configuration" description="Выгрузка из ВМ">
+		<taskdef name="svn" classname="org.tigris.subversion.svnant.SvnTask">
+            	<classpath>
+                	<pathelement location="..\Libraries\ForAnt\svnant.jar"/>
+                	<pathelement location="..\Libraries\ForAnt\svnClientAdapter.jar"/>
+                	<pathelement location="..\Libraries\ForAnt\svnjavahl.jar"/>
+                	<pathelement location="..\Libraries\ForAnt\svnkit.jar"/>
+           	</classpath>
+		</taskdef>
+		<svn>
+			<checkout url="${phizic.project.svn.url}" destPath="${project.root}/FromSVN"/>
+			<status path="${project.root}/FromSVN" revisionProperty="project.svn.rev"/>
+		</svn>
+		<delete dir="${project.root}" failonerror="false" includeemptydirs="true"
+		        excludes="FromSVN/**,*.out,*.err"/>
+		<move todir="${project.root}">
+			<fileset dir="${project.root}/FromSVN" excludes="*.ipr,**/*.iml"/>
+		</move>
+		<delete dir="${project.root}/FromSVN" failonerror="false"/>
+		<propertyfile file="${project.root}/WebResources/web/version.txt">
+			<entry key="project.svn.rev" value="${phizic.project.svn.rev}"/>
+			<entry key="project.svn.url" value="${phizic.project.svn.url}"/>
+		</propertyfile>
+	</target>
+
+	<target name="version" depends="setup_project_paths" description="Извлечение версии проекта">
+		<property file="${project.root}/WebResources/web/version.txt"/>
+	</target>
+
+	<target name="clean" depends="setup_project_paths" description="Удаление классов и образов">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${project.root}">
+				<include name="*.ear\"/>
+                <include name="ears\"/>
+				<include name="PhizIC.image\"/>
+			</fileset>
+			<fileset dir="${project.root}" includes="*/bin/**,*/test-bin/**,*/bin-test/**" excludes="*/*"/>
+		</delete>
+	</target>
+
+	<target name=".prepare.scripts" if="project.root">
+		<copy file="${project.root}/Docs/Models/PhizIC - Oracle.sql"
+		      tofile="${project.root}/AntBuilds/db-data/tables-oracle.sql"
+		      preservelastmodified="true"/>
+         <copy file="${project.root}/Docs/Models/CSA - Oracle.sql"
+		      tofile="${project.root}/AntBuilds/db-data/tables-csa-oracle.sql"
+		      preservelastmodified="true"/>
+         <copy file="${project.root}/Docs/Models/AsynchSearch - Oracle.sql"
+		      tofile="${project.root}/AntBuilds/db-data/tables-asynchsearch-oracle.sql"
+		      preservelastmodified="true"/>
+         <copy file="${project.root}/Docs/Models/CSAAdmin - Oracle.sql"
+		      tofile="${project.root}/AntBuilds/db-data/tables-csa-admin-oracle.sql"
+		      preservelastmodified="true"/>
+		<copy file="${project.root}/Additional/sbrf/offlineDoc/tables-offline-doc-oracle.sql"
+		      tofile="${project.root}/AntBuilds/db-data/tables-offline-doc-oracle.sql"
+		      preservelastmodified="true"/>
+		<copy file="${project.root}/Additional/sbrf/push/Push - Oracle.sql"
+              tofile="${project.root}/AntBuilds/db-data/tables-push-oracle.sql"
+              preservelastmodified="true"/>
+        <copy file="${project.root}/Docs/Models/EInvoicing - Oracle.sql"
+              tofile="${project.root}/AntBuilds/db-data/tables-einvoicing-oracle.sql"
+              preservelastmodified="true"/>
+        <copy file="${project.root}/Docs/Models/Limits - Oracle.sql"
+              tofile="${project.root}/AntBuilds/db-data/tables-limits-oracle.sql"
+              preservelastmodified="true"/>
+        <copy file="${project.root}/Docs/Models/Logging - Oracle.sql"
+              tofile="${project.root}/AntBuilds/db-data/tables-log-oracle.sql"
+              preservelastmodified="true"/>
+        <copy file="${project.root}/Docs/Models/MDM - Oracle.sql"
+              tofile="${project.root}/AntBuilds/db-data/tables-mdm-oracle.sql"
+              preservelastmodified="true"/>
+        <copy file="${project.root}/Docs/Models/USCT - Oracle.sql"
+              tofile="${project.root}/AntBuilds/db-data/tables-usct-oracle.sql"
+              preservelastmodified="true"/>
+		<replaceregexp match="/\*.*\*/\s*" replace="" flags="g">
+			<fileset dir="${project.root}/AntBuilds/db-data" includes="tables-*.sql"/>
+		</replaceregexp>
+	</target>
+
+    <target name="jar.dictionaries" depends="setup_project_paths" description="Архивирование справочников в СКК">
+        <mkdir dir="${image.dir}/Libraries/configs/"/>
+        <jar basedir="${project.root}/contact" destfile="${image.dir}/Libraries/configs/russlav.jar"/>
+        <jar basedir="${project.root}/officeList" destfile="${image.dir}/Libraries/configs/sbrf.jar"/>
+    </target>
+
+
+	<target name="prepare.image" depends="init.configuration" description="Подготовка образа для инсталлятора">
+		<antcall target=".prepare.scripts"/>
+		<ant antfile="builder.ant" target="build"/>
+		<ant antfile="builder.ant" target="compile_struts"/>
+		<ant antfile="builder.ant" target="explode"/>		
+		<delete dir="${image.dir}" includeemptydirs="true" failonerror="false"/>
+		<copy todir="${image.dir}">
+			<fileset dir="${project.root}">
+				<include name="*/bin/**"/>
+				<include name="*/web/**"/>
+                <include name="*/oracleJmsConfig/**"/>
+				<include name="*/*-INF/**"/>
+				<include name="Libraries/*/*.jar"/>
+				<include name="Business/settings/**"/>
+				<include name="Settings/schemas/**"/>
+				<include name="Settings/templates/**"/>
+				<include name="Settings/configs/global/**"/>
+				<include name="Settings/configs/${current.config.name}/**"/>
+				<exclude name="Settings/bin/**"/>
+				<include name="AntBuilds/*.ant"/>
+				<include name="AntBuilds/db-data/**"/>
+				<include name="AntBuilds/configs/${current.config.name}.*"/>
+				<include name="AntBuilds/configs/earGatesConfig.xml"/>
+				<include name="Additional/${current.config.name}/**"/>
+				<exclude name="AntBuilds/${ant.project.name}.*"/>
+				<exclude name="Listener/" unless="include.Listener"/>
+				<exclude name="CryptoPlugin/" unless="include.CryptoPlugin"/>
+                <exclude name="JCPCryptoPlugin/" unless="include.JCPCryptoPlugin"/>
+                <exclude name="SBRFCryptoPlugin/" unless="include.SBRFCryptoPlugin"/>
+                <exclude name="Listener/" unless="include.Listener"/>
+                <exclude name="RapidaSystem/" unless="include.gates.RapidaSystem"/>
+		        <exclude name="RSBank50Gate/" unless="include.gates.RSBank50Gate"/>
+		        <exclude name="RSBank55Gate/" unless="include.gates.RSBank55Gate"/>
+                <exclude name="RSLoans64Gate/" unless="include.gates.RSLoans64Gate"/>
+                <exclude name="RSRetailV51Gate/" unless="include.gates.RSRetailV51Gate"/>
+                <exclude name="RSRetailV6r4Gate/" unless="include.gates.RSRetailV6r4Gate"/>
+                <exclude name="RSRetailV6r20Gate/" unless="include.gates.RSRetailV6r20Gate"/>
+                <exclude name="SBCMSGate/" unless="include.gates.SBCMSGate"/>
+                <exclude name="ESBERIBGate/" unless="include.gates.ESBERIBGate"/>
+                <exclude name="MobileBankGate/" unless="include.gates.MobileBankGate"/>
+                <exclude name="DepoMobileBankGate/" unless="include.gates.DepoMobileBankGate"/>
+                <exclude name="IPSGate/" unless="include.gates.IPSGate"/>
+                <exclude name="SBRFCODGate/" unless="include.gates.SBRFCODGate"/>
+                <exclude name="SBRFXBankGate/" unless="include.gates.SBRFXBankGate"/>
+                <exclude name="*.ear/"/>
+			</fileset>
+		</copy>
+		<copy todir="${image.dir}">
+			<fileset dir="${project.root}" includes="AntBuilds/install.bat"/>
+			<filterset>
+				<filter token="current.config.name" value="${current.config.name}"/>
+                <filter token="installer.settings.file" value="${ikfl.build.installer.settings.file}"/>
+			</filterset>
+		</copy>
+		<mkdir dir="${image.dir}/Settings/bin"/>
+		<propertyfile file="${image.dir}/Settings/bin/configs.properties">
+			<entry key="current.config.name" value="${current.config.name}"/>
+		</propertyfile>
+		<replaceregexp flags="gm" match="^dbserver\.test\..+=.+$[\n\r]*" replace="">
+			<fileset dir="${image.dir}" includes="AntBuilds/configs/*.properties"/>
+		</replaceregexp>
+		<!-- TODO: организовать заполнение свойств конфигураций банковскими значениями -->
+		<if>
+		   <isset property="appserver.type.jboss"/>
+		  <then>
+			<delete dir="${image.dir}/Libraries/JAXRPC">
+			 <include name="jsr*.jar"/>
+			</delete>
+			<delete dir="${image.dir}/Libraries/XML">
+			 <include name="serializer.jar"/>
+			 <include name="xalan.jar"/>
+			 <include name="xml-apis.jar"/>
+			</delete>
+		  </then>
+		 </if>
+	</target>
+
+	<target name=".test.junit.only" if="project.root">
+		<property name="report.suffix" value="" description="default"/>
+		<junit printsummary="withOutAndErr" showoutput="true" fork="true" forkmode="once" maxmemory="512m">
+			<classpath>
+				<fileset dir="${project.root}/Libraries">
+                    <include name="*/*.jar"/>
+
+                    <exclude name="ForAnt/*.jar"/>
+                    <exclude name="JAXB/jaxb1-impl.jar"/>
+                </fileset>
+				<dirset dir="${project.root}" includes="*/bin" excludes="SmsBanking/*"/>
+			</classpath>
+			<test name="com.rssl.phizic.utils.test.ConfigurableTestRunner"/>
+			<formatter type="xml" extension="${report.suffix}.xml"/>
+		</junit>
+	</target>
+
+	<target name="test.complete" depends="init.configuration" if="current.config.name">
+		<delete file="${basedir}/last-test.properties"/>
+		<record name="${basedir}/test.complete.log" loglevel="debug"/>
+		<tstamp>
+			<format property="test.timestamp" pattern="yyyyMMddHHmmss"/>
+			<format property="test.start.date" pattern="dd.MM.yyyy"/>
+			<format property="test.start.time" pattern="HH:mm:ss"/>
+		</tstamp>
+		<propertyfile file="${basedir}/last-test.properties">
+			<entry key="current.config.name" value="${current.config.name}"/>
+			<entry key="test.timestamp" value="${test.timestamp}"/>
+			<entry key="test.start.date" value="${test.start.date}"/>
+			<entry key="test.start.time" value="${test.start.time}"/>
+		</propertyfile>
+		<antcall target=".test.junit.only">
+			<param name="report.suffix" value="-${test.timestamp}"/>
+		</antcall>
+		<tstamp>
+			<format property="test.end.time" pattern="HH:mm:ss"/>
+		</tstamp>
+		<propertyfile file="${basedir}/last-test.properties">
+			<entry key="test.end.time" value="${test.end.time}"/>
+		</propertyfile>
+	</target>
+
+	<target name="test.report" depends="init.configuration,version">
+		<property file="${basedir}/last-test.properties"/>
+		<junitreport tofile="TEST-TestSuites-${test.timestamp}.xml">
+			<fileset dir="${basedir}" includes="TEST-*-${test.timestamp}.xml"/>
+			<report styledir="${basedir}/xslt" format="noframes"/>
+		</junitreport>
+		<delete dir="${basedir}" includes="TEST-*-${test.timestamp}.xml"/>
+		<property name="report.file.name" value="${test.timestamp}-${current.config.name}"/>
+		<property name="report.file.base" value="${basedir}/${report.file.name}"/>
+		<move file="junit-noframes.html" tofile="${report.file.base}.htm" failonerror="false"/>
+		<move file="test.complete.log" tofile="${report.file.base}.log"   failonerror="false"/>
+		<copy file="${report.file.base}.htm" tofile="${report.file.base}.res" overwrite="true" failonerror="false"/>
+		<property name="pattern.head"
+		          value="&lt;th&gt;Tests.{9}Failures.{9}Errors.{9}Success rate.{9}Time&lt;/th&gt;"/>
+		<property name="pattern.value" value="&lt;td&gt;(.{1,9})&lt;/td&gt;"/>
+		<property name="pattern.match"
+		          value=".*${pattern.head}.{10,50}${pattern.value}${pattern.value}${pattern.value}${pattern.value}${pattern.value}.*"/>
+
+		<replaceregexp file="${report.file.base}.res" flags="s" match="${pattern.match}"
+		               replace="\(\3+\2)/\1-\5"/>
+		<loadfile property="test.result.text" srcfile="${report.file.base}.res"/>
+		<condition property="test.result.verb" value="passed" else="FAILED">
+			<and>
+				<isset property="test.end.time"/>
+				<contains string="${test.result.text}" substring="(0+0)"/>
+				<not>
+					<contains string="${test.result.text}" substring="0-0.0"/>
+				</not>
+			</and>
+		</condition>
+		<zip destfile="${report.file.base}.zip" basedir="${basedir}" includes="${report.file.name}.*"/>
+		<mail mailhost="evidence" from="PhizIC@softlab.ru" tolist="${phizic.project.mail_to}"
+		      subject="PhizIC-${current.config.name}-${phizic.project.svn.rev} test ${test.result.verb} with result ${test.result.text} (${test.start.date} ${test.start.time}-${test.end.time})!"
+		      encoding="mime" messagemimetype="text/html" charset="Windows-1251"
+		      messagefile="${report.file.base}.htm">
+			<fileset file="${report.file.base}.zip"/>
+		</mail>
+		<delete dir="${basedir}" includes="${report.file.name}.*,last-test.properties"/>
+	</target>
+
+	<target name="send.log" depends="init.configuration,version">
+		<property name="test.working.page"      value="${project.root}/testpage.htm"/>
+        	<property name="test.version.page"  value="${project.root}/version.txt"/>
+        	<property name="zipped.log.files"   value="${project.root}/${ant.project.name}.zip"/>
+        	<property name="zipped.oc4j.files"  value="${project.root}/OC4J.Logs.zip"/>
+        	<property name="oc4j.server.logdir" value="${oc4j.root}/j2ee/home/log/"/>
+
+        	<get src="${phizic.server.test.url}" dest="${test.working.page}" ignoreerrors="true"/>
+        	<get src="${phizic.server.test.ver}" dest="${test.version.page}" ignoreerrors="true"/>
+        
+        	<condition property="deploy.result.verb" value="successfully deployed" else="FAILED to deploy">
+            		<and>
+                		<available  file="${test.working.page}"/>
+                		<filesmatch file1="${test.version.page}"
+                            		file2="${project.root}/WebResources/web/version.txt"/>
+            		</and>
+        	</condition>
+        	<delete file="${test.working.page}"/>
+        	<delete file="${test.version.page}"/>
+
+        	<zip destfile="${zipped.log.files}"  basedir="${project.root}" includes="*.out,*.err, *.log"/>
+        	<zip destfile="${zipped.oc4j.files}" basedir="${oc4j.server.logdir}" includes="*.log"/>
+
+        	<mail mailhost="evidence" from="PhizIC@softlab.ru" tolist="${phizic.project.mail_to}"
+             	subject="The PhizIC-application ${deploy.result.verb} to AS (${phizic.project.svn.rev} - ${phizic.project.svn.url})!"
+              	encoding="mime" messagemimetype="text/html" charset="Windows-1251">
+            	<message>
+                	<![CDATA[Check application <a href=${phizic.server.test.url}>Start Page</a>!]]>
+            	</message>
+            	<fileset file="${zipped.log.files}"/>
+            	<fileset file="${zipped.oc4j.files}"/>
+        	</mail>
+        	<delete file="${zipped.log.files}"/>
+        	<delete file="${zipped.oc4j.files}"/>
+
+	</target>
+</project>

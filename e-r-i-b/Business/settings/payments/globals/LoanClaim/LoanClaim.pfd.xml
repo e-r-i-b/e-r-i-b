@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="LoanClaim"
+		description="Заявка на кредит"
+		detailedDescription="Подача в банк заявки на получение кредита."
+        confirmDescription="Ваша заявка успешно отправлена в банк! Спасибо, что воспользовались системой «Сбербанк Онлайн»!"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+    <implementation class="com.rssl.phizic.business.documents.LoanClaim"/>
+	<statemachine name="LoanClaimStateMachine"/>
+	<extended-metadata-loader class="com.rssl.phizic.business.forms.LoanClaimMetadataLoader"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+		       type="string"/>
+
+		<field name="documentNumber"
+		       description="Номер документа"
+		       type="string"
+		       source="document-number"
+		       signable="true">
+		</field>
+
+		<field name="documentDate"
+		       description="Дата документа"      
+		       type="date"
+		       source="document-date"
+		       signable="true">
+		</field>
+
+		<field  name="admissionDate"
+				source="admission-date"
+				type="date"
+				description="Дата приема заявки банком">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator" />
+			</validators>
+		</field>
+
+		<field name="product"
+		       description="Кредитный продукт"
+		       type="string"
+		       source="extra-parameters/parameter[@name='product']/@value"
+		       signable="true"/>
+
+		<field name="kind"
+		       description="Вид кредита"
+		       type="string"
+		       source="extra-parameters/parameter[@name='kind']/@value"
+		       signable="true"/>
+
+		<field name="office"
+		       description="Кредитный офис"
+		       type="string"
+		       source="extra-parameters/parameter[@name='office']/@value"
+		       signable="true"/>
+
+		<field name="client-request-amount"
+		       type="money"
+		       source="extra-parameters/parameter[@name='client-request-amount']/@value"
+		       description="Запрашиваемая сумма кредита">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="loan-currency"
+		       type="string"
+		       description="Валюта"
+		       source="extra-parameters/parameter[@name='loan-currency']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="client-request-term"
+		       type="string"
+		       description="Срок кредита(месяцев)"
+		       source="extra-parameters/parameter[@name='client-request-term']/@value">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="product-name"
+		       type="string"
+		       description="Название кредитного продукта"
+		       source="extra-parameters/parameter[@name='product-name']/@value">
+		</field>
+
+		<field name="kind-name"
+		       type="string"
+		       description="Вида кредитного продукта"
+		       source="extra-parameters/parameter[@name='kind-name']/@value">
+		</field>
+
+		<field name="office-name"
+		       type="string"
+		       description="Офис Банка"
+		       source="extra-parameters/parameter[@name='office-name']/@value">
+		</field>
+
+		<field name="bank-accept-amount"
+		       type="string"
+		       description="Утвержденная сумма кредита"
+		       source="extra-parameters/parameter[@name='bank-accept-amount']/@value">
+		</field>
+
+		<field name="bank-accept-term"
+		       type="string"
+		       description="Утвержденный срок кредита"
+		       source="extra-parameters/parameter[@name='bank-accept-term']/@value">
+		</field>
+
+		<field name="bank-comment"
+		       type="string"
+		       description="Комментарий к заявке"
+		       source="extra-parameters/parameter[@name='bank-comment']/@value">
+		</field>
+	</fields>
+
+	<form-validators>
+		<form-validator class="com.rssl.phizic.business.claims.forms.validators.LoanRequestAmountValidator" mode="document">
+			<message text="Запрашиваемая сумма кредита не соответствует выбранному кредитному продукту"/>
+			<field-ref name="loan-product">product</field-ref>
+			<field-ref name="request-amount">client-request-amount</field-ref>
+			<field-ref name="office">office</field-ref>
+			<field-ref name="loan-currency">loan-currency</field-ref>
+		</form-validator>
+		<form-validator class="com.rssl.phizic.business.claims.forms.validators.LoanRequestTermValidator" mode="document">
+			<message text="Неверное значение в поле [Срок кредита]. См. Допустимые сроки кредита"/>
+			<field-ref name="loan-product">product</field-ref>
+			<field-ref name="request-term">client-request-term</field-ref>
+			<field-ref name="office">office</field-ref>
+			<field-ref name="loan-currency">loan-currency</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

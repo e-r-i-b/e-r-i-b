@@ -1,0 +1,91 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="UDBOClaimRulesStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.connectUdbo.UDBOClaimRulesStatus</param>
+        <param name="identifierMethod">toValue</param>
+        <param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="LimitState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.limits.LimitState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.connectUdbo.UDBOClaimRules" table="UDBO_CLAIM_RULES">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_UDBO_CLAIM_RULES</param>
+            </generator>
+        </id>
+
+        <property name="uuid"           type="string"       column="UUID"           not-null="true"/>
+        <property name="startDate"      type="calendar"     column="START_DATE"     not-null="true"/>
+        <property name="rulesText"      type="text"         column="RULES_TEXT"     not-null="true"/>
+    </class>
+
+    <!--
+        Получить действующие условия
+        Опорный объект: UDBO_CL_RU_START_DATE_IDX
+        Предикаты доступа: access("UDBO_CLAIM_RULES"."START_DATE"<=CURRENT_DATE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.connectUdbo.UDBOClaimRules.getActiveRules">
+        <return alias="rules" class="com.rssl.phizic.business.connectUdbo.UDBOClaimRules"/>
+        <![CDATA[
+            select {rules.*}
+            from
+                (
+                    select * from UDBO_CLAIM_RULES
+                    order by START_DATE desc
+                ) rules
+            where
+                current_date >= rules.START_DATE and rownum = 1
+        ]]>
+    </sql-query>
+
+    <!--
+        Получить список условий
+        Опорный объект: UDBO_CL_RU_START_DATE_IDX
+        Предикаты доступа: fullscan
+        Кардинальность: все условия, сохранённые в таблице
+    -->
+    <sql-query name="com.rssl.phizic.business.connectUdbo.UDBOClaimRules.list">
+        <return-scalar column="rules_id" type="long"/>
+        <return-scalar column="rules_uuid" type="string"/>
+        <return-scalar column="rules_start_date" type="calendar"/>
+        <![CDATA[
+            select udboclaimrules.ID as rules_id, udboclaimrules.UUID as rules_uuid, udboclaimrules.START_DATE as rules_start_date
+            from UDBO_CLAIM_RULES udboclaimrules order by udboclaimrules.START_DATE asc
+        ]]>
+    </sql-query>
+
+    <!--
+        Получить условия по id
+        Опорный элемент: PK_UDBO_CLAIM_RULES
+        Предикаты доступа: access("RULES"."ID"=TO_NUMBER(:ID))
+        Кардинальность: 1 (id уникален)
+    -->
+    <query name="com.rssl.phizic.business.connectUdbo.UDBOClaimRules.findById">
+        select rules
+        from   com.rssl.phizic.business.connectUdbo.UDBOClaimRules rules
+        where rules.id = :id
+    </query>
+
+    <!--
+        Получить список дат условий в статусе "Введён"
+        Опорный объект: UDBO_CL_RU_START_DATE_IDX
+        Предикаты доступа: access("UDBOCLAIMRULES"."START_DATE">CURRENT_DATE)
+        Кардинальность: все условия, сохранённые в таблице
+    -->
+    <sql-query name="com.rssl.phizic.business.connectUdbo.UDBOClaimRules.enteredRulesDatelist">
+        <return-scalar column="rules_start_date" type="calendar"/>
+        <![CDATA[
+            select udboclaimrules.START_DATE as rules_start_date
+            from UDBO_CLAIM_RULES udboclaimrules
+            where udboclaimrules.START_DATE > current_date
+        ]]>
+    </sql-query>
+</hibernate-mapping>

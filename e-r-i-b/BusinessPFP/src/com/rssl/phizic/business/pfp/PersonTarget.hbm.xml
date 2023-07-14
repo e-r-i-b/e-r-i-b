@@ -1,0 +1,56 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hobernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.pfp.PersonTarget" table="PERSON_TARGET">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PERSON_TARGET</param>
+            </generator>
+        </id>
+        <property name="dictionaryTarget" column="DICTIONARY_TARGET_ID" type="long" not-null="true"/>
+        <property name="name"           column="NAME"           type="string"       not-null="true"/>
+        <property name="nameComment"    column="NAME_COMMENT"   type="string"       not-null="false"/>
+        <property name="plannedDate"    column="PLANED_DATE"    type="calendar"     not-null="true"/>
+        <property name="amount"                                 type="money"        not-null="true">
+            <column name="AMOUNT"/>
+			<column name="CURRENCY"/>
+		</property>
+        <property name="imageId"  column="IMAGE_ID"  type="long"    not-null="false"/>
+        <property name="veryLast" column="VERY_LAST" type="boolean" not-null="false"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.pfp.PersonTargetService.canAddMoreOneTarget">
+		SELECT (CASE
+            WHEN
+                ((SELECT ONLY_ONE FROM PFP_TARGETS WHERE ID = :id) = 1
+                AND
+                ((select count(*) from PERSON_TARGET target
+                  where DICTIONARY_TARGET_ID = :id
+                  and target.PERSON_FINANCE_PROFILE_ID = :pfpId
+                  and (:currentId IS NULL OR target.ID != :currentId)) > 0)
+            )
+            THEN 'false'
+            ELSE 'true'
+            END)
+        from DUAL
+	</sql-query>
+
+    <sql-query name="com.rssl.phizic.business.pfp.PersonTargetService.findLaterAllPersonTarget">
+        <return alias="target" class="com.rssl.phizic.business.pfp.PersonTarget"/>
+            SELECT {target.*}
+            FROM PERSON_TARGET target
+            WHERE PERSON_FINANCE_PROFILE_ID = :pfpId
+            AND DICTIONARY_TARGET_ID = (SELECT ID FROM PFP_TARGETS WHERE LATER_ALL = 1)
+            AND (:currentId IS NULL OR ID != :currentId)
+	</sql-query>
+
+    <sql-query name="com.rssl.phizic.business.pfp.PersonTargetService.getCurrentMaxDate">
+        <return-scalar column="maxDate" type="calendar"/>
+		SELECT max(PLANED_DATE) maxDate
+        FROM PERSON_TARGET
+        WHERE PERSON_FINANCE_PROFILE_ID = :pfpId
+        AND (:currentId IS NULL OR ID != :currentId)
+	</sql-query>
+</hibernate-mapping>

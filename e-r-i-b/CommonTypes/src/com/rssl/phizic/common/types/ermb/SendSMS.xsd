@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns="http://generated.ermb.types.common.phizic.rssl.com" targetNamespace="http://generated.ermb.types.common.phizic.rssl.com">
+
+	<xsd:simpleType name="UUIDType">
+		<xsd:annotation>
+			<xsd:documentation>Идентификатор запроса, сессии</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="StringType">
+		    <xsd:pattern value="[0-9a-fA-F]{32}"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="PhoneNumberType">
+	    <xsd:annotation>
+	        <xsd:documentation>Номер в международном формате без знака «+».</xsd:documentation>
+	    </xsd:annotation>
+	    <xsd:restriction base="StringType">
+	        <xsd:pattern value="\d{11}"/>
+	    </xsd:restriction>
+	</xsd:simpleType>
+
+    <xsd:simpleType name="StringType">
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="StatusType">
+		<xsd:restriction base="xsd:long"/>
+	</xsd:simpleType>
+
+    <!-- Request type -->
+    <xsd:complexType name="SendSMSRqType">
+        <xsd:sequence>
+            <xsd:element name="rqUID" type="UUIDType"/>
+            <xsd:element name="SID" type="UUIDType" minOccurs="0"/>
+            <xsd:element name="phone" type="PhoneNumberType"/>
+            <xsd:element name="text" type="StringType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Response type -->
+    <xsd:complexType name="SendSMSRsType">
+        <xsd:sequence>
+            <xsd:element name="rqUID" type="UUIDType"/>
+            <xsd:element name="status" type="StatusType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="SendSMSRq" type="SendSMSRqType"/>
+
+    <xsd:element name="SendSMSRs" type="SendSMSRsType"/>
+
+    <xsd:element name="SendSMSWithIMSIRq" type="SendSMSRqType"/>
+
+    <xsd:element name="SendSMSWithIMSIRs" type="SendSMSRsType"/>
+
+</xsd:schema>

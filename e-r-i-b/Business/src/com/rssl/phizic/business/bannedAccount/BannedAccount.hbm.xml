@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="AccountBanType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.bannedAccount.AccountBanType</param>
+    </typedef>
+    <class name="com.rssl.phizic.business.bannedAccount.BannedAccount"
+           table="BANNED_ACCOUNTS" >
+       <id name="id" type="long">
+           <generator class="native">
+                <param name="sequence">S_BANNED_ACCOUNTS</param>
+           </generator>
+       </id>
+
+       <property name="uuid"           column="UUID"           type="string" not-null="true"/>
+       <property name="accountNumber"  column="ACCOUNT_NUMBER" type="string" not-null="true"/>
+       <property name="bicList"        column="BICS"           type="string" not-null="false"/>
+       <property name="banType"        column="BAN_TYPE"       type="AccountBanType" not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.bannedAccount.BannedAccountService.getMaskByNumber">
+        <![CDATA[
+        select bannedAccount
+        from com.rssl.phizic.business.bannedAccount.BannedAccount bannedAccount
+        where :number like concat(bannedAccount.accountNumber,'%') and (bannedAccount.banType = :banType or bannedAccount.banType = 'ALL')
+        ]]>
+   </query>
+
+</hibernate-mapping>

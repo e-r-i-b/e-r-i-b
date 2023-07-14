@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="CardMootTransClaim"
+		description="Расследование спорных транзакций"
+		detailedDescription="Заявление на расследование спорных транзакций по пластиковой карте."
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.DefaultClaim"/>
+	<statemachine name="ClaimStateMachine"/>
+
+	<fields>
+		<field  name="state"
+				source="state"
+				description="Статус заявки"
+				type="string"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+		<field  name="documentNumber"
+				source="document-number"
+		        description="Номер документа"
+				type="string"
+				signable="true"/>
+		<field  name="documentDate"
+				source="document-date"
+		        description="Дата документа"
+				type="date"
+				signable="true"/>
+
+		<field  name="admissionDate"
+				source="admission-date"
+				type="date"
+				description="Дата приема плaтежа банком">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="fullName"
+				source="extra-parameters/parameter[@name='full-name']/@value"
+				description="Ф.И.О. клиента"
+				type="string"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Ф.И.О.] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+		<field  name="phone"
+				source="extra-parameters/parameter[@name='phone']/@value"
+				type="string"
+				description="Контактный телефон"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Контактный телефон] должна содержать от 10 до 20 цифр"/>
+					<parameter name="regexp">\d{10,20}$</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field  name="card"
+				source="extra-parameters/parameter[@name='card']/@value"
+				description="Номер основной карты"
+				type="card">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+		<field name="cardType"
+		       description="Тип карты"
+		       type="string"
+		       source="extra-parameters/parameter[@name='card-type']/@value"
+		       signable="true">
+		</field>
+		<field  name="payDate"
+				source="extra-parameters/parameter[@name='pay-date']/@value"
+
+		        description="Дата совершения операции (по выписке)"
+				type="date"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="payPlace"
+				source="extra-parameters/parameter[@name='pay-place']/@value"
+		        description="Место совершения операции (по выписке)"
+				type="string"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Место совершения операции (по выписке)] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+		<field  name="amountPayment"
+				source="extra-parameters/parameter[@name='amount-payment']/@value"
+		        description="Сумма в валюте платежа"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field  name="amountCard"
+				source="extra-parameters/parameter[@name='amount-card']/@value"
+		        description="Сумма в валюте карты"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field  name="cardCurrency"
+				source="extra-parameters/parameter[@name='card-currency']/@value"
+		        description="Валюта карты"
+				type="string"/>
+		<field  name="paymentCurrency"
+				source="extra-parameters/parameter[@name='payment-currency']/@value"
+		        description="Валюта платежа"
+				type="string"/>
+		<field  name="item1"
+				source="extra-parameters/parameter[@name='item1']/@value"
+				description="пункт1"
+				type="string"/>
+		<field  name="item2"
+				source="extra-parameters/parameter[@name='item2']/@value"
+				description="пункт2"
+				type="string"/>
+		<field  name="item3"
+				source="extra-parameters/parameter[@name='item3']/@value"
+				description="пункт3"
+				type="string"/>
+		<field  name="item4"
+				source="extra-parameters/parameter[@name='item4']/@value"
+				description="пункт4"
+				type="string"/>
+		<field  name="item5"
+				source="extra-parameters/parameter[@name='item5']/@value"
+				description="пункт5"
+				type="string"/>
+		<field  name="item6"
+				source="extra-parameters/parameter[@name='item6']/@value"
+				description="пункт6"
+				type="string"/>
+		<field  name="item7"
+				source="extra-parameters/parameter[@name='item7']/@value"
+				description="пункт7"
+				type="string"/>
+		<field  name="endValue"
+				source="extra-parameters/parameter[@name='end-value']/@value"
+		        description="Уточнённые расходы"
+				enabled="form.item3 == 'true'"
+				type="string">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+                    <parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field  name="returnDate"
+				source="extra-parameters/parameter[@name='return-date']/@value"
+		        description="Дата возврата по операции"
+				enabled="form.item4 == 'true'"
+				type="string">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		<field  name="other"
+				source="extra-parameters/parameter[@name='other']/@value"
+				description="Другое"
+				enabled="form.item7 == 'true'"
+				type="string">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Другое] не должно превышать 255"/>
+					<parameter name="regexp">.{1,255}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+	</fields>
+
+	<dictionaries>
+		<entity-list name="currencies">
+			<entity key="RUB">Рубли</entity>
+	        <entity key="USD">Доллары США</entity>
+	        <entity key="EUR">Евро</entity>
+        </entity-list>
+	</dictionaries>
+
+	<form-validators>
+
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.CardAndClientCompatibles">
+			<field-ref name="cardId">card</field-ref>
+		</form-validator>
+
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.RequiredMultiFieldValidator">
+			<message text="Необходимо выбрать хотя бы один тип операции "/>
+			<field-ref name="ptr1">item1</field-ref>
+			<field-ref name="ptr2">item2</field-ref>
+			<field-ref name="ptr3">item3</field-ref>
+			<field-ref name="ptr4">item4</field-ref>
+			<field-ref name="ptr5">item5</field-ref>
+			<field-ref name="ptr6">item6</field-ref>
+			<field-ref name="ptr7">item7</field-ref>
+		</form-validator>
+
+	</form-validators>
+</payment-form>

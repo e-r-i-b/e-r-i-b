@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="SMSInformationClaim"
+              description="SMS - информирование"
+			  detailedDescription="Подача в банк заявки на SMS-информирование по операциям с пластиковой картой."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.DefaultClaim"/>
+	<statemachine name="ClaimStateMachine"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<field name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+
+		<field name="dateCreated"
+		       source="date-created"
+		       description="Дата создания"
+			   type="string"/>
+		
+		<field name="fullName"
+		       description="Ф.И.О."
+		       type="string"
+		       source="extra-parameters/parameter[@name='full-name']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="card"
+		       description="Карта"
+		       type="card"
+		       source="extra-parameters/parameter[@name='card']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field  name="cardType"
+				source="extra-parameters/parameter[@name='card-type']/@value"
+				description="Тип карты"
+				type="string">
+		</field>
+
+		<field name="operatorSelect"
+		       source="extra-parameters/parameter[@name='operator-select']/@value"
+				type="string"
+		       description="Оператор"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="phoneCode"
+		       description="Код оператора"
+		       type="string"
+		       source="extra-parameters/parameter[@name='phone-code']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Телефон (код оператора)]  должна содержать 3 цифры"/>
+					<parameter name="regexp">\d{3}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="phoneNumber"
+		       description="Телефон"
+		       type="string"
+		       source="extra-parameters/parameter[@name='phone-number']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Телефон] должна содержать 7 символов"/>
+					<parameter name="regexp">\d{7}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="account"
+		       description="Счет списания"
+		       type="string"
+		       source="extra-parameters/parameter[@name='account']/@value"
+		       signable="true"/>
+	</fields>
+
+	<form-validators>
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.CardAndClientCompatibles">
+			<field-ref name="cardId">card</field-ref>
+		</form-validator>
+
+		<form-validator class="com.rssl.phizic.business.claims.forms.validators.CardStateEqualToOneFromParametersValidator">
+			<message text="Для указанной карты невозможно заказать SMS-информирование"/>
+			<field-ref name="cardId">card</field-ref>
+			<parameter name="param1">active</parameter>
+		</form-validator>
+
+		<form-validator class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Для указанного сотового оператора невозможно заказать SMS-информирование"/>
+			<field-ref name="parameterName">operatorSelect</field-ref>
+			<parameter name="param1">МТС</parameter>
+			<parameter name="param2">БиЛайн</parameter>
+			<parameter name="param3">Мегафон</parameter>
+			<parameter name="param4">Скайлинк</parameter>
+		</form-validator>
+	</form-validators>
+</payment-form>

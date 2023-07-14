@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+<resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.search.resultset">
+    <return-scalar column="CATEGORY_ID" type="string"/>   <!--0-->
+    <return-scalar column="CATEGORY_NAME" type="string"/> <!--1-->
+    <return-scalar column="GROUP_ID" type="long"/>            <!--2-->
+    <return-scalar column="GROUP_NAME" type="string"/>    <!--3-->
+    <return-scalar column="SERVICES_ID" type="long"/>        <!--4-->
+    <return-scalar column="SERVICES_NAME" type="string"/> <!--5-->
+    <return-scalar column="PROVIDER_ID" type="long"/>     <!--6-->
+    <return-scalar column="PROVIDER_NAME" type="string"/>  <!--7-->
+    <return-scalar column="PROVIDER_INN" type="string"/>    <!--8-->
+    <return-scalar column="PROVIDER_ACCOUNT" type="string"/><!--9-->
+    <return-scalar column="TYPE" type="string"/>          <!--10-->
+    <return-scalar column="SHOW_BREADCRUMBS" type="boolean"/>  <!--11-->
+</resultset>
+
+<resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.searchProvider.resultset">
+    <return-scalar column="PROVIDER_ID" type="long"/>
+    <return-scalar column="PROVIDER_NAME" type="string"/>
+    <return-scalar column="PROVIDER_INN" type="string"/>
+    <return-scalar column="PROVIDER_ACCOUNT" type="string"/>
+    <return-scalar column="IMAGE_ID" type="long"/>
+    <return-scalar column="SORT_PRIORITY" type="long"/>
+</resultset>
+
+<resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.searchPaymentsResult.resultset">
+    <return-scalar column="CATEGORY_ID" type="long"/>         <!--0-->
+    <return-scalar column="CATEGORY_NAME" type="string"/>     <!--1-->
+    <return-scalar column="GROUP_ID" type="long"/>            <!--2-->
+    <return-scalar column="GROUP_NAME" type="string"/>        <!--3-->
+    <return-scalar column="SERVICES_ID" type="long"/>         <!--4-->
+    <return-scalar column="SERVICES_NAME" type="string"/>     <!--5-->
+    <return-scalar column="PROVIDER_ID" type="string"/>       <!--6-->
+    <return-scalar column="PROVIDER_NAME" type="string"/>     <!--7-->
+    <return-scalar column="IMAGE_ID" type="long"/>            <!--8-->
+    <return-scalar column="PROVIDER_INN" type="string"/>      <!--9-->
+    <return-scalar column="TYPE" type="string"/>              <!--10-->
+    <return-scalar column="PROVIDER_ACCOUNT" type="string"/>  <!--11-->
+    <return-scalar column="IMAGE_NAME" type="string"/>        <!--12-->
+    <return-scalar column="SHOW_BREADCRUMBS" type="boolean"/> <!--13-->
+    <return-scalar column="NAME_B_SERVICE" type="string"/> <!--14-->
+</resultset>
+
+<sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.search"/>
+
+<sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.searchProvider"/>
+
+
+<sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.findRegions">
+        <return-scalar column="PROVIDER_ID" type="string"/>
+        <return-scalar column="REGION_NAME" type="string"/>
+        <![CDATA[
+            SELECT
+                serv_regions.SERVICE_PROVIDER_ID PROVIDER_ID,
+                regions.ID REGION_ID,
+                regions.NAME REGION_NAME
+            FROM REGIONS JOIN SERVICE_PROVIDER_REGIONS serv_regions on regions.ID = serv_regions.REGION_ID
+            WHERE serv_regions.SERVICE_PROVIDER_ID in (:extra_providers)
+            ORDER BY PROVIDER_ID, REGION_NAME
+        ]]>
+    </sql-query>
+<sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.asyncSearchProviders">
+     <return-scalar column="SEARCH_RESULT" type="string"/>
+    <![CDATA[
+        /*Список поставщиков услуг для "живого" поиска*/
+        select providers.NAME||'|'||providers.INN||'|'||providers.ACCOUNT SEARCH_RESULT
+          from service_providers_async_search providers
+         where (/* хоть какие-то переводы должны быть доступны*/
+                  /* A. Либо поставщик поддерживает переводы со счёта*/
+                  ( (providers.ACCOUNT_TYPE in ('DEPOSIT', 'ALL')) and (:accountProvidersAllowed = 1) ) or
+                  /* B. Либо поставщик поддерживает карточные переводы*/
+                  ( (providers.ACCOUNT_TYPE in ('CARD', 'ALL')) and (:cardProvidersAllowed = 1) )
+               )
+           and providers.STATE = 'ACTIVE'
+           and (:isTemplate = 0 or providers.IS_TEMPLATE_SUPPORTED = 1)
+           and (:isAutoPayment = 0 or
+                 (providers.IS_AUTOPAYMENT_SUPPORTED = 1
+                  AND providers.ACCOUNT_TYPE in ('CARD', 'ALL')
+                  AND ( :isIQWaveAutoPaymentPermit = 0 or providers.external_system_name <> :IQWaveUUID )
+                  AND ( :isESBAutoPaymentPermit = 0 or providers.external_system_name = :IQWaveUUID )
+                 )
+               )
+           and ( :isMobilebank = 0 or providers.is_mobilebank_allowed = 1 )
+           and ( :regionId is null or
+                 providers.region_id_list is null or
+                 providers.region_id_list like '%,'||:regionId||',%' )
+           and
+              (
+                ( :search_long is not null and (providers.INN LIKE :search_long||'%' or providers.ACCOUNT LIKE :search_long||'%') ) or
+                ( :search is not null and
+                  upper(providers.NAME||providers.ALIAS||providers.LEGAL_NAME) LIKE upper('%'||:search||'%') ) or
+                /*поиск в другой раскладке*/
+                ( :switchToEngSearch is not null and
+                  upper(providers.NAME||providers.ALIAS||providers.LEGAL_NAME) LIKE upper('%'||:switchToEngSearch||'%') ) or
+                ( :switchToRusSearch is not null and
+                  upper(providers.NAME||providers.ALIAS||providers.LEGAL_NAME) LIKE upper('%'||:switchToRusSearch||'%') ) or
+                ( :switchToEngRusSearch is not null and
+                  upper(providers.NAME||providers.ALIAS||providers.LEGAL_NAME) LIKE upper('%'||:switchToEngRusSearch||'%') ) or
+                /*поиск в транслите*/
+                ( :translitSearch is not null and
+                  upper(providers.NAME||providers.ALIAS||providers.LEGAL_NAME) LIKE upper('%'||:translitSearch||'%') )
+              )
+           ORDER BY SEARCH_RESULT
+    ]]>
+</sql-query>
+
+    <!--Все поиски поставщиков, отличные от главной страницы корзины и страницы платежи и операции
+    1)
+      Опорный объект: PAYMENT_SERVICES
+      Предикаты доступа: фулскан
+      Кардинальность: несколько десятков
+    2)
+      Опорный объект: SP_AGRR_PK
+      Предикаты доступа: access("PROVIDERS"."P_KEY"=:EXTRA_PKEY AND "PROVIDERS"."REGION_ID"=TO_NUMBER(:EXTRA_REGION_ID) AND "PROVIDERS"."CHANEL"=:EXTRA_CHANEL)
+      Кардинальность: если не выбран регион оплаты, то около 90К, для выбранного региона - менее 10К
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.searchResult">
+        <return-scalar column="CATEGORY_ID" type="string"/>   <!--0-->
+        <return-scalar column="CATEGORY_NAME" type="string"/> <!--1-->
+        <return-scalar column="GROUP_ID" type="long"/>            <!--2-->
+        <return-scalar column="GROUP_NAME" type="string"/>    <!--3-->
+        <return-scalar column="SERVICES_ID" type="long"/>        <!--4-->
+        <return-scalar column="SERVICES_NAME" type="string"/> <!--5-->
+        <return-scalar column="PROVIDER_ID" type="long"/>     <!--6-->
+        <return-scalar column="PROVIDER_NAME" type="string"/>  <!--7-->
+        <return-scalar column="PROVIDER_INN" type="string"/>    <!--8-->
+        <return-scalar column="PROVIDER_ACCOUNT" type="string"/><!--9-->
+        <return-scalar column="TYPE" type="string"/>          <!--10-->
+        <return-scalar column="SHOW_BREADCRUMBS" type="boolean"/>  <!--11-->
+
+        select
+            category.id CATEGORY_ID,
+            cast(trim(category.name) as varchar2(256)) CATEGORY_NAME,
+            servGroup.ID GROUP_ID,
+            cast(trim(servGroup.NAME) as varchar2(256)) GROUP_NAME,
+            services.ID SERVICES_ID,
+            cast(trim(services.NAME) as varchar2(256)) SERVICES_NAME,
+            null PROVIDER_ID,
+            null PROVIDER_NAME,
+            null PROVIDER_INN,
+            null PROVIDER_ACCOUNT,
+            100-services.PRIORITY SORT_PRIORITY,
+            'service' type,
+           (case  when category.SHOW_IN_SYSTEM ='0' or servGroup.SHOW_IN_SYSTEM= '0' or services.SHOW_IN_SYSTEM='0' then '0'
+            else '1' end) SHOW_BREADCRUMBS
+        from
+            (select id,name,SHOW_IN_SYSTEM, PRIORITY from PAYMENT_SERVICES where upper(NAME)  LIKE upper(:extra_like_search)) services
+            left join PAYMENT_SERV_PARENTS on services.id = PAYMENT_SERV_PARENTS.SERVICE_ID
+            left join PAYMENT_SERVICES servGroup on PAYMENT_SERV_PARENTS.PARENT_ID = servGroup.id
+            left join PAYMENT_SERV_PARENTS parent2 on servGroup.id = parent2.SERVICE_ID
+            left join PAYMENT_SERVICES category on parent2.PARENT_ID = category.id
+            where :extra_service_id = -1 or servGroup.id = :extra_service_id or category.id = :extra_service_id
+
+        UNION ALL
+        select
+            providers.CATEGORY_ID CATEGORY_ID,
+            providers.CATEGORY_NAME CATEGORY_NAME,
+            providers.GROUP_ID GROUP_ID,
+            providers.GROUP_NAME GROUP_NAME,
+            providers.SERVICE_ID SERVICES_ID,
+            providers.SERVICE_NAME SERVICES_NAME,
+
+            min(providers.ID) PROVIDER_ID,
+            providers.PROVIDER_NAME PROVIDER_NAME,
+            providers.INN PROVIDER_INN,
+            providers.ACCOUNT PROVIDER_ACCOUNT,
+
+            max(providers.SORT_PRIORITY) SORT_PRIORITY,
+            'provider' type,
+            (case  when providers.SHOW_CATEGORY ='0' or providers.SHOW_GROUP = '0' or providers.SHOW_SERVICE='0' then '0'
+            else '1' end) SHOW_BREADCRUMBS
+        from SERVICE_PROVIDERS_AGGR providers
+
+        where
+            (:extra_service_id = -1 or providers.CATEGORY_ID = :extra_service_id or providers.GROUP_ID  = :extra_service_id or providers.SERVICE_ID = :extra_service_id)
+            and providers.CHANEL = :extra_chanel
+            and providers.REGION_ID = :extra_region_id
+            and providers.P_KEY = :extra_pkey
+            and
+                (
+                   ('PAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_PAYMENTS is not null) or
+                   ('ESB_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_ESB_AUTOP is not null) or
+                   ('IQW_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_IQW_AUTOP is not null) or
+                   ('TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_TEMPLATES is not null) or
+                   ('MB_TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_MB_TEMPLATES is not null) or
+                   ('BASKET' in (:extra_functionality) and  providers.AVAILABLE_BASKET is not null)
+                )
+            and
+                (
+                    (:extra_like_search_long is not null and (providers.INN LIKE :extra_like_search_long or providers.ACCOUNT LIKE :extra_like_search_long)) or
+                    (:extra_like_search is not null and (upper(providers.PROVIDER_NAME) LIKE upper(:extra_like_search) or upper(providers.ALIAS) LIKE upper(:extra_like_search)  or upper(providers.LEGAL_NAME)  LIKE upper(:extra_like_search)))
+                )
+        group by CATEGORY_ID, CATEGORY_NAME, GROUP_ID, GROUP_NAME, SERVICE_ID, SERVICE_NAME, providers.PROVIDER_NAME, providers.INN, providers.ACCOUNT, providers.IMAGE_MD5, providers.CODE_RECIPIENT_SBOL, providers.BILLING_ID, SHOW_CATEGORY, SHOW_GROUP, SHOW_SERVICE, SHOW_SERVICE
+        order by type desc, SORT_PRIORITY desc, PROVIDER_NAME, CATEGORY_NAME, GROUP_NAME, SERVICES_NAME
+    </sql-query>
+
+    <!--Поиск на странице платежей и операций без учета регионов
+      Опорный объект: SP_AGRR_PK
+      Предикаты доступа: access("PROVIDERS"."P_KEY"=:EXTRA_PKEY AND "PROVIDERS"."REGION_ID"=-1 AND "PROVIDERS"."CHANEL"=:EXTRA_CHANEL)
+      Кардинальность: если не выбран регион оплаты, то около 90К, для выбранного региона - менее 10К
+
+    -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.searchAllRegions">
+        <return-scalar column="SERVICES_ID" type="long"/>         <!--0-->
+        <return-scalar column="SERVICES_NAME" type="string"/>     <!--1-->
+        <return-scalar column="PROVIDER_ID" type="string"/>       <!--2-->
+        <return-scalar column="PROVIDER_NAME" type="string"/>     <!--3-->
+        <return-scalar column="IMAGE_ID" type="long"/>            <!--4-->
+        <return-scalar column="PROVIDER_INN" type="string"/>      <!--5-->
+        <return-scalar column="REGION_NAME" type="string"/>       <!--6-->
+        <return-scalar column="PROVIDER_ACCOUNT" type="string"/>  <!--7-->
+        <return-scalar column="SHOW_BREADCRUMBS" type="boolean"/>    <!--8-->
+        <return-scalar column="NAME_B_SERVICE" type="string"/>       <!--9-->
+        select
+            providers.SERVICE_ID SERVICES_ID,
+            providers.SERVICE_NAME SERVICES_NAME,
+
+            providers.ID PROVIDER_ID,
+            providers.PROVIDER_NAME PROVIDER_NAME,
+            providers.IMAGE_ID IMAGE_ID,
+            providers.INN PROVIDER_INN,
+            providers.NAME_B_SERVICE NAME_B_SERVICE,
+            regions.name REGION_NAME,
+            providers.SORT_PRIORITY SORT_PRIORITY,
+            providers.ACCOUNT PROVIDER_ACCOUNT,
+            providers.SHOW_SERVICE SHOW_BREADCRUMBS
+        from SERVICE_PROVIDERS_AGGR providers
+        JOIN SERVICE_PROVIDER_REGIONS spr on providers.ID = spr.SERVICE_PROVIDER_ID JOIN REGIONS on regions.id = spr.REGION_ID
+        where
+            providers.CHANEL = :extra_chanel
+            and providers.P_KEY = :extra_pkey
+            and providers.REGION_ID = -1
+            and
+                (
+                   ('PAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_PAYMENTS is not null) or
+                   ('ESB_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_ESB_AUTOP is not null) or
+                   ('IQW_AUTOPAYMENTS' in (:extra_functionality) and  providers.AVAILABLE_IQW_AUTOP is not null) or
+                   ('TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_TEMPLATES is not null) or
+                   ('MB_TEMPLATES' in (:extra_functionality) and  providers.AVAILABLE_MB_TEMPLATES is not null) or
+                   ('BASKET' in (:extra_functionality) and  providers.AVAILABLE_BASKET is not null)
+                )
+            and
+                (
+                    (:extra_like_search_long is not null and (providers.INN LIKE :extra_like_search_long or providers.ACCOUNT LIKE :extra_like_search_long)) or
+                    (:extra_like_search is not null and (upper(providers.PROVIDER_NAME) LIKE upper(:extra_like_search) or upper(providers.ALIAS) LIKE upper(:extra_like_search)  or upper(providers.LEGAL_NAME)  LIKE upper(:extra_like_search)))
+                )
+        order by REGION_NAME, SORT_PRIORITY desc, PROVIDER_NAME, CATEGORY_NAME, GROUP_NAME, SERVICES_NAME
+    </sql-query>
+
+    <!--поиск на странице платежей и операций и в корзине-->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentSearchOperation.searchPaymentsResult"/>
+
+</hibernate-mapping>

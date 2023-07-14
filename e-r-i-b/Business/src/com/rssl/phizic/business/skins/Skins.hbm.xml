@@ -1,0 +1,194 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="category">
+        <param name="enumClass">com.rssl.phizic.business.skins.Category</param>
+    </typedef>
+    
+	<class name="com.rssl.phizic.business.skins.Skin" table="SKINS">
+
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_SKINS</param>
+			</generator>
+		</id>
+
+		<property name="name"       type="string"           column="NAME"   not-null="true"/>
+		<property name="url"        type="string"           column="URL"    not-null="true"/>
+		<property name="systemName" type="string"           column="SYSTEM_NAME"/>
+		<property name="clientDefaultSkin" type="boolean"   column="CLIENT" not-null="true"/>
+		<property name="adminDefaultSkin"  type="boolean"   column="ADMIN"  not-null="true"/>
+        <property name="common"     type="boolean"          column="COMMON" not-null="true"/>
+        <property name="category"   type="category"         column="CATEGORY" not-null="true"/>
+
+        <set name="groups" table="UGROUP_SKINS" cascade="save-update" lazy="false" fetch="subselect">
+           <key column="SKIN_ID"/>
+           <many-to-many column="GROUP_ID" class="com.rssl.phizic.business.groups.Group"/>
+        </set>
+
+	</class>
+
+	<!-- Получаем активный скин для клиентского приложения -->
+	<query name="com.rssl.phizic.business.skins.getActiveClientSkin">
+		select skin
+		from com.rssl.phizic.business.skins.Skin skin
+		where skin.clientDefaultSkin = true
+	</query>
+
+	<!-- Получаем активный скин для АРМ Сотрудника -->
+	<query name="com.rssl.phizic.business.skins.getActiveAdminSkin">
+		select skin
+		from com.rssl.phizic.business.skins.Skin skin
+		where skin.adminDefaultSkin = true
+	</query>
+
+	<!-- Получаем настройку (url) глобальных стилей и картинок -->
+	<query name="com.rssl.phizic.business.skins.getGlobalUrl">
+		select skin
+		from com.rssl.phizic.business.skins.Skin skin
+		where skin.systemName = 'global'
+	</query>
+
+	<!-- Получаем список всех скинов -->
+	<query name="com.rssl.phizic.business.skins.getAllSkins">
+		select skin
+		from com.rssl.phizic.business.skins.Skin skin
+		where ((skin.systemName is null) or (skin.systemName != 'global'))
+		order by skin.systemName, skin.name
+	</query>
+
+	<!-- Получаем скин по его системному имени -->
+	<query name="com.rssl.phizic.business.skins.findBySystemName">
+		select skin
+		from com.rssl.phizic.business.skins.Skin skin
+		where skin.systemName = :systemName
+	</query>
+
+    <query name="com.rssl.phizic.business.skins.getStandartSkins">
+		from  com.rssl.phizic.business.skins.Skin
+		where category in ('BOTH', 'ADMIN') or (category = 'CLIENT' and common = true)
+    </query>
+
+    <!-- Возвращает группы, у которых по-умолчанию установлен указанный стиль -->
+    <query name="com.rssl.phizic.business.skins.findGroupByDefaultSkin">
+        select g from com.rssl.phizic.business.groups.Group g
+        join g.skin skin
+        where skin.id = :skin_id
+    </query>
+
+    <!-- Возвращает группы, у которых невалиден стиль по-умолчанию -->
+    <sql-query name="com.rssl.phizic.business.skins.findBadGroupDefaultSkin">
+        <return-scalar type="long" column="ID"/>
+            select g.id
+            from ugroup g
+            where g.default_skin_id is not null
+              and g.default_skin_id not in (
+                select id from skins
+                -- стиль относится к приложению клиента
+                where category in ('BOTH', 'CLIENT')
+                  -- стиль д.б. либо общим либо доступным группе
+                  and (common = 1 or id in (
+                      select skin_id from ugroup_skins
+                      where group_id = g.id
+                  ))
+              )
+    </sql-query>
+
+    <!-- Отбирает у групп умолчательный стиль -->
+    <query name="com.rssl.phizic.business.skins.removeGroupDefaultSkin">
+        update com.rssl.phizic.business.groups.Group g
+        set g.skin = null
+        where g.id in (:groupIds)
+    </query>
+
+    <!-- Отбирает у пользователей индивидуальный стиль -->
+    <query name="com.rssl.phizic.business.skins.removePersonSkin">
+        update com.rssl.phizic.business.profile.Profile p
+           set p.skin = null
+         where p.skin = :skinId
+    </query>
+
+    <!-- Возвращает стили, доступные новым группам -->
+    <query name="com.rssl.phizic.business.skins.getNewGroupAvailableSkins">
+        from com.rssl.phizic.business.skins.Skin skin
+        <!-- стиль относится к приложению клиента -->
+        where category in ('BOTH', 'CLIENT')
+          <!-- стиль д.б. общим -->
+          and common = true
+    </query>
+
+    <!-- Возвращает стили, доступные существующей группе -->
+    <query name="com.rssl.phizic.business.skins.getExistsGroupAvailableSkins">
+        from com.rssl.phizic.business.skins.Skin
+        <!-- стиль относится к приложению клиента -->
+        where category in ('BOTH', 'CLIENT')
+          <!-- стиль д.б. либо общим либо доступным группе -->
+          and (common = true or id in (
+            select skin.id from com.rssl.phizic.business.skins.Skin skin
+            join skin.groups gs
+            where gs.id=:groupId
+          ))
+    </query>
+
+    <!--Возвращает все доступные пользователю (клиенту) стили-->
+    <sql-query name="com.rssl.phizic.business.skins.getPersonAvailableSkins">
+        <query-param name="loginId" type="long"/>
+        <return alias="s" class="com.rssl.phizic.business.skins.Skin"/>
+            select distinct {s.*}
+            from (
+              <!-- индивидуальный стиль -->
+              select s.*
+              from profile p
+              join skins s on p.skin_id=s.id
+              where p.login_id = :loginId
+            union all
+              select s.*
+              from skins s
+              <!-- стиль относится к приложению клиента -->
+              where category in ('BOTH', 'CLIENT')
+                <!-- стиль д.б. либо общим либо доступным группе -->
+                and (common = 1 or id in (
+                  select gs.skin_id
+                  from group_elements gl
+                  join ugroup_skins gs on gl.group_id = gs.group_id
+                  where gl.login_id = :loginId
+                ))
+            ) s
+    </sql-query>
+
+    <!-- Возвращает текущий стиль пользователя (клиента) -->
+    <sql-query name="com.rssl.phizic.business.skins.getPersonActiveSkin">
+        <query-param name="loginId" type="long"/>
+        <return alias="s" class="com.rssl.phizic.business.skins.Skin"/>
+            select {s.*}
+            from (
+              <!-- A. Индивидуальный стиль -->
+              select s.*
+              from profile p
+              join skins s on p.skin_id=s.id
+              where p.login_id = :loginId
+            union all
+            (
+              <!-- B. Умолчательный стиль наиболее приоритетной группы -->
+              select * from (
+                select s.*
+                from ugroup g
+                join skins s on g.default_skin_id = s.id
+                join group_elements gpl on g.id = gpl.group_id
+                where gpl.login_id = :loginId
+                order by priority desc
+              )
+            )
+            union all
+              <!-- C. Стандартный стиль клиентского приложения -->
+              select *
+              from skins
+              where client = 1
+            ) s
+            where rownum = 1
+    </sql-query>
+
+</hibernate-mapping>

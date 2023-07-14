@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4">
+
+	<context-param>
+		<param-name>styleName</param-name>
+		<param-value>USCTApp</param-value>
+	</context-param>
+
+	<filter>
+		<filter-name>ApplicationInfoFilter</filter-name>
+		<filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+		<init-param>
+			<param-name>application</param-name>
+			<param-value>USCT</param-value>
+		</init-param>
+	</filter>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>ContextFilter</filter-name>
+        <filter-class>com.rssl.phizgate.common.filters.GateContextFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>ContextFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <listener>
+		<listener-class>com.rssl.phizic.init.InitializerListenerBase</listener-class>
+	</listener>
+
+    <listener>
+        <listener-class>com.sun.xml.rpc.server.http.JAXRPCContextListener</listener-class>
+    </listener>
+
+	<servlet>
+		<description>JAX-RPC endpoint handler</description>
+		<display-name>JAXRPCServlet</display-name>
+		<servlet-name>JAXRPCServlet</servlet-name>
+		<servlet-class>com.rssl.phizic.gate.jaxrpc.JAXRPCServletExt</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>JAXRPCServlet</servlet-name>
+		<url-pattern>/services/*</url-pattern>
+	</servlet-mapping>
+
+	<session-config>
+		<!-- Default to 5 minute session timeouts -->
+        <session-timeout>5</session-timeout>
+	</session-config>
+
+	<mime-mapping>
+		<extension>wsdl</extension>
+		<mime-type>text/xml</mime-type>
+	</mime-mapping>
+
+	<mime-mapping>
+		<extension>xsd</extension>
+		<mime-type>text/xml</mime-type>
+	</mime-mapping>
+
+	<resource-ref id="USCTWeb_ResourceRef_JDBC_USCT">
+		<res-ref-name>jdbc/USCT</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
+
+	<resource-ref id="USCTWebLog_ResourceRef_JDBC_USCT">
+		<res-ref-name>jdbc/USCTLog</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
+</web-app>

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<typedef name="ErrorSystem" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.errors.ErrorSystem</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+	<typedef name="ErrorType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.errors.ErrorType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.errors.ErrorMessage" table="ERRORMESSAGES">
+
+        <id name="id" type="long">
+         <generator class="native">
+          <param name="sequence">S_ERRORMESSAGES</param>
+         </generator>
+        </id>
+
+        <property name="regExp"    type="string"            column="REG_EXP"     not-null="true"/>
+        <property name="message"   type="string"            column="MESSAGE"     not-null="true"/>
+        <property name="errorType" type="ErrorType"         column="ERROR_TYPE"  not-null="true"/>
+        <property name="system"    type="ErrorSystem"       column="SYSTEM"      not-null="true"/>
+    </class>
+
+	<query name="com.rssl.phizic.errors.ErrorMessage.getMessages">
+        select errorMessage
+        from   com.rssl.phizic.errors.ErrorMessage errorMessage
+        where errorMessage.regExp = :regExp
+		  and errorMessage.errorType = :errorType
+		  and errorMessage.system = :system
+		  and errorMessage.message = :message
+    </query>
+
+	<query name="com.rssl.phizic.errors.ErrorMessage.getMessagesBySystem">
+        select errorMessage
+        from   com.rssl.phizic.errors.ErrorMessage errorMessage
+        where errorMessage.system = :system
+    </query>
+</hibernate-mapping>

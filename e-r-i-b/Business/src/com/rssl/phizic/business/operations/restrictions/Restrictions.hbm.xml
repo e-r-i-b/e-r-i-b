@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding='windows-1251'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+     "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+     "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class abstract="true"
+	       name="com.rssl.phizic.business.operations.restrictions.RestrictionData" 
+	       table="RESTRICTIONS">
+
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_RESTRICTIONS</param>
+			</generator>
+		</id>
+
+		<discriminator column="TYPE"/>
+
+		<property name="loginId" type="long" column="LOGIN_ID" not-null="false"/>
+		<property name="serviceId" type="long" column="SERVICE_ID" not-null="false"/>
+		<property name="operationId" type="long" column="OPERATION_ID" not-null="false"/>
+
+	</class>
+
+	<!-- счета -->
+	<subclass
+			name="com.rssl.phizic.business.operations.restrictions.ListAccountRestrictionData"
+			extends="com.rssl.phizic.business.operations.restrictions.RestrictionData"
+	        discriminator-value="AccountList">
+
+		<list name="accountLinks" table="ACCOUNTRESTRICTIONS" lazy="false">
+			<key column="RESTRICTION_ID"/>
+			<list-index column="LIST_INDEX"/>
+			<many-to-many column="ACCOUNT_ID" class="com.rssl.phizic.business.resources.external.AccountLink" unique="true"/>
+		</list>
+	</subclass>
+
+	<!-- карты -->
+	<subclass
+			name="com.rssl.phizic.business.operations.restrictions.ListCardRestrictionData"
+			extends="com.rssl.phizic.business.operations.restrictions.RestrictionData"
+			discriminator-value="CardList">
+
+		<list name="cardLinks" table="CARDRESTRICTIONS" lazy="false">
+			<key column="RESTRICTION_ID"/>
+			<list-index column="LIST_INDEX"/>
+			<many-to-many column="CARD_ID" class="com.rssl.phizic.business.resources.external.CardLink"
+			              unique="true"/>
+		</list>
+	</subclass>
+
+	<subclass
+			name="com.rssl.phizic.business.operations.restrictions.ListDepositPoductRestrictionData"
+			extends="com.rssl.phizic.business.operations.restrictions.RestrictionData"
+			discriminator-value="DPList">
+
+		<list name="products" table="DEPPRODUCTRESTRICTIONS" lazy="false">
+			<key column="RESTRICTION_ID"/>
+			<list-index column="LIST_INDEX"/>
+			<many-to-many column="PRODUCT_ID" class="com.rssl.phizic.business.deposits.DepositProduct"
+			              unique="true"/>
+		</list>
+	</subclass>
+
+	<query name="com.rssl.phizic.business.operations.restrictions.RestrictionService.find">
+		select restrictionData
+		from   com.rssl.phizic.business.operations.restrictions.RestrictionData restrictionData
+		where  restrictionData.loginId = :loginId      and
+			   restrictionData.serviceId = :serviceId  and
+			   restrictionData.operationId = :operationId
+	</query>
+
+
+</hibernate-mapping>

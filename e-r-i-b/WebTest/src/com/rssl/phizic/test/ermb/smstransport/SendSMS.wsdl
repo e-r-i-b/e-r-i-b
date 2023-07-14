@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns="http://generated.ermb.types.common.phizic.rssl.com" xmlns:sb="http://generated.smstransport.ermb.test.phizic.rssl.com" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="SendSMSService" targetNamespace="http://generated.smstransport.ermb.test.phizic.rssl.com">
+
+    <wsdl:types>
+        <xsd:schema xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://generated.ermb.types.common.phizic.rssl.com" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:import namespace="http://generated.ermb.types.common.phizic.rssl.com" schemaLocation="../../../../../../../../CommonTypes/src/com/rssl/phizic/common/types/ermb/SendSMS.xsd"/>
+        </xsd:schema>
+    </wsdl:types>
+
+	<wsdl:message name="SendSMSRqMsg">
+		<wsdl:part element="ns:SendSMSRq" name="parameters"/>
+	</wsdl:message>
+	<wsdl:message name="SendSMSRsMsg">
+		<wsdl:part element="ns:SendSMSRs" name="result"/>
+	</wsdl:message>
+    <wsdl:message name="SendSMSWithIMSIRqMsg">
+		<wsdl:part element="ns:SendSMSWithIMSIRq" name="parameters"/>
+	</wsdl:message>
+	<wsdl:message name="SendSMSWithIMSIRsMsg">
+		<wsdl:part element="ns:SendSMSWithIMSIRs" name="result"/>
+	</wsdl:message>
+
+	<wsdl:portType name="SendSMSService">
+		<wsdl:operation name="SendSMS">
+			<wsdl:input message="sb:SendSMSRqMsg"/>
+			<wsdl:output message="sb:SendSMSRsMsg"/>
+		</wsdl:operation>
+        <wsdl:operation name="SendSMSWithIMSI">
+			<wsdl:input message="sb:SendSMSWithIMSIRqMsg"/>
+			<wsdl:output message="sb:SendSMSWithIMSIRsMsg"/>
+		</wsdl:operation>
+	</wsdl:portType>
+
+    <wsdl:binding name="SendSMSServiceSoapBinding" type="sb:SendSMSService">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="SendSMS">
+            <soap:operation style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="SendSMSWithIMSI">
+            <soap:operation style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    
+	<wsdl:service name="SendSMSServiceImpl">
+		<wsdl:port binding="sb:SendSMSServiceSoapBinding" name="SendSMSServicePort">
+			<soap:address location="http://localhost:8080/services/SendSMSServiceImpl"/>
+		</wsdl:port>
+	</wsdl:service>
+
+</wsdl:definitions>

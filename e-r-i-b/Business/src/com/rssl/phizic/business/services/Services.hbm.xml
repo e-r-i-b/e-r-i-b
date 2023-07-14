@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+     "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+     "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class
+		name="com.rssl.phizic.business.services.Service"
+		table="SERVICES"
+		>
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_SERVICES</param>
+            </generator>
+        </id>
+
+        <property name="name"     type="string" column="NAME"     not-null="true"/>
+	    <property name="key"      type="string" column="SERVICE_KEY"     not-null="false"/>
+	    <property name="category" type="string" column="CATEGORY" not-null="true"/>
+        <property name="caAdminService" type="boolean" column="CA_ADMIN_SERVICE" not-null="true"/>
+    </class>
+
+	<class name="com.rssl.phizic.business.services.ServiceOperationDescriptor" table="SERVICEOPERATIONS">
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_SERVICEOPERATIONS</param>
+			</generator>
+		</id>
+
+		<property name="spread" type="boolean" column="SINGLE" not-null="true"/>
+
+		<many-to-one name="service"
+		             class="com.rssl.phizic.business.services.Service"
+		             column="SERVICE_ID" not-null="true" lazy="false"/>
+
+		<many-to-one name="operationDescriptor"
+		             class="com.rssl.phizic.business.operations.OperationDescriptor"
+		             column="OPERATION_ID" not-null="true" lazy="false"/>
+
+	</class>
+
+	<query name="com.rssl.phizic.business.services.ServiceService.findByKey">
+		select
+			service
+		from
+			com.rssl.phizic.business.services.Service service
+		where
+			service.key = :key
+	</query>
+
+	<query name="com.rssl.phizic.business.services.ServiceService.selectByCategory">
+		select
+			service
+		from
+			com.rssl.phizic.business.services.Service service
+		where
+			service.category = :category
+    </query>
+
+
+	<query name="com.rssl.phizic.business.services.ServiceService.selectServiceOperations">
+		select
+			descriptor
+		from
+			com.rssl.phizic.business.services.ServiceOperationDescriptor descriptor
+		where
+			descriptor.service = :service
+	</query>
+
+	<query name="com.rssl.phizic.business.services.ServiceService.deleteServiceUsages.1">
+		<query-param name="serviceId" type="long"/>
+		delete com.rssl.phizic.business.schemes.AccessScheme.services ss where ss.serviceId = :serviceId
+	</query>
+
+	<query name="com.rssl.phizic.business.services.ServiceService.deleteServiceUsages.2">
+		<query-param name="serviceId" type="long"/>
+		delete com.rssl.phizic.business.operations.restrictions.RestrictionData as rd
+		where rd.serviceId = :serviceId
+	</query>
+
+	<query name="com.rssl.phizic.business.services.ServiceService.delete">
+		delete
+			com.rssl.phizic.business.services.ServiceOperationDescriptor descriptor
+		where
+			descriptor.service = :service
+	</query>
+
+     <sql-query name="com.rssl.phizic.business.services.ServiceService.checkServiceFromUserScheme">
+         <return-scalar column="serviceCount" type="integer"/>
+        <![CDATA[
+            SELECT DECODE(COUNT(*), 0, 0, 1) serviceCount
+            FROM SERVICES s
+            JOIN SCHEMESSERVICES ss on s.id = ss.SERVICE_ID
+            JOIN SCHEMEOWNS so on ss.scheme_id = so.scheme_id
+            WHERE so.login_id = :login_id
+            AND so.access_type = :access_type
+            AND s.service_key = :service_key
+		]]>
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,31 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.defCodes.DefCode" table="DEF_CODES">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_DEF_CODES</param>
+            </generator>
+        </id>
+
+        <property name="defCodeFrom"    type="string"   column="DEF_CODE_FROM"  not-null="true"/>
+        <property name="defCodeTo"      type="string"   column="DEF_CODE_TO"    not-null="true"/>
+        <property name="providerCode"   type="string"   column="PROVIDER_CODE"  not-null="true"/>
+        <property name="mnc"            type="long"     column="MNC"            not-null="true"/>
+    </class>
+
+    <!--выбрать все записи из справочника def-кодов и отсортировать по defCodeFrom
+           Опорный объект: DEF_CODE
+           Предикаты доступа: нет
+           Кардинальность: число записей в справочнике (максимально - 4501)
+        -->
+    <query name="com.rssl.phizic.business.dictionaries.defCodes.DefCode.getAll">
+        select defCode
+        from com.rssl.phizic.business.dictionaries.defCodes.DefCode as defCode
+        order by defCode.defCodeFrom
+    </query>
+
+</hibernate-mapping>

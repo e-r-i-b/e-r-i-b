@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+            jxb:version="1.0">
+	<xsd:element name="security-validation-config">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element minOccurs="2" maxOccurs="unbounded" name="security-settings" type="Setting">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<jxb:property name="securitySettings"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:complexType name="Setting">
+		<xsd:annotation>
+			<xsd:documentation>Настройки безопасности для выбранного ключа</xsd:documentation>
+			<xsd:appinfo>
+				<jxb:class name="SettingDescriptor"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="parameters" type="ParameterGroup">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="settingParameters"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="password-settings" type="Password">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="passwordSettings"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="validation-strategy" type="Strategy">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="validationSettings"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="key"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="Password">
+		<xsd:annotation>
+			<xsd:documentation>Настройки валидации пароля по умолчанию</xsd:documentation>
+			<xsd:appinfo>
+				<jxb:class name="PasswordDescriptor"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="password-minimal-length" type="PasswordMinimalLength">
+				<xsd:annotation>
+					<xsd:documentation>Минимальная длина пароля</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="allowed-charsets" maxOccurs="unbounded" type="CharsetGroup">
+				<xsd:annotation>
+					<xsd:documentation>Наборы разрешенных символов</xsd:documentation>
+					<xsd:appinfo>
+						<jxb:property name="allowedCharsets"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Strategy">
+		<xsd:annotation>
+			<xsd:documentation>Стратегия валидации</xsd:documentation>
+			<xsd:appinfo>
+				<jxb:class name="StrategyDescriptor"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="key" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Уникальное значение</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Наименование</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="validator" maxOccurs="unbounded" type="PasswordValidator">
+				<xsd:annotation>
+					<xsd:documentation>Валидатор</xsd:documentation>
+					<xsd:appinfo>
+						<jxb:property name="validators"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PasswordValidator">
+		<xsd:sequence>
+			<xsd:element name="parameter" maxOccurs="unbounded" type="Parameter">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="parameters"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="className" use="required" type="JavaClassName"/>
+	</xsd:complexType>
+	<xsd:complexType name="ParameterGroup">
+		<xsd:sequence>
+			<xsd:element name="parameter" maxOccurs="unbounded" type="Parameter">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="parameters"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+    <xsd:complexType name="PasswordMinimalLength">
+        <xsd:sequence>
+            <xsd:element name="minimal-length" minOccurs="1" maxOccurs="1" type="xsd:string"/>
+            <xsd:element name="validation-message" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Сообщение при ошибке валидации</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+	<xsd:complexType name="CharsetGroup">
+		<xsd:sequence>
+			<xsd:element name="allowed-charset" maxOccurs="unbounded" type="Charset"/>
+		</xsd:sequence>
+		<xsd:attribute name="default"/>
+	</xsd:complexType>
+	<xsd:complexType name="Parameter">
+		<xsd:attribute name="name"  use="required" type="xsd:string"/>
+		<xsd:attribute name="value" use="required" type="xsd:string"/>
+	</xsd:complexType>
+	<xsd:complexType name="Charset">
+		<xsd:sequence>
+			<xsd:element name="charset" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Набор символов</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="validation-message" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Сообщение при ошибке валидации</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="specific-validators" type="SpecificValidators" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Валидаторы для конкретного набора символов</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="name"/>
+	</xsd:complexType>
+    <xsd:complexType name="SpecificValidators">
+		<xsd:sequence>
+			<xsd:element name="validator" maxOccurs="unbounded" type="PasswordValidator"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="JavaClassName">
+		<xsd:restriction base="xsd:string">
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

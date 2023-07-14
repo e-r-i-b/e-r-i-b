@@ -1,0 +1,93 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="PeridicType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizgate.ext.sbrf.technobreaks.PeriodicType</param>
+    </typedef>
+
+    <typedef name="TechnoBreakStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreakStatus</param>
+    </typedef>
+
+    <typedef name="UUID" class="com.rssl.phizic.dataaccess.hibernate.UUIDType"/>
+
+    <class name="com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak" table="TECHNOBREAKS" polymorphism="explicit">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_TECHNOBREAKS</param>
+            </generator>
+        </id>
+
+        <property name="adapterUUID" type="string" column="ADAPTER_UUID" not-null="true"/>
+        <property name="periodic" type="PeridicType" column="PERIODIC" not-null="true"/>
+        <property name="defaultMessage" type="boolean" column="IS_DEFAULT_MESSAGE" not-null="true"/>
+        <property name="fromDate" type="calendar" column="FROM_DATE" not-null="true"/>
+        <property name="toDate" type="calendar" column="TO_DATE" not-null="true"/>
+        <property name="message" type="string" column="MESSAGE" not-null="true"/>
+        <property name="status" type="TechnoBreakStatus" column="STATUS" not-null="true"/>
+        <property name="autoEnabled" type="boolean" column="IS_AUTO_ENABLED" not-null="true"/>
+        <property name="allowOfflinePayments" type="boolean" column="IS_ALLOWED_OFFLINE_PAY" not-null="true"/>
+        <property name="uuid" type="UUID" column="UUID" not-null="true"/>
+
+    </class>
+
+    <!--
+        Опорный объект:    I_TECHNOBREAKS
+        Предикаты доступа: access("TECHNOBREAK"."ADAPTER_UUID"=:EXTRA_ADAPTERCODE AND
+                           "TECHNOBREAK"."STATUS"=:EXTRA_STATUS)
+        Кардинальность: количество технологических перерывов,
+                        заданных для одной внешней системы в статусе status
+    -->
+    <query name="com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak.findByAdapterCode">
+        <![CDATA[
+        select technoBreak from com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak technoBreak
+        where technoBreak.fromDate <= :extra_fromDate
+        and ((:extra_autoBreaks = true and technoBreak.autoEnabled = true) or technoBreak.toDate >= :extra_toDate)
+        and technoBreak.status = :extra_status
+        and technoBreak.adapterUUID = :extra_adapterCode
+         ]]>
+    </query>
+
+    <query name="com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak.listOfActive">
+        <![CDATA[
+        select technoBreak
+        from com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak technoBreak
+        where
+            (:availableRemoveAutoBreaks = true or technoBreak.autoEnabled = false) and
+            ((:lastTestDate < toDate and toDate <= :currentTestDate) or
+             (periodic <> :singlePeriodicType and fromDate <= :currentTestDate and :currentTestDate < toDate))
+        ]]>
+    </query>
+
+    <!-- Добавляет автоматически выставленный тех. перерыв
+        Опорный объект: I_TECHNOBREAKS
+        Предикаты доступа: "ADAPTER_UUID"=:EXTRA_ADAPTERUUID AND "STATUS"=:EXTRA_STATUS
+        Кардинальность (селекта): зависит от сотрудника, сколько одновременных тех. перерывов выставит на одну внешнюю систему
+    -->
+    <sql-query name="com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak.addAutoTechnoBreak">
+        <![CDATA[
+            INSERT INTO TECHNOBREAKS(ID, ADAPTER_UUID, FROM_DATE, TO_DATE, PERIODIC, IS_DEFAULT_MESSAGE, MESSAGE, STATUS, IS_AUTO_ENABLED, IS_ALLOWED_OFFLINE_PAY, UUID)
+            SELECT S_TECHNOBREAKS.NEXTVAL, :extra_adapterUUID, :extra_fromDate, :extra_toDate, :extra_periodic, :extra_defaultMessage, :extra_message, :extra_status, :extra_autoEnabled, :extra_allowOfflinePayments, :extra_technoBreakUUID
+            FROM DUAL
+            WHERE NOT EXISTS (SELECT ID
+                              FROM TECHNOBREAKS
+                              WHERE ADAPTER_UUID = :extra_adapterUUID AND IS_AUTO_ENABLED = :extra_autoEnabled AND STATUS = :extra_status AND (:extra_onlyManualRemove = '1' OR TO_DATE > :extra_toDate))
+         ]]>
+    </sql-query>
+
+    <!--
+        Опорный объект: UI_TECHNOBREAKS
+        Предикаты доступа: "UUID"=:UUID
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak.findByUUID">
+        from
+            com.rssl.phizgate.ext.sbrf.technobreaks.TechnoBreak
+        where
+            uuid = :uuid
+    </query>
+
+</hibernate-mapping>

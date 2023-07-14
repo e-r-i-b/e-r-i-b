@@ -1,0 +1,292 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="CategoryPaymentType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.payment.services.CategoryServiceType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService" table="PAYMENT_SERVICES">
+
+        <id name="id" type="long" column="ID">
+            <generator class="com.rssl.phizic.dataaccess.common.counters.AssignedOrSequenceGenerator">
+                <param name="sequence">S_PAYMENT_SERVICES</param>
+            </generator>
+        </id>
+        <property name="description" type="string"  column="DESCRIPTION" not-null="false"/>
+        <property name="synchKey"  type="string" column="CODE" not-null="true" unique="true"/>
+        <property name="name"  type="string" column="NAME" not-null="true"/>
+        <property name="imageId"  type="long"    column="IMAGE_ID" not-null="false"/>
+        <property name="popular"  type="boolean" column="POPULAR"  not-null="true"/>
+        <property name="system"  type="boolean" column="SYSTEM"  not-null="true"/>
+        <property name="priority" type="long"  column="PRIORITY" not-null="false"/>
+        <property name="visibleInSystem"  type="boolean" column="VISIBLE_IN_SYSTEM"  not-null="true"/>
+        <property name="defaultImage"  type="string" column="IMAGE_NAME"  not-null="true"/>
+        <property name="category"  type="boolean" column="IS_CATEGORY"  not-null="true"/>
+        <property name="showInSystem"  type="boolean" column="SHOW_IN_SYSTEM"  not-null="true"/>
+        <property name="showInMApi"  type="boolean" column="SHOW_IN_API"  not-null="true"/>
+        <property name="showInAtmApi"  type="boolean" column="SHOW_IN_ATM"  not-null="true"/>
+        <property name="showInSocialApi"  type="boolean" column="SHOW_IN_SOCIAL"  not-null="true"/>
+
+        <bag name="parentServices" table="PAYMENT_SERV_PARENTS" cascade="none" lazy="false">
+            <key column="SERVICE_ID"/>
+            <many-to-many column="PARENT_ID" class="com.rssl.phizic.business.dictionaries.payment.services.PaymentService" unique="true" lazy="false"/>
+        </bag>
+
+    </class>
+
+     <!--для вывода популярных услуг-->
+    <class name="com.rssl.phizic.business.dictionaries.payment.services.PaymentServiceShort" mutable="false">
+        <id name="id"/>
+        <!--Описание-->
+        <property name="description"/>
+        <!--Название-->
+        <property name="name"/>
+        <!--Картинка-->
+        <property name="imageId"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.getPaymentServiceChildren">
+        <return alias="paymentService" class="com.rssl.phizic.business.dictionaries.payment.services.PaymentService"/>
+        select {paymentService.*}
+        from PAYMENT_SERVICES  paymentService join PAYMENT_SERV_PARENTS parents on paymentService.ID = parents.SERVICE_ID
+        where parents.PARENT_ID = :parent ORDER BY paymentService.name
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.findBySynchKey">
+        select paymentService
+        from com.rssl.phizic.business.dictionaries.payment.services.PaymentService as paymentService
+        where paymentService.synchKey = :synchKey
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.countServiceChildren">
+       <![CDATA[
+        select count(paymentService.id)
+        from PAYMENT_SERVICES  paymentService join PAYMENT_SERV_PARENTS parents on paymentService.ID = parents.SERVICE_ID
+        where parents.PARENT_ID = :id
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.getAll">
+        select paymentService
+        from com.rssl.phizic.business.dictionaries.payment.services.PaymentService as paymentService
+        order by paymentService.synchKey
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.getServiceNoChildren">
+        <return alias="paymentService" class="com.rssl.phizic.business.dictionaries.payment.services.PaymentService"/>
+            select {paymentService.*}
+            from PAYMENT_SERVICES paymentService
+            where paymentService.id in (:ids) and paymentService.id not in (select parents.PARENT_ID from PAYMENT_SERV_PARENTS parents)
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.getChildrenIds">
+        <return-scalar column="ID" type="long"/>
+            SELECT service.SERVICE_ID ID
+            FROM PAYMENT_SERV_PARENTS service
+            START WITH service.PARENT_ID = :parent_id
+            CONNECT BY PRIOR service.SERVICE_ID = service.PARENT_ID
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.getCountOfProvider">
+        <![CDATA[
+            SELECT COUNT (serv_prov.SERVICE_PROVIDER_ID)
+            FROM SERV_PROVIDER_PAYMENT_SERV serv_prov
+            WHERE serv_prov.PAYMENT_SERVICE_ID = :id
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.getLevelOfHierarchy">
+        SELECT max(level)
+        FROM PAYMENT_SERV_PARENTS service
+        START WITH service.SERVICE_ID = :id
+        CONNECT BY service.SERVICE_ID  = prior service.PARENT_ID
+  </sql-query>
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.getLevelOfHierarchyDown">
+        SELECT max(level)
+        FROM PAYMENT_SERV_PARENTS service
+        START WITH service.PARENT_ID = :id
+        CONNECT BY prior service.SERVICE_ID  =  service.PARENT_ID
+  </sql-query>
+    <!--Добавление услуги (для 'живого' поиска)-->
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.addPaymentService">
+        insert into payment_services (id, code, name, parent_id, image_id, popular, description, system, priority, visible_in_system, image_name)
+       values (:id, :synchKey, :name, :extra_parent_id, :imageId, :extra_popular, :description, :extra_system, :priority, :extra_visible_in_system, :defaultImage)
+    </sql-query>
+
+
+     <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.getServicesForProvider">
+        <return alias="paymentService" class="com.rssl.phizic.business.dictionaries.payment.services.PaymentService"/>
+            select {paymentService.*}
+            from PAYMENT_SERVICES paymentService JOIN SERV_PROVIDER_PAYMENT_SERV servProv on paymentService.ID = servProv.PAYMENT_SERVICE_ID
+            WHERE servProv.SERVICE_PROVIDER_ID=:providerId
+    </sql-query>
+
+    <!--Справочник услуг для выгрузки в ATM. Уровень вложенности услуг не более 2. ПУ привязывается либо к категории верхнего уровня, либо к улуге, не имеющей подуслуг-->
+    <!--
+       Опорный объект: PAYMENT_SERVICES
+       Предикаты доступа: fullscan
+       Кардинальность: равна количеству подходящих по условию категорий услуг
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.PaymentService.dataForUnloadingToFile">
+        <return-scalar column="id" type="long"/>
+        <return-scalar column="payment_service" type="clob"/>
+        <![CDATA[
+             with paymserv_servprov as (select ps.*
+                                             , ( select xmlelement("service_providers",
+                                                          chr(10),
+                                                          xmlagg(
+                                                             xmlelement("service_provider",
+                                                               xmlelement("guid", code),
+                                                               xmlelement("id", id),
+                                                               xmlelement("name", name),
+                                                               xmlelement("description", description),
+                                                               xmlelement("image_id", image_id),
+                                                               xmlelement("image_help_id", image_help_id),
+                                                               xmlelement("sub_type", sub_type),
+                                                               xmlelement("is_autopayment_supported_atm", is_autopayment_supported_atm),
+                                                               xmlelement("visible_autopayments_for_atm", visible_autopayments_for_atm),
+                                                               xmlelement("billing_id", billing_id),
+                                                               xmlelement("is_federal", is_federal),
+                                                               xmlelement("is_popular", is_popular),
+                                                               xmlelement("sort_priority", sort_priority),
+                                                               chr(10),
+                                                               (  select
+                                                                   xmlelement("regions",
+                                                                     chr(10),
+                                                                     xmlagg(
+                                                                       xmlelement("region",
+                                                                         xmlelement("id", id),
+                                                                         xmlelement("code", code),
+                                                                         xmlelement("name", name),
+                                                                         chr(10)
+                                                                       )
+                                                                     )
+                                                                   )
+                                                                 from regions r
+                                                                 inner join service_provider_regions spr on spr.region_id=r.id
+                                                                 where service_provider_id= sp.id
+                                                               ),
+                                                               chr(10),
+                                                               ( select
+                                                                   xmlelement("field_descriptions",
+                                                                     chr(10),
+                                                                     xmlagg(
+                                                                       xmlelement("field_description",
+                                                                         xmlelement("id", id),
+                                                                         xmlelement("external_id", external_id),
+                                                                         xmlelement("name", name),
+                                                                         xmlelement("description", description),
+                                                                         xmlelement("type", type),
+                                                                         xmlelement("max_length", max_length),
+                                                                         xmlelement("min_length", min_length),
+                                                                         xmlelement("is_required", is_required),
+                                                                         xmlelement("is_editable", is_editable),
+                                                                         xmlelement("is_visible", is_visible),
+                                                                         xmlelement("is_sum", is_sum),
+                                                                         xmlelement("is_key", is_key),
+                                                                         xmlelement("initial_value", initial_value),
+                                                                         xmlelement("business_sub_type", business_sub_type),
+                                                                         chr(10),
+                                                                         ( select
+                                                                             xmlelement("field_values_descrs",
+                                                                               xmlagg(
+                                                                                 xmlelement("field_values_descr",
+                                                                                 xmlelement("value", value),
+                                                                                 chr(10)
+                                                                                 )
+                                                                               ),
+                                                                               chr(10)
+                                                                             )
+                                                                           from field_values_descr where field_id=fd.id
+                                                                         ),
+                                                                         chr(10),
+                                                                         ( select
+                                                                             xmlelement("field_validators_descrs",
+                                                                               chr(10),
+                                                                               xmlagg(
+                                                                                 xmlelement("field_validators_descr",
+                                                                                   xmlelement("id", id),
+                                                                                   xmlelement("message", message),
+                                                                                   ( select
+                                                                                       xmlelement("field_validators_param",
+                                                                                         xmlelement("id", id),
+                                                                                         xmlelement("value", value)
+                                                                                       )
+                                                                                     from field_validators_param where field_id=v.id
+                                                                                   ),
+                                                                                   chr(10)
+                                                                                 )
+                                                                               )
+                                                                             )
+                                                                           from field_validators_descr v where field_id=fd.id
+                                                                         ),
+                                                                         chr(10)
+                                                                       )
+                                                                     )
+                                                                   )
+                                                                 from field_descriptions fd
+                                                                 where recipient_id = sp.id
+                                                               ),
+                                                               chr(10)
+                                                             )
+                                                           )
+                                                         )
+                                                 from service_providers sp
+                                                 inner join serv_provider_payment_serv sps on sps.service_provider_id=sp.id
+                                                 where sps.payment_service_id=ps.id
+                                                   and sp.visible_payments_for_atm_api='1'
+                                                   and sp.available_payments_for_atm_api='1'
+                                                   and sp.state = 'ACTIVE'
+                                                 ) service_providers
+                                          from payment_services ps)
+             select /*Категории услуг*/
+                    psc.id,
+                    XMLType(xmlelement("payment_service",
+                               xmlelement("guid", psc.code),
+                               xmlelement("id", psc.id),
+                               xmlelement("name", psc.name),
+                               xmlelement("image_id", psc.image_id),
+                               xmlelement("popular", psc.popular),
+                               xmlelement("description", psc.description),
+                               xmlelement("image_name", psc.image_name),
+                               xmlelement("is_category", psc.is_category),
+                               xmlelement("priority", psc.priority),
+                               chr(10),
+                               /*Поставщики, привязанные к категории услуг*/
+                               psc.service_providers,
+                               chr(10),
+                               /*Услуги категории*/
+                               ( select
+                                   xmlelement("child_payment_services",
+                                     chr(10),
+                                     xmlagg(
+                                       xmlelement("child_payment_service",
+                                         xmlelement("guid", ps.code),
+                                         xmlelement("id", ps.id),
+                                         xmlelement("name", ps.name),
+                                         xmlelement("image_id", ps.image_id),
+                                         xmlelement("popular", ps.popular),
+                                         xmlelement("description", ps.description),
+                                         xmlelement("image_name", ps.image_name),
+                                         xmlelement("is_category", ps.is_category),
+                                         xmlelement("priority", ps.priority),
+                                         chr(10),
+                                         /*Поставщики, привязанные к услуге*/
+                                         psc.service_providers,
+                                         chr(10)
+                                       )
+                                     ),
+                                     chr(10)
+                                   )
+                                 from paymserv_servprov ps
+                                 inner join payment_serv_parents psp on psp.service_id=ps.id
+                                 where psp.parent_id=psc.id
+                               )
+                           ).getClobVal()).getClobVal() payment_service
+               from paymserv_servprov psc
+              where psc.is_category = '1'
+        ]]>
+    </sql-query>
+</hibernate-mapping>

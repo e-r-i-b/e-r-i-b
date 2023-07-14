@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../Settings/schemas/state-machine.xsd">
+
+	<states description="Машина состояний шаблона оплаты кредита" name="PaymentStateMachine"
+            inital-state="DRAFTTEMPLATE">
+
+        <state id="DRAFTTEMPLATE" description="Неполностью заполненный шаблон"
+               client-form="/private/payments/template.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <events>
+                <event name="EDIT_TEMPLATE" description="Редактирование шаблона" type="client">
+                    <next-states default="DRAFTTEMPLATE"/>
+                </event>
+                <event name="SAVEASTEMPLATE" description="Сохраненить документ, как шаблон" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeactivateEditEventTemplateHandler"/>
+                    </handlers>
+                    <next-states default="SAVED_TEMPLATE"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="SAVED_TEMPLATE" description="Вы подтвердили документ в Шаблонах документов."
+               client-form="/private/payments/template/confirm.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <forms>
+                <form application="PhizIC" url="/private/payments/template.do" description="Шаг редактирования шаблона платежа">
+                    <filters>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.EditEventEnabledFormFilter"/>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.TemplateStateFormFilter">
+                            <parameters>
+                                <parameter name="states" value="DRAFTTEMPLATE"/>
+                                <parameter name="invert" value="true"/>
+                            </parameters>
+                        </filter>
+                    </filters>
+                </form>
+            </forms>
+
+            <handlers>
+                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ActivateEditEventTemplateHandler">
+                    <parameter name="value" value="false"/>
+                </handler>
+            </handlers>
+
+            <events>
+                <event name="EDIT_TEMPLATE" description="Редактирование шаблона" type="client">
+                    <next-states default="SAVED_TEMPLATE">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ActivateEditEventTemplateHandler">
+                                <parameter name="value" value="true"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="SAVEASTEMPLATE" description="Сохраненить документ, как шаблон" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeactivateEditEventTemplateHandler"/>
+                    </handlers>
+                    <next-states default="SAVED_TEMPLATE"/>
+                </event>
+                <event name="CONFIRM" description="Подтверждение шаблона" type="client">
+                    <next-states default="TEMPLATE">
+                        <next-state condition="com.rssl.phizic.business.documents.templates.stateMachine.conditions.TransferExternalResourceCondition" state="WAIT_CONFIRM_TEMPLATE"/>
+                    </next-states>
+                </event>
+                <event name="CONFIRM_TEMPLATE" description="Подтверждение шаблона" type="client">
+                    <next-states default="TEMPLATE"/>
+                </event>
+                <event name="CONFIRM_TEMPLATE" description="Подтверждение шаблона" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.SetConfirmEmployeeInfoTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.SetCreatedEmployeeInfoTemplateHandler"/>
+                    </handlers>
+                    <next-states default="TEMPLATE"/>
+                </event>
+            </events>
+        </state>
+
+        <state id="WAIT_CONFIRM_TEMPLATE" description="Шаблон ожидающий дополнительного подтверждения"
+			   client-form="/private/payments/template/view.do"
+			   system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <forms>
+                <form application="PhizIC" url="/private/payments/template.do" description="Шаг редактирования шаблона платежа">
+                    <filters>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.EditEventEnabledFormFilter"/>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.TemplateStateFormFilter">
+                            <parameters>
+                                <parameter name="states" value="DRAFTTEMPLATE"/>
+                                <parameter name="invert" value="true"/>
+                            </parameters>
+                        </filter>
+                    </filters>
+                </form>
+            </forms>
+
+            <handlers>
+                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ActivateEditEventTemplateHandler">
+                    <parameter name="value" value="false"/>
+                </handler>
+            </handlers>
+
+            <events>
+                <event name="EDIT_TEMPLATE" description="Редактирование шаблона" type="client">
+                    <next-states default="WAIT_CONFIRM_TEMPLATE">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ActivateEditEventTemplateHandler">
+                                <parameter name="value" value="true"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="SAVEASTEMPLATE" description="Сохраненить документ, как шаблон" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeactivateEditEventTemplateHandler"/>
+                    </handlers>
+                    <next-states default="SAVED_TEMPLATE"/>
+                </event>
+                <event name="CONFIRM" description="Дополнительное подтверждение через КЦ" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.SetConfirmEmployeeInfoTemplateHandler"/>
+                    </handlers>
+                    <next-states default="TEMPLATE"/>
+                </event>
+                <event name="RECOVERDELETED" description="Восстановить, удаленный клиетом шаблон" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.RecoverTemplateActivityStateHandler"/>
+                    </handlers>
+                    <next-states default="TEMPLATE">
+                        <next-state condition="com.rssl.phizic.business.documents.templates.stateMachine.conditions.RecoverTemplateStateCondition" state="WAIT_CONFIRM_TEMPLATE">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ClearEmployeeConfirmInfoHandler"/>
+                            </handlers>
+                        </next-state>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+
+        <state id="TEMPLATE" description="Вы сохранили шаблон документа в Шаблонах документов."
+               client-form="/private/payments/template/view.do"
+               system-resolver="com.rssl.phizic.business.payments.ERIBSystemNameResolver">
+
+            <forms>
+                <form application="PhizIC" url="/private/payments/template.do" description="Шаг редактирования шаблона платежа">
+                    <filters>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.EditEventEnabledFormFilter"/>
+                        <filter class="com.rssl.phizic.business.documents.templates.stateMachine.forms.filters.TemplateStateFormFilter">
+                            <parameters>
+                                <parameter name="states" value="DRAFTTEMPLATE"/>
+                                <parameter name="invert" value="true"/>
+                            </parameters>
+                        </filter>
+                    </filters>
+                </form>
+            </forms>
+
+            <handlers>
+                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ActivateEditEventTemplateHandler">
+                    <parameter name="value" value="false"/>
+                </handler>
+            </handlers>
+
+            <events>
+                <event name="EDIT_TEMPLATE" description="Редактирование шаблона" type="client">
+                    <next-states default="TEMPLATE">
+                        <handlers>
+                            <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ActivateEditEventTemplateHandler">
+                                <parameter name="value" value="true"/>
+                            </handler>
+                        </handlers>
+                    </next-states>
+                </event>
+                <event name="SAVEASTEMPLATE" description="Сохраненить документ, как шаблон" type="client">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.DeactivateEditEventTemplateHandler"/>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ClearAdditionalConfirmRowAction"/>
+                    </handlers>
+                    <next-states default="SAVED_TEMPLATE"/>
+                </event>
+                <event name="RECOVERDELETED" description="Восстановить, удаленный клиетом шаблон" type="employee">
+                    <handlers>
+                        <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.RecoverTemplateActivityStateHandler"/>
+                    </handlers>
+                    <next-states default="TEMPLATE">
+                        <next-state condition="com.rssl.phizic.business.documents.templates.stateMachine.conditions.RecoverTemplateStateCondition" state="WAIT_CONFIRM_TEMPLATE">
+                            <handlers>
+                                <handler class="com.rssl.phizic.business.documents.templates.stateMachine.handlers.ClearEmployeeConfirmInfoHandler"/>
+                            </handlers>
+                        </next-state>
+                    </next-states>
+                </event>
+            </events>
+        </state>
+	</states>
+
+</config>

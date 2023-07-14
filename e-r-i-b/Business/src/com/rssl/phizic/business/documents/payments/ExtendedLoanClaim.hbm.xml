@@ -1,0 +1,272 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<typedef name="CreationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.common.forms.doc.CreationType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef name="CreationSourceType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.common.forms.doc.CreationSourceType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef name="LoginType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.client.LoginType</param>
+	</typedef>
+
+    <typedef name="ConfirmStrategyType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.ConfirmStrategyType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.documents.payments.ExtendedLoanClaim" table="LOAN_CLAIMS">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_BUSINESS_DOCUMENTS</param>
+            </generator>
+        </id>
+
+        <timestamp name="changed" column="CHANGED"/>
+
+        <property name="externalId"  type="string" column="EXTERNAL_ID"/>
+        <property name="systemName" type="string" column="SYSTEM_NAME"/>
+        <property name="documentNumber" type="string" column="DOC_NUMBER"/>
+        <property name="operationUID" type="string" column="OPERATION_UID"/>
+
+        <property name="state" type="com.rssl.phizic.business.hibernate.StateType" not-null="true" access="field">
+   		    <column name="STATE_CODE"/>
+   		    <column name="STATE_DESCRIPTION"/>
+   	    </property>
+
+        <property name="creationType"           type="CreationType"         column="CREATE_CHANNEL"                 not-null="true"/>
+        <property name="creationSourceType"     type="CreationSourceType"   column="CREATION_SOURCE_TYPE"           not-null="true"/>
+        <property name="dateCreated"            type="calendar"             column="CREATION_DATE"                  not-null="true"/>
+        <property name="documentDate"           type="calendar"             column="DOCUMENT_DATE"                  not-null="true"/>
+        <property name="operationDate"          type="calendar"             column="OPERATION_DATE"                 not-null="false"/>
+   	    <property name="admissionDate"          type="calendar"             column="ADMISSION_DATE"                 not-null="false"/>
+   	    <property name="executionDate"          type="calendar"             column="EXECUTION_DATE"                 not-null="false"/>
+
+        <property name="clientOperationChannel"     type="CreationType"          column="CONFIRM_CHANNEL"           not-null="false"/>
+        <property name="confirmStrategyType"        type="ConfirmStrategyType"   column="CONFIRM_STRATEGY_TYPE"     not-null="false"/>
+        <property name="additionalOperationChannel" type="CreationType"          column="ADDITION_CONFIRM"          not-null="false"/>
+        <property name="refusingReason"             type="string"                column="REFUSING_REASON"           not-null="false"/>
+        <property name="archive"                    type="boolean"               column="ARCHIVE"                   not-null="true"/>
+
+        <property name="etsmErrorCode"              type="integer"               column = "ETSM_ERROR_CODE"         not-null="false"/>
+
+        <property name="tb"                 type="string"               column="TB"                         not-null="true"/>
+        <property name="osb"                type="string"               column="OSB"                        not-null="false"/>
+        <property name="vsp"                type="string"               column="VSP"                        not-null="false"/>
+
+        <property name="ownerLoginId"           type="long"                 column="OWNER_LOGIN_ID"             not-null="false"/>
+        <property name="ownerGuestId"           type="long"                 column="OWNER_GUEST_ID"             not-null="false"/>
+        <property name="ownerGuestPhone"        type="string"               column="OWNER_GUEST_PHONE"          not-null="false"/>
+        <property name="ownerGuestMbk"          type="boolean"              column="OWNER_GUEST_MBK"            not-null="false"/>
+        <property name="externalOwnerId"        type="string"               column="OWNER_EXTERNAL_ID"          not-null="true"/>
+        <property name="ownerFirstName"         type="string"               column="OWNER_FIRST_NAME"           not-null="false"/>
+        <property name="ownerLastName"          type="string"               column="OWNER_LAST_NAME"            not-null="false"/>
+        <property name="ownerMiddleName"        type="string"               column="OWNER_MIDDLE_NAME"          not-null="false"/>
+        <property name="ownerBirthday"          type="calendar"             column="OWNER_BIRTHDAY"             not-null="false"/>
+        <property name="ownerIdCardSeries"      type="string"               column="OWNER_IDCARD_SERIES"        not-null="false"/>
+        <property name="ownerIdCardNumber"      type="string"               column="OWNER_IDCARD_NUMBER"        not-null="false"/>
+        <property name="ownerTb"                type="string"               column="OWNER_TB"                   not-null="true"/>
+        <property name="ownerOsb"               type="string"               column="OWNER_OSB"                  not-null="false"/>
+        <property name="ownerVsp"               type="string"               column="OWNER_VSP"                  not-null="false"/>
+        <property name="ownerLoginType"         type="LoginType"            column="OWNER_LOGIN_TYPE"           not-null="false"/>
+        <property name="createManagerLoginId"   type="long"                 column="CREATE_MANAGER_LOGIN_ID"    not-null="false"/>
+        <property name="confirmManagerLoginId"  type="long"                 column="CONFIRM_MANAGER_LOGIN_ID "  not-null="false"/>
+        <property name="bkiConfirmDate"         type="calendar"             column="BKI_CONFIRM_DATE"           not-null="false"/>
+
+        <map name="attributes" table="LOAN_CLAIM_FIELDS"
+             cascade="all-delete-orphan" lazy="false" batch-size="500">
+            <key column="CLAIM_ID" not-null="true"/>
+            <map-key formula="NAME" type="string"/>
+            <composite-element class="com.rssl.phizic.business.extendedattributes.ExtendedAttribute">
+                <property name="type" type="string" column="TYPE" not-null="true"/>
+                <property name="name" type="string" column="NAME" not-null="true" insert="false" update="false"/>
+                <property name="stringValue" type="not-null-string" column="VALUE"/>
+                <property name="dateCreated" type="calendar" column="CREATION_DATE" not-null="true"/>
+            </composite-element>
+        </map>
+
+    </class>
+
+    <!--
+       Поиск расширенной заявки на кредит по id
+       Опорный объект: PK_LOAN_CLAIMS
+       Предикаты доступа: access("CLAIM"."ID"=TO_NUMBER(:ID))
+       Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.ExtendedLoanClaim.getById">
+        <return alias="claim" class="com.rssl.phizic.business.documents.payments.ExtendedLoanClaim"/>
+        <![CDATA[
+            select {claim.*} from LOAN_CLAIMS claim
+            where claim.ID = :id
+        ]]>
+    </sql-query>
+
+    <!--
+       Поиск расширенной заявки на кредит по EXTERNAL_ID
+       Опорный объект: LOAN_CLAIMS_EXTERNAL_ID_IDX
+       Предикаты доступа: access("CLAIM"."EXTERNAL_ID"=:EXTERNALID)
+       Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.ExtendedLoanClaim.getByExternalId">
+        <return alias="claim" class="com.rssl.phizic.business.documents.payments.ExtendedLoanClaim"/>
+        <![CDATA[
+            select {claim.*} from LOAN_CLAIMS claim
+            where claim.EXTERNAL_ID = :externalId
+        ]]>
+    </sql-query>
+
+    <!--
+           Поиск расширенных заявок на кредит в канале по owner_login_id
+           Опорный объект: LOAN_CLAIMS_LICD_IDX
+           Предикаты доступа: access("CLAIM"."OWNER_LOGIN_ID"=TO_NUMBER(:LOGINID))
+           Кардинальность: равна количеству подходящих по условию документов
+        -->
+    <sql-query name="com.rssl.phizic.business.documents.ExtendedLoanClaim.findPaymentsInChannel">
+        <return alias="claim" class="com.rssl.phizic.business.documents.payments.ExtendedLoanClaim"/>
+        <![CDATA[
+            select {claim.*} from LOAN_CLAIMS claim
+            where claim.OWNER_LOGIN_ID = :loginId
+               and claim.CREATE_CHANNEL = :channel
+            order by CREATION_DATE DESC
+        ]]>
+    </sql-query>
+
+    <!--
+        Проверка доступности создания расширенной заявки на кредит для клиента.
+        НЕ доступна если:
+        1. есть заявки в статусах: "В работе ТМ", "Передана в ВСП", "Передано в систему обработки заявок",
+                                   "Принято предварительное решение", "Одобрено", "Одобрено, требуется подтверждение для выдачи",
+                                   "Отправка акцепта оферты в Банк", "Акцептовано, ожидание выдачи кредита", "Необходим визит в отделение"
+        2. если заявка отказана с определенным кодом ошибки-ETSM
+
+        Опорный элемент: LOAN_CLAIMS_LICD_IDX
+        Предикаты доступа: access("CLAIM"."OWNER_LOGIN_ID"=TO_NUMBER(:LOGINID) AND "CLAIM"."CREATION_DATE">=TO_TIMESTAMP(:MAXDISPATCHDATE))
+
+        Кардинальность: 1 - ограничение "setMaxResults(1)" устанавливается в коде
+      -->
+   	<sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.allowExtendedLoanClaimForClient">
+   		<![CDATA[
+   		    SELECT * FROM (
+   			SELECT 1
+              FROM LOAN_CLAIMS claim
+             WHERE claim.OWNER_LOGIN_ID = :loginId
+               AND claim.CREATION_DATE >= :maxDispatchDate
+               AND (claim.STATE_CODE in ('DISPATCHED', 'WAIT_TM', 'VISIT_OFFICE', 'PREADOPTED', 'APPROVED', 'APPROVED_NID_CONFIRM',
+                                         'OFFER_DISPATCHED', 'ACCEPTED_WAIT_DELIVERY', 'VISIT_REQUIRED') OR
+                    (claim.STATE_CODE = 'REFUSE' AND claim.ETSM_ERROR_CODE IN (:errorCodes))))
+   		]]>
+   	</sql-query>
+
+    <!--
+      Проверка доступности создания расширенной заявки на кредит для гостя
+
+          Опорный элемент: LOAN_CLAIMS_GICD_IDX
+    Предикаты доступа: access("CLAIM"."OWNER_GUEST_ID"=TO_NUMBER(:GUESTID) AND "CLAIM"."CREATION_DATE">=TO_TIMESTAMP(:MAXDISPATCHDATE))
+
+          Кардинальность: равна количеству подходящих по условию документов
+    -->
+   	<sql-query name="com.rssl.phizic.business.documents.BusinessDocumentService.allowExtendedLoanClaimForGuest">
+   		<![CDATA[
+   			SELECT * FROM (
+   			 SELECT 1
+   			   FROM LOAN_CLAIMS claim
+                where claim.OWNER_GUEST_ID = :guestId
+                and claim.OWNER_GUEST_PHONE = :phone
+   			    AND claim.CREATION_DATE >= :maxDispatchDate
+                AND (claim.STATE_CODE = 'DISPATCHED' OR claim.STATE_CODE = 'WAIT_TM' OR (claim.STATE_CODE = 'REFUSE' AND claim.ETSM_ERROR_CODE IN(:errorCodes))))
+   		]]>
+   	</sql-query>
+
+    <!--
+       Поиск расширенных заявок на кредит по идентификатору клиента
+       Опорный объект: LOAN_CLAIMS_LICD_IDX
+ Предикаты доступа: access("CLAIM"."OWNER_LOGIN_ID"=TO_NUMBER(:LOGINID) AND "CLAIM"."CREATION_DATE">=ADD_MONTHS(SYSDATE@!,(-TO_NUMBER(:PERIOD))))
+       Кардинальность: равна количеству подходящих по условию документов
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.ExtendedLoanClaim.findByClientLogin">
+            <return alias="claim" class="com.rssl.phizic.business.documents.payments.ExtendedLoanClaim"/>
+            <![CDATA[
+                select {claim.*}
+                  from LOAN_CLAIMS claim
+                   where claim.OWNER_LOGIN_ID = :loginId
+                   and claim.CREATION_DATE >= add_months(sysdate, -:period)
+                   and claim.STATE_CODE != 'DELETED'
+                order by claim.CREATION_DATE desc
+            ]]>
+        </sql-query>
+
+    <!--
+           Поиск расширенных заявок на кредит по идентификатору гостя
+           Опорный объект: LOAN_CLAIMS_GICD_IDX
+     Предикаты доступа: access("CLAIM"."OWNER_GUEST_ID"=TO_NUMBER(:GUESTID) AND "CLAIM"."CREATION_DATE">=ADD_MONTHS(SYSDATE@!,(-TO_NUMBER(:PERIOD))))
+           Кардинальность: равна количеству подходящих по условию документов
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.ExtendedLoanClaim.findByGuestLogin">
+           <return alias="claim" class="com.rssl.phizic.business.documents.payments.ExtendedLoanClaim"/>
+           <![CDATA[
+               select {claim.*}
+                 from LOAN_CLAIMS claim
+                  where claim.OWNER_GUEST_ID = :guestId
+                  and claim.OWNER_GUEST_PHONE = :phone
+                  and claim.CREATION_DATE >= :startDate
+                  and claim.STATE_CODE != 'DELETED'
+               order by claim.CREATION_DATE desc
+           ]]>
+    </sql-query>
+
+    <!--
+    Перепривязать документы от нескольких пользователей одному. Документы только с указанными статусами
+          Опорный объект: LOAN_CLAIMS_LICD_IDX
+          Предикаты доступа: access("CLAIM"."OWNER_LOGIN_ID"=TO_NUMBER(:OWNERS))
+          Кардинальность: равна количеству подходящих по условию документов
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.ExtendedLoanClaim.findAndUpdateLogin">
+        update LOAN_CLAIMS claim
+        set OWNER_LOGIN_ID = :extra_mainOwner
+        where claim.OWNER_LOGIN_ID in (:extra_owners)
+          and claim.state_code not in (:extra_states)
+    </sql-query>
+
+     <!--
+          Поиск расширенной заявки на кредит по operation_uid
+          Опорный объект: LOAN_CLAIMS_OPERATION_UID_IDX
+          Предикаты доступа: access("CLAIM"."OPERATION_UID"=:OPERATION_UID)
+          Кардинальность: 1
+     -->
+    <sql-query name="com.rssl.phizic.business.documents.ExtendedLoanClaim.getByUID">
+        <return alias="claim" class="com.rssl.phizic.business.documents.payments.ExtendedLoanClaim"/>
+        <![CDATA[
+            select {claim.*} from LOAN_CLAIMS claim
+            where claim.OPERATION_UID = :operation_uid
+        ]]>
+    </sql-query>
+
+    <!--
+    Поиск расширенных заявок по коду. Поиск ведется среди заявок не старее ":bkiConfirmDate"
+    Опорный элемент: LOAN_CLAIMS_OPERATION_UID_IDX
+    Предикат доступа: access("CLAIM"."OPERATION_UID" LIKE :BKINUMBER||'%')
+    Кардинальность: должна равняться 1, но остаётся небольшая вероятность что может вернуться более 1.
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.ExtendedLoanClaim.findClaimsByNumbers">
+        <return alias="claim" class="com.rssl.phizic.business.documents.payments.ExtendedLoanClaim"/>
+        <![CDATA[
+        select {claim.*}
+          from LOAN_CLAIMS claim
+         where claim.OPERATION_UID like :bkiNumber||'%'
+           and claim.creation_date >= :bkiConfirmDate
+           and claim.bki_confirm_date >= :bkiConfirmDate
+           and rownum < 3
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

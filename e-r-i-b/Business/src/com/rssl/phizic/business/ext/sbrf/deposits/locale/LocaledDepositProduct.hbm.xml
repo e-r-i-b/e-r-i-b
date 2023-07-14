@@ -1,0 +1,172 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.locale.DepositsQVBResources" table="DEPOSITS_QVB_RES">
+        <composite-id>
+            <key-property name="id" column="ID" type="long"/>
+            <key-property name="localeId" column="LOCALE_ID" type="string"/>
+        </composite-id>
+
+        <property name="fullName" column="QDN" type="string" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.locale.DepositsGROUPResources" table="DEPOSITS_QVB_GROUP_RES">
+        <composite-id>
+            <key-property name="id" column="ID" type="long"/>
+            <key-property name="localeId" column="LOCALE_ID" type="string"/>
+        </composite-id>
+
+        <property name="groupName" column="GR_NAME" type="string" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.locale.DepositsTDOGResources" table="DEPOSITS_FIELD_TDOG_RES">
+        <composite-id>
+            <key-property name="id" column="ID" type="long"/>
+            <key-property name="localeId" column="LOCALE_ID" type="string"/>
+        </composite-id>
+
+        <property name="sum"                    type="string"       column="SUM_VKL"            not-null="false"/>
+        <property name="currency"               type="string"       column="CURR_VKL"           not-null="false"/>
+        <property name="period"                 type="string"       column="QSROK"              not-null="false"/>
+        <property name="dateEnd"                type="string"       column="DATA_END"           not-null="false"/>
+        <property name="rate"                   type="string"       column="PERCENT"            not-null="false"/>
+        <property name="incomingTransactions"   type="string"       column="PRIXOD"             not-null="false"/>
+        <property name="minAdditionalFee"       type="string"       column="MIN_ADD"            not-null="false"/>
+        <property name="additionalFeePeriod"    type="string"       column="PER_ADD"            not-null="false"/>
+        <property name="debitTransactions"      type="string"       column="RASXOD"             not-null="false"/>
+        <property name="sumMinBalance"          type="string"       column="SUM_NOST"           not-null="false"/>
+        <property name="frequencyPercent"       type="string"       column="PER_PERCENT"        not-null="false"/>
+        <property name="percentOrder"           type="string"       column="ORD_PERCENT"        not-null="false"/>
+        <property name="incomeOrder"            type="text"         column="ORD_DOXOD"          not-null="false"/>
+        <property name="renewals"               type="string"       column="QPROL"              not-null="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.locale.LocaledDepositsTDOG" table="DEPOSITS_FIELD_TDOG" mutable="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_FIELD_TDOG</param>
+            </generator>
+        </id>
+
+        <property name="depositType"            type="long"         column="VID"                not-null="true"/>
+        <property name="depositSubType"         type="long"         column="PVID"               not-null="true"/>
+        <property name="sum"                    type="string"       column="SUM_VKL"            not-null="false"/>
+        <property name="currency"               type="string"       column="CURR_VKL"           not-null="false"/>
+        <property name="period"                 type="string"       column="QSROK"              not-null="false"/>
+        <property name="dateEnd"                type="string"       column="DATA_END"           not-null="false"/>
+        <property name="rate"                   type="string"       column="PERCENT"            not-null="false"/>
+        <property name="incomingTransactions"   type="string"       column="PRIXOD"             not-null="false"/>
+        <property name="minAdditionalFee"       type="string"       column="MIN_ADD"            not-null="false"/>
+        <property name="additionalFeePeriod"    type="string"       column="PER_ADD"            not-null="false"/>
+        <property name="debitTransactions"      type="string"       column="RASXOD"             not-null="false"/>
+        <property name="sumMinBalance"          type="string"       column="SUM_NOST"           not-null="false"/>
+        <property name="frequencyPercent"       type="string"       column="PER_PERCENT"        not-null="false"/>
+        <property name="percentOrder"           type="string"       column="ORD_PERCENT"        not-null="false"/>
+        <property name="incomeOrder"            type="text"         column="ORD_DOXOD"          not-null="false"/>
+        <property name="renewals"               type="string"       column="QPROL"              not-null="false"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.ext.sbrf.deposits.locale.DepositsTDOGResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <!--
+        Получить список вкладных продуктов (тип, группа вклада, минимальные настройки) для списка вкладов
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: "QVB"."QDTN1"=TO_NUMBER(:EXTRA_DEPOSITTYPES)
+        Кардинальность: максимально - 56 (учетом всех выбранных и отфильтрованных в прикладе видов вкладов)
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity.getGroups.multilocale">
+        <return class="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity">
+            <return-property name="id"                  column="ID"/>
+            <return-property name="depositType"         column="DEPOSIT_TYPE"/>
+            <return-property name="groupCode"           column="GROUP_CODE"/>
+            <return-property name="groupName"           column="GROUP_NAME"/>
+            <return-property name="allowPensionRates"   column="PG_PENS"/>
+            <return-property name="promoCodeSupported"  column="PG_PROMO"/>
+            <return-property name="initialFee"          column="QPFS"/>
+            <return-property name="withMinimumBalance"  column="QN_RESN"/>
+            <return-property name="debitOperationsCode" column="Q_EXPENS"/>
+        </return>
+        <![CDATA[
+        SELECT distinct
+            qvb.QDTN1  || gr.GR_CODE                            as ID,
+            qvb.QDTN1                                           as DEPOSIT_TYPE,
+            gr.GR_CODE                                          as GROUP_CODE,
+            NVL(grRes.GR_NAME, gr.GR_NAME)                      as GROUP_NAME,
+            par.PG_PENS                                         as PG_PENS,
+            par.PG_PROMO                                        as PG_PROMO,
+            (CASE WHEN (qvb.QPFS) = 0 THEN 0 ELSE 1 END)        as QPFS,
+            qvb.QN_RESN                                         as QN_RESN,
+            qvb.Q_EXPENS                                        as Q_EXPENS
+        FROM
+            DEPOSITS_QVB qvb
+            JOIN DEPOSITS_QVB_GROUP gr on qvb.Q_GROUP = gr.GR_CODE
+            LEFT JOIN DEPOSITS_QVB_PARGR par on qvb.Q_GROUP = par.PG_CODGR
+            LEFT JOIN DEPOSITS_QVB_GROUP_RES grRes ON gr.ID = grRes.ID AND grRes.LOCALE_ID = :extra_localeId
+        WHERE
+            qvb.QDTN1 in (:extra_depositTypes) AND
+            QVB.QOPEND >= :extra_curDate AND
+            (qvb.Q_GROUP = 0 OR par.PG_BDATE = (select max(PG_BDATE) from DEPOSITS_QVB_PARGR where PG_CODGR = qvb.Q_GROUP AND PG_BDATE <= :extra_curDate))
+        ]]>
+    </sql-query>
+
+    <!--
+        Получить название минимального подвида вкладного продукта (только для группы с кодом == 0)
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: "QVB"."QDTN1"=TO_NUMBER(:EXTRA_TYPE) AND "QVB"."QDTSUB"=
+                           (SELECT MIN("QVB_SUB"."QDTSUB") FROM "DEPOSITS_QVB" "QVB_SUB" WHERE "QVB_SUB"."QDTN1"=TO_NUMBER(:EXTRA_TYPE))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity.getName.multilocale">
+        <return-scalar column="DEPOSIT_NAME" type="string"/>
+        <![CDATA[
+        SELECT
+            NVL(qvbRes.QDN, qvb.QDN) as DEPOSIT_NAME
+        FROM
+            DEPOSITS_QVB qvb
+        LEFT JOIN
+            DEPOSITS_QVB_RES qvbRes ON qvb.ID = qvbRes.ID AND qvbRes.LOCALE_ID = :extra_localeId
+        WHERE
+            qvb.QDTN1 = :extra_type AND
+            qvb.Q_GROUP = 0 AND
+            qvb.QDTSUB = (select min(qvb_sub.QDTSUB) from DEPOSITS_QVB qvb_sub where qvb_sub.QDTN1 = :extra_type)
+        ]]>
+    </sql-query>
+
+    <!--
+        Получение условий вкладного продукта
+        Опорный объект: IDX_DEPOSITS_TDOG
+        Предикаты доступа: "TD"."VID"=TO_NUMBER(:EXTRA_TYPE) AND "TD"."PVID"=
+                           (SELECT MIN("QVB"."QDTSUB") FROM "DEPOSITS_QVB" "QVB" WHERE "QVB"."QDTN1"=TO_NUMBER(:EXTRA_TYPE) AND "QVB"."Q_GROUP"=TO_NUMBER(:EXTRA_GROUPCODE))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsTDOG.getDepositAdditionalInfo.multilocale">
+        <return alias="td" class="com.rssl.phizic.business.ext.sbrf.deposits.locale.LocaledDepositsTDOG"/>
+        <return-join alias="tdRes" property="td.resources"/>
+        <![CDATA[
+        SELECT
+            {td.*},
+            {tdRes.*}
+        FROM
+            DEPOSITS_FIELD_TDOG td
+        LEFT JOIN
+            DEPOSITS_FIELD_TDOG_RES tdRes ON td.ID = tdRes.ID AND tdRes.LOCALE_ID = :extra_localeId
+        WHERE td.VID = :extra_type AND
+                (:extra_subType is null AND td.PVID = (SELECT
+                                min(qvb.QDTSUB)
+                            FROM
+                                DEPOSITS_QVB qvb
+                            WHERE
+                                qvb.QDTN1 = :extra_type AND
+                                qvb.Q_GROUP = :extra_groupCode) OR
+                td.PVID = :extra_subType)
+        ]]>
+    </sql-query>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

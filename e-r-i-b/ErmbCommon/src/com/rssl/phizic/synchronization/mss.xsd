@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="CheckIMSIRs" type="CheckIMSIRsType"/>
+
+  <xs:element name="ConfirmProfilesRq" type="ConfirmProfilesRq"/>
+
+  <xs:element name="SMSRq" type="SMSRq"/>
+
+  <xs:element name="ServiceFeeResultRq" type="ServiceFeeResultRq"/>
+
+  <xs:element name="UpdateClientRq" type="UpdateClientRq"/>
+
+  <xs:element name="UpdateResourceRq" type="UpdateResourceRq"/>
+
+  <xs:complexType name="CheckIMSIRsType">
+    <xs:sequence>
+      <xs:element name="rqVersion" type="xs:string"/>
+      <xs:element name="rqUID" type="xs:string"/>
+      <xs:element name="rqTime" type="xs:string"/>
+      <xs:element name="phone" type="xs:string"/>
+      <xs:element name="resultCode" type="xs:string"/>
+      <xs:element name="correlationID" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ConfirmProfilesRq">
+    <xs:sequence>
+      <xs:element name="rqVersion" type="xs:string"/>
+      <xs:element name="rqTime" type="xs:string"/>
+      <xs:element name="rqUID" type="xs:string"/>
+      <xs:element name="updatedProfiles" type="ConfirmUpdatedProfilesType" minOccurs="0"/>
+      <xs:element name="deletedProfiles" type="DeleteProfilesType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ConfirmUpdatedProfilesType">
+    <xs:sequence>
+      <xs:element name="profile" type="ConfirmUpdatedProfileType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ConfirmUpdatedProfileType">
+    <xs:sequence>
+      <xs:element name="clientIdentity" type="IdentityType"/>
+      <xs:element name="clientOldIdentity" type="IdentityType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="version" type="xs:long"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="IdentityType">
+    <xs:sequence>
+      <xs:element name="lastname" type="xs:string"/>
+      <xs:element name="firstname" type="xs:string"/>
+      <xs:element name="middlename" type="xs:string" minOccurs="0"/>
+      <xs:element name="birthday" type="xs:string"/>
+      <xs:element name="identityCard" type="IdentityCardType"/>
+      <xs:element name="tb" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="IdentityCardType">
+    <xs:sequence>
+      <xs:element name="idType" type="xs:string"/>
+      <xs:element name="idSeries" type="xs:string" minOccurs="0"/>
+      <xs:element name="idNum" type="xs:string"/>
+      <xs:element name="issuedBy" type="xs:string" minOccurs="0"/>
+      <xs:element name="issueDt" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DeleteProfilesType">
+    <xs:sequence>
+      <xs:element name="profile" type="DeleteProfileType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DeleteProfileType">
+    <xs:sequence>
+      <xs:element name="clientIdentity" type="IdentityType"/>
+      <xs:element name="clientOldIdentity" type="IdentityType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SMSRq">
+    <xs:sequence>
+      <xs:element name="rqVersion" type="xs:string"/>
+      <xs:element name="rqUID" type="xs:string"/>
+      <xs:element name="rqTime" type="xs:string"/>
+      <xs:element name="phone" type="xs:string"/>
+      <xs:element name="text" type="xs:string"/>
+      <xs:element name="eribSID" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ServiceFeeResultRq">
+    <xs:sequence>
+      <xs:element name="rqVersion" type="xs:string"/>
+      <xs:element name="rqUID" type="xs:string"/>
+      <xs:element name="rqTime" type="xs:dateTime"/>
+      <xs:element name="clientIdentity" type="IdentityType"/>
+      <xs:element name="resource" type="ResourceIDType" minOccurs="0"/>
+      <xs:element name="tb" type="xs:string" minOccurs="0"/>
+      <xs:element name="paymentStatus" type="xs:string"/>
+      <xs:element name="paymentID" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ResourceIDType">
+    <xs:sequence>
+      <xs:element name="type" type="ResourceType"/>
+      <xs:element name="account" type="xs:string" minOccurs="0"/>
+      <xs:element name="card" type="xs:string" minOccurs="0"/>
+      <xs:element name="loan" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="UpdateClientRq">
+    <xs:sequence>
+      <xs:element name="rqVersion" type="xs:string"/>
+      <xs:element name="rqUID" type="xs:string"/>
+      <xs:element name="rqTime" type="xs:string"/>
+      <xs:element name="profile" type="UpdateClientProfilesType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="UpdateClientProfilesType">
+    <xs:sequence>
+      <xs:element name="clientIdentity" type="IdentityType"/>
+      <xs:element name="clientOldIdentity" type="IdentityType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="UpdateResourceRq">
+    <xs:sequence>
+      <xs:element name="rqVersion" type="xs:string"/>
+      <xs:element name="rqUID" type="xs:string"/>
+      <xs:element name="rqTime" type="xs:string"/>
+      <xs:element name="profile" type="UpdateResourceProfilesType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="UpdateResourceProfilesType">
+    <xs:sequence>
+      <xs:element name="clientIdentity" type="IdentityType"/>
+      <xs:element name="resource" type="ResourceIDType"/>
+      <xs:element name="tb" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="ResourceType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="account"/>
+      <xs:enumeration value="card"/>
+      <xs:enumeration value="loan"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
+

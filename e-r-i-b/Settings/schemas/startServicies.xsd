@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+
+	<xsd:annotation>
+		<xsd:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="com.rssl.phizic.service.generated"/>
+				<jxb:nameXmlTransform>
+					<jxb:elementName suffix="Element"/>
+					<jxb:typeName suffix="Descriptor"/>
+				</jxb:nameXmlTransform>
+			</jxb:schemaBindings>
+		</xsd:appinfo>
+	</xsd:annotation>
+
+	<xsd:element name="services">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="service" type="Service" maxOccurs="unbounded" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+							<jxb:property name="serviceDescriptors"/>
+						</xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="jmxbean" type="JMXBean" maxOccurs="unbounded" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+							<jxb:property name="mbeans"/>
+						</xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:complexType name="Service">
+        <xsd:annotation>
+            <xsd:documentation>Сервис</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="param" type="Parameter" maxOccurs="unbounded" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+						<jxb:property name="paramfieldDescriptors"/>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="className" use="required" type="JavaClass"/>
+	    <xsd:attribute name="description" use="optional" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="JMXBean">
+        <xsd:annotation>
+            <xsd:documentation>JMXBean</xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="className" use="required" type="JavaClass"/>
+        <xsd:attribute name="interfaceClassName" use="optional" type="JavaClass">
+            <xsd:annotation>
+                <xsd:documentation>Интерфейс для регистрации как конфига, needRegister должен быть равен true</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="readerClassName" use="optional" type="JavaClass">
+            <xsd:annotation>
+                <xsd:documentation>Класс ридера для конструирования конфига, если нужен</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="readerInterfaceClassName" use="optional" type="JavaClass">
+            <xsd:annotation>
+                <xsd:documentation>Интерфейс ридера использующийся в конструкторе конфига, если нужен</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="readerParam" use="optional" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>Параметр для передачи в конструктор ридера. Обязателен в случае указания readerClassName.</xsd:documentation>
+             </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="needRegister" use="required" type="xsd:boolean">
+            <xsd:annotation>
+               <xsd:documentation>Надо ли регистрировать как конфиг в ConfigFactory</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="description" use="optional" type="xsd:string"/>
+    </xsd:complexType>
+
+
+	<xsd:complexType name="Parameter">
+        <xsd:annotation>
+            <xsd:documentation>Описание параметров</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string" maxOccurs="unbounded" minOccurs="0" />
+        </xsd:sequence>
+        <xsd:attribute name="name" use="required"/>
+        <xsd:attribute name="description"   use="required"/>
+    </xsd:complexType>
+    <xsd:simpleType name="JavaClass">
+        <xsd:annotation>
+            <xsd:documentation>FQN java класса</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

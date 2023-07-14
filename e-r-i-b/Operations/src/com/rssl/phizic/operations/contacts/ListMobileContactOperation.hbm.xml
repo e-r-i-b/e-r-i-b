@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <!--
+        Опорный объект: IDX_AB_LGID
+        Предикаты доступа: "CONTACT"."LOGIN_ID"=:LOGINID
+        Кардинальность: 300
+     -->
+    <query name="com.rssl.phizic.operations.contacts.ListMobileContactOperation.list">
+        select contact
+        from com.rssl.phizic.business.profile.addressbook.Contact as contact
+        where contact.owner.id = :extra_loginId
+            and (:extra_name is null or upper(contact.fullName) like upper(:extra_like_name))
+    </query>
+</hibernate-mapping>

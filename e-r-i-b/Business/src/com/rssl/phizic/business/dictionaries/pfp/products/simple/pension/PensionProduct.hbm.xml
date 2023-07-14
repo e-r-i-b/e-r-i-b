@@ -1,0 +1,41 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="SegmentCodeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.SegmentCodeType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.simple.pension.PensionProduct"
+           table="PFP_PENSION_PRODUCT">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_PENSION_PRODUCT</param>
+            </generator>
+        </id>
+        <property name="uuid"          type="string"      column="UUID"           not-null="true" update="false"/>
+        <property name="name"          type="string"      column="NAME"           not-null="true"/>
+        <property name="description"   type="string"      column="DESCRIPTION"    not-null="false"/>
+        <property name="imageId"       type="long"        column="IMAGE_ID"       not-null="false"/>
+        <property name="minIncome"     type="big_decimal" column="MIN_INCOME"     not-null="false"/>
+        <property name="maxIncome"     type="big_decimal" column="MAX_INCOME"     not-null="false"/>
+        <property name="defaultIncome" type="big_decimal" column="DEFAULT_INCOME" not-null="false"/>
+        <property name="universal"     type="boolean"     column="UNIVERSAL"      not-null="true"/>
+        <property name="enabled"       type="boolean"     column="ENABLED"        not-null="true"/>
+        <many-to-one name="pensionFund"
+                     column="PENSION_FUND_ID"
+                     class="com.rssl.phizic.business.dictionaries.pfp.products.simple.pension.fund.PensionFund"
+                     lazy="false"
+                     not-null="true"/>
+        <property name="entryFee"      type="big_decimal" column="ENTRY_FEE"      not-null="true"/>
+        <property name="quarterlyFee"  type="big_decimal" column="QUARTERLY_FEE"  not-null="true"/>
+        <property name="minPeriod"     type="long"        column="MIN_PERIOD"     not-null="false"/>
+        <property name="maxPeriod"     type="long"        column="MAX_PERIOD"     not-null="false"/>
+        <property name="defaultPeriod" type="long"        column="DEFAULT_PERIOD" not-null="false"/>
+        <set name="targetGroup" table="PFP_P_PRODUCT_TARGET_GROUPS" cascade="none" lazy="false">
+            <key     column="PRODUCT_ID"   not-null="true"/>
+            <element column="SEGMENT_CODE" not-null="true" type="SegmentCodeType"/>
+        </set>
+    </class>
+</hibernate-mapping>

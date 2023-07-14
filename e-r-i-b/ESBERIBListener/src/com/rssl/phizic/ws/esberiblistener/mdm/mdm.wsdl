@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns="http://sbrf.srb.ru/erib/mdm" xmlns:sb="http://sbrf.srb.ru/erib/mdm" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="ERIBMDMWService" targetNamespace="http://sbrf.srb.ru/erib/mdm">
+	<wsdl:types>
+        <xsd:schema xmlns:mrm="http://sbrf.srb.ru/erib/mdm" targetNamespace="http://sbrf.srb.ru/erib/mdm" xmlns:sb="http://sbrf.srb.ru/erib/mdm" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+          <xsd:include schemaLocation="mdm.xsd"/>
+        </xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="DoIFXRqMsg">
+		<wsdl:part element="ns:DoIFXRq" name="parameters"/>
+	</wsdl:message>
+	<wsdl:message name="DoIFXRsMsg">
+		<wsdl:part element="ns:DoIFXRs" name="result"/>
+	</wsdl:message>
+	<wsdl:portType name="eribMDM">
+		<wsdl:operation name="DoIFX">
+			<wsdl:input message="ns:DoIFXRqMsg"/>
+			<wsdl:output message="ns:DoIFXRsMsg"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="eribMDMBinding" type="ns:eribMDM">
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="DoIFX">
+			<soap:operation soapAction="http://sbrf.srb.ru/erib/mdm/DoIFX" style="document"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="eribMDM">
+		<wsdl:port name="eribMDMService" binding="ns:eribMDMBinding">
+			<soap:address location="http://localhost:8080/services/EribMDM"/>
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

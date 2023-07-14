@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.creditcards.incomes.IncomeLevel" table="INCOME_LEVELS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_INCOME_LEVELS</param>
+            </generator>
+        </id>
+
+        <property name="minIncome" type="money" not-null="false">
+            <column name="MIN_INCOME"/>
+            <column name="MIN_INCOME_CURRENCY"/>
+        </property>
+        <property name="maxIncome" type="money" not-null="false">
+            <column name="MAX_INCOME"/>
+            <column name="MAX_INCOME_CURRENCY"/>
+        </property>
+        <property name="maxIncomeInclude" type="boolean" column="IS_MAX_INCOME_INCL" not-null="true"/>
+
+        <bag name="conditions" lazy="false" cascade="all-delete-orphan">
+            <key column="INCOME_ID" not-null="true"/>
+            <one-to-many class="com.rssl.phizic.business.creditcards.conditions.IncomeCondition"/>
+        </bag>
+    </class>
+
+    <query name="com.rssl.phizic.business.creditcards.incomes.IncomeLevel.getConditionsByProduct">
+        select condition
+        from com.rssl.phizic.business.creditcards.conditions.IncomeCondition as condition
+        where condition.incomeId = :incomeId
+    </query>
+
+    <!--Проверка наличия записей в таблице соответствия доходов клиента и доступных кредитных лимитов-->
+    <query name="com.rssl.phizic.business.creditcards.incomes.IncomeLevel.isIncomeLevelsExists">
+        select count(*) from com.rssl.phizic.business.creditcards.incomes.IncomeLevel
+    </query>
+
+</hibernate-mapping>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ejb-jar
+        PUBLIC "-//Sun Microsystems, Inc.//DTD Enterprise JavaBeans 2.0//EN"
+        "http://java.sun.com/dtd/ejb-jar_2_0.dtd">
+        
+<ejb-jar id="EJBJar_MBK_P2P_Listener">
+    <enterprise-beans>
+
+        <!-- Message Driven Bean (MDB) -->
+        <message-driven id="MessageDriven_MBK_P2P_Listener">
+
+            <!-- Логическое имя MDB -->
+            <ejb-name>MBK_P2P_Listener</ejb-name>
+
+            <!-- Класс-реализация MDB -->
+            <ejb-class>com.rssl.phizic.mbk.P2PEjbListener</ejb-class>
+
+            <transaction-type>Bean</transaction-type>
+
+            <!-- MDB слушает очередь (а не топик) -->
+            <message-driven-destination>
+                <destination-type>javax.jms.Queue</destination-type>
+            </message-driven-destination>
+
+            <!-- Ссылка на фабрику соединений для очереди -->
+            <resource-ref id="ResourceRef_MBK_P2P_QCF">
+                <res-ref-name>jms/ermb/mbk/P2PQCF</res-ref-name>
+                <res-type>javax.jms.QueueConnectionFactory</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+
+            <!-- Ссылка на очередь -->
+            <resource-ref id="ResourceRef_MBK_P2P_Queue">
+                <res-ref-name>jms/ermb/mbk/P2PQueue</res-ref-name>
+                <res-type>javax.jms.Queue</res-type>
+                <res-auth>Container</res-auth>
+            </resource-ref>
+
+        </message-driven>
+
+    </enterprise-beans>
+
+    <assembly-descriptor/>
+</ejb-jar>

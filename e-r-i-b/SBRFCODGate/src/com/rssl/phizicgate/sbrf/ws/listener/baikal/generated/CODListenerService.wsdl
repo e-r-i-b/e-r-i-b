@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="http://tempuri.org/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="getXMLmessage">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="xmlstr" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="getXMLmessageResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="getXMLmessageResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="getXMLmessageSoapIn">
+    <wsdl:part name="parameters" element="tns:getXMLmessage" />
+  </wsdl:message>
+  <wsdl:message name="getXMLmessageSoapOut">
+    <wsdl:part name="parameters" element="tns:getXMLmessageResponse" />
+  </wsdl:message>
+  <wsdl:portType name="OfflineSrvSoap">
+    <wsdl:operation name="getXMLmessage">
+      <wsdl:input message="tns:getXMLmessageSoapIn" />
+      <wsdl:output message="tns:getXMLmessageSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="OfflineSrvSoap" type="tns:OfflineSrvSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document" />
+    <wsdl:operation name="getXMLmessage">
+      <soap:operation soapAction="http://tempuri.org/getXMLmessage" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="OfflineSrv">
+    <wsdl:port name="OfflineSrvSoap" binding="tns:OfflineSrvSoap">
+      <soap:address location="http://b23-13/CODListener/ESK_WS.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

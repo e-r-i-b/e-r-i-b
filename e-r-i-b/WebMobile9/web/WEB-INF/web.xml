@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4"
+         id="WebApp_WebMobile9">
+    
+    <context-param>
+        <description>Ресурс с описанием шагов аутентификации</description>
+        <param-name>authenticationModesConfig</param-name>
+        <param-value>mobile9-authentication-modes.xml</param-value>
+    </context-param>
+
+    <context-param>
+        <description>Список форм, поддерживаемых данной версией API</description>
+        <param-name>supportedForms</param-name>
+        <param-value>InternalPayment,LoanPayment,JurPayment,RurPayment,RurPayJurSB,CreateAutoPaymentPayment,RefuseAutoPaymentPayment,EditAutoPaymentPayment,EditAutoSubscriptionPayment,DelayAutoSubscriptionPayment,RecoveryAutoSubscriptionPayment,CloseAutoSubscriptionPayment,BlockingCardClaim,AccountOpeningClaim,AccountClosingPayment,IMAPayment,IMAOpeningClaim,LoanProduct,LoanOffer,LoanCardProduct,LoanCardOffer,RefuseLongOffer,ExternalProviderPayment,AirlineReservationPayment,RefundGoodsClaim,RollbackOrderClaim,AccountChangeInterestDestinationClaim,CreateInvoiceSubscriptionPayment,InvoicePayment,EditInvoiceSubscriptionClaim,NewRurPayment,CreateMoneyBoxPayment,EditMoneyBoxClaim,CreateP2PAutoTransferClaim,EditP2PAutoTransferClaim,CloseP2PAutoTransferClaim,DelayP2PAutoTransferClaim,RecoveryP2PAutoTransferClaim,CardReportDeliveryClaim,PreapprovedLoanCardClaim,ChangeCreditLimitClaim,ExtendedLoanClaim</param-value>
+    </context-param>
+
+    <context-param>
+        <description>Список категорий платежей, поддерживаемых данной версией API</description>
+        <param-name>supportedPaymentCategories</param-name>
+        <param-value>COMMUNICATION,TAX_PAYMENT,EDUCATION,SERVICE_PAYMENT,OTHER</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>applicationName</param-name>
+        <param-value>mobile9</param-value>
+    </context-param>
+
+	<listener>
+		<listener-class>com.rssl.phizic.init.InitializerListenerBase</listener-class>
+	</listener>
+
+	<listener>
+		<listener-class>com.rssl.phizic.web.common.CacheShootDownListener</listener-class>
+	</listener>
+
+	<listener>
+		<listener-class>com.rssl.phizic.web.common.mobile.ClientInitializerListener</listener-class>
+	</listener>
+
+    <listener>
+		<listener-class>com.rssl.phizic.web.security.CloseCSASessionEvent</listener-class>
+	</listener>
+    
+	<listener>
+		<listener-class>com.rssl.phizic.web.security.SessionCountListener</listener-class>
+	</listener>
+
+    <filter>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>mobile9</param-value>
+        </init-param>
+    </filter>
+
+	<filter>
+        <description>Удаляет лишние пробелы в http-ответе</description>
+		<filter-name>ClearOutputFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.ClearOutputFilter</filter-class>
+	</filter>
+
+    <filter>
+        <description>
+            Логирует http-запросы и http-ответы в журнал сообщений
+            Настраивает фабрику конфигов, а также выставляет в контекст логирования приложение
+        </description>
+		<filter-name>logMobileApiFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.LogMobileApiFilter</filter-class>
+	</filter>
+
+    <filter>
+		<filter-name>SessionIdFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.security.SessionIdFilter</filter-class>
+	</filter>
+
+    <filter>
+		<filter-name>CheckCSASessionFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.mobile.security.CheckCSASessionFilter</filter-class>
+	</filter>
+
+    <filter>
+        <description>
+            Перекладывает токен транзакции в параметр запроса, подходящий для struts-а
+        </description>
+		<filter-name>TransactionTokenFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.mobile.TransactionTokenFilter</filter-class>
+	</filter>
+
+	<filter>
+		<filter-name>ContextFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.ContextFilter</filter-class>
+	</filter>
+
+	<filter>
+		<filter-name>HeaderFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.common.HeaderFilter</filter-class>
+		<init-param>
+			<param-name>requestEncoding</param-name>
+			<param-value>Windows-1251</param-value>
+		</init-param>
+	</filter>
+
+     <filter>
+        <description>
+            Используется для объединения многозначных параметр  в одно значение, в качестве разделителя используется ‘@’
+        </description>
+        <filter-name>ProcessRequestFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.common.ProcessRequestFilter</filter-class>
+        <init-param>
+			<param-name>requestEncoding</param-name>
+			<param-value>Windows-1251</param-value>
+		</init-param>
+    </filter>
+
+	<filter>
+        <description>Отлавливает ошибки</description>
+		<filter-name>SystemLogFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.log.SystemLogFilter</filter-class>
+		<init-param>
+            <description>путь к странице об ошибке</description>
+			<param-name>redirectUrl</param-name>
+			<param-value>/error.do</param-value>
+		</init-param>
+	</filter>
+
+    <filter>
+        <description>
+            Фильтр сбрасывает сессионные данные пользователя
+            используется для страниц входа в систему
+        </description>
+        <filter-name>LoginUrlFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.security.LoginUrlFilter</filter-class>
+    </filter>
+
+	<filter>
+		<filter-name>SecurityFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.security.BasicVersionLoginFilter</filter-class>
+		<init-param>
+			<param-name>redirectUrl</param-name>
+			<param-value>/login.do</param-value>
+		</init-param>
+		<init-param>
+			<param-name>addReturnTo</param-name>
+			<param-value>true</param-value>
+		</init-param>
+        <init-param>
+			<param-name>ignoredUrl</param-name>
+			<param-value>/monitoring.do</param-value>
+		</init-param>
+        <init-param>
+			<param-name>dublicateSessionUrl</param-name>
+			<param-value>/login.do</param-value>
+		</init-param>
+	</filter>
+
+    <filter>
+		<display-name>Раздача прав для доступа к незащищенным ресурсам</display-name>
+		<filter-name>AnonymousAccessFilter</filter-name>
+		<filter-class>com.rssl.phizic.web.security.AnonymousAccessFilter</filter-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>mobile9</param-value>
+        </init-param>
+	</filter>
+
+    <filter>
+        <display-name>Установка идентификатора локали пользователя в контекст</display-name>
+        <filter-name>LocaleContextFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.common.LocaleContextFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>FraudMonitoringFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.common.FraudMonitoringFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+	<filter-mapping>
+		<filter-name>SessionIdFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>ContextFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+        <filter-name>logMobileApiFilter</filter-name>
+        <url-pattern>*.do</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+		<filter-name>ClearOutputFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>ProcessRequestFilter</filter-name>
+		<url-pattern>/private/payments/*</url-pattern>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>HeaderFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>LoginUrlFilter</filter-name>
+        <url-pattern>/login.do</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>LoginUrlFilter</filter-name>
+        <url-pattern>/registerApp.do</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>LoginUrlFilter</filter-name>
+        <url-pattern>/postCSALogin.do</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>CheckCSASessionFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+        <filter-name>TransactionTokenFilter</filter-name>
+        <url-pattern>/private/*</url-pattern>
+    </filter-mapping>
+
+	<filter-mapping>
+		<filter-name>SecurityFilter</filter-name>
+		<url-pattern>/private/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>AnonymousAccessFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <!-- должен выполняться последним в цепочке фильтров -->
+    <filter-mapping>
+		<filter-name>SystemLogFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+        <filter-name>LocaleContextFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>FraudMonitoringFilter</filter-name>
+        <url-pattern>*.do</url-pattern>
+    </filter-mapping>
+
+	<servlet>
+		<servlet-name>action</servlet-name>
+		<servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+		<init-param>
+			<param-name>config</param-name>
+			<param-value>/WEB-INF/struts-config.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+    <servlet>
+        <servlet-name>imageServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.web.common.ImageServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>userImagesServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.web.images.UserImageServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+	<servlet-mapping>
+		<servlet-name>action</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>imageServlet</servlet-name>
+        <url-pattern>/images</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>userImagesServlet</servlet-name>
+        <url-pattern>/user/images/*</url-pattern>
+    </servlet-mapping>
+
+	<jsp-config>
+
+		<taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-bean</taglib-uri>
+			<taglib-location>/WEB-INF/tld/customized-struts-bean.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-logic</taglib-uri>
+			<taglib-location>/WEB-INF/tld/struts-logic.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-tiles</taglib-uri>
+			<taglib-location>/WEB-INF/tld/customized-struts-tiles.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/core</taglib-uri>
+			<taglib-location>/WEB-INF/tld/customized-jstl.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/functions</taglib-uri>
+			<taglib-location>/WEB-INF/tld/fn.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://rssl.com/tags</taglib-uri>
+			<taglib-location>/WEB-INF/tld/phizic.tld</taglib-location>
+		</taglib>
+
+        <taglib>
+            <taglib-uri>http://rssl.com/tags/mobile</taglib-uri>
+            <taglib-location>/WEB-INF/tld/mobile.tld</taglib-location>
+        </taglib>
+
+		<taglib>
+			<taglib-uri>http://java.sun.com/jsp/jstl/fmt</taglib-uri>
+			<taglib-location>/WEB-INF/tld/fmt.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://jakarta.apache.org/struts/tags-html</taglib-uri>
+			<taglib-location>/WEB-INF/tld/struts-html.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>http://struts.application-servers.com/layout</taglib-uri>
+			<taglib-location>/WEB-INF/tld/customized-struts-layout.tld</taglib-location>
+		</taglib>
+
+	</jsp-config>
+
+	<resource-ref id="WebMobile9_ResourceRef_JDBC_PhizIC">
+		<res-ref-name>jdbc/PhizIC</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
+
+    <resource-ref id="WebMobile9_ResourceRef_JDBC_PhizICLog">
+        <res-ref-name>jdbc/PhizICLog</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+
+    <resource-ref id="WebMobile9_ResourceRef_JDBC_Push">
+        <res-ref-name>jdbc/Push</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+ </web-app>

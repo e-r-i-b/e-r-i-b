@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://generated.listener.asfilial.phizic.rssl.com"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://generated.listener.asfilial.phizic.rssl.com"
+            elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+    <xsd:complexType name="AdditionalCardInfoType">
+        <xsd:sequence>
+            <xsd:element name="Type" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Тип дополнительной карты
+                        Возможные значения:
+                        "Client2Client" - доп. карта клиента к своей же карте,
+                        "Client2Other" - доп. карта к карте клиента, выданная другому лицу,
+                        "Other2Client" - доп. карта, выданная на имя клиента другим лицом
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CardType">
+        <xsd:sequence>
+            <xsd:element name="Number" type="xsd:string"/>
+            <xsd:element name="AdditionalCardInfo" type="AdditionalCardInfoType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PhoneNumberType">
+        <xsd:sequence>
+            <xsd:element name="PhoneNumberN" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Номер в международном формате без знака "+"
+                        REGEXP: \d{11}
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="MobilePhoneOperator" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Мобильный Оператор</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="StatusType">
+        <xsd:annotation>
+            <xsd:documentation>Информация о выполнении запроса</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="StatusCode" type="xsd:long">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Код ошибки
+                        Отрицательное - бизнес-ошибка
+                        Положительное - техническая ошибка
+                        Ноль - успешно.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="StatusDesc" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="IdentityType">
+        <xsd:annotation>
+            <xsd:documentation>Идентификационные данные клиента</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="LastName" type="xsd:string"/>
+            <xsd:element name="FirstName" type="xsd:string"/>
+            <xsd:element name="MiddleName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="Birthday" type="xsd:date"/>
+            <xsd:element name="IdentityCard" type="IdentityCardType"/>
+            <xsd:element name="RegionId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Номер тербанка (ТБ)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="IdentityCardType">
+        <xsd:annotation>
+            <xsd:documentation>ДУЛ</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="IdType" type="xsd:string"/>
+            <xsd:element name="IdSeries" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="IdNum" type="xsd:string"/>
+            <xsd:element name="IssuedBy" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="IssueDt" type="xsd:date" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResourcesType">
+        <xsd:annotation>
+            <xsd:documentation>Продукт</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Type" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Тип продукта
+                        Допустимые значения:
+                        "account" – счёт
+                        "card" – карта
+                        "loan" – кредит
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Name" type="xsd:string"/>
+            <xsd:element name="Account" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="Card" type="CardType" minOccurs="0"/>
+            <xsd:element name="Credit" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PayResourceType">
+        <xsd:annotation>
+            <xsd:documentation>Продукт</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Name" type="xsd:string"/>
+            <xsd:element name="Card" type="PayResourceCardType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+     <xsd:complexType name="PayResourceCardType">
+        <xsd:annotation>
+            <xsd:documentation>Карта (без учета недопустимых для списания карт: кредитные, виртуальные, заблокированные ets.)</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Number" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DaytimePeriodType">
+        <xsd:annotation>
+            <xsd:documentation>Временной интервал в течение дня с указанием дня недели и часового пояса</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Begin" type="xsd:time"/>
+            <xsd:element name="End" type="xsd:time"/>
+            <xsd:element name="Day" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        День недели
+                        Допустимые значения:
+                        "Monday" – понедельник
+                        "Tuesday" – вторник
+                        "Wednesday" – среда
+                        "Thursday" – четверг
+                        "Friday" – пятница
+                        "Saturday" – суббота
+                        "Sunday" – воскресенье
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="TimeZone" type="xsd:long"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ClientServiceType">
+        <xsd:sequence>
+            <xsd:element name="VisibleResources" type="ResourcesType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="BankInfoType">
+        <xsd:annotation>
+            <xsd:documentation>Информация о подразделении, в рамках которого выполняется запрос</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="BranchId" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>Номер филиала (ВСП)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="AgencyId" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>Номер подразделения (ОСБ)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RegionId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Номер тербанка (ТБ)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Begin QueryProfileRq -->
+    <xsd:complexType name="QueryProfileRqType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор операции REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Фиксированное значение:
+                        "АС_ФИЛИАЛ"
+                        "СПООБК-2"
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="BankInfo" type="BankInfoType"/>
+            <xsd:element name="ClientIdentity" type="IdentityType"/>
+            <xsd:element name="ClientOldIdentity" type="IdentityType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="CreateIfNone" type="xsd:boolean"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="QueryProfileRq" type="QueryProfileRqType"/>
+    <!-- End QueryProfileRq -->
+
+    <!-- Begin QueryProfileRs -->
+    <xsd:complexType name="QueryProfileRsType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор операции REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Status" type="StatusType"/>
+            <xsd:element name="EngagedPhones" type="PhoneNumberType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Response" type="ResponseType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResponseType">
+        <xsd:annotation>
+            <xsd:documentation>Данные ответа.QueryProfileRs</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="NewProfile" type="xsd:boolean"/>
+            <xsd:element name="ClientIdentity" type="IdentityType"/>
+            <xsd:element name="ClientOldIdentity" type="IdentityType" minOccurs="0"/>
+            <xsd:element name="ClientPhones" type="PhoneNumberType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="ClientResources" type="ResourcesType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="PayResources" type="PayResourceType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="InternetClientService" type="ClientServiceType"/>
+            <xsd:element name="MobileClientService" type="ClientServiceType"/>
+            <xsd:element name="ATMClientService" type="ClientServiceType"/>
+            <xsd:element name="MobileBankService" type="MobileBankServiceQueryProfileRsType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MobileBankServiceQueryProfileRsType">
+        <xsd:annotation>
+            <xsd:documentation>Данные по услуге «Мобильный банк».QueryProfileRs</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="RegistrationStatus" type="xsd:boolean"/>
+            <xsd:element name="ServiceStatus" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="StartOfService" type="xsd:date" minOccurs="0"/>
+            <xsd:element name="EndOfService" type="xsd:date" minOccurs="0"/>
+            <xsd:element name="TariffId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Тарифный план услуги
+                        Допустимые значения
+                        "full" – полный
+                        "saving" - экономный
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="QuickServices" type="xsd:boolean"/>
+            <xsd:element name="ActivePhone" type="PhoneNumberType" minOccurs="0"/>
+            <xsd:element name="VisibleResources" type="ResourcesType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="InformResources" type="ResourcesType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="ChargeOffCard" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Номер приоритетной карты для списания абонентской платы.(Из списка PayResources.) </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="InformNewResource" type="xsd:boolean"/>
+            <xsd:element name="InformPeriod" type="DaytimePeriodType" minOccurs="0"/>
+            <xsd:element name="SuppressAdvertising" type="xsd:boolean"/>
+            <xsd:element name="InformDespositEnrollment" type="xsd:boolean"/>
+            <xsd:element name="LastSMSTime" type="xsd:dateTime" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="QueryProfileRs" type="QueryProfileRsType"/>
+    <!-- End QueryProfileRs -->
+
+    <!-- Begin UpdateProfileRq -->
+    <xsd:complexType name="UpdateProfileRqType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор операции REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Фиксированное значение:
+                        "АС_ФИЛИАЛ"
+                        "СПООБК-2"
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="BankInfo" type="BankInfoType"/>
+            <xsd:element name="ClientIdentity" type="IdentityType"/>
+            <xsd:element name="ClientData" type="ClientDataType" minOccurs="0"/>
+            <xsd:element name="InternetClientService" type="ClientServiceType" minOccurs="0"/>
+            <xsd:element name="MobileClientService" type="ClientServiceType" minOccurs="0"/>
+            <xsd:element name="ATMClientService" type="ClientServiceType" minOccurs="0"/>
+            <xsd:element name="MobileBankService" type="MobileBankServiceUpdateProfileRqType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ClientDataType">
+        <xsd:sequence>
+            <xsd:element name="ClientPhones" type="ClientPhonesType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ClientPhonesType">
+        <xsd:annotation>
+            <xsd:documentation>Все телефоны клиента</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Phone" type="PhoneNumberType"/>
+            <xsd:element name="ConfirmCode" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MobileBankServiceUpdateProfileRqType">
+        <xsd:annotation>
+            <xsd:documentation>Данные по услуге «Мобильный банк».UpdateProfileRqType</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="RegistrationStatus" type="xsd:boolean"/>
+            <xsd:element name="ServiceParams" type="ServiceParamsType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ServiceParamsType">
+        <xsd:annotation>
+            <xsd:documentation>Параметры услуги.UpdateProfileRqType</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="TariffId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Тарифный план услуги
+                        Допустимые значения
+                        "full" – полный
+                        "saving" - экономный
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="QuickServices" type="xsd:boolean"/>
+            <xsd:element name="ActivePhone" type="PhoneNumberType" minOccurs="0"/>
+            <xsd:element name="VisibleResources" type="ResourcesType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="InformResources" type="ResourcesType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="ChargeOffCard" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Номер приоритетной карты для списания абонентской платы</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="InformNewResource" type="xsd:boolean"/>
+            <xsd:element name="InformPeriod" type="DaytimePeriodType" minOccurs="0"/>
+            <xsd:element name="SuppressAdvertising" type="xsd:boolean"/>
+            <xsd:element name="InformDespositEnrollment" type="xsd:boolean"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="UpdateProfileRq" type="UpdateProfileRqType"/>
+    <!-- End UpdateProfileRq -->
+
+    <!-- Begin UpdateProfileRs -->
+    <xsd:complexType name="UpdateProfileRsType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор операции REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Status" type="StatusType"/>
+            <xsd:element name="EngagedPhones" type="PhoneNumberType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="UpdateProfileRs" type="UpdateProfileRsType"/>
+    <!-- End UpdateProfileRs -->
+
+    <!-- Begin ConfirmPhoneHolderRq -->
+    <xsd:complexType name="ConfirmPhoneHolderRqType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор операции REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Фиксированное значение:
+                        "АС_ФИЛИАЛ"
+                        "СПООБК-2"
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Phones" type="PhoneNumberType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+
+    </xsd:complexType>
+
+    <xsd:element name="ConfirmPhoneHolderRq" type="ConfirmPhoneHolderRqType"/>
+    <!-- End ConfirmPhoneHolderRq -->
+
+    <!-- Begin ConfirmPhoneHolderRs -->
+    <xsd:complexType name="ConfirmPhoneHolderRsType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор операции REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Status" type="StatusType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="ConfirmPhoneHolderRs" type="ConfirmPhoneHolderRsType"/>
+    <!-- End ConfirmPhoneHolderRq -->
+
+    <!-- Begin RequestPhoneHolderRq -->
+    <xsd:complexType name="RequestPhoneHolderRqType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор операции REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Фиксированное значение:
+                        "АС_ФИЛИАЛ"
+                        "СПООБК-2"
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Phones" type="PhoneNumberType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="RequestPhoneHolderRq" type="RequestPhoneHolderRqType"/>
+    <!-- End RequestPhoneHolderRq -->
+
+    <!-- Begin RequestPhoneHolderRs -->
+    <xsd:complexType name="RequestPhoneHolderRsType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор запроса REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор операции REGEXP: [0-9a-fA-F]{32}</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Status" type="StatusType"/>
+            <xsd:element name="EngagedPhones" type="PhoneNumberType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="RequestPhoneHolderRs" type="RequestPhoneHolderRsType"/>
+    <!-- End RequestPhoneHolderRq -->
+
+</xsd:schema>

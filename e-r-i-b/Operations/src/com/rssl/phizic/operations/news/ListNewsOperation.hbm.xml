@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <resultset name="com.rssl.phizic.operations.news.ListNewsOperation.clientList.multilocale.resultset">
+        <return alias="news" class="com.rssl.phizic.business.news.locale.LocaledNews"/>
+        <return-join alias="newsRes" property="news.resources"/>
+    </resultset>
+
+    <sql-query name="com.rssl.phizic.operations.news.ListNewsOperation.list">
+        <return alias="news" class="com.rssl.phizic.business.news.News"/>
+        SELECT
+            {news.*}
+        FROM
+            NEWS news
+        WHERE
+            (news.TYPE = 'PUSH' OR news.TYPE = 'MAIN_PAGE')
+            AND (:extra_like_title IS NULL OR upper(news.TITLE) like upper(:extra_like_title))
+            AND (:extra_fromDate IS NULL OR news.NEWS_DATE >= :extra_fromDate)
+            AND (:extra_toDate IS NULL OR :extra_toDate > news.NEWS_DATE)
+            AND (:extra_important IS NULL OR :extra_important = '' OR news.IMPORTANT = :extra_important)
+            AND (:extra_state IS NULL OR :extra_state = '' OR
+                 :extra_state = 'NEW' and (START_PUBLISH_DATE is null OR START_PUBLISH_DATE > current_date) OR
+                 :extra_state = 'NOT_PUBLISHED' and current_date > END_PUBLISH_DATE OR
+                 :extra_state = 'PUBLISHED' and (current_date > news.START_PUBLISH_DATE and (news.END_PUBLISH_DATE is null or news.END_PUBLISH_DATE > current_date)))
+            AND (:allTbAccess = '1' OR news.ID in (SELECT newsDepartments.NEWS_ID
+                                                   FROM NEWS_DEPARTMENT newsDepartments
+                                                   WHERE exists(select 1
+                                                                from ALLOWED_DEPARTMENTS allowedDepartments
+                                                                WHERE allowedDepartments.LOGIN_ID = :employeeLoginId
+                                                                      AND (allowedDepartments.TB = newsDepartments.TB OR  allowedDepartments.TB = '*')
+                                                                      AND allowedDepartments.OSB = '*'
+                                                                      AND allowedDepartments.VSP = '*')))
+        ORDER BY news.NEWS_DATE DESC, CASE
+                                          WHEN news.START_PUBLISH_DATE is null OR news.START_PUBLISH_DATE > current_date
+                                              THEN 2
+                                          WHEN current_date > news.END_PUBLISH_DATE
+                                              THEN 3
+                                          ELSE
+                                              1
+                                      END,
+                news.IMPORTANT, news.TITLE
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.operations.news.ListNewsOperation.clientList">
+        <return alias="news" class="com.rssl.phizic.business.news.News"/>
+        SELECT
+            {news.*}
+        FROM
+            NEWS news
+        WHERE
+            (:extra_departmentTB IS NULL OR
+            news.ID IN (SELECT newsDepartment.NEWS_ID
+                        FROM NEWS_DEPARTMENT newsDepartment
+                        WHERE newsDepartment.TB = :extra_departmentTB))
+            AND news.TYPE = :extra_type
+            AND current_date > news.START_PUBLISH_DATE and (news.END_PUBLISH_DATE is null or news.END_PUBLISH_DATE > current_date)
+            AND (:extra_fromDate IS NULL OR news.NEWS_DATE >= :extra_fromDate)
+            AND (:extra_toDate IS NULL OR :extra_toDate > news.NEWS_DATE)
+            AND (:extra_important IS NULL OR :extra_important = '' OR news.IMPORTANT = :extra_important)
+            AND (:extra_search IS NULL OR :extra_search = '' OR upper(news.TITLE) like upper(:extra_like_search) OR upper(news.SHORT_TEXT) like upper(:extra_like_search) OR upper(news.TEXT) like upper(:extra_like_search))
+        ORDER BY news.NEWS_DATE DESC, news.IMPORTANT
+    </sql-query>
+</hibernate-mapping>

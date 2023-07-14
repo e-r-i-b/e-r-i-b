@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documents xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="./../../schemas/gate-documents-config.xsd">
+
+	<document description="Перевод между счетами клиента."
+	          class="com.rssl.phizic.gate.payments.ClientAccountsTransfer">
+		<commission-calculator class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+		<sender class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+	</document>
+
+	<document description="Перевод физическому лицу в другой банк через платежную систему России"
+	          class="com.rssl.phizic.gate.payments.AbstractRUSPayment">
+		<commission-calculator class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+		<sender class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+	</document>
+
+	<document description="Перевод юридическому лицу в другой банк через платежную систему России"
+	          class="com.rssl.phizic.gate.payments.AbstractJurTransfer">
+		<commission-calculator class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+		<sender class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+	</document>
+
+	<document description="Оплата товаров и услуг через ИСППН 'Город'"
+	          class="com.rssl.phizic.gate.payments.systems.AccountPaymentSystemPayment">
+		<commission-calculator class="com.rssl.phizic.gorod.manager.sevb.GorodDocumentManager">
+			<parameter name="gorod-sender" value="com.rssl.phizic.gorod.senders.GorodPaymentSender"/>
+			<parameter name="retail-sender" value="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+		</commission-calculator>
+		<sender class="com.rssl.phizic.gorod.manager.sevb.GorodDocumentManager">
+			<parameter name="gorod-sender" value="com.rssl.phizic.gorod.senders.GorodPaymentSender"/>
+			<parameter name="retail-sender" value="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+			<!--<parameter name="jur-sender" value="com.rssl.phizicgate.sbrf.senders.JurPaymentSender"/>-->
+		</sender>
+	</document>
+
+	<document description = "Заявка на открытие счета"
+			class = "com.rssl.phizic.gate.deposit.DepositOpeningClaim">
+		<commission-calculator class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper">
+			<parameter name="currentRUB"       value="@deposit.current.id.RUB@"/>
+			<parameter name="currentUSD"       value="@deposit.current.id.USD@"/>
+			<parameter name="currentEUR"       value="@deposit.current.id.EUR@"/>
+			<parameter name="posteRestanteRUB" value="@deposit.posteRestante.id.RUB@"/>
+			<parameter name="posteRestanteUSD" value="@deposit.posteRestante.id.USD@"/>
+			<parameter name="posteRestanteEUR" value="@deposit.posteRestante.id.EUR@"/>
+		</commission-calculator>
+		<sender class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper">
+			<parameter name="currentRUB"       value="@deposit.current.id.RUB@"/>
+			<parameter name="currentUSD"       value="@deposit.current.id.USD@"/>
+			<parameter name="currentEUR"       value="@deposit.current.id.EUR@"/>
+			<parameter name="posteRestanteRUB" value="@deposit.posteRestante.id.RUB@"/>
+			<parameter name="posteRestanteUSD" value="@deposit.posteRestante.id.USD@"/>
+			<parameter name="posteRestanteEUR" value="@deposit.posteRestante.id.EUR@"/>
+		</sender>
+		<!--todo закомментировано, поскольку в случае с открытием счета DefCommCalc крашится-->
+		<!--<commission-calculator-->
+				<!--class="com.rssl.phizicgate.rsretailV6r4.commission.DefaultPaymentCommissionCalculator">-->
+		<!--</commission-calculator>-->
+	</document>
+
+	<document description = "Заявка на блокировку карты"
+			class = "com.rssl.phizic.gate.cms.claims.CardBlockingClaim">
+		<sender class="com.rssl.phizicgate.sbcms.senders.BlockingCardClaimSender"/>
+	</document>
+
+	<document description = "Заявка на закрытие счета"
+			class = "com.rssl.phizic.gate.claims.AccountClosingClaim">
+		<commission-calculator class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+		<sender class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+	</document>
+
+	<document description="Списание платы за обслуживание"
+	          class="com.rssl.phizic.gate.payments.ChargeOffPayment">
+		<sender class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+	</document>
+
+	<document description="Заявка об утрате сберегательной книжки"
+	          class="com.rssl.phizic.gate.claims.LossPassbookApplicationClaim">
+		<sender class="com.rssl.phizicgate.wsgate.services.documents.DocumentServiceWrapper"/>
+	</document>
+
+	<revoke-payment
+			class="com.rssl.phizic.gate.documents.WithdrawDocument"
+			document-type-field="withdrawType"/>
+
+</documents>

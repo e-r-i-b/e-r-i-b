@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef  name="LoginBlockType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.csaadmin.business.login.BlockType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.csaadmin.business.login.LoginBlock" table="LOGIN_BLOCK">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_LOGIN_BLOCK</param>
+            </generator>
+        </id>
+        <many-to-one name="login" column="LOGIN_ID" class="com.rssl.phizic.csaadmin.business.login.Login" lazy="false" not-null="true"/>
+        <property name="reasonType"        type="LoginBlockType" column="TYPE"       not-null="true"/>
+        <property name="reasonDescription" type="string"         column="REASON"     not-null="false"/>
+        <property name="blockedFrom"       type="calendar"       column="DATE_FROM"  not-null="true"/>
+        <property name="blockedUntil"      type="calendar"       column="DATE_UNTIL" not-null="false"/>
+        <many-to-one name="employee" column="BLOCKER_ID" class="com.rssl.phizic.csaadmin.business.login.Login" lazy="false" not-null="false"/>
+    </class>
+</hibernate-mapping>

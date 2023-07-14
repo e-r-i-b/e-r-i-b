@@ -1,0 +1,46 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.rssl.phizic.business.dictionaries.bank.locale.ResidentBankResources" table="RUSBANKS_RES">
+        <composite-id>
+            <key-property name="id"      column="ID"          type="string"  />
+            <key-property name="localeId"  column="LOCALE_ID"     type="string"/>
+        </composite-id>
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="place" type="string" column="PLACE" not-null="false"/>
+        <property name="shortName" type="string" column="SHORT_NAME" not-null="false"/>
+        <property name="address" type="string" column="ADDRESS" not-null="false"/>
+
+	</class>
+
+    <class name="com.rssl.phizic.business.dictionaries.bank.locale.LocaledResidentBank" table="RUSBANKS"
+           batch-size="500">
+
+       <id name="synchKey" type="string" column="id"/>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+		<property name="place" type="string" column="PLACE"/>
+        <property name="account" type="string" column="CORR_ACCOUNT" />
+        <property name="BIC" type="string" column="BIC" not-null="true"/>
+     	<property name="shortName" type="string" column="SHORT_NAME"/>
+        <property name="our" type="boolean" column="OUR"/>
+        <property name="address" type="string" column="ADDRESS" not-null="false"/>
+        <property name="participantCode" type="string" column="PARTICIPANT_CODE" not-null="false"/>
+        <property name="INN" type="string" column="INN" not-null="false"/>
+        <property name="KPP" type="string" column="KPP" not-null="false"/>
+        <property name="dateCh" type="calendar" column="DATE_CH" not-null="false"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="id" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.bank.locale.ResidentBankResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+
+</hibernate-mapping>

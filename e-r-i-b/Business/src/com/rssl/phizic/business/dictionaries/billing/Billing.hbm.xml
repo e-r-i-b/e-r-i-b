@@ -1,0 +1,36 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="BillingTemplateState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.billing.TemplateState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.billing.Billing" table="BILLINGS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_BILLINGS</param>
+            </generator>
+        </id>
+        <property name="synchKey"      type="string"  column="EXTERNAL_ID"     not-null="true"/>
+        <property name="code"          type="string"  column="CODE"            not-null="true" unique="true"/>
+        <property name="name"          type="string"  column="NAME"            not-null="true"/>
+        <property name="needUploadJBT" type="boolean" column="NEED_UPLOAD_JBT" not-null="true"/>
+        <property name="adapterUUID"   type="string"  column="ADAPTER_UUID"    not-null="true"/>
+        <property name="templateState" type="BillingTemplateState" column="TEMPLATE_STATE" not-null="false"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.dictionaries.billing.Billing.findByCode">
+        select billing
+	    from com.rssl.phizic.business.dictionaries.billing.Billing as billing
+	    where billing.code = :code
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.billing.Billing.getByAdapterUUID">
+        select billing
+	    from com.rssl.phizic.business.dictionaries.billing.Billing as billing
+	    where billing.adapterUUID = :adapterUUID
+    </query>
+
+</hibernate-mapping>

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="eventType">
+        <param name="enumClass">com.rssl.phizic.gate.longoffer.ExecutionEventType</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="sumType">
+        <param name="enumClass">com.rssl.phizic.gate.longoffer.SumType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.resources.external.StoredLongOffer" table="STORED_LONG_OFFER">
+        <id name="storedId" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_STORED_LONG_OFFER</param>
+            </generator>
+        </id>
+
+        <many-to-one name="resourceLink"  class="com.rssl.phizic.business.resources.external.LongOfferLink" column="RESOURCE_ID"   lazy="false" unique="true"/>
+
+        <property name="startDate"             type="calendar"              column="START_DATE"/>
+        <property name="endDate"               type="calendar"              column="END_DATE"/>
+        <property name="executionEventType"    type="eventType"             column="EXECUTION_EVENT_TYPE"/>
+        <property name="payDay"                type="long"                  column="PAY_DAY"/>
+        <property name="departmentId"          type="long"                  column="DEPARTMENT_ID"/>
+        <property name="percent"               type="big_decimal"           column="PERCENT"/>
+        <property name="priority"              type="long"                  column="PRIORITY"/>
+        <property name="sumType"               type="sumType"               column="SUM_TYPE"/>
+        <property name="friendlyName"          type="string"                column="FRIENDLY_NAME"/>
+        <property name="typeInString"          type="string"                column="TYPE"/>
+
+        <property name="entityUpdateTime"      type="calendar"              column="ENTITY_UPDATE_TIME"/>
+
+        <property name="officeOSB"             type="string"                column="OFFICE_OSB"/>
+        <property name="officeTB"              type="string"                column="OFFICE_TB"/>
+        <property name="officeVSP"             type="string"                column="OFFICE_VSP"/>
+
+        <property name="amount" type="money">
+            <column  name="AMOUNT"/>
+            <column  name="AMOUNT_CURRENCY"/>
+        </property>
+
+        <property name="floorLimit" type="money">
+            <column  name="FLOOR_LIMIT_AMOUNT"/>
+            <column  name="FLOOR_LIMIT_AMOUNT_CURRENCY"/>
+        </property>
+    </class>
+</hibernate-mapping>

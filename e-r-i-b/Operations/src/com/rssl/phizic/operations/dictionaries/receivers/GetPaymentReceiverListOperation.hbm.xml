@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+<!--Общий список получателей-->
+	<query name="com.rssl.phizic.operations.dictionaries.receivers.GetPaymentReceiverListOperation.list">
+	     select receiver
+			from com.rssl.phizic.business.dictionaries.PaymentReceiverBase as receiver
+	            where receiver.login.id = :loginId
+					  and (receiver.state='ACTIVE')
+					  and ((:extra_name is null) or (:extra_name = '') or upper(receiver.name)   like '%' || :extra_name || '%')
+					  and ((:extra_account is null) or (:extra_account = '') or receiver.account like '%' || :extra_account || '%')
+					  and ((:extra_bankName is null) or (:extra_bankName = '') or upper(receiver.bankName) like '%' || :extra_bankName || '%')
+		order by receiver.name
+	</query>
+
+	<!--Список получателей физиков-->
+	<query name="com.rssl.phizic.operations.dictionaries.receivers.GetPaymentReceiverListOperation.listP">
+	     select receiver
+			from com.rssl.phizic.business.dictionaries.PaymentReceiverPhiz as receiver
+	            where receiver.login.id = :loginId
+					  and (receiver.state='ACTIVE')
+					  and (receiver.kind='P')
+					  and ((:extra_name is null) or (:extra_name = '') or upper(receiver.name)   like '%' || :extra_name || '%')
+					  and ((:extra_account is null) or (:extra_account = '') or receiver.account like '%' || :extra_account || '%')
+					  and ((:extra_bankName is null) or (:extra_bankName = '') or upper(receiver.bankName) like '%' || :extra_bankName || '%')
+		order by receiver.name
+	</query>
+
+<!--Список получателей юриков-->
+	<query name="com.rssl.phizic.operations.dictionaries.receivers.GetPaymentReceiverListOperation.listJ">
+	     select receiver from com.rssl.phizic.business.dictionaries.PaymentReceiverJur as receiver
+	            where receiver.login.id = :loginId
+					and (receiver.state='ACTIVE')
+					and (receiver.kind='J')
+					and ((:extra_name is null) or (:extra_name = '') or upper(receiver.name)   like '%' || :extra_name || '%')
+					and ((:extra_account is null) or (:extra_account = '') or receiver.account like '%' || :extra_account || '%')
+					and ((:extra_bankName is null) or (:extra_bankName = '') or upper(receiver.bankName) like '%' || :extra_bankName || '%')
+		order by receiver.name
+	</query>
+
+    <!--Список получателей юриков+биллинг-->
+        <query name="com.rssl.phizic.operations.dictionaries.receivers.GetPaymentReceiverListOperation.listJB">
+             select receiver from com.rssl.phizic.business.dictionaries.PaymentReceiverJur as receiver
+                    where receiver.login.id = :loginId
+                        and (receiver.state='ACTIVE')
+                        and ((receiver.kind='J') or (receiver.kind='B'))
+                        and ((:extra_name is null) or (:extra_name = '') or upper(receiver.name)   like '%' || :extra_name || '%')
+                        and ((:extra_account is null) or (:extra_account = '') or receiver.account like '%' || :extra_account || '%')
+                        and ((:extra_bankName is null) or (:extra_bankName = '') or upper(receiver.bankName) like '%' || :extra_bankName || '%')
+            order by receiver.name
+        </query>
+
+<!--Список получателей Contact-->
+	<query name="com.rssl.phizic.operations.dictionaries.receivers.GetPaymentReceiverListOperation.listC">
+	     select receiver from com.rssl.phizic.business.dictionaries.contact.ContactReceiver as receiver
+	            where receiver.login.id = :loginId
+					and (receiver.state='ACTIVE')
+					and ((:extra_surName is null) or (:extra_surName = '') or upper(receiver.surName)   like '%' || :extra_surName || '%')
+					and ((:extra_firstName is null) or (:extra_firstName = '') or upper(receiver.firstName) like '%' || :extra_firstName || '%')
+					and ((:extra_patrName is null) or (:extra_patrName = '') or upper(receiver.patrName) like '%' || :extra_patrName || '%')
+					and ((:extra_birthDay is null) or (:extra_birthDay = '') or receiver.birthDay like '%' || :extra_birthDay || '%')
+					and ((:extra_contactBankCode is null) or (:extra_contactBankCode = '') or upper(receiver.bank.code) like '%' || :extra_contactBankCode || '%')
+		order by receiver.surName
+	</query>
+
+<!--Список получателей юриков с комиссией (сейчас это ИСППН "Город")-->
+	<query name="com.rssl.phizic.operations.dictionaries.receivers.GetPaymentReceiverListOperation.listG">
+		select receiver
+			from com.rssl.phizic.business.dictionaries.receivers.personal.PaymentReceiverJurCommision as receiver
+				where receiver.login.id = :loginId
+					and (receiver.state='ACTIVE')
+	</query>
+
+</hibernate-mapping>

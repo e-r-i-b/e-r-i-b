@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsV55.money.CurrencyImpl" table="rtcurr_dbt">
+
+	    <cache usage="read-only"/>
+
+        <id name="id" column="Code_Currency"/>
+
+	    <property name="number" column="ExternalCode"/>
+	    <property name="code"   column="Short_Name"/>
+        <property name="name"   column="Name_Currency"/>
+    </class>
+
+	<sql-query name="com.rssl.phizicgate.rsV55.money.CurrencyHelper.GetCurrencies">
+		<return alias="Currency" class="com.rssl.phizicgate.rsV55.money.CurrencyImpl">
+			<return-property name="id" column="id"/>
+			<return-property name="number" column="number"/>
+			<return-property name="code"   column="code"/>
+			<return-property name="name"   column="name"/>
+		</return>
+		<![CDATA[
+	    SELECT
+        	currency.Code_Currency   AS id,
+        	currency.ExternalCode    AS number,
+	        currency.Short_Name      AS code,
+	        currency.Name_Currency   AS name
+	    FROM rtcurr_dbt AS currency
+	    ORDER BY id asc
+        ]]>
+	</sql-query>
+
+    <sql-query name="com.rssl.phizicgate.rsV55.money.CurrencyHelper.GetCurrenciesByTemplate">
+		<return alias="Currency" class="com.rssl.phizicgate.rsV55.money.CurrencyImpl">
+			<return-property name="id" column="id"/>
+			<return-property name="number" column="number"/>
+			<return-property name="code"   column="code"/>
+			<return-property name="name"   column="name"/>
+		</return>
+		<![CDATA[
+	    SELECT
+        	currency.Code_Currency   AS id,
+        	currency.ExternalCode    AS number,
+	        currency.Short_Name      AS code,
+	        currency.Name_Currency   AS name
+	    FROM rtcurr_dbt AS currency
+	    where ( :number is null or currency.ExternalCode = :number)
+	    and ( :code is null or currency.Short_Name = :code)
+	    and ( :name is null or currency.Name_Currency = :name)
+	    ORDER BY id asc
+        ]]>
+	</sql-query>
+
+	<query name="com.rssl.phizicgate.rsV55.money.CurrencyHelper.getCurrencyById">
+		select currency from com.rssl.phizicgate.rsV55.money.CurrencyImpl currency
+		where currency.id = :currencyId
+	</query>
+	<query name="com.rssl.phizicgate.rsV55.money.CurrencyHelper.getCurrencyByCode">
+		select currency from com.rssl.phizicgate.rsV55.money.CurrencyImpl currency
+		where currency.code = :code
+	</query>
+
+</hibernate-mapping>

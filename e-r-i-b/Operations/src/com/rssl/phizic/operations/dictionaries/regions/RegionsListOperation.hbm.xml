@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.dictionaries.regions.RegionsListOperation.list">
+        <return alias="regions" class="com.rssl.phizic.business.dictionaries.regions.Region"/>
+       SELECT {regions.*}
+        FROM REGIONS
+        where :extra_parent is null and REGIONS.parent_id is null  or REGIONS.parent_id = :extra_parent
+        order by trim(REGEXP_REPLACE(REGIONS.name, '^\s*(г|Г)[.]?[ ]', ''))
+    </sql-query>
+</hibernate-mapping>

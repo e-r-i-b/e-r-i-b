@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding='windows-1251'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsretailV6r20.subscription.SubscriptionObject" table="ntfobj_dbt">
+   	    <id name="id" type="string" length="36" column="ObjectID" unsaved-value="any"/>
+
+	    <property name="referenc" column="Referenc"/>
+	    <property name="isCur" column="IsCur"/>
+	    <property name="branch" column="Branch"/>
+	    <property name="objectType" column="ObjectType"/>
+
+	    <set name="notificationTypes" cascade="all-delete-orphan,save-update" lazy="false">
+			<key column="ObjectID" not-null="true"/>
+			<one-to-many class="com.rssl.phizicgate.rsretailV6r20.subscription.SubscriptionNotification"/>
+		</set>
+
+	</class>
+
+    <class name="com.rssl.phizicgate.rsretailV6r20.subscription.SubscriptionNotification" table="ntfolnk_dbt">
+	    <id name="id" column="Referenc">
+			<generator class="increment"/>
+	    </id>
+
+	    <property name="notifyType" column="NotifyType"/>
+	    <property name="isCur" column="IsCur"/>
+	    <property name="branch" column="Branch"/>
+	    <property name="objectType" column="ObjectType"/>
+	</class>
+
+	<query name="com.rssl.phizicgate.rsretailV6r20.subscription.FindAccountSubscription">
+        SELECT subscr from com.rssl.phizicgate.rsretailV6r20.subscription.SubscriptionObject subscr
+		WHERE subscr.id = :id
+	</query>
+	<query name="com.rssl.phizicgate.rsretailV6r20.subscription.FindMaxSubscriptionNumber">
+        SELECT MAX(obj.referenc) from com.rssl.phizicgate.rsretailV6r20.subscription.SubscriptionObject obj
+	</query>
+</hibernate-mapping>

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+   <class name="com.rssl.phizic.business.resources.external.DepoAccountLink"  table="DEPO_ACCOUNT_LINKS" >
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPO_ACCOUNT_LINKS</param>
+            </generator>
+        </id>
+        <property name="externalId"     column="EXTERNAL_ID"/>
+        <property name="loginId" type="long" not-null="true" column="LOGIN_ID" />
+	    <property name="accountNumber" column="ACCOUNT_NUMBER"/>
+        <property name="name"       type="string"     not-null="false"  column="ACCOUNT_NAME"/>
+        <property name="showInMain" type="boolean"    not-null="true"   column="SHOW_IN_MAIN"/>
+        <property name="showInSystem" type="boolean"  not-null="true"   column="SHOW_IN_SYSTEM"/>
+        <property name="positionNumber" type="integer"  not-null="false"  column="POSITION_NUMBER"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.resources.external.DepoAccountLink.list">
+        select link
+        from   com.rssl.phizic.business.resources.external.DepoAccountLink link
+        where  link.loginId = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.DepoAccountLink.list.inSystem">
+        select link
+        from   com.rssl.phizic.business.resources.external.DepoAccountLink link
+        where  link.loginId = :login and link.showInSystem =true
+        order by positionNumber
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.DepoAccountLink.findByExternalId">
+        from   com.rssl.phizic.business.resources.external.DepoAccountLink link
+        where  loginId = :login
+          and  externalId = :externalId
+    </query>
+
+</hibernate-mapping>

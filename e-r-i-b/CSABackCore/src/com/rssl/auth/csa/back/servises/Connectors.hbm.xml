@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="ConnectorState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.auth.csa.back.servises.ConnectorState</param>
+	</typedef>
+    <typedef name="ConnectorType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.auth.csa.back.servises.ConnectorType</param>
+	</typedef>
+    <typedef name="RegistrationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.registration.RegistrationType</param>
+    </typedef>
+    <typedef name="SecurityType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.security.SecurityType</param>
+    </typedef>
+    <typedef name="LoginType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.client.LoginType</param>
+    </typedef>
+
+    <class name="com.rssl.auth.csa.back.servises.Connector" table="CSA_CONNECTORS" abstract="true">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CSA_CONNECTORS</param>
+            </generator>
+        </id>
+
+        <discriminator formula="TYPE" type="string"/>
+
+        <property name="guid"                   type="string"               column="GUID"                           not-null="true"/>
+        <property name="deviceId"               type="string"               column="DEVICE_ID"                      not-null="false"/>
+        <property name="creationDate"           type="calendar"             column="CREATION_DATE"                  not-null="true"/>
+        <property name="state"                  type="ConnectorState"       column="STATE"                          not-null="true"/>
+        <property name="type"                   type="ConnectorType"        column="TYPE"                           not-null="true"/>
+        <property name="userId"                 type="string"               column="USER_ID"                        not-null="false"/>
+        <property name="cardNumber"             type="string"               column="CARD_NUMBER"                    not-null="false"/>
+        <property name="cbCode"                 type="string"               column="CB_CODE"                        not-null="false"/>
+        <property name="deviceInfo"             type="string"               column="DEVICE_INFO"                    not-null="false"/>
+        <property name="deviceState"            type="string"               column="DEVICE_STATE"                   not-null="false"/>
+
+        <property name="authErrors"             type="long"                 column="AUTH_ERRORS"                    not-null="true"/>
+        <property name="blockedUntil"           type="calendar"             column="BLOCKED_UNTIL"                  not-null="false"/>
+        <property name="blockReason"            type="string"               column="BLOCK_REASON"                   not-null="false"/>
+
+        <property name="currentSessionDate"     type="calendar"             column="LAST_SESSION_DATE"              not-null="false"/>
+        <property name="currentSessionId"       type="string"               column="LAST_SESSION_ID"                not-null="false"/>
+
+        <property name="registrationType"       type="RegistrationType"     column="REGISTRATION_TYPE"              not-null="true"/>
+        <property name="pushSupported"          type="boolean"              column="PUSH_SUPPORTED"                 not-null="true"/>
+        <property name="phoneNumber"            type="string"               column="PHONE_NUMBER"                   not-null="false"/>
+        <property name="version"                type="string"               column="API_VERSION"                    not-null="false"/>
+
+        <property name="securityToken"          type="string"               column="DEVICE_SECURITY_TOKEN"          not-null="false"/>
+        <property name="securityType"           type="SecurityType"         column="SECURITY_TYPE"                  not-null="false"/>
+        <property name="registrationLoginType"  type="LoginType"            column="REGISTRATION_LOGIN_TYPE"        not-null="false"/>
+
+        <many-to-one name="profile" class="com.rssl.auth.csa.back.servises.Profile" column="PROFILE_ID"
+                     lazy="false" not-null="true"/>
+    </class>
+
+    <subclass name="com.rssl.auth.csa.back.servises.connectors.CSAConnector"
+              extends="com.rssl.auth.csa.back.servises.Connector"
+              discriminator-value="CSA"/>
+    <subclass name="com.rssl.auth.csa.back.servises.connectors.TerminalConnector"
+              extends="com.rssl.auth.csa.back.servises.Connector"
+              discriminator-value="TERMINAL"/>
+    <subclass name="com.rssl.auth.csa.back.servises.connectors.MAPIConnector"
+              extends="com.rssl.auth.csa.back.servises.Connector"
+              discriminator-value="MAPI"/>
+    <subclass name="com.rssl.auth.csa.back.servises.connectors.SocialAPIConnector"
+              extends="com.rssl.auth.csa.back.servises.Connector"
+              discriminator-value="SOCIAL"/>
+    <subclass name="com.rssl.auth.csa.back.servises.connectors.ATMConnector"
+              extends="com.rssl.auth.csa.back.servises.Connector"
+              discriminator-value="ATM"/>
+    <subclass name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector"
+              extends="com.rssl.auth.csa.back.servises.Connector"
+              discriminator-value="ERMB"/>
+    <subclass name="com.rssl.auth.csa.back.servises.connectors.DisposableConnector"
+              extends="com.rssl.auth.csa.back.servises.Connector"
+              discriminator-value="DISPOSABLE"/>
+
+    <!--
+        Выборка коннектора по его логину
+        Опорный объект: IDX_CSA_LOGINS, PK_CSA_CONNECTORS
+        Предикаты доступа: (UPPER("LOGIN")=UPPER(:LOGIN)),
+                            ("LOGIN"."CONNECTOR_ID"="CONNECTOR"."ID")
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Connector.getByAlias">
+        <return alias="connector" class="com.rssl.auth.csa.back.servises.Connector"/>
+        <![CDATA[
+            select {connector.*} from CSA_LOGINS login inner join CSA_CONNECTORS connector on login.CONNECTOR_ID = connector.ID
+            where upper(login.LOGIN) = upper(:login)
+        ]]>
+    </sql-query>
+
+    <!--
+        Выборка коннектора по его логину
+        Опорный объект: IDX_CSA_LOGINS, PK_CSA_CONNECTORS
+        Предикаты доступа: (UPPER("LOGIN")=UPPER(:LOGIN)),
+                            ("LOGIN"."CONNECTOR_ID"="CONNECTOR"."ID")
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Connector.getByAliasExtended">
+         <return alias="connector" class="com.rssl.auth.csa.back.servises.Connector"/>
+        <![CDATA[
+            select {connector.*} from CSA_LOGINS login inner join CSA_CONNECTORS connector on login.CONNECTOR_ID = connector.ID
+            where connector.PROFILE_ID <> :profileId and upper(login.LOGIN) = upper(:login)
+        ]]>
+     </sql-query>
+    
+    <query name="com.rssl.auth.csa.back.servises.Connector.getConnectorByGUID">
+       select connector from com.rssl.auth.csa.back.servises.Connector connector
+       where guid = :guid
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Connector.getByUserId">
+        select connector from com.rssl.auth.csa.back.servises.Connector connector
+        where userId = :user_id
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Connector.getByCardNumber">
+        select connector from com.rssl.auth.csa.back.servises.Connector connector
+        where cardNumber = :card_number
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.Connector.getExistEnterByProfileId">
+        select connector from com.rssl.auth.csa.back.servises.Connector connector
+        where profile.id = :profile_id
+             and state != 'CLOSED'
+             and type in('TERMINAL', 'CSA')
+             and currentSessionDate is not null
+             and currentSessionId is not null
+     </query>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.connectors.CSAConnector.getLastConnectorByUserId">
+        <return alias="connector" class="com.rssl.auth.csa.back.servises.connectors.CSAConnector"/>
+        <![CDATA[
+            select * from (select max(c.creation_date) over() max_creationDate, c.* from csa_connectors c where c.user_id = :user_id and c.type = 'CSA') cc where cc.creation_date = cc.max_creationDate
+        ]]>
+    </sql-query>
+
+     <query name="com.rssl.auth.csa.back.servises.connectors.DisposableConnector.getNotClosedByProfileId">
+        select connector from com.rssl.auth.csa.back.servises.connectors.DisposableConnector connector
+        where profile.id = :profile_id
+             and state != 'CLOSED'
+     </query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.DisposableConnector.getByProfileId">
+        select connector from com.rssl.auth.csa.back.servises.connectors.DisposableConnector connector
+        where profile.id = :profile_id
+     </query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.DisposableConnector.getNotClosedByUserID">
+        select connector from com.rssl.auth.csa.back.servises.connectors.DisposableConnector connector
+        where userId = :user_id
+             and state != 'CLOSED'
+     </query>
+
+    <!-- TODO убрать-->
+    <query name="com.rssl.auth.csa.back.servises.connectors.DisposableConnector.getNotClosedByLogin">
+        select connector from com.rssl.auth.csa.back.servises.connectors.DisposableConnector connector
+         where upper(login) = upper(:login)
+             and state != 'CLOSED'
+     </query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.CSAConnector.getByProfileId">
+        select connector from com.rssl.auth.csa.back.servises.connectors.CSAConnector connector
+        where profile.id = :profile_id
+     </query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.getByProfileId">
+        select connector from com.rssl.auth.csa.back.servises.connectors.ERMBConnector connector
+        where profile.id = :profile_id
+     </query>
+
+    <!--
+        Опорный объект:   CSA_CONNECTORS_PTS
+        Предикат доступа: ("CONNECTOR"."PROFILE_ID"=TO_NUMBER(:PROFILEID) AND "CONNECTOR"."TYPE"='ERMB'
+        Кардинальность:   1(стоп кей при вызове)
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Connector.isExistNotClosedByProfileId">
+        select 1 from CSA_CONNECTORS connector
+        where
+            connector.PROFILE_ID = :profileId
+            and connector.STATE != 'CLOSED'
+            and connector. TYPE = 'ERMB'
+    </sql-query>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.getByCardNumber">
+        <return alias="connector" class="com.rssl.auth.csa.back.servises.connectors.ERMBConnector"/>
+        <![CDATA[
+                select {connector.*} from CSA_CONNECTORS connector
+                where PROFILE_ID =
+                    (
+                        select profile_id from CSA_CONNECTORS cardConnector
+                        where cardConnector.CARD_NUMBER = :card_number
+                        and rownum = 1
+                    )
+                and TYPE = 'ERMB'
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.TerminalConnector.getNotClosedByUserID">
+        select connector from com.rssl.auth.csa.back.servises.connectors.TerminalConnector connector
+        where userId = :user_id
+             and state != 'CLOSED'
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.TerminalConnector.getNotClosedByCardNumber">
+        select connector from com.rssl.auth.csa.back.servises.connectors.TerminalConnector connector
+        where cardNumber = :card_number
+             and state != 'CLOSED'
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Connector.getCount">
+         <![CDATA[
+         select count(connector) from com.rssl.auth.csa.back.servises.Connector connector
+         where connector.state in (:states)
+             and connector.profile.id = :profile_id
+             and connector.type =:type
+             and (:deviceId is null or connector.deviceId != :deviceId)
+       ]]>
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Connector.changeProfile">
+        update com.rssl.auth.csa.back.servises.Connector connector
+        set profile = :new_profile
+        where profile in (:old_profile)
+    </query>
+
+    <!--
+     Опорный объект:   CSA_CONNECTORS_PTS
+     Предикат доступа: "PROFILE_ID"=TO_NUMBER(:profile) AND "STATE"='BLOCKED'
+     Кардинальность:   количество заблокированных коннекторов профиля
+    -->
+    <query name="com.rssl.auth.csa.back.servises.Connector.unlockForProfile">
+        update com.rssl.auth.csa.back.servises.Connector connector
+        set state = 'ACTIVE'
+        where profile = :profile and state = 'BLOCKED'
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Connector.setSecurityTypeToNotClosed">
+        update com.rssl.auth.csa.back.servises.Connector connector
+        set connector.securityType = :security_type
+        where connector.profile.id = :profile_id
+            and connector.state != 'CLOSED'
+            and connector.type = :type
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Connector.findByDeviceId">
+        select connector from com.rssl.auth.csa.back.servises.Connector connector
+        where deviceId = :deviceId and state != 'CLOSED'
+    </query>
+
+    <!--Опорный объект: IDX_CSA_CONNECTORS_DEVICE_ID
+	 Предикаты доступа: "DEVICE_ID"=:DEVICEID
+	 Кардинальность: 1-->
+    <query name="com.rssl.auth.csa.back.servises.MAPIConnector.findByDeviceIdAndInfo">
+        select connector from com.rssl.auth.csa.back.servises.connectors.MAPIConnector connector
+        where deviceId = :deviceId
+        and deviceInfo = :deviceInfo
+        and state != 'CLOSED'
+    </query>
+
+    <!--Опорный объект: IDX_CSA_CONNECTORS_DEVICE_ID
+	 Предикаты доступа: "DEVICE_ID"=:DEVICEID
+	 Кардинальность: 1-->
+    <query name="com.rssl.auth.csa.back.servises.SocialAPIConnector.findByDeviceIdAndInfo">
+        select connector from com.rssl.auth.csa.back.servises.connectors.SocialAPIConnector connector
+        where deviceId = :deviceId
+        and deviceInfo = :deviceInfo
+        and state != 'CLOSED'
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Connector.findByPhoneNumber">
+        select connector from com.rssl.auth.csa.back.servises.Connector connector
+        where phoneNumber = :phone_number
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.resetProfileActiveConnector">
+        update com.rssl.auth.csa.back.servises.connectors.ERMBConnector connector
+        set state = 'CLOSED'
+        where profile.id = :profile_id
+            and state = 'ACTIVE'
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.setProfileActiveConnector">
+        update com.rssl.auth.csa.back.servises.connectors.ERMBConnector connector
+        set state = 'ACTIVE'
+        where profile.id = :profile_id
+            and state = 'CLOSED'
+            and phoneNumber = :phone_number
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.removeByPhonesAndProfileId">
+        delete from com.rssl.auth.csa.back.servises.connectors.ERMBConnector
+        where profile.id = :profile_id
+            and phoneNumber in (:phones)
+    </query>
+
+    <!--Найти дубликаты телефонов
+        Опорный элемент: CONNECTORS_PHONE_INDEX
+        Предикаты доступа: access("PHONE_NUMBER"=:PHONES)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.findDuplicatesPhones">
+        select connector.phoneNumber from com.rssl.auth.csa.back.servises.connectors.ERMBConnector connector
+        where phoneNumber in (:phones)
+    </query>
+
+    <!--
+        Найти идентификатор профиля связанного с незакрытым ЕРМБ коннектором по номеру телефона
+        Опорный элемент: CONNECTORS_PHONE_INDEX
+        Предикаты доступа: access("PHONE_NUMBER"=:PHONE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Connector.getProfileIdByPhoneNumber">
+        <return-scalar column="PROFILE_ID" type="long"/>
+        select PROFILE_ID from CSA_CONNECTORS
+        where
+            PHONE_NUMBER = :phone
+            and STATE != 'CLOSED'
+            and TYPE = 'ERMB'
+    </sql-query>
+
+    <!--
+        Проверить существование незакрытих коннекторов для входа через веб для заданного идентификатора профиля
+        Опорный элемент: CONNECTORS_PHONE_INDEX
+        Предикаты доступа: access("PHONE_NUMBER"=:PHONES)
+        Кардинальность: 1(со стоп условием при вызове)
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.connectors.Connector.isExistNotClosedTerminalAndCSAByProfileID">
+        select 1 from CSA_CONNECTORS
+        where
+            PROFILE_ID = :profileId
+            and TYPE in ('CSA', 'TERMINAL')
+            and STATE != 'CLOSED'
+    </sql-query>
+
+    <!--
+        Получить идентификатор профиля по номеру карты, связанному с его коннекторами
+        Опорный элемент: CSA_CONNECTORS_CTS
+        Предикаты доступа: access("CARD_NUMBER"=:CARDNUMBER)
+        Кардинальность: 1(со стоп условием при вызове)
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.connectors.Connector.findProfileIdNotClosedTerminalAndCSAByCardNumber">
+        <return-scalar column="PROFILE_ID" type="long"/>
+        select PROFILE_ID from CSA_CONNECTORS
+        where
+            CARD_NUMBER = :cardNumber
+            and TYPE in ('CSA', 'TERMINAL')
+            and STATE != 'CLOSED'
+    </sql-query>
+
+    <query name="com.rssl.auth.csa.back.servises.connectors.ATMConnector.findByCardNumber">
+        select connector from com.rssl.auth.csa.back.servises.connectors.ATMConnector connector
+        where cardNumber = :cardNumber
+    </query>
+
+    <!-- Возвращает незакрытые ЕРМБ-коннекторы по ФИО ДУЛ ДР (поиск без учёта ТБ!) -->
+    <!--
+         Опорный объект: CSA_PROFILES_UNIVERSAL_ID
+         Предикаты доступа:
+             1.     UPPER(TRIM(REGEXP_REPLACE("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'( )+','')))
+                   =UPPER(TRIM(REGEXP_REPLACE(:SURNAME  ||' '||:FIRSTNAME  ||' '||:PATRNAME,'( )+',' ')))
+                AND "PROFILE"."BIRTHDATE"=TO_TIMESTAMP(:BIRTHDATE)
+                AND REPLACE("PASSPORT",' ','')=:PASSPORTS
+
+             2.     "PROFILE"."ID"="CONNECTOR"."PROFILE_ID"
+                AND "CONNECTOR"."TYPE"='ERMB'
+                AND "CONNECTOR"."STATE"='ACTIVE'
+         Кардинальность: 1
+	-->
+    <sql-query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.findNotClosedByClientInAnyTB">
+        <return alias="connector" class="com.rssl.auth.csa.back.servises.connectors.ERMBConnector"/>
+        <![CDATA[
+            select
+                {connector.*}
+            from
+                csa_profiles profile join csa_connectors connector on
+                profile.id = connector.profile_id
+            where
+                upper(trim(regexp_replace(profile.sur_name||' '||profile.first_name||' '||profile.patr_name,'( )+',' '))) =
+                    upper(trim(regexp_replace(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                and replace(profile.passport,' ','') in (:passports)
+                and profile.birthdate = :birthdate
+                and connector.type = 'ERMB'
+                and connector.state = 'ACTIVE'
+        ]]>
+    </sql-query>
+
+    <!-- Возвращает признак наличия незакрытых ЕРМБ-коннекторов по ФИО ДУЛ ДР (ТБ)
+         Опорный объект: CSA_PROFILES_UNIVERSAL_ID
+         Предикаты доступа:
+                access(UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'( )+',' ')))=UPPER(TRIM( REGEXP_REPLACE (:SURNAME||' '||:FIRSTNAME||' '||:PATRNAME,'( )+',' '))) AND
+               "PROFILE"."BIRTHDATE"=TO_TIMESTAMP(:BIRTHDATE) AND REPLACE("PASSPORT",' ','')=REPLACE(:PASSPORT,' ',''))
+         Кардинальность: 1
+	-->
+    <sql-query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.isExistNotClosedByClientInAnyTB">
+        <return-scalar column="EXISTS_PROFILE" type="boolean"/>
+        <![CDATA[
+            SELECT
+                '1' EXISTS_PROFILE
+            FROM
+                CSA_PROFILES profile
+                JOIN CSA_CONNECTORS connector ON profile.id = connector.profile_id
+            WHERE
+                upper(trim(regexp_replace(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) =
+                    upper(trim(regexp_replace(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                AND replace(profile.PASSPORT,' ','') in replace(:passport,' ','')
+                AND profile.BIRTHDATE = :birthdate
+                AND connector.TYPE = 'ERMB'
+                AND connector.STATE <> 'CLOSED'
+                AND decode(:tb, null, profile.TB, :tb) = profile.tb
+                AND rownum = 1
+        ]]>
+    </sql-query>
+
+    <!--сделать первый попавшийся ЕРМБ коннектор активным
+        Опорный элемент: CSA_CONNECTORS_PTS
+        Предикаты доступа: access("CONNECTORS"."PROFILE_ID"=TO_NUMBER(:PROFILE_ID) AND "CONNECTORS"."TYPE"='ERMB')
+        Кардинальность: 1 (стоп условие - первый выбранный коннектор)
+    -->
+    <query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.setActiveFirstConnectorByProfile">
+        update com.rssl.auth.csa.back.servises.connectors.ERMBConnector connector
+        set connector.state = 'ACTIVE'
+        where connector.profile.id = :profile_id
+            and rownum = 1
+    </query>
+
+
+    <!-- поиск не закрытых mAPI коннекторов, по ФИО+ДУЛ+ДР клиента.
+        Опорный элемент: CSA_PROFILES_UNIVERSAL_ID
+        Предикаты доступа:
+            1. UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'( )+','
+                          ')))=UPPER(TRIM( REGEXP_REPLACE (:SURNAME||' '||:FIRSTNAME||' '||:PATRNAME,'( )+',' '))) AND
+                          "PROFILE"."BIRTHDATE"=TO_TIMESTAMP(:BIRTHDATE) AND REPLACE("PASSPORT",' ','')=REPLACE(:PASSPORT,' ','')
+            2. "PROFILE"."ID"="CONNECTOR"."PROFILE_ID"
+        Кардинальность: активные коннекторы по ФИО+ДУЛ+ДР
+
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.connectors.ERMBConnector.findNotClosedMAPIByClient">
+        <return alias="connector" class="com.rssl.auth.csa.back.servises.connectors.MAPIConnector"/>
+        <![CDATA[
+            select
+                connector.*
+            from
+                csa_profiles profile join csa_connectors connector on
+                profile.id = connector.profile_id
+            where
+                UPPER(TRIM(REGEXP_REPLACE(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+                and REPLACE(profile.PASSPORT,' ','') = REPLACE(:passport,' ','')
+                and profile.birthdate = :birthdate
+                and connector.type = 'MAPI'
+                and connector.state != 'CLOSED'
+        ]]>
+    </sql-query>
+
+    <!--Есть ли у профиля активны мобильные приложения ПРО версии. Поиск идет по ФИО ДУЛ ДР
+        Опорный элемент:  CSA_PROFILES_UNIVERSAL_ID
+        Предикаты доступа:
+            1 - access(UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'( )+','
+               ')))=UPPER(TRIM( REGEXP_REPLACE (:SURNAME||' '||:FIRSTNAME||' '||:PATRNAME,'( )+',' '))) AND
+               "PROFILE"."BIRTHDATE"=TO_TIMESTAMP(:BIRTHDATE) AND REPLACE("PASSPORT",' ','')=REPLACE(:PASSPORT,' ',''))
+            2 - access("CONNECTOR"."PROFILE_ID"="PROFILE"."ID")
+        Кардинальность: 1 - количество профилей в разных ТБ
+    -->
+    <sql-query name="com.rssl.auth.csa.back.services.connectors.MAPIConnector.isContainsPRO">
+        <![CDATA[
+            select
+                1
+            from
+                csa_profiles profile join csa_connectors connector on
+                profile.id = connector.profile_id
+            where
+                UPPER(TRIM(REGEXP_REPLACE(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surname||' '||:firstname||' '||:patrname,'( )+',' '))) and
+                REPLACE(profile.PASSPORT,' ','') = REPLACE(:passport,' ','') and
+                profile.birthdate = :birthdate and
+                connector.type = 'MAPI' and
+                connector.state != 'CLOSED' and
+                connector.DEVICE_STATE = 'FULL' and
+                rownum = 1
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

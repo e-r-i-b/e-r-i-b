@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<project name="websphere">
+
+    <import id="configs" file="configs.ant"/>
+    <import id="common"  file="common.ant" />
+    <import id="install"  file="install.ant" />
+
+    <target name=".explode.libraries.websphere" if="appserver.type.websphere"
+            description="Копирование и удаление библиотек необходимых для WebSphere">
+      <if>
+         <isset property="application.explode.dir"/>
+            <then>
+                <!-- Библиотек от Sun в Websphere нет, добавляем -->
+                <copy todir="${application.explode.dir}/lib" flatten="true">
+                    <fileset dir="${project.root}/Libraries" includes="JAXRPC/*.jar"/>
+                </copy>
+                <!-- Чтоб не было проблем с одним классом в двух класлоудрерах, эти библиотеки будем брать из нашего приложения -->
+                <copy todir="${application.explode.dir}/lib" flatten="true">
+                    <fileset dir="${project.root}/Libraries" includes="JavaMail/*.jar"/>
+                </copy>
+                <!-- Эти библиотеки уже есть в WebSphere(вернее их аналоги), поэтому удаляем -->
+                <delete file="${application.explode.dir}/lib/jsr173_api.jar" failonerror="false"/>
+                <delete file="${application.explode.dir}/lib/serializer.jar" failonerror="false"/>
+                <delete file="${application.explode.dir}/lib/xalan.jar" failonerror="false"/>
+                <delete file="${application.explode.dir}/lib/xml-apis.jar" failonerror="false"/>
+                <delete file="${application.explode.dir}/lib/xercesImpl.jar" failonerror="false"/>
+                <delete file="${application.explode.dir}/lib/com.ibm.ws.webservices.thinclient_6.1.0.patched.jar" failonerror="false"/>
+            </then>
+       </if>
+    </target>
+
+    <target name="copy-websphere-ejb-deploy-descriptors"
+            description="Копирование деплоймент дескрипторов ejb для WebSphere"
+            depends="init.configuration"
+            if="appserver.type.websphere">
+      <if>
+         <isset property="module.name"/>
+            <then>
+                 <copy todir="${application.explode.dir}/${module.name}.jar">
+                  <fileset dir="${project.root}/${module.name}/websphere" erroronmissingdir="false"/>
+                </copy>
+            </then>
+       </if>
+    </target>
+
+    <target name="copy-websphere-deploy-descriptors"
+            description="Копирование деплоймент дескрипторов приложения для WebSphere"
+            depends="init.configuration,.set.paths, .init.application.configuration"
+            if="appserver.type.websphere">
+<!--
+        <echo message="Необходимые для заполнения свойства:"/>
+        <echo message="project.tasks.classpath:${project.tasks.classpath}"/>
+        <echo message="dbserver.username:${dbserver.username}"/>
+        <echo message="dbserver.shadow.username:${dbserver.shadow.username}"/>
+        <echo message="dbserver.password:${dbserver.password}"/>
+        <echo message="dbserver.shadow.password:${dbserver.shadow.password}"/>
+-->
+        <taskdef name="transformPassword" classname="com.rssl.phizic.websphere.utils.deploy.tools.PasswordEncoderTask"
+		         classpathref="project.tasks.classpath"/>
+
+        <copy todir="${application.settings.dir}/META-INF" overwrite="true">
+           <fileset dir="${current.config.dir}/META-INF" includes="ibmconfig/**/*.*"
+                   excludes="${current.config.dir}/META-INF/ibmconfig/cells/defaultCell/security.xml,
+                                 ${current.config.dir}/META-INF/ibmconfig/cells/defaultCell/applications/defaultApp/deployments/defaultApp/resources.xml"/>
+            <fileset dir="${current.config.dir}/META-INF" includes="services/**/*.*"/>
+        </copy>
+
+
+        <transformPassword dbPassword="${dbserver.password}" returnPropertyName="dbserver.password.encoded"/>
+        <transformPassword dbPassword="${dbserver.shadow.password}" returnPropertyName="dbserver.shadow.password.encoded"/>
+        <transformPassword dbPassword="${rsretailv6r4.dbserver.password}" returnPropertyName="rsretailv6r4.dbserver.password.encoded"/>
+        <transformPassword dbPassword="${dbserver.report.password}" returnPropertyName="dbserver.report.password.encoded"/>
+        <transformPassword dbPassword="${dbserver.log.password}" returnPropertyName="dbserver.log.password.encoded"/>
+<!--
+        <echo message="dbserver.password.encoded:${dbserver.password.encoded}"/>
+        <echo message="dbserver.shadow.password.encoded:${dbserver.shadow.password.encoded}"/>
+        <echo message="copy from:${current.config.dir}/META-INF/ibmconfig/cells/defaultCell/security.xml"/>
+        <echo message="copy to:${application.settings.dir}/META-INF/ibmconfig/cells/defaultCell/security.xml"/>
+-->
+        <filterset id="websphere.dbfilter">
+            <filter token="mainDBUserName" value="${dbserver.username}"/>
+            <filter token="mainDbPassword" value="${dbserver.password.encoded}"/>
+            <filter token="mainDb.ServerName" value="${dbserver.name}"/>
+            <filter token="mainDb.Port" value="${dbserver.port}"/>
+            <filter token="mainDb.DatabaseName" value="${dbserver.database}"/>
+
+            <filter token="shadowDBUserName" value="${dbserver.shadow.username}"/>
+            <filter token="shadowDbPassword" value="${dbserver.shadow.password.encoded}"/>
+            <filter token="shadowDb.ServerName" value="${dbserver.name}"/>
+            <filter token="shadowDb.Port" value="${dbserver.port}"/>
+            <filter token="shadowDb.DatabaseName" value="${dbserver.database}"/>
+
+            <filter token="reportDBUserName" value="${dbserver.report.username}"/>
+            <filter token="reportDbPassword" value="${dbserver.report.password.encoded}"/>
+            <filter token="reportDb.ServerName" value="${dbserver.report.name}"/>
+            <filter token="reportDb.Port" value="${dbserver.report.port}"/>
+            <filter token="reportDb.DatabaseName" value="${dbserver.report.database}"/>
+
+            <filter token="logDBUserName" value="${dbserver.log.username}"/>
+            <filter token="logDbPassword" value="${dbserver.log.password.encoded}"/>
+            <filter token="logDb.ServerName" value="${dbserver.log.name}"/>
+            <filter token="logDb.Port" value="${dbserver.log.port}"/>
+            <filter token="logDb.DatabaseName" value="${dbserver.log.database}"/>
+
+            <filter token="application.instance.prefix" value="${application.instance.prefix}"/>
+            <filter token="rsretailv6r4.dbserver.username" value="${rsretailv6r4.dbserver.username}"/>
+            <filter token="rsretailv6r4.dbserver.password" value="${rsretailv6r4.dbserver.password.encoded}"/>
+            <filter token="rsretailv6r4.dbserver.name" value="${rsretailv6r4.dbserver.name}"/>
+            <filter token="rsretailv6r4.dbserver.port" value="${rsretailv6r4.dbserver.port}"/>
+            <filter token="rsretailv6r4.dbserver.database" value="${rsretailv6r4.dbserver.database}"/>
+		</filterset>
+
+        <copy file="${current.config.dir}/META-INF/ibmconfig/cells/defaultCell/security.xml"
+              tofile="${application.settings.dir}/META-INF/ibmconfig/cells/defaultCell/security.xml" overwrite="true" failonerror="false">
+            <filterset refid="websphere.dbfilter"/>
+        </copy>
+        <copy file="${current.config.dir}/META-INF/ibmconfig/cells/defaultCell/applications/defaultApp/deployments/defaultApp/resources.xml"
+              tofile="${application.settings.dir}/META-INF/ibmconfig/cells/defaultCell/applications/defaultApp/deployments/defaultApp/resources.xml" overwrite="true" failonerror="false">
+            <filterset refid="websphere.dbfilter"/>
+        </copy>
+    </target>
+
+  	<target name="hot-swap-websphere"
+			description="Перезапись проекта в websphere"
+            depends="init.configuration">
+          <property name="webSpherePath" value="${hot-swap-websphere.webSpherePath}"/>
+          <property name="application.explode.dir" value="${hot-swap-websphere.appPath}"/>
+          <copy todir="${webSpherePath}\WebAdmin.war" verbose="true" failonerror="false">
+            <fileset dir="${application.explode.dir}\WebAdmin.war"/>
+          </copy>
+          <copy todir="${webSpherePath}\WebResources.war" verbose="true" failonerror="false">
+            <fileset dir="${application.explode.dir}\WebResources.war"/>
+          </copy>
+
+          <copy todir="${webSpherePath}\WebClient.war" verbose="true" failonerror="false">
+            <fileset dir="${application.explode.dir}\WebClient.war"/>
+          </copy>
+
+          <copy todir="${webSpherePath}\Scheduler.war" verbose="true" failonerror="false">
+            <fileset dir="${application.explode.dir}\Scheduler.war"/>
+          </copy>
+
+	</target>
+
+    <target name="websphere-ant-prepare" if="appserver.type.websphere">
+
+        <property name="user.install.root" location="${WEBSPHERE_HOME}"/>
+
+        <path id="ws.lib">
+            <fileset dir="${user.install.root}/java/jre/lib">
+                <include name="**/*.jar" />
+            </fileset>
+            <fileset dir="${user.install.root}/lib">
+                <include name="**/*.jar" />
+            </fileset>
+            <fileset dir="${user.install.root}/bin/ProfileManagement/plugins/com.ibm.websphere.v61_6.1.200">
+                <include name="ws_runtime.jar"/>
+            </fileset>
+            <fileset dir="${user.install.root}/optionalLibraries">
+                <include name="**/*.jar"/>
+            </fileset>
+        </path>
+
+        <taskdef name="wsAdmin" classname="com.ibm.websphere.ant.tasks.WsAdmin">
+            <classpath refid="ws.lib"/>
+        </taskdef>
+
+
+        <taskdef name="wsStartApp" classname="com.ibm.websphere.ant.tasks.StartApplication">
+           <classpath refid="ws.lib"/>
+        </taskdef>
+
+    </target>
+    <!--Удаление приложения с СП -->
+    <target name="undeploy-websphere-application" depends="websphere-ant-prepare" if="appserver.type.websphere">
+        <wsAdmin
+                wasHome="${user.install.root}"
+                command="$AdminApp uninstall WebSphereWebSphere"
+                conntype="SOAP"
+                host="localhost"
+                port="8880"
+                debug="true"
+                lang="jacl"
+                profilename="AppSrv01"
+                profile="${user.install.root}bin/setupCmdLine.bat"
+                failonerror="false">
+        </wsAdmin>
+    </target>
+    <!-- Деплой приложения и последующий его запуск -->
+    <target name="deploy-websphere-application" depends="websphere-ant-prepare" if="appserver.type.websphere">
+        <echo message="deploying application"/>
+        <wsAdmin
+                wasHome="${user.install.root}"
+                command="$AdminApp install C:/Projects/PhizIC_Sber/ibmClear/webSphere/Exploded.ear {-appname WebSphereWebSphere -server server1
+-MapResRefToEJB{ {WebAdmin.war
+* WebAdmin.war,WEB-INF/web.xml jdbc/PhizIC javax.sql.DataSource jdbc/PhizIC * *} {WebClient.war * WebClient.war,WEB-INF/web.xml jdbc/PhizIC
+javax.sql.DataSource jdbc/PhizIC * *} {Scheduler.war * Scheduler.war,WEB-INF/web.xml jdbc/PhizIC javax.sql.DataSource jdbc/PhizIC * *} {Listener.war *
+Listener.war,WEB-INF/web.xml jdbc/PhizIC javax.sql.DataSource jdbc/PhizIC * *} }}"
+                conntype="SOAP"
+                host="localhost"
+                port="8880"
+                debug="true"
+                lang="jacl"
+                profilename="AppSrv01"
+                profile="${user.install.root}bin/setupCmdLine.bat"
+                failonerror="false">
+        </wsAdmin>
+        <echo message="end deploying application"/>
+        <antcall target="start-websphere-application"/>
+
+    </target>
+    <!-- Старт приложения на стратованной сфере -->
+    <target name="start-websphere-application" depends="websphere-ant-prepare" if="appserver.type.websphere">
+        <echo message="starting application"/>
+
+        <wsStartApp wasHome="${user.install.root}"
+                application="WebSphereWebSphere"
+                conntype="SOAP"
+                host="localhost"
+                port="8880"
+                debug="true"
+                lang="jacl"
+                profilename="AppSrv01"
+                failonerror="true"
+        />
+
+        <echo message="starting application"/>
+    </target>
+</project>

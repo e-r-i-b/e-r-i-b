@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="AccountClosingClaim"
+		description="Заявка на закрытие счета по вкладу"
+		detailedDescription="Подача в банк заявки на закрытие счета по вкладу."
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.AccountClosingClaim"/>
+	<sender class="com.rssl.phizic.business.payments.forms.meta.DefaultBusinessDocumentSender"/>
+	<save-actions>
+		<action class="com.rssl.phizic.business.payments.forms.meta.DefaultCommissionSaveHandler" order="2"/>
+		<action class="com.rssl.phizic.business.payments.forms.meta.DefaultGateValidationHandler" order="3"/>
+		<action class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction" order="1">
+			<parameter name="checkTime">com.rssl.iccs.end.of.day.trigger.time.AccountClosingClaim</parameter>
+			<parameter name="datePropertyType">java.util.Calendar</parameter>
+			<parameter name="datePropertyName">admissionDate</parameter>
+			<parameter name="useRetailTime">true</parameter>
+			<property name="timeAvailable">true</property>
+		</action>
+	</save-actions>
+
+	<open-actions>
+		<action class="com.rssl.phizic.business.payments.forms.meta.SetBusinessDocumentDateAction" order="1">
+			<parameter name="checkTime">com.rssl.iccs.end.of.day.trigger.time.AccountClosingClaim</parameter>
+			<parameter name="datePropertyName">closingDate</parameter>
+			<parameter name="datePropertyType">java.util.Calendar</parameter>
+			<property name="timeAvailable">true</property>
+		</action>
+	</open-actions>
+
+	<withdraw-options>
+	   <form name="RecallPayment"/>
+	   <check class="com.rssl.phizic.business.documents.metadata.checkers.DocumentStateChecker">
+		   <parameter name="state">intermediate</parameter>
+	   </check>
+	</withdraw-options>
+
+	<fields>
+		<field
+				name="account"
+				description="Счет для закрытия"
+				type="account"
+				source="extra-parameters/parameter[@name='account']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="amount"
+				description="Сумма"
+				source="amount"
+				type="money"
+				signable="true"
+				value="xpath:phiz:document('accountsDeposits.xml')/entity-list/entity[@key=$account]/field[@name='amountDecimal']">
+		</field>
+
+		<field
+				name="currency"
+				description="Валюта"
+				type="string"
+				source="amount-currency"
+				signable="true"
+		        value="xpath:phiz:document('accountsDeposits.xml')/entity-list/entity[@key=$account]/field[@name='currencyCode']">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="admissionDate"
+				description="Плановая дата исполнения платежа"
+				source="admission-date"
+				type="date"
+				signable="true"/>
+
+		<!--коммисия-->
+		<field
+				name="commission"
+				description="Сумма коммисии"
+				source="commission"
+				type="money"
+				signable="true"/>
+
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+
+		<field name="accountType"
+		       source="extra-parameters/parameter[@name='account-type']/@value"
+		       description="Тип счета для закрытия"
+			   type="string"
+			   signable="true"
+			   value="xpath:phiz:document('accountsDeposits.xml')/entity-list/entity[@key=$account]/field[@name='type']"/>
+
+
+		<field
+				name="contractNumber"
+				description="Номер договора"
+				type="string"
+				source="extra-parameters/parameter[@name='contract-number']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="openingDate"
+				description="Дата открытия"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='opening-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='opening-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='opening-date']/@value,1,4))"
+				signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="finDateValue"
+				source="extra-parameters/parameter[@name='finishing-date']/@value"
+				description="значение даты окончания"
+				value="xpath:phiz:document('accountsDeposits.xml')/entity-list/entity[@key=$account]/field[@name='depositFinishingDate']"
+		/>
+
+		<field
+				name="finishingDate"
+				description="Дата окончания"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='finishing-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='finishing-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='finishing-date']/@value,1,4))"
+				signable="true"
+				enabled="form['finDateValue']!=''">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="closingDate"
+				description="Дата закрытия"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='closing-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='closing-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='closing-date']/@value,1,4))"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+			  name="ground"
+			  description="Код валютной операции"
+			  source="extra-parameters/parameter[@name='ground']/@value"
+			  type="string"
+			  signable="true">
+				<validators>
+					<validator  mode="document"
+								enabled="xpath:boolean(phiz:document('currentPerson.xml')/entity-list/entity/field[@name='isResident' and text() = 'false'])"
+								class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+					<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+						<message text="Код валютной операции должен быть вида: {VOкод}, где код - 5 цифр."/>
+						<parameter name="regexp">\{VO\d{5}\}</parameter>
+					</validator>
+				</validators>
+	  </field>
+
+		<field
+				name="receiverAccount"
+				description="Перечислить на счет"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-account']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator">
+					<message text="Для осуществления операции необходимо задать открытый счет для перечисления остатка средств!"/>
+				</validator>
+
+			</validators>
+		</field>
+
+		<field name="toAccountType"
+		       source="extra-parameters/parameter[@name='to-account-type']/@value"
+		       description="Тип счета для перечисления"
+			   type="string"
+			   signable="true"
+			   value="xpath:phiz:document('accountsDeposits.xml')/entity-list/entity[@key=$receiverAccount]/field[@name='type']"/>
+
+	</fields>
+</payment-form>

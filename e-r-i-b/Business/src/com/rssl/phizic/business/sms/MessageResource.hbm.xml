@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="channelType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.limits.ChannelType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.messages.MessageResource" table="SMS_RESOURCES" abstract="true" polymorphism="explicit">
+        <id name="id" column="ID">
+            <generator class="native">
+                <param name="sequence">S_SMS_RESOURCES</param>
+            </generator>
+        </id>
+
+        <discriminator type="string" column="SMS_TYPE"/>
+
+        <property name="key"             column="KEY"               type="string" not-null="true"/>
+        <property name="text"            column="TEXT"              type="string"/>
+        <property name="description"     column="DESCRIPTION"       type="string"/>
+        <property name="variables"       column="VARIABLES"         type="string"/>
+
+        <property name="lastModified"    column="LAST_MODIFIED"     type="calendar"/>
+        <property name="previousText"    column="PREVIOUS_TEXT"     type="string"/>
+        <property name="employeeLoginId" column="EMPLOYEE_LOGIN_ID" type="long"/>
+
+        <subclass name="com.rssl.phizic.business.sms.CSASmsResource"              discriminator-value="CSAMESSAGE"/>
+        <subclass name="com.rssl.phizic.business.sms.SMSResource" abstract="true">
+            <property name="custom"      column="CUSTOM"      type="boolean"/>
+            <property name="channel"     column="CHANNEL"     type="channelType"/>
+            <property name="priority"    column="PRIORITY"    type="long" />
+
+            <subclass name="com.rssl.phizic.business.sms.SMSRefusingResource"     discriminator-value="REFUSING"/>
+            <subclass name="com.rssl.phizic.business.sms.SMSInformingResource"    discriminator-value="INFORMING"/>
+            <subclass name="com.rssl.phizic.business.sms.SMSConfirmationResource" discriminator-value="CONFIRMATION"/>
+        </subclass>
+    </class>
+
+	<sql-query name="com.rssl.phizic.business.sms.SMSResource.getById">
+		<return alias="res" class="com.rssl.phizic.business.sms.SMSResource"/>
+		<![CDATA[
+			select {res.*}
+	          from SMS_RESOURCES res,
+	               (select res.KEY, res.SMS_TYPE from SMS_RESOURCES res where res.ID = :id) sms
+                     where res.KEY      = sms.KEY
+                       and res.SMS_TYPE = sms.SMS_TYPE
+	            ]]>
+	</sql-query>
+
+    <query name="com.rssl.phizic.business.sms.SMSResource.getTemplateVariables">
+        select smsResource.variables
+          from com.rssl.phizic.business.sms.SMSResource smsResource
+         where smsResource.id = :id
+    </query>
+
+    <query name="com.rssl.phizic.business.sms.SMSResource.getCSATemplateVariables">
+        select csaSmsResource.variables
+          from com.rssl.phizic.business.sms.CSASmsResource csaSmsResource
+         where csaSmsResource.id = :id
+    </query>
+
+    <query name="com.rssl.phizic.operations.sms.SmsSettingsListOperation.getSMSResources">
+        select smsResource
+          from com.rssl.phizic.business.sms.SMSResource smsResource
+         where smsResource.channel = :channelType
+            or :channelType is null
+    </query>
+
+    <query name="com.rssl.phizic.operations.sms.CSASmsSettingsListOperation.list.oracle">
+        select csaSmsResource
+          from com.rssl.phizic.business.sms.CSASmsResource csaSmsResource
+    </query>
+
+    <query name="com.rssl.phizic.operations.push.CSAPushResourceListOperation.list.oracle">
+        select CSAPushResource
+          from com.rssl.phizic.business.push.CSAPushResource CSAPushResource
+    </query>
+</hibernate-mapping>

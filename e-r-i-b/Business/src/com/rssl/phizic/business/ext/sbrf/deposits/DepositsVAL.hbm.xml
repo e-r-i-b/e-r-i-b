@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsVAL" table="DEPOSITS_QVKL_VAL">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_QVKL_VAL</param>
+            </generator>
+        </id>
+
+        <property name="depositType"        type="long"         column="QVKL_T_QDTN1"       not-null="true"/>
+        <property name="depositSubType"     type="long"         column="QVKL_T_QDTSUB"      not-null="true"/>
+        <property name="foreignCurrency"    type="boolean"      column="QVKL_T_QVAL"        not-null="true"/>
+        <property name="currencyCode"       type="string"       column="QVKL_V"             not-null="false"/>
+    </class>
+
+    <!--
+        Очистка таблицы DEPOSITS_QVKL_VAL
+        Опорный объект: DEPOSITS_QVKL_VAL
+        Предикаты доступа: fullscan
+        Кардинальность: ~1000
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsVAL.deleteAll">
+        delete from com.rssl.phizic.business.ext.sbrf.deposits.DepositsVAL
+    </query>
+
+    <!--
+        Получить все валюты, доступные для вклада
+        Опорный объект: IDX_D_QVKL_VAL
+        Предикаты доступа: access("VAL"."QVKL_T_QDTN1"=TO_NUMBER(:TYPE))
+        Кардинальность: ~142
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsVAL.getDepositCurrencies">
+        <return-scalar column="CURRENCY" type="string"/>
+        <![CDATA[
+            SELECT DISTINCT VAL.QVKL_V AS CURRENCY
+            FROM DEPOSITS_QVKL_VAL VAL
+            WHERE VAL.QVKL_T_QDTN1 = :type
+        ]]>
+    </sql-query>
+
+    <!--
+        Опорный объект: IDX_D_QVKL_VAL
+        Предикаты доступа: ("QVKL_T_QDTN1"=TO_NUMBER(:TYPE) AND "QVKL_T_QDTSUB"=TO_NUMBER(:SUBTYPE))
+        Кардинальность: 1-2
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsVAL.getMinSubTypeCurrencies">
+        <return-scalar column="CURRENCY" type="string"/>
+        <![CDATA[
+            SELECT DISTINCT QVKL_V AS CURRENCY
+            FROM DEPOSITS_QVKL_VAL
+            WHERE QVKL_T_QDTN1 = :type AND QVKL_T_QDTSUB = :subType
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

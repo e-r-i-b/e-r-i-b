@@ -1,0 +1,81 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="Application" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.Application</param>
+	</typedef>
+
+    <typedef name="System" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.logging.messaging.System</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.exception.ExceptionMappingRestriction">
+        <composite-id>
+            <key-property name="application" type="string" access="field"/>
+            <key-property name="tb"          type="string" access="field"/>
+        </composite-id>
+    </class>
+
+    <class name="com.rssl.phizic.business.exception.ExceptionMapping" table="EXCEPTION_MAPPINGS">
+        <composite-id>
+            <key-property name="hash"  column="HASH"     type="string" access="field"/>
+            <key-property name="group" column="GROUP_ID" type="long"   access="field"/>
+        </composite-id>
+        <property name="message" type="string" access="field"/>
+        <bag name="restrictions" access="field" table="EXCEPTION_MAPPING_RESTRICTIONS" lazy="false" cascade="all-delete-orphan">
+            <key>
+                <column name="HASH"/>
+                <column name="GROUP_ID"/>
+            </key>
+            <composite-element class="com.rssl.phizic.business.exception.ExceptionMappingRestriction">
+                <property name="application"    column="APPLICATION"    access="field"/>
+                <property name="tb"             column="TB"             access="field"/>
+            </composite-element>
+        </bag>
+    </class>
+
+    <!--Получить сообщения об ошибках по хешу
+        Опорный элемент: PK_EXCEPTION_MAPPINGS
+        Предикаты доступа: access("EXCEPTIONM0_"."HASH"=:HASH)
+        Кардинальность: 0 - количество сообщений с одинаковым хешом
+    -->
+    <query name="com.rssl.phizic.business.exception.ExceptionMapping.getByHash">
+        select exceptionMapping
+        from com.rssl.phizic.business.exception.ExceptionMapping exceptionMapping
+        where exceptionMapping.hash = :hash
+    </query>
+
+    <!--Получить маппинг по хешу и группе
+        Опорный элемент: PK_EXCEPTION_MAPPINGS
+        Предикаты доступа: access("EXCEPTIONM0_"."HASH"=:HASH AND "EXCEPTIONM0_"."GROUP_ID"=TO_NUMBER(:GROUP_ID))
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.exception.ExceptionMapping.getByHashAndGroup">
+        select exceptionMapping
+        from com.rssl.phizic.business.exception.ExceptionMapping exceptionMapping
+        where
+            exceptionMapping.hash = :hash and
+            exceptionMapping.group = :group_id
+    </query>
+
+    <!-- Получить сообщение для ошибки в контексте приложения и ТБ-->
+    <!-- Опорный объект: EXC_MAP_RESTRICTION_UK
+         Предикаты доступа:  access("RESTRICTION"."HASH"=:HASH AND "RESTRICTION"."APPLICATION"=:APPLICATION AND
+                       "RESTRICTION"."TB"=:TB)
+         Кардинальность: 0/1 (INDEX UNIQUE SCAN)
+    -->
+    <sql-query name="com.rssl.phizic.business.exception.ExceptionMapping.getMessage">
+        SELECT
+            mapping.message
+        FROM
+            EXCEPTION_MAPPINGS mapping
+            left join EXCEPTION_MAPPING_RESTRICTIONS restriction on
+                mapping.hash = restriction.hash and mapping.group_id = restriction.group_id
+        WHERE
+            restriction.hash = :extra_hash
+            AND restriction.application = :extra_application
+            AND restriction.tb = :extra_tb
+    </sql-query>
+</hibernate-mapping>

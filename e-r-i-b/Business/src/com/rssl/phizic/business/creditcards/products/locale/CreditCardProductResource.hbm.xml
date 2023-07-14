@@ -1,0 +1,61 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="Publicity" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.loans.products.Publicity</param>
+	</typedef>
+
+     <class name="com.rssl.phizic.business.creditcards.products.locale.CreditCardProductResources" table="CREDIT_CARD_PRODUCTS_RES">
+        <composite-id>
+            <key-property name="id"        column="ID"            type="long"/>
+            <key-property name="localeId"  column="LOCALE_ID"     type="string"/>
+        </composite-id>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="additionalTerms" type="string" column="ADDITIONAL_TERMS" not-null="false"/>
+    </class>
+
+
+    <class name="com.rssl.phizic.business.creditcards.products.locale.LocaledCreditCardProduct" table="CREDIT_CARD_PRODUCTS" mutable="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CREDIT_CARD_PRODUCTS</param>
+            </generator>
+        </id>
+
+        <property name="name"                             type="string"      column="NAME"                      not-null="true"/>
+        <property name="allowGracePeriod"                 type="boolean"     column="ALLOW_GRACE_PERIOD"        not-null="true"/>
+        <property name="useForPreapprovedOffers"          type="boolean"     column="USE_FOR_PREAPPROVED"       not-null="true"/>
+        <property name="defaultForPreapprovedOffers"      type="boolean"     column="DEFAULT_FOR_PREAPPROVED"   not-null="true"/>
+        <property name="gracePeriodDuration"              type="integer"     column="GP_DURATION"               not-null="false"/>
+        <property name="gracePeriodInterestRate"          type="big_decimal" column="GP_INT_RATE"               not-null="false"/>
+        <property name="additionalTerms"                  type="string"      column="ADDITIONAL_TERMS"          not-null="false"/>
+        <property name="publicity"                        type="Publicity"   column="IS_PUBLIC"                 not-null="true"/>
+        <property name="changeDate"                       type="calendar"    column="CHANGE_DATE"               not-null="false"/>
+        <property name="cardTypeCode"                     type="integer"     column="CARD_TYPE_CODE"            not-null="false"/>
+        <property name="guestLead"                        type="boolean"     column="GUEST_LEAD"                not-null="true"/>
+        <property name="guestPreapproved"                 type="boolean"     column="GUEST_PREAPPROVED"         not-null="true"/>
+        <property name="commonLead"                       type="boolean"     column="COMMON_LEAD"               not-null="true"/>
+
+        <bag name="conditions" table="CREDIT_CARD_CONDITIONS" lazy="false" cascade="all-delete-orphan" order-by="CURRENCY">
+            <key column="PRODUCT_ID"/>
+            <one-to-many class="com.rssl.phizic.business.creditcards.conditions.CreditCardCondition"/>
+        </bag>
+
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.creditcards.products.locale.CreditCardProductResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

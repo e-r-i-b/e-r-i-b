@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding='windows-1251'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hobernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.security.ConfirmBean" table="CONFIRM_BEANS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CONFIRM_BEANS</param>
+            </generator>
+        </id>
+
+        <property name="loginId"                type="long"         column="LOGIN_ID" not-null="true"/>
+
+        <property name="primaryConfirmCode"     type="string"       column="PRIMARY_CONFIRM_CODE" not-null="true"/>
+
+        <property name="secondaryConfirmCode"   type="string"       column="SECONDARY_CONFIRM_CODE" not-null="true"/>
+
+        <property name="expireTime"             type="timestamp"    column="EXPIRE_TIME" not-null="true"/>
+
+        <property name="overdueTime"            type="timestamp"    column="OVERDUE_TIME" not-null="true"/>
+
+        <property name="confirmableTaskClass"   type="class"        column="CONFIRMABLE_TASK_CLASS" not-null="false"/>
+
+        <property name="confirmableTaskBody"    type="text"         column="CONFIRMABLE_TASK_BODY" not-null="false"/>
+
+        <property name="phone"                  type="string"       column="PHONE" not-null="true"/>
+    </class>
+
+    <!-- Удаляет просроченные confirm-бины -->
+    <!--
+        Опорный объект: IDX_CONFIRM_OVERDUE
+        Предикаты доступа: "OVERDUE_TIME"<=TO_TIMESTAMP(:NOW)
+        Кардинальность: Количество просроченных кодов подтверждения
+    -->
+    <query name="com.rssl.phizic.security.ConfirmBean.removeOverdue">
+    <![CDATA[
+        delete from com.rssl.phizic.security.ConfirmBean
+        where overdueTime <= :now
+     ]]>
+    </query>
+
+    <!--
+        Ищет confirm-бин по логину и основному коду подтверждения.
+        Найденная строка блокируется для последующего удаления.
+        SKIP LOCKED здесь говорит невозвращать заблокированные строки
+     -->
+    <!--
+        Опорный объект: UI_LOGIN_CONFIRM_CODE_PRIMARY
+        Предикаты доступа: "BEAN"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "PRIMARY_CONFIRM_CODE"=:CONFIRMCODE
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.security.ConfirmBean.capturePrimary">
+        <query-param name="loginId" type="long"/>
+        <query-param name="confirmCode" type="string"/>
+        <query-param name="now" type="timestamp"/>
+        <return alias="bean" class="com.rssl.phizic.security.ConfirmBean"/>
+        <![CDATA[
+            SELECT {bean.*}
+            FROM CONFIRM_BEANS bean
+            WHERE bean.LOGIN_ID = :loginId
+              AND PHONE = :phone
+              AND PRIMARY_CONFIRM_CODE = :confirmCode
+            FOR UPDATE SKIP LOCKED
+        ]]>
+    </sql-query>
+
+    <!--
+        Ищет confirm-бин по логину и дополнительному коду подтверждения.
+        Найденная строка блокируется для последующего удаления.
+        SKIP LOCKED здесь говорит невозвращать заблокированные строки
+     -->
+    <!--
+        Опорный объект: UI_LOGIN_CONFIRM_CODE_SEC
+        Предикаты доступа: "BEAN"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "SECONDARY_CONFIRM_CODE"=:CONFIRMCODE
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.security.ConfirmBean.captureSecondary">
+        <query-param name="loginId" type="long"/>
+        <query-param name="confirmCode" type="string"/>
+        <query-param name="now" type="timestamp"/>
+        <return alias="bean" class="com.rssl.phizic.security.ConfirmBean"/>
+        <![CDATA[
+            SELECT {bean.*}
+            FROM CONFIRM_BEANS bean
+            WHERE bean.LOGIN_ID = :loginId
+              AND PHONE = :phone
+              AND REPLACE(REPLACE(SECONDARY_CONFIRM_CODE, CHR(10),' '), CHR(13), '') = REPLACE(REPLACE(:confirmCode, CHR(10), ' '), CHR(13), '')
+            FOR UPDATE SKIP LOCKED
+        ]]>
+    </sql-query>
+
+    <!--Проверяет, есть ли код подтверждения, расстояние левенштейна до которого равно 1
+    -->
+    <sql-query name="com.rssl.phizic.security.ConfirmBean.similarConfirmBeanExists">
+        <![CDATA[
+            select 1 from CONFIRM_BEANS bean
+            WHERE bean.LOGIN_ID = :loginId
+            AND PHONE = :phone
+            AND utl_match.EDIT_DISTANCE(PRIMARY_CONFIRM_CODE, :confirmCode) = 1
+            AND EXPIRE_TIME > :now
+            and rownum <= 1
+        ]]>
+    </sql-query>
+</hibernate-mapping>

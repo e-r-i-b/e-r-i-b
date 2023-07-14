@@ -1,0 +1,49 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="InactiveType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.gate.monitoring.InactiveType</param>
+    </typedef>
+
+     <class name="com.rssl.phizic.gate.monitoring.locale.MonitoringServiceGateStateConfigResources" table="MONITORING_STATE_CONFIGS_RES">
+        <composite-id>
+            <key-property name="id"        column="ID"            type="long"/>
+            <key-property name="localeId"  column="LOCALE_ID"     type="string"/>
+        </composite-id>
+
+        <property name="messageText"    type="string"           column="MESSAGE"   not-null="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.gate.monitoring.locale.LocaledMonitoringServiceGateStateConfig" table="MONITORING_STATE_CONFIGS" mutable="false">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_MONITORING_STATE_CONFIGS</param>
+            </generator>
+        </id>
+        <property name="available"                      type="boolean"      column="AVAILABLE"                      not-null="true"/>
+        <property name="useMonitoring"                  type="boolean"      column="USE"                            not-null="false"/>
+        <property name="timeout"                        type="long"         column="TIMEOUT"                        not-null="true"/>
+        <property name="monitoringTime"                 type="long"         column="MONITORING_TIME"                not-null="true"/>
+        <property name="monitoringCount"                type="integer"      column="MONITORING_COUNT"               not-null="true"/>
+        <property name="messageText"                    type="string"       column="MESSAGE"                        not-null="false"/>
+        <property name="recoveryTime"                   type="long"         column="RECOVERY_TIME"                  not-null="false"/>
+        <property name="deteriorationTime"              type="calendar"     column="DETERIORATION_TIME"             not-null="false"/>
+        <property name="availableChangeInactiveType"    type="boolean"      column="AVAILABLE_CHANGE_INACTIVE_TYPE" not-null="true"/>
+        <property name="inactiveType"                   type="InactiveType" column="INACTIVE_TYPE"                  not-null="false"/>
+        <property name="monitoringErrorPercent"         type="integer"      column="MONITORING_ERROR_PERCENT"       not-null="true"/>
+
+         <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.gate.monitoring.locale.MonitoringServiceGateStateConfigResources"/>
+            <filter name="localeIdFilter"/>
+         </set>
+
+    </class>
+
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

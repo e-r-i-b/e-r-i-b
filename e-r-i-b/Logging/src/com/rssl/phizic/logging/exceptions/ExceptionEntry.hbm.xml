@@ -1,0 +1,90 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="Application" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.Application</param>
+	</typedef>
+
+    <typedef name="System" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.logging.messaging.System</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.logging.exceptions.ExceptionEntry" table="EXCEPTION_ENTRY" abstract="true">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_EXCEPTION_ENTRY</param>
+            </generator>
+        </id>
+        <discriminator column="KIND"  not-null="true"/>
+
+        <property name="hash"        type="string"      column="HASH"        not-null="true"/>
+        <property name="operation"   type="string"      column="OPERATION"   not-null="false"/>
+        <property name="detail"      type="text"        column="DETAIL"      not-null="true"/>
+
+        <subclass name="com.rssl.phizic.logging.exceptions.InternalExceptionEntry" discriminator-value="I">
+            <property name="application" type="Application" column="APPLICATION" not-null="true"/>
+        </subclass>
+
+        <subclass name="com.rssl.phizic.logging.exceptions.ExternalExceptionEntry" discriminator-value="E">
+            <property name="adapterUUID" type="string" column="SYSTEM"     access="field" not-null="true" update="false" insert="false"/>
+            <property name="errorCode"   type="string" column="ERROR_CODE" access="field" not-null="true"/>
+        </subclass>
+    </class>
+
+    <class name="com.rssl.phizic.logging.exceptions.ExceptionCounter" table="EXCEPTION_COUNTERS">
+        <composite-id>
+            <key-property name="exceptionHash" access="field"  column="EXCEPTION_HASH"     type="string"  />
+            <key-property name="date"          access="field"  column="EXCEPTION_DATE"     type="calendar"/>
+        </composite-id>
+        <property name="count" access="field" column="EXCEPTION_COUNT"    type="long"     not-null="true"/>
+    </class>
+
+    <class abstract="true" name="com.rssl.phizic.logging.exceptions.report.ExceptionReportRecordBase" table="EXCEPTION_ENTRY">
+        <id name="hash" type="string" column="HASH" access="field"/>
+
+        <discriminator column="KIND" type="string"/>
+
+        <bag name="counters" table="EXCEPTION_COUNTERS" order-by="EXCEPTION_DATE asc" access="field" lazy="false">
+            <key column="EXCEPTION_HASH"/>
+            <composite-element class="com.rssl.phizic.logging.exceptions.ExceptionCounter">
+                <property name="exceptionHash" type="string"   formula="EXCEPTION_HASH" access="field" insert="false" update="false" not-null="true"/>
+                <property name="date"          type="calendar" column="EXCEPTION_DATE"  access="field" insert="false" update="false" not-null="true"/>
+                <property name="count"         type="long"     column="EXCEPTION_COUNT" access="field" insert="false" update="false" not-null="true"/>
+            </composite-element>
+            <filter name="dateExceptionReportRecordFilter"/>
+        </bag>
+
+        <subclass name="com.rssl.phizic.logging.exceptions.report.InnerExceptionReportRecord" discriminator-value="I">
+            <component name="entry" class="com.rssl.phizic.logging.exceptions.InternalExceptionEntry" access="field">
+                <property name="id"          type="long"        column="ID"          insert="false" update="false" not-null="true"/>
+                <property name="hash"        type="string"      column="HASH"        insert="false" update="false" not-null="true"/>
+                <property name="application" type="Application" column="APPLICATION" insert="false" update="false" not-null="true"/>
+                <property name="operation"   type="string"      column="OPERATION"   insert="false" update="false" not-null="false"/>
+                <property name="detail"      type="text"        column="DETAIL"      insert="false" update="false" not-null="true"/>
+            </component>
+        </subclass>
+        <subclass name="com.rssl.phizic.logging.exceptions.report.ExternalExceptionReportRecord" discriminator-value="E">
+            <component name="entry" class="com.rssl.phizic.logging.exceptions.ExternalExceptionEntry" access="field">
+                <property name="id"          type="long"        column="ID"          insert="false" update="false" not-null="true"/>
+                <property name="hash"        type="string"      column="HASH"        insert="false" update="false" not-null="true"/>
+                <property name="operation"   type="string"      column="OPERATION"   insert="false" update="false" not-null="false"/>
+                <property name="detail"      type="text"        column="DETAIL"      insert="false" update="false" not-null="true"/>
+                <property name="adapterUUID" type="string"      column="SYSTEM"      insert="false" update="false" not-null="true" access="field" />
+            </component>
+        </subclass>
+    </class>
+
+    <sql-query name="com.rssl.phizic.logging.exceptions.ExceptionEntry.addExceptionLog">
+        <![CDATA[
+            insert into EXCEPTIONS_LOG (CREATION_DATE, HASH) values (SYSDATE, :extra_hash)
+        ]]>
+    </sql-query>
+
+    <filter-def name="dateExceptionReportRecordFilter" condition="EXCEPTION_DATE BETWEEN :startPeriod AND :endPeriod">
+        <filter-param name="startPeriod" type="calendar"/>
+        <filter-param name="endPeriod" type="calendar"/>
+    </filter-def>
+</hibernate-mapping>

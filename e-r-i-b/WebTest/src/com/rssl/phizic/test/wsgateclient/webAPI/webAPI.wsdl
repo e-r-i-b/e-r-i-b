@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="ERIBClientService" targetNamespace="http://erib.web.services.org/" xmlns:tns="http://erib.web.services.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://erib.web.services.org/">
+			<xsd:element name="XmlInputString" type="xsd:string"/>
+			<xsd:element name="XmlOutputString" type="xsd:string"/>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="processIn">
+		<wsdl:part element="tns:XmlInputString" name="request"/>
+	</wsdl:message>
+	<wsdl:message name="processOut">
+		<wsdl:part element="tns:XmlOutputString" name="response"/>
+	</wsdl:message>
+	<wsdl:portType name="ERIBClientServicePortType">
+		<wsdl:operation name="process">
+			<wsdl:input message="tns:processIn"/>
+			<wsdl:output message="tns:processOut"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="ERIBClientServiceSoapBinding" type="tns:ERIBClientServicePortType">
+		<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="process">
+			<soap:operation soapAction="http://erib.web.services.org/ERIBClientService/process"/>
+			<wsdl:input>
+				<soap:body use="literal"/>
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal"/>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="ERIBClientService">
+		<wsdl:port name="ERIBClientServicePort" binding="tns:ERIBClientServiceSoapBinding">
+			<soap:address location="http://erib.web.services.org/ERIBClientService/ERIBClientServicePort"/>
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

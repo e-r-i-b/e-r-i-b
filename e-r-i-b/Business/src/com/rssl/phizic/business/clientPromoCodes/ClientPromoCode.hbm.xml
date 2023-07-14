@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="CloseReason" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.clientPromoCodes.CloseReason</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.clientPromoCodes.ClientPromoCode" table="CLIENT_PROMO_CODE">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CLIENT_PROMO_CODE</param>
+            </generator>
+        </id>
+
+        <property name="name"           type="string"      column="NAME"             not-null="true"/>
+        <property name="loginId"        type="long"        column="LOGIN_ID"         not-null="true"/>
+        <property name="inputDate"      type="calendar"    column="INPUT_DATE"       not-null="true"/>
+        <property name="endDate"        type="calendar"    column="END_DATE"         not-null="true"/>
+        <property name="used"           type="long"        column="USED"             not-null="true"/>
+        <property name="closeReason"    type="CloseReason" column="CLOSE_REASON"     not-null="false"/>
+
+        <many-to-one name="promoCodeDeposit" class="com.rssl.phizic.business.dictionaries.promoCodesDeposit.PromoCodeDeposit"
+                     column="PROMO_ID" cascade="none" lazy="false" not-null="true"/>
+
+    </class>
+
+    <!--
+      Получение всех промо кодов
+      Опорный объект: CPC_E_DATE_LOGIN_IDX
+      Предикаты доступа: access("LOGIN_ID"=TO_NUMBER(:LOGINID) AND "END_DATE">TO_TIMESTAMP(:ODLESTDATE))
+      Кардинальность: число промокодов клиента
+    -->
+    <query name="com.rssl.phizic.business.clientPromoCodes.ClientPromoCodes.list">
+        select promo from com.rssl.phizic.business.clientPromoCodes.ClientPromoCode as promo
+        where :loginId = promo.loginId
+        and promo.endDate > :odlestDate
+    </query>
+
+    <!--
+      Получение активных промо кодов
+      Опорный объект: CPC_E_DATE_LOGIN_IDX
+      Предикаты доступа: access("LOGIN_ID"=TO_NUMBER(:LOGINID) AND "END_DATE">TO_TIMESTAMP(:TODAY))
+      Кардинальность: число промокодов клиента
+    -->
+    <query name="com.rssl.phizic.business.clientPromoCodes.ClientPromoCodes.list.active">
+        select promo from com.rssl.phizic.business.clientPromoCodes.ClientPromoCode as promo
+        where :loginId = promo.loginId
+        and promo.endDate > :today
+        and promo.closeReason is null
+    </query>
+
+</hibernate-mapping>

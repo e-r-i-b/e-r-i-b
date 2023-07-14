@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<query name="com.rssl.phizic.operations.limits.ListLimitsOperation.list">
+        select limit
+        from com.rssl.phizic.business.limits.Limit limit
+        where limit.tb = :departmentId
+            and ((:extra_fromCreationDate is null) or (limit.creationDate >= :extra_fromCreationDate))
+            and ((:extra_toCreationDate is null) or (:extra_toCreationDate > limit.creationDate))
+            and ((:extra_fromStartDate is null) or (limit.startDate >= :extra_fromStartDate))
+            and ((:extra_toStartDate is null) or (:extra_toStartDate >= limit.startDate))
+            and ((:extra_amount is null) or (:extra_amount = limit.amount.decimal))
+            and ((:extra_operationCount is null) or (:extra_operationCount = limit.operationCount))
+            and ((:extra_groupRiskId is null) or (:extra_groupRiskId = limit.groupRisk.id))
+            and ((:extra_restrictionType is null) or(:extra_restrictionType = limit.restrictionType))
+            and ((:extra_operationType is null) or (:extra_operationType = limit.operationType))
+            and limit.type = :extra_type
+            and ((:extra_status is null) or (:extra_status = limit.status))
+            and limit.channelType = :extra_channel
+            and ((:extra_securityType is null) or (limit.securityType = :extra_securityType))
+        order by limit.status, limit.creationDate, limit.amount, limit.startDate, limit.restrictionType
+	</query>
+</hibernate-mapping>

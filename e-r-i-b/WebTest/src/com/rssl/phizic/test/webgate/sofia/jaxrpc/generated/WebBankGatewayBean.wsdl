@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="urn:dpc" xmlns:impl="urn:dpc" xmlns:intf="urn:dpc" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsi="http://ws-i.org/profiles/basic/1.1/xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <wsdl:types>
+   <schema targetNamespace="urn:dpc" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:impl="urn:dpc" xmlns:intf="urn:dpc" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <element name="sendMessageResponse">
+    <complexType>
+     <sequence>
+      <element name="sendMessageReturn" nillable="true" type="xsd:string"/>
+     </sequence>
+    </complexType>
+   </element>
+   <element name="sendMessage">
+    <complexType>
+     <sequence>
+      <element name="message" nillable="true" type="xsd:string"/>
+     </sequence>
+    </complexType>
+   </element>
+  </schema>
+  </wsdl:types>
+
+  <wsdl:message name="sendMessageRequest">
+    <wsdl:part element="impl:sendMessage" name="parameters"/>
+  </wsdl:message>
+
+  <wsdl:message name="sendMessageResponse">
+    <wsdl:part element="impl:sendMessageResponse" name="parameters"/>
+  </wsdl:message>
+
+  <wsdl:portType name="WebBankServiceIF">
+    <wsdl:operation name="sendMessage">
+      <wsdl:input message="impl:sendMessageRequest" name="sendMessageRequest"/>
+      <wsdl:output message="impl:sendMessageResponse" name="sendMessageResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="WebBankServiceIFBinding" type="impl:WebBankServiceIF">
+    <wsdlsoap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="sendMessage">
+      <wsdlsoap:operation soapAction=""/>
+      <wsdl:input name="sendMessageRequest">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="sendMessageResponse">
+        <wsdlsoap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="WebBankService">
+    <wsdl:port binding="impl:WebBankServiceIFBinding" name="WebBankServiceIFPort">
+      <wsdlsoap:address location="http://150.151.8.67:9080/WebBank/services/WebBankService"/>
+    </wsdl:port>
+  </wsdl:service>
+
+</wsdl:definitions>

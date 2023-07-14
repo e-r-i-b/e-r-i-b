@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <!--Поиск клиента по ФИО+ДУЛ+ДР в разрезе ТБ департамента-->
+    <query name="com.rssl.phizic.business.persons.PersonService.findByFIOAndDocInTB">
+        select person
+        from com.rssl.phizic.business.persons.ActivePerson as person, com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment as office
+        where person.creationType  != 'POTENTIAL'
+        and upper(concat(replace(person.surName,' ',''),concat(replace(person.firstName,' ',''), replace(person.patrName,' ','')))) = :FIO
+        and (select count(documents.id) 
+           from  person.personDocuments as documents
+           where concat(replace(documents.documentSeries,' ',''), replace(documents.documentNumber,' ',''))  = :Doc) > 0
+        and person.birthDay = :birthDay
+        and office.id = person.departmentId and office.code.region in (:regions)
+    </query>
+
+    <!--Поиск клиента по ФИО+ДУЛ+ДР в разрезе ТБ департамента-->
+    <query name="com.rssl.phizic.business.persons.PersonService.findPotentialByFIOAndDocInTB">
+        select person
+        from com.rssl.phizic.business.persons.ActivePerson as person, com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment as office
+        where person.creationType = 'POTENTIAL'
+        and upper(concat(replace(person.surName,' ',''),concat(replace(person.firstName,' ',''), replace(person.patrName,' ','')))) = :FIO
+        and (select count(documents.id)
+           from  person.personDocuments as documents
+           where concat(replace(documents.documentSeries,' ',''), replace(documents.documentNumber,' ',''))  = :Doc) > 0
+        and person.birthDay = :birthDay
+        and office.id = person.departmentId and office.code.region in (:regions)
+    </query>
+
+    <!--Поиск клиента по Имени, Фамилии, Отчеству и дате рождения в разрезе ТБ-->
+    <query name="com.rssl.phizic.business.persons.PersonService.findByAttributesInTB">
+        select person
+        from com.rssl.phizic.business.persons.ActivePerson as person, com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment as office
+        where ((person.firstName = :firstName)
+	         and (person.surName = :surName)
+	        and (:patrName is null or person.patrName = :patrName)
+	        and (person.birthDay = :birthDay)
+            and office.id = person.departmentId and office.code.region = :region)
+    </query>
+
+    <!--Поиск клиента по номеру и дате договора в разрезе ТБ-->
+    <query name="com.rssl.phizic.business.persons.PersonService.getByAgreementInTB">
+        select person
+        from ActivePerson as person, com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment as office
+        where ((person.agreementNumber = :agreementNumber)
+	         and (person.agreementDate is null or person.agreementDate = :agreementDate)
+	         and office.id = person.departmentId and office.code.region in (:regions))
+    </query>
+
+
+    <!--Получить подразделение клиента по идентификатору логина-->
+    <!-- Опорный объект: IDX_USR_LOGIN
+         Предикаты доступа: access("USERS"."LOGIN_ID"=TO_NUMBER(:LOGINID))
+         Кардинальность: 0/1 (INDEX UNIQUE SCAN)
+    -->
+    <sql-query name="com.rssl.phizic.business.persons.PersonService.getDepartmentByLoginId">
+        <return alias="D" class="com.rssl.phizic.business.departments.Department"/>
+        <![CDATA[
+            SELECT
+                {D.*}
+            FROM
+                DEPARTMENTS D
+                JOIN USERS ON D.ID = USERS.DEPARTMENT_ID
+            WHERE
+                USERS.LOGIN_ID = :loginId
+        ]]>
+    </sql-query>
+
+    <!--Получить подразделение клиента по внутреннему идентификатору клиента -->
+    <!--
+         Опорный объект: PK_USERS, PK_DEPARTMENTS
+         Предикаты доступа: access("USERS"."ID"=TO_NUMBER(:PERSONID))
+                            access("D"."ID"="USERS"."DEPARTMENT_ID")
+         Кардинальность: 0/1 (INDEX UNIQUE SCAN)
+    -->
+    <sql-query name="com.rssl.phizic.business.persons.PersonService.getDepartmentByPersonId">
+        <return alias="D" class="com.rssl.phizic.business.departments.Department"/>
+        <![CDATA[
+            SELECT
+                {D.*}
+            FROM
+                DEPARTMENTS D
+                JOIN USERS ON D.ID = USERS.DEPARTMENT_ID
+            WHERE
+                USERS.ID = :personId
+        ]]>
+    </sql-query>
+</hibernate-mapping>

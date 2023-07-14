@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="LogLevel" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.logging.system.LogLevel</param>
+	</typedef>
+
+	<typedef name="Module" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.logging.system.LogModule</param>
+	</typedef>
+
+	<typedef name="Application" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.Application</param>
+	</typedef>
+
+	<class name="com.rssl.phizic.logging.system.SystemLogEntry" table="CSA_SYSTEMLOG" batch-size="20">
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_CSA_SYSTEMLOG</param>
+			</generator>
+		</id>
+
+		<property name="level"       type="LogLevel"          column="MSG_LEVEL"   not-null="true"/>
+		<property name="date"        type="calendar"        column="START_DATE"  not-null="true"/>
+		<property name="loginId"     type="long"            column="LOGIN_ID"    not-null="true"/>
+		<property name="application" type="Application"     column="APPLICATION" not-null="true"/>
+		<property name="message"     type="text"            column="MESSAGE"     not-null="true"/>
+		<property name="ipAddress"   type="not-null-string" column="IP_ADDRESS"  not-null="false"/>
+		<property name="sessionId"   type="not-null-string" column="SESSION_ID"  not-null="true"/>
+        <property name="source"      type="Module"          column="MESSAGE_SOURCE"      not-null="true"/>
+        <property name="threadInfo"  type="long"            column="THREAD_INFO" not-null="false"/>
+        <property name="surName" type="string" column="SUR_NAME"/>
+        <property name="patrName" type="string" column="PATR_NAME"/>
+        <property name="firstName" type="string" column="FIRST_NAME"/>
+        <property name="departmentName" type="string" column="DEPARTMENT_NAME"/>
+        <property name="personSeries" type="string" column="DOC_SERIES"/>
+        <property name="personNumbers" type="string" column="DOC_NUMBER"/>
+        <property name="birthDay" type="calendar" column="BIRTHDAY"/>
+        <property name="login" type="string" column="LOGIN"/>
+        <property name="departmentCode" type="string" column="DEPARTMENT_CODE"/>
+        <property name="logUID" type="string" column="LOG_UID"/>
+        <property name="addInfo" type="string" column="ADD_INFO" not-null="false"/>
+
+	</class>
+
+</hibernate-mapping>

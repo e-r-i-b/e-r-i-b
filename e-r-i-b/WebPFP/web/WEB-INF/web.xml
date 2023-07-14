@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+         version="2.4"
+         id="WebModule_WebPFP">
+
+    <listener>
+        <listener-class>com.rssl.phizic.web.common.ModuleStartupServicesStarter</listener-class>
+    </listener>
+
+    <filter>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>WebPFP</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+	<servlet>
+		<servlet-name>action</servlet-name>
+		<servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+		<init-param>
+			<param-name>config</param-name>
+			<param-value>/WEB-INF/struts-config.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+    <servlet>
+        <servlet-name>imageServlet</servlet-name>
+        <servlet-class>com.rssl.phizic.web.common.ImageServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>modulePageRenderer</servlet-name>
+        <servlet-class>com.rssl.phizic.web.modulus.WebModulePageRendererServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>action</servlet-name>
+        <url-pattern>*.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>imageServlet</servlet-name>
+        <url-pattern>/images</url-pattern>
+    </servlet-mapping>
+
+    <jsp-config>
+        <taglib>
+            <taglib-uri>http://jakarta.apache.org/struts/tags-bean</taglib-uri>
+            <taglib-location>/WEB-INF/tld/customized-struts-bean.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://jakarta.apache.org/struts/tags-html</taglib-uri>
+            <taglib-location>/WEB-INF/tld/struts-html.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://jakarta.apache.org/struts/tags-logic</taglib-uri>
+            <taglib-location>/WEB-INF/tld/struts-logic.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://jakarta.apache.org/struts/tags-tiles</taglib-uri>
+            <taglib-location>/WEB-INF/tld/customized-struts-tiles.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://java.sun.com/jsp/jstl/core</taglib-uri>
+            <taglib-location>/WEB-INF/tld/customized-jstl.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://java.sun.com/jsp/jstl/functions</taglib-uri>
+            <taglib-location>/WEB-INF/tld/fn.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://rssl.com/tags</taglib-uri>
+            <taglib-location>/WEB-INF/tld/phizic.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://java.sun.com/jsp/jstl/fmt</taglib-uri>
+            <taglib-location>/WEB-INF/tld/fmt.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://rssl.com/web-module-tags</taglib-uri>
+            <taglib-location>/WEB-INF/tld/webmodule.tld</taglib-location>
+        </taglib>
+
+        <taglib>
+            <taglib-uri>http://rssl.com/pfptags</taglib-uri>
+            <taglib-location>/WEB-INF/webpfp.tld</taglib-location>
+        </taglib>
+    </jsp-config>
+
+    <resource-ref id="WebPFP_ResourceRef_JDBC_PhizIC">
+        <res-ref-name>jdbc/PhizIC</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+    <resource-ref id="WebPFP_ResourceRef_JDBC_PhizICPFP">
+        <res-ref-name>jdbc/PhizICPFP</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+    <resource-ref id="WebPFP_ResourceRef_JDBC_PhizICLog">
+        <res-ref-name>jdbc/PhizICLog</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+</web-app>

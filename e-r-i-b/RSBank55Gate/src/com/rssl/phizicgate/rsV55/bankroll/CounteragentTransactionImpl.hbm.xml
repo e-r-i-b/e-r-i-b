@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.rsV55.bankroll.ReceiverTransaction">
+        <id name="operationId"/>
+
+	    <property name="counteragent"/>
+        <property name="receiverAccount" type="string"/>
+	    <property name="receiverBank"/>
+    </class>
+
+ <sql-query name="GetCounteragent">      
+	  <return alias="trans" class="com.rssl.phizicgate.rsV55.bankroll.ReceiverTransaction">
+		<return-property name="operationId"      column="operationId"/>
+        <return-property name="counteragent"     column="counteragent"/>
+	    <return-property name="receiverAccount"  column="receiverAccount"/>
+	    <return-property name="receiverBank"     column="receiverBank"/>
+      </return>
+	 SELECT
+	    CONVERT(paym.iApplicationKind, SQL_CHAR) + CONVERT(paym.RefValue, SQL_CHAR) +
+	    paym.ApplicationKey + paym.AttrID AS operationId,
+	    paym.RecivFIO          AS counteragent,
+		opers.Account_Receiver AS receiverAccount,
+		paym.Bank              AS receiverBank
+<!--		opers.MFO_Receiver         AS receiverBank  -->
+
+        FROM sbdepdoc_1 opers LEFT JOIN rt_paym_1 paym ON
+	      paym.ApplicationKey=opers.ApplicationKey And
+		  paym.iApplicationKind=opers.iApplicationKind AND
+		  paym.RefValue = 0 AND paym.AttrID = 'РЕКВ_ПОЛ'
+		 WHERE opers.Referenc = :id AND opers.Date_Document = :date AND opers.NumDayDoc = :dayNumber
+    </sql-query>
+</hibernate-mapping>

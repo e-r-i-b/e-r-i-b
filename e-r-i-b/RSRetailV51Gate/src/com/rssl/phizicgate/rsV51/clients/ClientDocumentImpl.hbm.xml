@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.rssl.phizicgate.rsV51.clients" catalog="RSRetailV51">
+    <class name="ClientDocumentImpl">
+        <composite-id name="longId" class="com.rssl.phizicgate.rsV51.clients.ClientId">
+	        <key-property name="personId"  column="kPersonId" />
+		    <key-property name="paperKind" column="kPaperKind"/>
+	    </composite-id>
+        <property name="personId" column="kPersonId" insert="false" update="false"/>
+        <property name="paperKind" column="kPaperKind" insert="false" update="false"/>
+	    <property name="docNumber"/>
+        <property name="docSeries"/>
+        <property name="docIssueDate"/>
+        <property name="docIssueBy"/>
+    </class>
+
+    <sql-query name="GetClientDocuments">
+        <return alias="documents" class="com.rssl.phizicgate.rsV51.clients.ClientDocumentImpl">
+            <return-property name="docNumber"    column="docNumber"/>
+            <return-property name="docSeries"    column="docSeries"/>
+            <return-property name="docIssueDate" column="docIssueDate"/>
+            <return-property name="docIssueBy"   column="docIssueBy"/>
+        </return>
+        SELECT
+                person.PersonID        AS kPersonId,
+	            person.PaperKind       AS kPaperKind,
+                person.PaperNumber     AS docNumber,
+                person.PaperSeries     AS docSeries,
+                person.PaperIssuedDate AS docIssueDate,
+                person.PaperIssuer     AS docIssueBy
+        FROM
+            persn_dbt AS person, party_dbt AS party
+/*            INNER JOIN party_dbt AS party ON person.PersonID = party.PartyID AND party.LegalForm = 2 */
+        WHERE
+            person.PersonID = :personId AND
+	        party.PartyID = person.PersonID
+/*	     AND party.LegalForm = 2 */
+    </sql-query>
+
+</hibernate-mapping>

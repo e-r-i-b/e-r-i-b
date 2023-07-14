@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2008 (http://www.altova.com) by TEAM ViRiLiTY (VRL) -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+    <!-- Получение сообщений от АС "AutoPay" о инвойсах-->
+    <xsd:element name="AddBillBasketInfoRq" type="AddBillBasketInfoRqType">
+        <xsd:annotation>
+            <xsd:documentation>Передача информации о задолженности</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="AddBillBasketInfoRqType">
+        <xsd:sequence>
+            <xsd:element name="OperUID" type="UUID"/>
+            <xsd:element name="RqUID" type="UUID"/>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="SPName" type="xsd:string"/>
+            <xsd:element name="ActionMode" type="ActionMode_Type" minOccurs="0"/>
+            <xsd:element name="AutoSubscriptionId" type="AutoSubscriptionId_Type"/>
+            <xsd:element name="Payment" type="Payment_Type" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="UUID">
+        <xsd:annotation>
+            <xsd:documentation/>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[0-9a-zA-Z]{32}"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="AutoSubscriptionId_Type">
+        <xsd:annotation>
+            <xsd:documentation>Идентификационная информация о подписке на получение инвойсов</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="SystemId" type="xsd:string"/>
+            <xsd:element name="AutoSubscriptionId" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Payment_Type">
+        <xsd:annotation>
+            <xsd:documentation>Список задолженностей по АП</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="PaymentId" type="PaymentId_Type"/>
+            <xsd:element name="PaymentInfo" type="PaymentInfo_Type"/>
+            <xsd:element name="RecipientRec" type="RecipientRec_Type"/>
+            <xsd:element name="BankAcctRec" type="BankAcctRec_Type"/>
+            <xsd:element name="CardAuthorization" type="CardAuthorization_Type" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="CardAuthorization_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация об авторизации карты в Way4, если операция прошла успешно</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="AuthorizationCode" type="xsd:long"/>
+            <xsd:element name="AuthorizationDtTm" type="xsd:dateTime"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="PaymentId_Type">
+        <xsd:annotation>
+            <xsd:documentation>Идентификационная информация о задолженности</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="SystemId" type="xsd:string"/>
+            <xsd:element name="PaymentId" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="PaymentInfo_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация о платеже</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="PaymentStatus" type="PaymentStatusASAP_Type"/>
+            <xsd:element name="PaymentStatusDesc" type="xsd:string"/>
+            <xsd:element name="Commission" type="xsd:decimal" minOccurs="0"/>
+            <xsd:element name="MadeOperationId" type="xsd:string"/>
+            <xsd:element name="ExecStatus" type="ExecStatus_Type"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="ActionMode_Type">
+        <xsd:annotation>
+            <xsd:documentation>Режим передачи данных</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Add"/>
+            <xsd:enumeration value="Update"/>
+            <xsd:enumeration value="Delete"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="PaymentStatusASAP_Type">
+        <xsd:annotation>
+            <xsd:documentation>Код состояния платежа в АС "AutoPay"</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="New">
+                <xsd:annotation>
+                    <xsd:documentation>Задолженость только получена-нужен акцепт клиента</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="Canceled">
+                <xsd:annotation>
+                    <xsd:documentation>Не уждалось получить задолженость либо платеж не исполнен</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="Done">
+                <xsd:annotation>
+                    <xsd:documentation>Платеж успешно исполнен</xsd:documentation>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="ExecStatus_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация об исполнении автоплатежа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ExecPaymentDate" type="xsd:dateTime"/>
+            <xsd:element name="NonExecReasonCode" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="NonExecReasonDesc" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="BankAcctRec_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация о платёжном средстве, с которого производилась оплата</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="CardAcctId" type="CardAcctId_Type"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="CardAcctId_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация по пластиковой карте</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="SystemId" type="xsd:string"/>
+            <xsd:element name="CardNum" type="xsd:string"/>
+            <xsd:element name="AcctId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Номер карточного счета для карт (из ЦОД)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CardType" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Тип пластиковой карты. CC- кредитная, DC - дебетовая, OV - с овердрафтом. Для АС Филиала используется для услуги МБК (0 - основная или 1- активная)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CardLevel" type="xsd:string"/>
+            <xsd:element name="CardBonusSign" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="EndDt" type="xsd:date"/>
+            <xsd:element name="CustInfo" type="CustInfo_Type">
+                <xsd:annotation>
+                    <xsd:documentation>Информация о потребителе</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="BankInfo">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="RbBrchId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="CustInfo_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация о потребителе</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="PersonInfo" type="PersonInfo_Type"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="PersonInfo_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация о физическом лице &lt;PersonInfo&gt;</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="PersonName" type="PersonName_Type">
+                <xsd:annotation>
+                    <xsd:documentation>ФИО клиента</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ContactInfo" type="ContactInfo_Type">
+                <xsd:annotation>
+                    <xsd:documentation>Контактная информация</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="PersonName_Type">
+        <xsd:annotation>
+            <xsd:documentation>Имя физического лица</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="LastName" type="xsd:string"/>
+            <xsd:element name="FirstName" type="xsd:string"/>
+            <xsd:element name="MiddleName" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ContactInfo_Type">
+        <xsd:sequence>
+            <xsd:element name="PostAddr" type="PostAddr_Type">
+                <xsd:annotation>
+                    <xsd:documentation>Полный адрес</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="PostAddr_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация о полном адресе</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="AddrType" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Тип адреса</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Addr3" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Ненормализованный адрес</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="RecipientRec_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация о поставщике</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="CodeRecipientBS" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Уникальный идентификатор организации получателя платежей.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Наименование получателя, готовое для отображения пользователю</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CodeService" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор услуги, к которой относится получатель</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="NameService" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Наименование услуги, к которой относится получатель, готовое для отображения пользователю</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="TaxId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>ИНН получателя</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CorrAccount" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Корр. счет получателя</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="KPP" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>КПП получателя</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="BIC" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>БИК банка получателя</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="AcctId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Расчетный счет получателя</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="NameOnBill" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Наименование поставщика, выводимое в чеке</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="NotVisibleBankDetails" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак «не отображать банковские реквизиты для поставщика» (в том числе и на странице подтверждения платежа). Если указано «false» или тэг отсутствует, то банковские реквизиты отображаются. Если указано «true» - не отображаются.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PhoneToClient" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Номер телефона поставщика услуг для обращений клиентов банка, которые совершили платежи в адрес поставщика для печати в чеке</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="BankInfo" type="BankInfo_Type"/>
+            <xsd:element name="Requisites" type="Requisites_Type"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="BankInfo_Type">
+        <xsd:annotation>
+            <xsd:documentation>Информация о банке</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="AgencyId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Номер отделения.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RegionId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Номер террбанка.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Requisites_Type">
+        <xsd:annotation>
+            <xsd:documentation>Дополнительныe реквизиты</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Requisite" type="Requisite_Type" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Requisite_Type">
+        <xsd:annotation>
+            <xsd:documentation>Дополнительный реквизит</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="NameVisible" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Наименование дополнительного реквизита для отображения пользователю</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="NameBS" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Идентификатор поля состоящий из цифр и букв английского алфавита</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Правила заполнения поля.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Comment" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Комментарий к полю</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Type" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Тип поля</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="NumberPrecision" type="xsd:integer" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Точность числового значения (количество знаков после запятой).
+Если = 0, то допустимы только целые числа</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IsRequired" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак «Дополнительный реквизит обязательно должен быть указан при формировании платежа»</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IsSum" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак «Общая сумма платежа». В том случае, когда БС ТБ возвращает не только общую сумму задолженности, но и расшифровку этой суммы (в разбивке по видам начислений), то этот признак указывает, какое поле следует считать общей суммой задолженности. В реквизитах, полученных от БС ТБ, может быть только одно поле с таким признаком.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IsKey" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак «Данный реквизит является одним из ключевых, т.е. индетифицирующий абонента».
+Реквизиты с таким признаками будут отображаться в чеках, отправляться в подтверждающих смс вне зависимости от значения признаков isForBill и includeInSMS.
+Признак не может быть передан одновременно с  IsVisible = false, IsSum
+</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IsEditable" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак «Редактируемого поля». Поля предоставляет возможность ввода данных</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IsVisible" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак видимости поля клиентом. Признак не может быть равен false одновременно с передачей  IsSum для всех случаев, кроме оформления подписки на автоплатежи</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IsForBill" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак «Включать в счет»</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IncludeInSMS" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак «Включать в SMS»</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SaveInTemplate" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак «Сохранять в шаблоне платежа»</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="RequisiteTypes" type="RequisiteTypes_Type" minOccurs="0"/>
+            <xsd:element name="HideInConfirmation" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Признак «Скрывать реквизит на форме подтверждения»</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="AttributeLength" type="AttributeLength_Type" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Описание длины поля</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Validators" type="Validators_Type" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Валидаторы (контроли), используемые для дополнительного атрибута. Неприменимо для типов set и list.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Menu" type="Menu_Type" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Список значений для выбора клиентом при для выбора клиентом при Type=list и set</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="EnteredData" type="EnteredData_Type" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Введенные клиентом данные.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="DefaultValue" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Значение по умолчанию для поля.
+Клиент передает в этом поле, тоже значение, что пришло от сервера. Не используется для типа set.
+</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Error" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Текст ошибки на русском языке для пользователя, в случае нахождения ошибки на сервере</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="RequisiteTypes_Type">
+        <xsd:sequence>
+            <xsd:element name="RequisiteType" type="xsd:string" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Бизнес-смысл реквизита.
+Область допустимых значений реквизита:
+– IsListOfCharges (реквизит является списком начислений);
+– IsPeriod (реквизит является периодом платежа).
+Данные должны передаваться в формате mm.yyyy;
+– IsSubscriberID (реквизит является идентификатором абонента у ПУ).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="AttributeLength_Type">
+        <xsd:annotation>
+            <xsd:documentation>Описание длины поля</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="MaxLength" type="xsd:integer">
+                <xsd:annotation>
+                    <xsd:documentation>Максимальная длина поля</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="MinLength" type="xsd:integer" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Минимальная длина поля</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Validators_Type">
+        <xsd:annotation>
+            <xsd:documentation>Валидаторы (контроли), используемые для дополнительного атрибута. Неприменимо для типов set и list.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Validator" type="Validator_Type" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Validator_Type">
+        <xsd:annotation>
+            <xsd:documentation>Валидаторы (контроли), используемые для дополнительного атрибута. Неприменимо для типов set и list.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Type" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Тип валидатора (контроля). На текущий момент используется значение: regexp</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Message" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Сообщение, выводимое на экран клиенту при срабатывании валидатора (контроля).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Parameter" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Выражение для валидатора (контроля). Список значений для выбора клиентом при для выбора клиентом при Type=list и set
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Menu_Type">
+        <xsd:annotation>
+            <xsd:documentation>Список значений для выбора клиентом</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="MenuItem" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Одно из значений для списка</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="EnteredData_Type">
+        <xsd:annotation>
+            <xsd:documentation>Введенные клиентом данные. В данном запросе группа не возвращается. Если БС ТБ выполняет пересчет или изменение введенных клиентом данных, то пересчитанные значения помещаются в данную группу.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="DataItem" type="xsd:string" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Введенное или выбранное  пользователем из списка значение. В случае Type=set может быть указано несколько элементов DataItem</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Поступающая квитанция от АС "AutoPay" об акцепте оплаты задолжености-->
+    <xsd:element name="AcceptBillBasketExecuteRs" type="AcceptBillBasketExecuteResponseType">
+        <xsd:annotation>
+            <xsd:documentation>Квитанция о принятии акцепта оплаты</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="AcceptBillBasketExecuteResponseType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="UUID"/>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="Status" type="Status_Type"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Status_Type">
+        <xsd:sequence>
+            <xsd:element name="StatusCode" type="xsd:long"/>
+            <xsd:element name="StatusDesc" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="ServerStatusDesc" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Запрос в АС "AutoPay" об акцепте оплаты задоложености.-->
+    <xsd:element name="AcceptBillBasketExecuteRq" type="AcceptBillBasketExecuteRequestType">
+        <xsd:annotation>
+            <xsd:documentation>Акцепт оплаты задолжености</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="AcceptBillBasketExecuteRequestType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="UUID"/>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="UUID"/>
+            <xsd:element name="SPName" type="xsd:string"/>
+            <xsd:element name="BankInfo">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="RbTbBrchId" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="AutoSubscriptionId" type="AutoSubscriptionId_Type"/>
+            <xsd:element name="PaymentId" type="PaymentId_Type"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Квитанция о получении счета к оплате(информации о статусах оплат) отправляемая в АС "AutoPay"-->
+    <xsd:element name="AddBillBasketInfoRs" type="AddBillBasketInfoRsType">
+        <xsd:annotation>
+            <xsd:documentation>Квитанция о получении информации о задолжености</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:complexType name="AddBillBasketInfoRsType">
+        <xsd:sequence>
+            <xsd:element name="RqUID" type="UUID"/>
+            <xsd:element name="RqTm" type="xsd:dateTime"/>
+            <xsd:element name="OperUID" type="UUID" minOccurs="0"/>
+            <xsd:element name="Status" type="Status_Type"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="VersionType">
+        <xsd:annotation>
+            <xsd:documentation>Версия запроса</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="UIDType">
+        <xsd:annotation>
+            <xsd:documentation>Шестнадцатеричное число с  длиной 32 символа</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[0-9a-fA-F]{32}"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="PhoneType">
+        <xsd:annotation>
+            <xsd:documentation>Номер телефона в международном формате без знака «+».Например, 79165556677</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+</xsd:schema>
+

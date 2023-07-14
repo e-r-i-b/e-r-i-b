@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="NotReIssueCardClaim"
+              description="Отказ от перевыпуска карты"
+			  detailedDescription="Подача в банк заявки об отказе от перевыпуска пластиковой карты."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.DefaultClaim"/>
+	<statemachine name="ClaimStateMachine"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+
+        <field name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"/>
+
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+
+		<field name="dateCreated"
+		       source="date-created"
+		       description="Дата создания"
+			   type="string"/>
+
+		<field name="fullName"
+		       description="Ф.И.О."
+		       type="string"
+		       source="extra-parameters/parameter[@name='full-name']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Количество символов в поле [Ф.И.О.] не должно превышать 100"/>
+					<parameter name="regexp">.{1,100}</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+		</field>
+
+		<field name="card"
+		       description="Карта"
+		       type="card"
+		       source="extra-parameters/parameter[@name='card']/@value"
+		       signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field  name="cardType"
+				source="extra-parameters/parameter[@name='card-type']/@value"
+				description="Тип карты"
+				type="string">
+		</field>
+
+		<field name="phone"
+		       source="extra-parameters/parameter[@name='phone']/@value"
+				type="string"
+		       description="Контактный телефон"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			    <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Строка в поле [Контактный телефон]  должна содержать от 10 до 20 цифр"/>
+					<parameter name="regexp">\d{10,20}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="account"
+		       description="Спецкартчный счет"
+		       type="string"
+		       source="extra-parameters/parameter[@name='account']/@value"
+		       signable="true"/>
+	</fields>
+
+	<form-validators>
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.CardAndClientCompatibles">
+			<field-ref name="cardId">card</field-ref>
+		</form-validator>
+
+		<!--<form-validator class="com.rssl.phizic.business.claims.forms.validators.CardStateEqualToOneFromParametersValidator">-->
+			<!--<message text="Для указанной карты отказ от перевыпуска невозможен"/>-->
+			<!--<field-ref name="cardId">card</field-ref>-->
+			<!--<parameter name="param1">replenishment</parameter>-->
+		<!--</form-validator>-->
+	</form-validators>
+</payment-form>

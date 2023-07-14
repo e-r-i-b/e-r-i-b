@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+    name="MGTSPayment"
+    description="Оплата услуг МГТС. Абонентская плата"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd" >
+
+	<implementation class="com.rssl.phizic.business.documents.payments.RurPayment"/>
+	<sender class="com.rssl.phizic.business.payments.forms.meta.NullSender"/>
+    <fields>
+    	<field
+	   name="payer-account"
+	   description="Счет списания"
+	   type="string"
+	   source="payer-account">
+	   <validators>
+	     <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+ 	     <validator class="com.rssl.phizic.business.payments.forms.validators.UserAccountValidator"/>
+  	   </validators>
+        </field>
+        <field name="amount"
+	       description="Сумма"
+	       source="amount"
+	       type="money">
+						
+	    <validators>
+		<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+ 		   <message text="Значение суммы должно быть в диапазоне 0,01 - 999999999,99"/>
+                </validator>
+            <validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение суммы должно быть в диапазоне 0,01 - 999999999,99"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999.99</parameter>
+                </validator>
+            </validators>
+	</field>
+
+	<field 	name="areaCode" 
+		description="Код" 
+		source="extra-parameters/parameter[@name='areaCode']/@value">
+		<validators>
+  		  <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+		</validators>
+	</field>
+	<field 
+		name="phoneNumber" 
+		description="Номер телефона"
+		source="extra-parameters/parameter[@name='phoneNumber']/@value">
+		<validators>
+		 <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+ 		 <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+			<message text="Введите семизначный номер телефона"/>
+		  	<parameter name="regexp">^\d{7}$</parameter>
+		</validator>
+         	</validators>
+		</field>
+
+        <field
+		name="flatNumber"
+		description="Номер квартиры"
+		source="extra-parameters/parameter[@name='flatNumber']/@value">
+		<validators>
+		 <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+ 		 </validators>
+		</field>
+    </fields>
+	<form-validators>
+		<form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">payer-account</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

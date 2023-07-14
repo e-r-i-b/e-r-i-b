@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef name="ApplicationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.ApplicationType</param>
+	</typedef>
+
+    <typedef name="VisitingMode" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.auth.modes.UserVisitingMode</param>
+    </typedef>
+
+	<class entity-name="com.rssl.phizic.auth.CommonLogin"
+	       name="com.rssl.phizic.auth.LoginBase"
+	       table="LOGINS" abstract="true">
+
+		<id name="id" type="long" unsaved-value="null">
+            <generator class="native">
+                <param name="sequence">S_LOGINS</param>
+            </generator>
+		</id>
+
+		<discriminator column="KIND"/>
+
+		<property name="userId"                     type="string"   column="USER_ID"/>
+		<property name="wrongLoginAttempts"         type="long"     column="WRONG_LOGONS"               not-null="true"/>
+		<property name="deleted"                    type="boolean"  column="DELETED"/>
+		<property name="csaUserId"                  type="string"   column="CSA_USER_ID"/>
+        <property name="csaUserAlias"               type="string"   column="CSA_USER_ALIAS"/>
+        <property name="logonDate"                  type="calendar" column="LOGON_DATE"/>
+        <property name="lastLogonDate"              type="calendar" column="LAST_LOGON_DATE"/>
+        <property name="ipAddress"                  type="string"   column="IP_ADDRESS" />
+        <property name="lastIpAddress"              type="string"   column="LAST_IP_ADDRESS"/>
+        <property name="lastLogonCardNumber"        type="string"   column="LAST_LOGON_CARD_NUMBER"/>
+        <property name="lastLogonCardDepartment"    type="string"   column="CB_CODE"                    not-null="false"/>
+        <property name="lastLogonCardOSB"           type="string"   column="LAST_LOGON_CARD_OSB"        not-null="false"/>
+        <property name="lastLogonCardVSP"           type="string"   column="LAST_LOGON_CARD_VSP"        not-null="false"/>
+        <property name="lastLogonCardTB"            type="string"   column="LAST_LOGON_CARD_TB"         not-null="false"/>
+        <property name="mobileBankConnected"        type="boolean"  column="IS_MOBILE_BANK_CONNECTED"   not-null="true"/>
+        <property name="firstLogin"                 type="boolean"  column="IS_FIRST"      				not-null="true"/>
+        <property name="lastLogonType"              type="string"  column="LAST_LOGON_TYPE"      		not-null="false"/>
+        <property name="lastLogonParameter"         type="string"  column="LAST_LOGON_PARAMETER"      	not-null="false"/>
+
+		<filter name="login_live"/>
+		<filter name="login_deleted"/>
+
+		<filter name="byBankLoginViaDepartment"/>
+
+	</class>
+
+	<subclass name="com.rssl.phizic.auth.LoginImpl"
+	          extends="com.rssl.phizic.auth.CommonLogin"
+	          discriminator-value="C">
+
+		<property name="pinEnvelopeId"              type="long"             column="PIN_ENVELOPE_ID"            not-null="false"/>
+		<property name="lastUserVisitingMode"       type="VisitingMode"     column="LAST_LOGON_VISITING_MODE"   not-null="false"/>
+	</subclass>
+
+	<subclass name="com.rssl.phizic.auth.BankLoginImpl"
+	          extends="com.rssl.phizic.auth.CommonLogin"
+	          discriminator-value="E">
+        <property name="lastSynchronizationDate" type="calendar" column="LAST_SYNCHRONIZATION_DATE" not-null="false"/>
+    </subclass>
+
+	<class name="com.rssl.phizic.auth.LogonSession" table="LOGINS_SESSION_IDS">
+
+		 <composite-id>
+             <key-property name="loginId" type="long"  column="LOGIN_ID"/>
+             <key-property name="applicationType" column="APPLICATION_TYPE" type="ApplicationType"/>
+		 </composite-id>
+         <property name="sessionId" column="SESSION_ID" type="string" not-null="true"/>
+	</class>
+
+	<query name="com.rssl.phizic.security.login.findLoginByUserIdAndScope">
+		select login from com.rssl.phizic.auth.CommonLogin login
+		where login.userId = :userId
+		and login.class =
+		case :scope
+		when 'user' then com.rssl.phizic.auth.LoginImpl
+		when 'employee' then com.rssl.phizic.auth.BankLoginImpl
+		end
+		and login.deleted = '0'
+	</query>
+
+	<query name="com.rssl.phizic.security.login.findLoginByCSAUserIdAndScope">
+		select login from com.rssl.phizic.auth.CommonLogin login
+		where login.csaUserId = :csa_userId
+		and login.class = com.rssl.phizic.auth.LoginImpl
+		and login.deleted = '0'
+	</query>
+
+    <query name="com.rssl.phizic.security.login.getLogonSession">
+        select logonSession from com.rssl.phizic.auth.LogonSession logonSession
+		where
+            logonSession.loginId = :loginId
+            and
+            logonSession.applicationType = :applicationType
+    </query>
+
+	<filter-def name="login_deleted" condition="DELETED='1'"/>
+	<filter-def name="login_live" condition="DELETED='0'"/>
+
+	<filter-def name="byBankLoginViaDepartment"
+	            condition="ID in
+(select USERS.LOGIN_ID from USERS inner join DEPARTMENTS on USERS.DEPARTMENT_ID=DEPARTMENTS.ID
+  where DEPARTMENTS.ID=(select EMPLOYEES.DEPARTMENT_ID from EMPLOYEES where EMPLOYEES.LOGIN_ID=:bankLoginId))">
+		<filter-param name="bankLoginId" type="long"/>
+	</filter-def>
+
+</hibernate-mapping>

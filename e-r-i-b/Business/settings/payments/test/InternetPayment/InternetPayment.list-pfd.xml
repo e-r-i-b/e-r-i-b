@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-list xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../PaymentList.xsd"
+		title="Список платежей за интернет"
+	>
+	<filter>
+		<fields>
+			<field name="state" description="Статус"/>
+			<field name="minAmount" description="Минимальная сумма" type="money">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.MoneyFieldValidator"/>
+				</validators>
+			</field>
+			<field name="maxAmount" description="Максимальная сумма" type="money">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.MoneyFieldValidator"/>
+				</validators>
+				<parser class="com.rssl.common.forms.parsers.BigDecimalParser"/>
+			</field>
+			<field name="fromDate" description="Начальная дата" type="date">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				</validators>
+				<parser class="com.rssl.common.forms.parsers.DateParser"/>
+			</field>
+			<field name="toDate" description="Конечная дата" type="date">
+				<validators>
+					<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				</validators>
+				<parser class="com.rssl.common.forms.parsers.DateParser"/>
+			</field>
+			<field name="currencyCode" description="Валюта"/>
+			<field name="payerAccount" description="Счет списания"/>
+			<field name="operator" description="Оператор"/>
+		</fields>
+		<form-validators>
+			<form-validator class="com.rssl.common.forms.validators.CompareValidator">
+				<message text="Конечная дата должна быть больше либо равна начальной"/>
+				<field-ref name="obj1">fromDate</field-ref>
+				<field-ref name="obj2">toDate</field-ref>
+				<parameter name="operator">le</parameter>
+			</form-validator>
+		</form-validators>
+	</filter>
+	<hql-query>
+		<returnKey property="id"/>
+		<return    property="dateCreated"/>
+		<return    property="chargeOffAccount"/>
+		<return    property="chargeOffAmount.decimal"/>
+		<return    property="chargeOffAmount.currency.code"/>
+		<return    property="state.code"/>
+		<return    property="attributes.internetProvider.value"/>
+
+		<![CDATA[
+	        select payment
+                              from com.rssl.phizic.business.documents.payments.RurPayment as payment
+					        where payment.formName = 'internetPayment'
+							    and payment.owner.id = :loginId
+								and (:state is null           or :state = '' or payment.state.code = :state)
+					            and (:minAmount is null       or payment.chargeOffAmount.decimal >= :minAmount)
+					            and (:maxAmount is null       or payment.chargeOffAmount.decimal <= :maxAmount)
+					            and (:fromDate is null        or payment.dateCreated >= :fromDate)
+					            and (:toDate is null          or payment.dateCreated <= :toDate  )
+					            and (:payerAccount is null    or :payerAccount = '' or payment.chargeOffAccount = :payerAccount)
+					            and (:currencyCode is null    or :currencyCode = '' or payment.chargeOffAmount.currency = :currencyCode)
+					            and (:operator is null        or :operator = '' or payment.attributes['internetProvider'].stringValue = :operator)
+				            order by payment.dateCreated desc
+					    ]]>
+	</hql-query>
+</payment-list>

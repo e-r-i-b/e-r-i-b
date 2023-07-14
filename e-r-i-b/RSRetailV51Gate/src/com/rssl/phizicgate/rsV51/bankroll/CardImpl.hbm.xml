@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.rssl.phizicgate.rsV51.bankroll">
+    <class name="CardImpl">
+        <id name="longId"/>
+
+        <property name="description"/>
+        <property name="number"/>
+        <property name="issueDate"/>
+        <property name="expireDate"/>
+	    <property name="paymentSystemId"/>
+	    <property name="main"/>
+	    <property name="branch"/>
+    </class>
+
+    <sql-query name="GetCard">
+        <return alias="cards" class="CardImpl">
+	        <return-property name="longId"          column="id"/>
+            <return-property name="description"     column="cardType"/>
+            <return-property name="number"          column="number"/>
+            <return-property name="issueDate"       column="issueDate"/>
+            <return-property name="expireDate"      column="expireDate"/>
+	        <return-property name="paymentSystemId" column="paymentSystemId"/>
+	        <return-property name="main"            column="main"/>
+	        <return-property name="branch"          column="branch"/>
+        </return>
+	    <![CDATA[
+	        -- Получить основные карты клиента
+			SELECT cards.cardRef             AS id
+				  ,RTRIM(cards.cardNumber)   AS number
+				  ,cards.cardRecDate         AS issueDate
+				  ,cards.cardMaturityDate    AS expireDate
+			      ,cards.psRef               AS paymentSystemId
+				  ,cardTypes.codName         AS cardType
+				  ,1                         AS main
+				  ,cards.fnCash              AS branch
+			FROM  scCard_dbt cards, scCodif_dbt cardTypes
+			WHERE cards.cardRef = :cardId
+			  AND cards.CodClient = :clientId
+			  AND cardTypes.codType = 7
+			  AND cardTypes.codCode = cards.cardTypeCode
+			  AND ((cards.psRef = cardTypes.psRef) OR (cardTypes.psRef =0))
+
+				UNION
+
+			-- Получить дополнительные карты клиента
+			-- Пока считаем, что для дополнительных карт клиент не является владельцем, иначе получим дубликаты
+			SELECT cards.cardRef             AS id
+				  ,RTRIM(cards.cardNumber)   AS number
+				  ,cards.embossingName1      AS holderName
+				  ,cards.cardRecDate         AS issueDate
+				  ,cards.cardMaturityDate    AS expireDate
+			      ,cards.psRef               AS paymentSystemId
+				  ,cardTypes.codName         AS cardType
+				  ,0                         AS main
+				  ,cards.fnCash              AS branch
+			FROM  scCard_dbt   AS cards
+				, scLink_dbt   AS links
+				, depositr_dbt AS accounts
+				, scCodif_dbt  AS cardTypes
+			WHERE cards.cardRef = :cardId
+			  AND cards.cardRef = links.cardRef
+			  AND links.mainCard = ' '
+			  AND links.cardAccRef = accounts.Referenc
+			  AND cardTypes.codType = 7
+			  AND cardTypes.codCode = cards.cardTypeCode
+	          AND accounts.CodClient = :clientId
+              AND accounts.UserTypeAccount like '%К%'
+	    ]]>
+    </sql-query>
+
+
+    <sql-query name="GetClientCards">
+        <return alias="cards" class="CardImpl">
+            <return-property name="longId"          column="id"/>
+            <return-property name="description"     column="cardType"/>
+            <return-property name="number"          column="number"/>
+            <return-property name="issueDate"       column="issueDate"/>
+            <return-property name="expireDate"      column="expireDate"/>
+	        <return-property name="paymentSystemId" column="paymentSystemId"/>
+	        <return-property name="main"            column="main"/>
+	        <return-property name="branch"          column="branch"/>
+        </return>
+
+	    <![CDATA[
+	        -- Получить основные карты клиента
+			SELECT cards.cardRef             AS id
+				  ,RTRIM(cards.cardNumber)   AS number
+				  ,cards.cardRecDate         AS issueDate
+				  ,cards.cardMaturityDate    AS expireDate
+			      ,cards.psRef               AS paymentSystemId
+				  ,cardTypes.codName         AS cardType
+				  ,1                         AS main
+				  ,cards.fnCash              AS branch
+			FROM  scCard_dbt cards, scCodif_dbt cardTypes, scLink_dbt as links
+			WHERE cards.CodClient = :clientId
+			  AND cards.cardRef = links.cardRef
+			  AND cardTypes.codType = 7
+			  AND cardTypes.codCode = cards.cardTypeCode
+			  AND ((cards.psRef = cardTypes.psRef) OR (cardTypes.psRef =0)) 
+			  AND links.mainCard = 'X'
+              AND links.fncash=cards.fncash
+
+				UNION
+
+			-- Получить дополнительные карты клиента
+			-- Пока считаем, что для дополнительных карт клиент не является владельцем, иначе получим дубликаты
+			SELECT cards.cardRef             AS id
+				  ,RTRIM(cards.cardNumber)   AS number
+				  ,cards.embossingName1      AS holderName
+				  ,cards.cardRecDate         AS issueDate
+				  ,cards.cardMaturityDate    AS expireDate
+			      ,cards.psRef               AS paymentSystemId
+				  ,cardTypes.codName         AS cardType
+				  ,0                         AS main
+				  ,cards.fnCash              AS branch
+				  FROM scCard_dbt   AS cards RIGHT JOIN (sclink_dbt links INNER JOIN depositr_dbt accounts ON
+				  accounts.referenc = links.cardaccref
+				  AND accounts.codclient = :clientId
+				  AND accounts.UserTypeAccount like '%К%') ON
+				  cards.cardref = links.cardref and links.mainCard = ' '
+				  AND cards.fncash = accounts.fncash
+				  , scCodif_dbt  AS cardTypes
+
+				WHERE
+				cardTypes.codType = 7
+			    AND cardTypes.codCode = cards.cardTypeCode
+	    ]]>
+    </sql-query>
+
+	<sql-query name="GetCardOwnerId">
+        <return-scalar column="CodClient" type="long"/>
+        SELECT TOP 1 scCard_dbt.CodClient AS CodClient
+        FROM scCard_dbt
+        WHERE CardRef = :cardId
+    </sql-query>
+
+	<sql-query name="GetAdditionalCards">
+        <return alias="cards" class="CardImpl">
+	        <return-property name="longId"          column="id"/>
+            <return-property name="description"     column="cardType"/>
+            <return-property name="number"          column="number"/>
+            <return-property name="issueDate"       column="issueDate"/>
+            <return-property name="expireDate"      column="expireDate"/>
+	        <return-property name="paymentSystemId" column="paymentSystemId"/>
+	        <return-property name="main"            column="main"/>
+	        <return-property name="branch"          column="branch"/>
+        </return>
+	    <![CDATA[
+			SELECT cards.cardRef             AS id
+				  ,RTRIM(cards.cardNumber)   AS number
+				  ,cards.cardRecDate         AS issueDate
+				  ,cards.cardMaturityDate    AS expireDate
+			      ,cards.psRef               AS paymentSystemId
+				  ,types.codName             AS cardType
+				  ,0                         AS main
+				  ,cards.fnCash              AS branch
+			FROM  scCard_dbt   AS cards
+				, scLink_dbt   AS links
+				, scCodif_dbt  AS types
+			WHERE cards.cardRef = links.cardRef
+			  AND links.mainCard <> 'X'
+			  AND links.cardAccRef = :accId
+			  AND types.codType = 7
+			  AND types.codCode = cards.cardTypeCode
+              AND cards.psRef = types.psRef
+	    ]]>
+    </sql-query>
+
+</hibernate-mapping>

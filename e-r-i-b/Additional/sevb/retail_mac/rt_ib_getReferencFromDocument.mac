@@ -1,0 +1,113 @@
+/*
+    ───────────────────
+      ИСХОДНЫЕ ДАННЫЕ
+    ───────────────────
+
+Элемент сообщения             Тип             Комментарий
+────────────────────────────┼───────────────┼───────────────────────────────────────
+request
+├─id                          string(32)      Идентификатор запроса в системе  ИКФЛ
+└─getReferencFromDocument_q
+  ├─applicationKind           int             Идентификатор документа
+  └─applicationKey            string(29)      Идентификатор документа
+
+    ───────────────────
+          ОТВЕТ
+    ───────────────────
+Элемент сообщения             Тип             Комментарий
+────────────────────────────┼───────────────┼───────────────────────────────────────
+response
+├─parentId                    string(32)      Идентификатор запроса в системе  ИКФЛ
+├─id                          string(32)      Идентификатор ответа
+└─getReferencFromDocument_a
+  ├─errorCode                 int             Код ошибки
+  ├─errorText                 string(80)      Текст ошибки
+  └─accountReferenc           int             Referenc счета
+*/
+import "rt_ib_xml.mac";
+
+macro getReferencFromDocument(inXml, outXml)
+
+  var node, nodeAnswer;           // для формирования выходного документа
+  var account, referenc;          // получаемые значения из выборок
+  var cmd, SQLStr, set, rs_sbdoc; // переменые для выборок
+
+  var appKind = inXml.documentElement.selectSingleNode("//applicationKind").text(); 
+  var appKey  = inXml.documentElement.selectSingleNode("//applicationKey").text();
+
+  outXml = CreateXMLObject();
+
+  if (not outXml)
+    return;
+  end;
+
+  outXml.documentElement = outXml.createNode(1, "response", "");
+
+  node = outXml.documentElement.appendChild(outXml.createNode(1, "parentId", ""));
+  node.text = ParentId;
+
+  node = outXml.documentElement.appendChild(outXml.createNode(1, "id", ""));
+  node.text = FormApplicationKey(1);
+
+  // по третьему ключу (iApplicationKind и applicationKey)
+  var sbdepdoc  = TBFile( "sbdepdoc.dbt",  "r", 3, NULL, "sbbank.def" );
+  var sbdepdoc1 = TRecHandler( "sbdepdoc.1" ); 
+  
+  var sum, currency;
+
+  nodeAnswer = outXml.documentElement.appendChild(outXml.createNode(1, "getReferencFromDocument_a", ""));
+
+  cmd = RsdCommand(
+        " select * "+
+        " from dsbdepdoc_dbt docs where docs.t_iApplicationKind = " + appKind +
+        " and docs.t_applicationKey = '" + appKey + "'");
+  cmd.execute;
+  rs_sbdoc = RsdRecordSet(cmd);
+
+  if (rs_sbdoc.moveNext)
+    sbdepdoc.rec.iApplicationKind = appKind;
+    sbdepdoc.rec.ApplicationKey = appKey;
+  
+    sbdepdoc.getEQ;
+    SetRecordAddr( sbdepdoc1, sbdepdoc, 0, 0, true);
+
+    account = sbdepdoc1.rec.Account_Receiver;
+
+    cmd = RsdCommand(
+        " select t_referenc "+
+        " from ddepositr_dbt deps where deps.t_account = '"+account+"'");
+    cmd.execute;
+    set = RsdRecordSet(cmd);
+
+    if (set.moveNext)
+      referenc = set.value("t_referenc");
+
+      node = outXML.createNode(1, "errorCode",  "");
+      node.text = 0;
+      nodeAnswer.appendChild(node);
+
+      node = outXML.createNode(1, "accountReferenc",  "");
+      node.text = referenc;
+      nodeAnswer.appendChild(node);
+    else
+      node = outXML.createNode(1, "errorCode",  "");
+      node.text = -1;
+      nodeAnswer.appendChild(node);
+
+      node = outXML.createNode(1, "errorText",  "");
+      node.text = "Для счета "+account+" не удалось определить referenc";
+      nodeAnswer.appendChild(node);
+    end; // if (set.moveNext)
+  else
+    node = outXML.createNode(1, "errorCode",  "");
+    node.text = -1;
+    nodeAnswer.appendChild(node);
+
+    node = outXML.createNode(1, "errorText",  "");
+    node.text = "Документ с ApplicationKind "+appKind+" и applicationKey "+appKey+" не найден";
+    nodeAnswer.appendChild(node);
+  end; // if (rs_sbdoc.moveNext)
+
+  SetParm(1, outXml);
+
+end; // getReferencFromDocument(inXml, outXml) 

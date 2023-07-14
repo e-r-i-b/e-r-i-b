@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--Выборка заявок на автоплатежи
+        Опорный объект: IDX_BD_LCDK
+        Предикаты доступа: ("DOCUMENTS"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND
+                      "DOCUMENTS"."CREATION_DATE">=TO_TIMESTAMP(:EXTRA_FROMDATE) AND
+                      "DOCUMENTS"."KIND"=:EXTRA_CLAIMTYPE AND "DOCUMENTS"."CREATION_DATE"<=TO_TIMESTAMP(:EXTRA_TODATE)
+        Кардинальность: не превышает количество заявок по автоплатежам для конкретного типа автоплатежа
+    -->
+    <sql-query name="com.rssl.phizic.operations.autosubscription.ListAutoSubscriptionClaimOperation.list">
+        <return alias="documents"        class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+        <![CDATA[
+        SELECT
+            {documents.*}
+        FROM BUSINESS_DOCUMENTS documents
+            left join DOCUMENT_EXTENDED_FIELDS extended_fields
+            ON documents.ID = extended_fields.PAYMENT_ID
+            AND extended_fields.NAME = 'auto-sub-friendy-name'
+        WHERE documents.IS_LONG_OFFER = 1
+            AND documents.LOGIN_ID = :loginId
+            AND documents.CREATION_DATE >= :extra_fromDate
+            AND documents.CREATION_DATE <= :extra_toDate
+
+            AND documents.CREATED_EMPLOYEE_LOGIN_ID is not null
+            AND ((:extra_name is null OR :extra_name = '') OR (extended_fields.NAME = 'auto-sub-friendy-name' AND extended_fields.VALUE like :extra_like_name))
+            AND ((:extra_receiver is null OR :extra_receiver = '') OR (documents.RECEIVER_NAME like :extra_like_receiver))
+            AND ('ALL' in (:extra_state) OR (documents.STATE_CODE in (:extra_state)))
+            AND (documents.STATE_CODE != 'DELETED')
+            AND (documents.KIND  in (:extra_сlaimType))
+        ]]>
+    </sql-query>
+</hibernate-mapping>

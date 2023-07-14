@@ -1,0 +1,107 @@
+import "rt_ib_xml.mac";
+class(cGetCard) 
+    cGetClientCards( inXml, outXml ) 
+   
+   var id;   
+
+   private macro readParameters( nodeElement )
+      var nodeComPay;
+      nodeComPay = nodeElement;
+      while( nodeComPay )
+         if( nodeComPay.NodeName == "clientId" )
+            id = int( nodeComPay.text );
+         end;
+         nodeComPay = nodeComPay.nextSibling();
+      end;// while( nodeComPay )
+   end;//private macro readParameters( nodeElement )   
+
+    private macro getCardList(inXml, outXml)
+      var cmd, rs;
+      var cardsNode;
+
+      cmd = RsdCommand("SELECT cards.t_cardRef             AS id "+
+                  ",RTRIM(cards.t_cardNumber)   AS tnumber "+
+                  ",1                           AS main "+
+                  ",cardTypes.t_codname         AS description "+
+                  ",cards.t_embossingName1      AS ownerLastName "+
+                  ",cards.t_embossingName2      AS ownerFirstName "+
+                  ",cards.t_cardRecDate         AS issueDate "+
+                  ",cards.t_cardMaturityDate    AS expireDate "+
+                  ",cards.t_clientpassword      AS codeWord "+
+            "FROM  dscCard_dbt cards, dscCodif_dbt cardTypes, dscLink_dbt links, ddepositr_dbt accounts "+
+            "WHERE cards.t_CodClient = ? "+
+            "  AND cards.t_cardRef = links.t_cardRef "+
+            "  AND cardTypes.t_codType = 7 "+
+            "  AND cardTypes.t_codCode = cards.t_cardTypeCode "+
+            "  AND ((cards.t_psRef = cardTypes.t_psRef) OR (cardTypes.t_psRef =0)) "+
+            "  AND links.t_mainCard = 'X' "+
+            "  AND links.t_fncash=cards.t_fncash "+
+            "  and links.t_cardaccref=accounts.t_referenc "+
+            "    UNION "+
+            "SELECT cards.t_cardRef             AS id "+
+            "      ,RTRIM(cards.t_cardNumber)   AS tnumber "+
+            "      ,0                           AS main "+
+            "      ,cardTypes.t_codname         AS description "+
+            "      ,cards.t_embossingName1      AS ownerLastName "+
+            "      ,cards.t_embossingName2      AS ownerFirstName "+
+            "      ,cards.t_cardRecDate         AS issueDate "+
+            "      ,cards.t_cardMaturityDate    AS expireDate "+
+            "      ,cards.t_clientpassword      AS codeWord "+
+            "      FROM dscCard_dbt   cards "+
+            "      RIGHT JOIN (dsclink_dbt links INNER JOIN ddepositr_dbt accounts ON "+
+            "      accounts.t_referenc = links.t_cardaccref "+
+            "      AND accounts.t_codclient = ? "+
+            "      AND accounts.t_UserTypeAccount like '%Š%') ON "+
+            "      cards.t_cardref = links.t_cardref and links.t_mainCard = ' ' "+
+            "      AND cards.t_fncash = accounts.t_fncash "+
+            "      , dscCodif_dbt  cardTypes "+
+            "    WHERE "+
+            "    cardTypes.t_codType = 7 "+
+            "    AND cardTypes.t_codCode = cards.t_cardTypeCode");
+
+      cmd.addParam( "clientId", RSDBP_IN, V_STRING);
+      cmd.value("clientId") = id;
+
+      cmd.addParam( "clientId2", RSDBP_IN, V_STRING);
+      cmd.value("clientId2") = id;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+      cardsNode = nodeAnswer.appendChild( outXML.createNode(1, "cards", "") );
+      while((rs.moveNext))
+         createCardXml(rs, outXml, cardsNode);
+      end;   
+
+      return outXml;
+   end;//private macro getAccountByReferenc(inXml, outXml)
+
+   macro start(inXml, outXml)
+      var nodeParentElement;
+      var stat = 0;
+
+      if(not outXml )
+         outXml = CreateXMLObject();
+         
+         if(not outXml) return; end;
+         CreateBeginTag( outXml );
+         nodeParentElement = inXml.documentElement.selectSingleNode( "//getClientCards_q" );
+         nodeElement = nodeParentElement.firstChild();
+
+        if( nodeElement )
+            readParameters( nodeElement );
+            outXML = getCardList( inXml, outXML );
+         end;
+      end;//if(not outXml )
+      return outXml;
+   end;//private macro start(inXml, outXml)
+
+end;  //class(cBaseDeposit) 
+
+macro GetCardList( inXml, outXml )
+
+  var t = cGetClientCards;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;
+

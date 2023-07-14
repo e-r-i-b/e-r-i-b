@@ -1,0 +1,163 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hobernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="MaritalStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.personData.MaritalStatus</param>
+    </typedef>
+
+    <typedef name="ChildCount" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.personData.ChildCount</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="ApartmentCount" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.personData.ApartmentCount</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="LoanCount" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.personData.LoanCount</param>
+        <param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="DictionaryProductType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.common.DictionaryProductType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.pfp.PersonalFinanceProfile" table="PERSONAL_FINANCE_PROFILE">
+        <id name="id" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PERSONAL_FINANCE_PROFILE</param>
+            </generator>
+        </id>
+
+        <property name="state" type="com.rssl.phizic.business.hibernate.StateType" not-null="true">
+		    <column name="STATE_CODE"/>
+		    <column name="STATE_DESCRIPTION"/>
+	    </property>
+        <many-to-one name="owner" class="com.rssl.phizic.auth.LoginImpl" column="LOGIN_ID" not-null="false" lazy="false" update="false"/>
+        <property name="creationDate"   type="calendar"     column="CREATION_DATE"  not-null="true"/>
+        <property name="executionDate"   type="calendar"     column="EXECUTION_DATE"  not-null="false"/>
+        <property name="startPlaningDate" type="calendar"  column="START_PLANING_DATE" not-null="false"/>
+        <property name="planDate"   type="calendar"     column="PLAN_DATE"  not-null="false"/>
+        <property name="maritalStatus"  type="MaritalStatus" column="MARITAL_STATUS" not-null="false"/>
+        <property name="childCount"     type="ChildCount"   column="CHILD_COUNT"    not-null="false"/>
+
+        <bag name="personTargets" table="PERSON_TARGET" cascade="all-delete-orphan" lazy="false" order-by="PLANED_DATE ASC, ID ASC">
+            <key column="PERSON_FINANCE_PROFILE_ID"/>
+            <one-to-many class="com.rssl.phizic.business.pfp.PersonTarget"/>
+        </bag>
+
+        <property name="planMoney" type="money" not-null="false">
+            <column name="PLAN_MONEY_AMOUNT"/>
+			<column name="PLAN_MONEY_CURRENCY"/>
+        </property>
+
+        <property name="shortTermAssetsSBRF" type="money" not-null="false">
+            <column name="SBRF_ACCOUNTS_AMOUNT"/>
+			<column name="SBRF_ACCOUNTS_CURRENCY"/>
+        </property>
+        <property name="shortTermAssetsOtherBanks" type="money" not-null="false">
+            <column name="OTHER_BANKS_ACCOUNTS_AMOUNT"/>
+			<column name="OTHER_BANKS_ACCOUNTS_CURRENCY"/>
+        </property>
+        <property name="shortTermAssetsCash" type="money" not-null="false">
+            <column name="CASH_AMOUNT"/>
+			<column name="CASH_CURRENCY"/>
+        </property>
+
+        <property name="mediumTermAssetsFunds" type="money" not-null="false">
+            <column name="INVESTMENTS_FUNDS_AMOUNT"/>
+			<column name="INVESTMENTS_FUNDS_CURRENCY"/>
+        </property>
+        <property name="mediumTermAssetsIMA" type="money" not-null="false">
+            <column name="INVESTMENTS_IMA_AMOUNT"/>
+			<column name="INVESTMENTS_IMA_CURRENCY"/>
+        </property>
+        <property name="mediumTermAssetsOther" type="money" not-null="false">
+            <column name="INVESTMENTS_OTHER_AMOUNT"/>
+			<column name="INVESTMENTS_OTHER_CURRENCY"/>
+        </property>
+        
+        <property name="apartmentCount"    type="ApartmentCount" column="APARTMENT_COUNT"     not-null="false"/>
+        <property name="mortgageCount"     type="LoanCount"      column="MORTGAGE_COUNT"      not-null="false"/>
+        <property name="consumerLoanCount" type="LoanCount"      column="CONSUMER_LOAN_COUNT" not-null="false"/>
+        <property name="autoLoanCount"     type="LoanCount"      column="AUTO_LOAN_COUNT"     not-null="false"/>
+        <property name="creditCardCount"   type="LoanCount"      column="CREDIT_CARD_COUNT"   not-null="false"/>
+        <property name="creditCardType"    type="string"         column="CREDIT_CARD_TYPE"    not-null="false"/>
+        <property name="cardId"            type="long"           column="CREDIT_CARD_ID"      not-null="false"/>
+        <property name="useAccount"        type="boolean"        column="USE_ACCOUNT"         not-null="true"/>
+        <property name="accountValue"      type="big_decimal"    column="ACCOUNT_VALUE"       not-null="false"/>
+        <property name="useThanks"         type="boolean"        column="USE_THANKS"          not-null="true"/>
+        <property name="thanksValue"       type="big_decimal"    column="THANKS_VALUE"        not-null="false"/>
+
+        <property name="incomeMoney" type="money" not-null="false">
+            <column name="INCOME_MONEY_AMOUNT"/>
+			<column name="INCOME_MONEY_CURRENCY"/>
+        </property>
+
+        <property name="outcomeMoney" type="money" not-null="false">
+            <column name="OUTCOME_MONEY_AMOUNT"/>
+			<column name="OUTCOME_MONEY_CURRENCY"/>
+        </property>
+
+        <property name="riskProfileWeight"    type="integer"        column="RISK_PROFILE_WEIGHT"  not-null="false"/>
+        <many-to-one name="defaultRiskProfile" class="com.rssl.phizic.business.dictionaries.pfp.riskProfile.RiskProfile" column="RISK_PROFILE_ID"
+                     not-null="false" lazy="false"/>
+
+        <component name="personRiskProfile" class="com.rssl.phizic.business.pfp.risk.profile.PersonRiskProfile">            
+            <map name="productsWeights" table="PFP_PERSON_RISK_PROFILES" cascade="all-delete-orphan" lazy="false">
+                <key column="PROFILE_ID"/>
+                <map-key column="PRODUCT" type="ProductType"/>
+                <element column="WEIGHT" type="long"/>
+            </map>
+            <bag name="availableProducts" table="PFP_AVAILABLE_PRODUCTS" cascade="all-delete-orphan" lazy="false">
+                <key column="PROFILE_ID"/>
+                <element column="PRODUCT" type="DictionaryProductType"/>
+            </bag>
+        </component>
+
+        <map name="questions" table="PERSON_PROFILE_RP_QUESTION" cascade="all-delete-orphan" lazy="false" >
+            <key column="PROFILE_ID"/>
+            <index column="QUESTION_ID" type="long"/>
+            <element column="ANSWER_ID" type="long"/>
+        </map>
+
+        <property name="managerId"   type="string" column="MANAGER_ID"   not-null="false"/>
+        <property name="channelId"   type="long"   column="CHANNEL_ID"   not-null="false"/>
+        <property name="employeeFIO" type="string" column="EMPLOYEE_FIO" not-null="false"/>
+        <property name="managerOSB"  type="string" column="MANAGER_OSB"  not-null="false"/>
+        <property name="managerVSP"  type="string" column="MANAGER_VSP"  not-null="false"/>
+
+        <list name="portfolioList" table="PERSON_PORTFOLIO" cascade="all-delete-orphan" lazy="false">
+            <key column="PERSON_FINANCE_PROFILE_ID"/>
+            <list-index column="LIST_INDEX"/>
+            <one-to-many class="com.rssl.phizic.business.pfp.portfolio.PersonPortfolio"/>
+        </list>
+
+        <list name="personLoans" access="field" table="PFP_PERSON_LOAN" cascade="all-delete-orphan" lazy="false">
+            <key column="PERSON_FINANCE_PROFILE_ID"/>
+            <list-index column="LIST_INDEX"/>
+            <one-to-many class="com.rssl.phizic.business.pfp.PersonLoan"/>
+        </list>
+
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.pfp.PersonalFinanceProfile.getLastProfilesByLogin">
+        <return alias="pfp" class="com.rssl.phizic.business.pfp.PersonalFinanceProfile"/>
+        <![CDATA[
+            SELECT {pfp.*}
+            FROM PERSONAL_FINANCE_PROFILE pfp
+            WHERE ID IN (SELECT max(ID)
+                         FROM PERSONAL_FINANCE_PROFILE
+                         WHERE LOGIN_ID = :loginId
+                         GROUP BY decode(STATE_CODE, 'COMPLITE', 1, 'COMPLITE_OLD', 1, 0))
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

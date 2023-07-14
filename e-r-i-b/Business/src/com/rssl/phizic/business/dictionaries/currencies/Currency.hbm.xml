@@ -1,0 +1,64 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.dictionaries.currencies.CurrencyImpl" table="CURRENCIES" batch-size="500" polymorphism="explicit">
+
+        <id name="synchKey" type="string" column="id"/>
+
+		<property name="number" type="string" column="NUMERICCODE"/>
+        <property name="code" type="string" column="CODE" />
+	    <property name="name" type="string" column="NAME"/>
+
+    </class>
+
+    <!--
+        Получение валюты по ее Alphabetic ISO коду (RUB, USD etc)
+        Опорный объект: INDEX_CODE_3
+        Предикаты доступа: access("CURRENCY"."CODE"=:EXTRA_CODE)
+        Кардинальность: 1
+    -->
+	<query name="com.rssl.phizic.business.dictionaries.currencies.getCurrencyByCode">
+        select currency from com.rssl.phizic.business.dictionaries.currencies.CurrencyImpl as currency
+        where currency.code = :extra_code
+    </query>
+
+    <!--
+        Получение валюты по ее Numeric ISO коду (643, 840 etc)
+        Опорный объект: INDEX_NUMERICCODE
+        Предикаты доступа: access("CURRENCY"."NUMERICCODE"=:EXTRA_CODE)
+        Кардинальность: 1
+    -->
+	<query name="com.rssl.phizic.business.dictionaries.currencies.getCurrencyByNumericCode">
+        select currency from com.rssl.phizic.business.dictionaries.currencies.CurrencyImpl as currency
+        where currency.number = :extra_code
+    </query>
+
+    <!--
+        Получение валюты по идентификатору
+        Опорный объект: PK_CURRENCIES
+        Предикаты доступа: access("CURRENCY"."ID"=:EXTRA_ID)
+        Кардинальность: 1
+    -->
+	<query name="com.rssl.phizic.business.dictionaries.currencies.getCurrencyById">
+        select currency from com.rssl.phizic.business.dictionaries.currencies.CurrencyImpl as currency
+        where currency.id = :extra_id
+    </query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.currencies.getAllCurrency.oracle">
+        <return alias="currency" class="com.rssl.phizic.business.dictionaries.currencies.CurrencyImpl"/>
+        <![CDATA[
+        select * from CURRENCIES currency order by NLSSORT(ID, 'NLS_SORT=BINARY') asc
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.currencies.getAllCurrency.ms-sql">
+        <return alias="currency" class="com.rssl.phizic.business.dictionaries.currencies.CurrencyImpl"/>
+        <![CDATA[
+        select * from CURRENCIES currency order by ID COLLATE Cyrillic_General_BIN asc
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

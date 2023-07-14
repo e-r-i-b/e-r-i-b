@@ -1,0 +1,63 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+     <class name="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.locale.MAPIBlockingRuleResources" table="BLOCKINGRULES_RES">
+        <composite-id>
+            <key-property name="id"        column="ID"            type="long"/>
+            <key-property name="localeId"  column="LOCALE_ID"     type="string"/>
+        </composite-id>
+
+        <property name="ERIBMessage"    type="string"           column="ERIB_MESSAGE"   not-null="false"/>
+        <property name="mapiMessage"    type="string"           column="MAPI_MESSAGE"   not-null="false"/>
+        <property name="ATMMessage"     type="string"           column="ATM_MESSAGE"    not-null="false"/>
+        <property name="ERMBMessage"    type="string"           column="ERMB_MESSAGE"   not-null="false"/>
+    </class>
+
+    <class name="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.locale.LocaledMAPIBlockingRule" table="BLOCKINGRULES"  mutable="false">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_BLOCKINGRULES</param>
+            </generator>
+        </id>
+        <property name="codes"              type="string"       column="DEPARTMENTS"    not-null="true"/>
+        <property name="expired"            type="calendar"     column="RESUMING_TIME"  not-null="true"/>
+
+        <property name="applyToERIB"        type="boolean"      column="ERIB"           not-null="false"/>
+        <property name="eribMessage"        type="string"       column="ERIB_MESSAGE"   not-null="true"/>
+        <property name="applyToMAPI"        type="boolean"      column="MAPI"           not-null="false"/>
+        <property name="mapiMessage"        type="string"       column="MAPI_MESSAGE"   not-null="false"/>
+        <property name="applyToATM"         type="boolean"      column="ATM"           not-null="false"/>
+        <property name="atmMessage"         type="string"       column="ATM_MESSAGE"   not-null="false"/>
+        <property name="applyToERMB"        type="boolean"      column="ERMB"           not-null="false"/>
+        <property name="ermbMessage"        type="string"       column="ERMB_MESSAGE"   not-null="false"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.locale.MAPIBlockingRuleResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <!--
+       Опорный объект: BLOCKINGRULES
+       Предикаты доступа: -
+       Кардинальность: количество активных блокировок для мапи
+    -->
+     <sql-query name="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.MAPIBlockingRule.findAllActive.multilocale">
+        <return alias="blockingRule" class="com.rssl.auth.csa.back.servises.restrictions.operations.blockingRules.locale.LocaledMAPIBlockingRule"/>
+        <return-join alias="br" property="blockingRule.resources"/>
+        <![CDATA[
+            SELECT {blockingRule.*}, {br.*}
+            FROM BLOCKINGRULES blockingRule
+            LEFT JOIN BLOCKINGRULES_RES br on blockingRule.ID = br.ID and br.LOCALE_ID = :extra_localeId
+            WHERE MAPI = 1
+            AND blockingRule.STATE = 'blocked'
+        ]]>
+     </sql-query>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

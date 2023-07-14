@@ -1,0 +1,39 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="PushProcStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.messaging.push.PushProcStatus</param>
+        <param name="identifierMethod">toValue</param>
+        <param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="PushDeviceStatus" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.logging.push.PushDeviceStatus</param>
+        <param name="identifierMethod">toValue</param>
+        <param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.messaging.push.PushQueueDevice" table="QUEUE_PUSH_DEVICES_TAB">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">QPD_SEQ</param>
+            </generator>
+        </id>
+
+        <property name="timestamp"      type="calendar"     column="TIMESTAMP"      not-null="true"/>
+        <property name="deviceId"      type="string"     column="DEVICE_ID"      not-null="true"/>
+        <property name="clientId"      type="string"     column="CLIENT_ID"      not-null="true"/>
+        <property name="status"         type="PushDeviceStatus"   column="STATUS"         not-null="true"/>
+        <property name="securityToken"  type="string"            column="SECURITY_TOKEN" not-null="false"/>
+        <property name="mguidHash"      type="string"            column="MGUID"          not-null="true"/>
+        <property name="procStatus"     type="PushProcStatus"    column="PROC_STATUS"    not-null="true"/>
+        <property name="procStatusAt"   type="calendar"          column="PROC_STATUS_AT" not-null="true" generated="insert"/>
+        <property name="procError"      type="string"            column="PROC_ERROR"     not-null="false"/>
+
+    </class>
+</hibernate-mapping>
+
+

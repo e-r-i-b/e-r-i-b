@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+
+    <class name="com.rssl.phizic.business.loanclaim.creditProduct.condition.CreditProductCondition" table="CREDIT_PRODUCT_CONDITION">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CREDIT_PRODUCT_CONDITION</param>
+            </generator>
+        </id>
+
+        <many-to-one name="creditProduct"
+                     class="com.rssl.phizic.business.loanclaim.creditProduct.CreditProduct"
+                     column="CREDIT_PRODUCT_ID"
+                     not-null="true"
+                     fetch="join"
+                     lazy="false"/>
+        <many-to-one name="creditProductType"
+                     class="com.rssl.phizic.business.loanclaim.creditProduct.type.CreditProductType"
+                     column="CREDIT_PRODUCT_TYPE_ID"
+                     not-null="true"
+                     fetch="join"
+                     lazy="false"/>
+        <property name="departmentsStr" type="string" column="DEPARTMENTS_STR" not-null="false"/>
+        <property name="transactSMPossibility" type="boolean" column="TRANSACT_SM_USE" not-null="true"/>
+        <component name="minDuration" class="com.rssl.phizic.business.loans.products.YearMonth">
+            <property name="year"   type="integer" column="MIN_YEAR"/>
+            <property name="month"  type="integer" column="MIN_MONTH"/>
+        </component>
+        <component name="maxDuration" class="com.rssl.phizic.business.loans.products.MaxDuration">
+            <property name="year"   type="integer" column="MAX_YEAR"/>
+            <property name="month"  type="integer" column="MAX_MONTH"/>
+        </component>
+        <property name="maxRangeInclude" type="boolean" column="MAX_RANGE_INCLUDE" not-null="true"/>
+        <property name="useInitialFee" type="boolean" column="USE_INITIAL_FEE" not-null="true"/>
+        <property name="minInitialFee" type="big_decimal"  column="MIN_INITIAL_FEE" not-null="false"/>
+        <property name="maxInitialFee" type="big_decimal"  column="MAX_INITIAL_FEE" not-null="false"/>
+        <property name="includeMaxInitialFee" type="boolean" column="INCLUDE_MAX_INITIAL_FEE" not-null="true"/>
+        <property name="additionalConditions" type="string" column="ADDITIONAL_CONDITIONS" not-null="false"/>
+        <property name="published"            type="boolean"   column="IS_PUBLISHED"    not-null="true"/>
+        <property name="selectionAvaliable"     type="boolean"   column="IS_SEL_AVAILABLE"  not-null="true"/>
+        <set name="currConditions"
+             table="CURR_CRED_PROD_COND"
+             cascade="all-delete-orphan"
+             lazy="false"
+             inverse="true">
+            <key column="CRED_PROD_COND_ID" not-null="true"/>
+            <one-to-many class="com.rssl.phizic.business.loanclaim.creditProduct.condition.CurrencyCreditProductCondition"/>
+        </set>
+    </class>
+
+    <query name="com.rssl.phizic.business.loanclaim.creditProduct.condition.getConditionsByProductCode">
+        SELECT condition
+          FROM com.rssl.phizic.business.loanclaim.creditProduct.condition.CreditProductCondition condition
+         WHERE condition.creditProduct.code = :productCode
+    </query>
+</hibernate-mapping>

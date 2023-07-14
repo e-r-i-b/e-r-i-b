@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<typedef name="CreationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.common.forms.doc.CreationType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef name="CreationSourceType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.common.forms.doc.CreationSourceType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef name="LoginType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.client.LoginType</param>
+	</typedef>
+
+    <typedef name="ConfirmStrategyType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.ConfirmStrategyType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.documents.payments.LoanCardClaim" table="LOAN_CARD_CLAIMS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_BUSINESS_DOCUMENTS</param>
+            </generator>
+        </id>
+
+        <property name="state" type="com.rssl.phizic.business.hibernate.StateType" not-null="true">
+   		    <column name="STATE_CODE"/>
+   		    <column name="STATE_DESCRIPTION"/>
+   	    </property>
+
+        <property name="changed"                    type="date"                 column="CHANGED"/>
+        <property name="archive"                    type="boolean"              column="ARCHIVE"                not-null="true"/>
+        <property name="creationType"               type="CreationType"         column="CREATE_CHANNEL"         not-null="true"/>
+        <property name="creationSourceType"         type="CreationSourceType"   column="CREATION_SOURCE_TYPE"   not-null="true"/>
+        <property name="dateCreated"                type="calendar"             column="CREATION_DATE"          not-null="true"/>
+        <property name="systemName"                 type="string"               column="SYSTEM_NAME"            not-null="true"/>
+        <property name="tb"                         type="string"               column="TB"                     not-null="true"/>
+        <property name="documentNumber"             type="string"               column="DOC_NUMBER"             not-null="true"/>
+        <property name="documentDate"               type="calendar"             column="DOCUMENT_DATE"          not-null="true"/>
+        <property name="operationUID"               type="string"               column="OPERATION_UID"          not-null="true"/>
+        <property name="ownerTb"                    type="string"               column="OWNER_TB"               not-null="true"/>
+        <property name="additionalOperationChannel" type="boolean"              column="ADDITION_CONFIRM"/>
+        <property name="admissionDate"              type="calendar"             column="ADMISSION_DATE"/>
+        <property name="confirmStrategyType"        type="ConfirmStrategyType"  column="CONFIRM_STRATEGY_TYPE"/>
+        <property name="executionDate"              type="calendar"             column="EXECUTION_DATE"/>
+        <property name="externalId"                 type="string"               column="EXTERNAL_ID"/>
+        <property name="operationDate"              type="calendar"             column="OPERATION_DATE"/>
+        <property name="clientOperationChannel"     type="CreationType"         column="CONFIRM_CHANNEL"/>
+        <property name="preapproved"                type="boolean"              column="PREAPPROVED"/>
+        <property name="refusingReason"             type="string"               column="REFUSING_REASON"/>
+        <property name="osb"                        type="string"               column="OSB"/>
+        <property name="vsp"                        type="string"               column="VSP"/>
+        <property name="ownerLoginId"               type="long"                 column="OWNER_LOGIN_ID"/>
+        <property name="ownerGuestId"               type="long"                 column="OWNER_GUEST_ID"/>
+        <property name="ownerGuestPhone"            type="string"               column="OWNER_GUEST_PHONE"/>
+        <property name="ownerGuestMbk"              type="boolean"              column="OWNER_GUEST_MBK"/>
+        <property name="ownerFirstName"             type="string"               column="OWNER_FIRST_NAME"/>
+        <property name="ownerLastName"              type="string"               column="OWNER_LAST_NAME"/>
+        <property name="ownerMiddleName"            type="string"               column="OWNER_MIDDLE_NAME"/>
+        <property name="ownerBirthday"              type="calendar"             column="OWNER_BIRTHDAY"/>
+        <property name="ownerIdCardSeries"          type="string"               column="OWNER_IDCARD_SERIES"/>
+        <property name="ownerIdCardNumber"          type="string"               column="OWNER_IDCARD_NUMBER"/>
+        <property name="ownerOsb"                   type="string"               column="OWNER_OSB"/>
+        <property name="ownerVsp"                   type="string"               column="OWNER_VSP"/>
+        <property name="ownerLoginType"             type="LoginType"            column="OWNER_LOGIN_TYPE"/>
+        <property name="creditCard"                 type="string"               column="CREDIT_CARD"/>
+        <property name="currency"                   type="string"               column="CURRENCY"/>
+
+        <map name="attributes" table="LOAN_CARD_CLAIM_FIELDS" cascade="all-delete-orphan" lazy="false" batch-size="500">
+            <key     column="CLAIM_ID" not-null="true"/>
+            <map-key column="NAME"     type="string"/>
+
+            <composite-element class="com.rssl.phizic.business.extendedattributes.ExtendedAttribute">
+                <property name="type"        type="string"          column="TYPE"          not-null="true"/>
+                <property name="dateCreated" type="calendar"        column="CREATION_DATE" not-null="true"/>
+                <property name="stringValue" type="not-null-string" column="VALUE"/>
+            </composite-element>
+        </map>
+    </class>
+
+    <!--
+		Получение расширенных полей заявки на кредитную карту
+		Опорный элемент:   LOAN_CARD_CLAIM_FIELDS_CID_IDX
+		Предикаты доступа: access("FIELD"."CLAIM_ID"=TO_NUMBER(:IDS))
+		Кардинальность: сумма количеств расширенных полей для каждой заявки с идентификаторами из IDS
+	-->
+	<sql-query name="com.rssl.phizic.business.documents.payments.LoanCardClaim.findExtendedFields" read-only="true">
+		<return-scalar column="CLAIM_ID" type="long"/>
+		<return-scalar column="NAME"     type="string"/>
+		<return-scalar column="TYPE"     type="string"/>
+		<return-scalar column="VALUE"    type="string"/>
+
+		SELECT CLAIM_ID, NAME, TYPE, VALUE
+		  FROM LOAN_CARD_CLAIM_FIELDS field
+		 WHERE field.CLAIM_ID IN (:ids)
+		   AND field.CREATION_DATE BETWEEN :fromDate AND :toDate
+	</sql-query>
+
+	<!--
+		Опорный элемент:  LOAN_CLAIM_FIELDS_CID_IDX
+		Предикаты доступа:  access("FIELD"."CLAIM_ID"=TO_NUMBER(:IDS))
+		Кардинальность: сумма количеств расширенных полей для каждой заявки с идентификаторами из IDS
+	-->
+    <sql-query name="com.rssl.phizic.business.documents.LoanCardClaim.getById">
+        <return alias="claim" class="com.rssl.phizic.business.documents.payments.LoanCardClaim"/>
+
+        <![CDATA[
+            SELECT {claim.*}
+              FROM LOAN_CARD_CLAIMS claim
+             WHERE claim.ID = :id
+        ]]>
+    </sql-query>
+
+    <!--
+		Определяет наличие уже существующей заявки на кредитную карту
+
+		Опорный элемент: LOAN_CCLAIMS_LICD_IDX
+		Предикаты доступа: access("CLAIMS"."OWNER_LOGIN_ID"=TO_NUMBER(:ID))
+		Кардинальность: 1
+	  -->
+    <sql-query name="com.rssl.phizic.business.documents.LoanCardClaim.isExistDispatchedClaim">
+        <![CDATA[
+        SELECT 1
+          FROM LOAN_CARD_CLAIMS CLAIMS
+         WHERE CLAIMS.STATE_CODE     = 'DISPATCHED'
+           AND CLAIMS.OWNER_LOGIN_ID = :ownerLoginId
+           AND ROWNUM < 2
+           AND CLAIMS.CREATION_DATE BETWEEN TRUNC(CURRENT_DATE - 31) AND CURRENT_DATE
+        ]]>
+    </sql-query>
+
+    <!--
+        Определяет наличие уже существующей заявки на кредитную карту для клиента
+        Опорный элемент: LOAN_CCLAIMS_LICD_IDX
+        Предикаты доступа: access("CLAIM"."OWNER_LOGIN_ID"=TO_NUMBER(:LOGINID) AND  "CLAIM"."CREATION_DATE">=TO_TIMESTAMP(:MAXDISPATCHDATE))
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.LoanCardClaim.isExistLoanCardClaimForClient">
+   		<![CDATA[
+   			SELECT * FROM (
+   			    SELECT 1
+   			        FROM LOAN_CARD_CLAIMS claim
+   			        WHERE claim.OWNER_LOGIN_ID = :loginId AND claim.CREATION_DATE >= :maxDispatchDate
+                    AND (claim.STATE_CODE = 'DISPATCHED' OR claim.STATE_CODE = 'ADOPTED')
+                    )
+   		]]>
+   	</sql-query>
+
+    <!--
+        Определяет наличие уже существующей заявки на кредитную карту для гостя
+        Опорный элемент: LOAN_CCLAIMS_GP
+        Предикаты доступа: access("CLAIM"."OWNER_GUEST_PHONE"=:PHONE)
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.LoanCardClaim.isExistLoanCardClaimForGuest">
+   		<![CDATA[
+   			    SELECT 1 FROM LOAN_CARD_CLAIMS claim
+                    WHERE claim.OWNER_GUEST_PHONE = :phone
+   			        AND  claim.CREATION_DATE >= :maxDispatchDate
+                    AND (claim.STATE_CODE = 'DISPATCHED' OR claim.STATE_CODE = 'ADOPTED')
+                    AND rownum <= 1
+   		]]>
+   	</sql-query>
+
+    <!--
+
+		Опорный элемент: LOAN_CCLAIMS_GICD_IDX
+		Предикаты доступа: access("CLAIM"."OWNER_GUEST_ID"=TO_NUMBER(:OWNERGUESTID) AND "CLAIM"."CREATION_DATE">=:STARTDATE)
+		Кардинальность: 1
+	  -->
+    <sql-query name="com.rssl.phizic.business.documents.LoanCardClaim.getByGuestId">
+        <return-scalar column="DOC_NUMBER" type="string"/>
+        <return-scalar column="DOCUMENT_DATE" type="java.util.Calendar"/>
+        <return-scalar column="STATE_CODE" type="string"/>
+        <return-scalar column="CREDIT_CARD" type="string"/>
+        <return-scalar column="CURRENCY" type="string"/>
+        <return-scalar column="ID" type="java.lang.Long"/>
+        <![CDATA[
+            SELECT claim.DOC_NUMBER, claim.DOCUMENT_DATE, claim.STATE_CODE, claim.CREDIT_CARD, claim.CURRENCY, claim.ID
+               FROM LOAN_CARD_CLAIMS claim
+            WHERE claim.OWNER_GUEST_ID = :ownerGuestId
+               AND claim.OWNER_GUEST_PHONE = :phone
+               AND claim.CREATION_DATE >= :startDate
+   		]]>
+   	</sql-query>
+
+    <!--
+     Поиск заявок на кредитную карту по идентификатору клиента
+     Опорный объект: LOAN_CCLAIMS_LICD_IDX
+     Предикаты доступа: access("CARDCLAIM"."OWNER_LOGIN_ID"=TO_NUMBER(:LOGINID) AND "CARDCLAIM"."CREATION_DATE">=ADD_MONTHS(SYSDATE@!,(-TO_NUMBER(:PERIOD))))
+     Кардинальность: равна кол-ву подхлдящих по условию заявок
+    -->
+    <sql-query name="com.rssl.phizic.business.documents.payments.LoanCardClaim.findByClientLogin">
+        <return alias="claim" class="com.rssl.phizic.business.documents.payments.LoanCardClaim"/>
+        <![CDATA[
+            select {claim.*}
+              from LOAN_CARD_CLAIMS claim
+             where claim.OWNER_LOGIN_ID = :loginId
+               and claim.CREATION_DATE >= add_months(sysdate, - :period)
+               and claim.STATE_CODE != 'DELETED'
+             order by claim.CREATION_DATE desc
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

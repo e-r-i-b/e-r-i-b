@@ -1,0 +1,36 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hobernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizicgate.manager.routing.NodeAndAdapterRelation" table="NODE_ADAPTERS">
+        <id name="id" column="ID">
+            <generator class="native">
+                <param name="sequence">S_NODE_ADAPTERS</param>
+            </generator>
+        </id>
+        <many-to-one name="adapter" column="ADAPTER_ID" class="com.rssl.phizicgate.manager.routing.Adapter" lazy="false" cascade="delete" not-null="true"/>
+        <many-to-one name="node"    column="NODE_ID"    class="com.rssl.phizicgate.manager.routing.Node"    lazy="false" cascade="delete"/>
+    </class>
+
+    <query name="com.rssl.phizicgate.manager.routing.NodeAndAdapterRelation.getNodes">
+        select relations.node
+        from com.rssl.phizicgate.manager.routing.NodeAndAdapterRelation as relations
+        where relations.adapter = :adapter
+    </query>
+        <query name="com.rssl.phizicgate.manager.routing.NodeAndAdapterRelation.getNodesByAdapterId">
+        select relations.node
+        from com.rssl.phizicgate.manager.routing.NodeAndAdapterRelation as relations
+        where relations.adapter.id = :adapter_id
+    </query>
+    <query name="com.rssl.phizicgate.manager.routing.NodeAndAdapterRelation.getNodesByAdapterUUID">
+        select relations.node
+        from com.rssl.phizicgate.manager.routing.NodeAndAdapterRelation as relations
+        where relations.adapter.UUID = :adapter_UUID
+    </query>
+    <query name="com.rssl.phizicgate.manager.routing.NodeAndAdapterRelation.getRelation">
+        select relations
+        from com.rssl.phizicgate.manager.routing.NodeAndAdapterRelation as relations
+        where relations.adapter = :adapter and relations.node = :node
+    </query>
+</hibernate-mapping>

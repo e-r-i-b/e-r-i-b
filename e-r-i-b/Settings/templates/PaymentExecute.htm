@@ -1,0 +1,102 @@
+<html>
+<body>
+<span style="text-align:center; width:100%">
+Уважаемый, ${fullName}!<br/><br/>
+<#list entries as info>
+    <#if info.documentType != "LossPassbookApplicationClaim">
+        <#if info.isLongOffer == "true">
+            <#if info.documentState == 'WAIT_CONFIRM'>
+                <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                    Отмену
+                <#else>
+                    Создание
+                </#if>
+                регулярного платежа по
+            <#elseif info.documentState == 'REFUSED'>
+                <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                    В отмене
+                <#else>
+                    В создании
+                </#if>
+                регулярного платежа по
+            <#else>
+                Регулярный платеж по
+            </#if>
+
+            <#if isCard(info.accountType) >
+                карте ${getCutCardNumber(info.accountNumber)}
+            <#else>
+                счету ${info.accountNumber}
+            </#if>
+
+            <#if info.documentState == 'WAIT_CONFIRM'>
+                необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+            <#elseif info.documentState == 'REFUSED'>
+                отказано банком.
+            <#else>
+                 <#if info.documentType == "RefuseAutoPayment" ||  info.documentType == "RefuseLongOffer" ||  info.documentType == "CloseCardPaymentSystemPaymentLongOffer" ||  info.documentType == "EmployeeCloseCardPaymentSystemPaymentLongOffer">
+                     отменен.
+                 <#else>
+                     создан.
+                 </#if>
+            </#if>
+
+        <#else>
+            <#if info.documentState == 'WAIT_CONFIRM'>
+                Платеж с
+            <#elseif info.documentState == 'REFUSED'>
+                В исполнении платежа с
+            <#else>
+                С
+            </#if>
+
+            <#if isCard(info.accountType) >
+                Вашей карты ${getCutCardNumber(info.accountNumber)}
+            <#else>
+                Вашего счета ${info.accountNumber}
+            </#if>
+
+            <#if info.documentState != 'WAIT_CONFIRM' && info.documentState != 'REFUSED'>
+                произведен платеж
+            </#if>
+            <#if info.recipientAccountNumber?if_exists != "">
+                <#if isCard(info.recipientAccountType) >
+                    на карту ${getCutCardNumber(info.recipientAccountNumber)}
+                <#else>
+                    на счет ${info.recipientAccountNumber}
+                </#if>
+            </#if>
+
+            <#if info.documentState == 'WAIT_CONFIRM'>
+                на сумму ${info.transactionSum} ${info.currency} необходимо подтвердить в контактном центре Банка по телефонам, указанным на банковской карте или сайте Сбербанка.
+            <#elseif info.documentState == 'REFUSED'>
+                на сумму ${info.transactionSum} ${info.currency} отказано банком.
+            <#else>
+                на сумму ${info.transactionSum} ${info.currency}.
+            </#if>
+
+        </#if>
+    <#else>
+        <#if info.documentState == 'REFUSED'>
+            Заявление об утере сберкнижки ${info.accountNumber} отклонено банком.
+        <#else>
+            Ваше заявление об утере сберкнижки ${info.accountNumber} обработано. Остаток получите наличными в банке.
+        </#if>
+    </#if>
+<br/>
+</#list>
+<br/><br/><br/>
+Для получения более подробной информации, а также настройки параметров оповещений Вы можете воспользоваться системой ${bankContext.systemName}</a>.
+<br/><br/><br/>
+Осторожно! Сообщения рассылаемые из "Электронной Сберкассы" никогда не содержат вложенные файлы или ссылки на ресурсы, размещенные в интернете. Любое сообщение от имени "Электронной Сберкассы", содержащее вложенные файлы или ссылки, является подложным. Если Вы получили якобы от "Электронной Сберкассы" сообщение с вложенным файлом, ни в коем случае не открывайте этот файл. Если Вы получили сообщение, в тексте которого, содержатся ссылки, не раскрывайте web-страницы, на которые эти ссылки указывают. Не отвечайте на такие сообщения. Просто удалите их.
+<br/><br/><br/>
+</span>
+<span style="font-size:10pt">Дата и время составления отчета: ${reportTime.time?string("dd.MM.yyyy HH:mm:ss")}</span>
+<br/><br/><br/>
+С уважением,
+${bankContext.bankName}<br/>
+Адрес: ${bankContext.bankAddress}<br/>
+Телефон: ${bankContext.bankPhone}<br/>
+${bankContext.webUrl}</a>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <!--Получение списка оповещений о превышении количества синхронизаций адресной книги за период с :FROMDATE по :TODATE-->
+    <!-- Опорный объект: I_CONTACT_SYNC_EXCEED_DATE
+         Предикаты доступа: даты посторения выписки
+                               access("LOGENTITY"."SYNC_DATE">=TO_TIMESTAMP(:EXTRA_FROMDATE) AND
+                                      "LOGENTITY"."SYNC_DATE"<=TO_TIMESTAMP(:EXTRA_TODATE))
+         Кардинальность: min(количество превышений синхронизаций за период, размер пагинации на странице).
+    -->
+    <sql-query name="com.rssl.phizic.operations.addressBook.reports.AddressBookSyncCountExceedReportOperation.list">
+        <return alias="logEntity" class="com.rssl.phizic.logging.contact.synchronization.ContactSyncCountExceedLog"/>
+        <![CDATA[
+            SELECT
+                {logEntity.*}
+            FROM
+                CONTACT_SYNC_COUNT_EXCEED_LOG logEntity
+            WHERE
+                logEntity.SYNC_DATE >= :extra_fromDate
+                AND logEntity.SYNC_DATE <= :extra_toDate
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

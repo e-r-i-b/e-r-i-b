@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+          "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+          "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<sql-query name="com.rssl.phizic.operations.dictionaries.provider.ListServiceProvidersOperation.list">
+        <return alias="serviceProvider" class="com.rssl.phizic.business.dictionaries.providers.ServiceProviderBase"/>
+        SELECT
+            {serviceProvider.*}
+        FROM
+            SERVICE_PROVIDERS serviceProvider
+        WHERE
+              ((:extra_regionId is null) or
+               (serviceProvider.ID in (
+                                        select id from service_providers
+                                        minus
+                                        select service_provider_id from service_provider_regions
+                                        union all
+                                        select spr.service_provider_id
+                                       from
+                                            (select id from regions start with id=:extra_regionId connect by id = prior parent_id) region_ids,
+                                            service_provider_regions spr
+                                        where spr.region_id = region_ids.id)
+                                        )
+            ) and
+              ((:extra_paymentServiceId is null) or
+               serviceProvider.ID in (select  spps.SERVICE_PROVIDER_ID
+                                       from SERV_PROVIDER_PAYMENT_SERV spps
+                                       where spps.PAYMENT_SERVICE_ID = :extra_paymentServiceId) or
+               (serviceProvider.ID in (SELECT spps.SERVICE_PROVIDER_ID
+                                       FROM PAYMENT_SERV_PARENTS paymentService LEFT JOIN SERV_PROVIDER_PAYMENT_SERV spps ON spps.PAYMENT_SERVICE_ID = paymentService.SERVICE_ID
+                                       START WITH paymentService.PARENT_ID = :extra_paymentServiceId
+                                       CONNECT BY PRIOR paymentService.SERVICE_ID =  paymentService.PARENT_ID))
+              ) and
+              ((:extra_name is null)    or (:extra_name = '')    or (upper(serviceProvider.NAME)    like upper(:extra_like_name))) and
+              ((:extra_account is null) or (:extra_account = '') or (upper(serviceProvider.ACCOUNT) like upper(:extra_like_account))) and
+              ((:extra_INN is null)     or (:extra_INN = '')     or (upper(serviceProvider.INN)     like upper(:extra_like_INN))) and
+              ((:extra_departmentId is null) or
+                  exists(
+                    select 1 FROM
+                        DEPARTMENTS providerDep,
+                        DEPARTMENTS selectedDep
+                    where
+                      selectedDep.ID = :extra_departmentId AND
+                      providerDep.ID = serviceProvider.DEPARTMENT_ID AND
+                      selectedDep.tb = providerDep.tb AND
+                      (selectedDep.OSB is NULL or selectedDep.OSB= providerDep.OSB) AND
+                      (selectedDep.OFFICE is NULL or selectedDep.OFFICE = providerDep.OFFICE)
+                  )
+              )and
+              ((:extra_billingId is null) or (:extra_billingId = '') or (serviceProvider.BILLING_ID = :extra_billingId)) and
+              ((:extra_state is null) or (:extra_state = '') or (serviceProvider.state = :extra_state)) and
+              ((:extra_kind is null) or (:extra_kind = '') or (serviceProvider.kind = :extra_kind))
+    </sql-query>
+</hibernate-mapping>

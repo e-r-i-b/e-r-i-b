@@ -1,0 +1,119 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="FundResponseState">
+        <param name="enumClass">com.rssl.phizic.common.types.fund.FundResponseState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.fund.initiator.FundInitiatorResponse" table="FUND_INITIATOR_RESPONSES">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_FUND_INITIATOR_RESPONSES</param>
+            </generator>
+        </id>
+
+        <property name="externalId"                 type="string"                   column="EXTERNAL_ID"                not-null="true"/>
+        <property name="requestId"                  type="long"                     column="REQUEST_ID"                 not-null="true"/>
+        <property name="phone"                      type="string"                   column="PHONE"                      not-null="true"/>
+        <property name="state"                      type="FundResponseState"        column="STATE"                      not-null="true"/>
+        <property name="sum"                        type="big_decimal"              column="SUM"                        not-null="false"/>
+        <property name="message"                    type="string"                   column="MESSAGE"                    not-null="false"/>
+        <property name="createdDate"                type="calendar"                 column="CREATED_DATE"               not-null="true"/>
+        <property name="accumulated"                type="boolean"                  column="ACCUMULATED"                not-null="true"/>
+        <property name="firstName"                  type="string"                   column="FIRST_NAME"                 not-null="false"/>
+        <property name="surName"                    type="string"                   column="SUR_NAME"                   not-null="false"/>
+        <property name="patrName"                   type="string"                   column="PATR_NAME"                  not-null="false"/>
+    </class>
+
+    <!--Получить результаты обработки запроса на сбор средств
+        Опорный элемент: I_FUND_I_RESPONSES_REQUEST
+        Предикаты доступа: access("REQUEST_ID"=TO_NUMBER(:REQUEST_ID))
+        Кардинальность: 1-100 (100 лимит на количество получателей в сутки)
+    -->
+    <query name="com.rssl.phizic.business.fund.initiator.FundInitiatorResponse.getByRequestId">
+        select response from com.rssl.phizic.business.fund.initiator.FundInitiatorResponse response
+        where response.requestId = :request_id
+    </query>
+
+    <!--Обновить информацию о результате обработки запроса
+        Опорный объект: I_FUND_I_RESPONSES_EXT_ID
+        Предикаты доступа: access("EXTERNAL_ID"=:EXTERNAL_ID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.fund.initiator.FundInitiatorResponse.updateInfo">
+        update FUND_INITIATOR_RESPONSES updated_response
+        set
+            updated_response.STATE = :extra_state,
+            updated_response.SUM = :extra_sum,
+            updated_response.MESSAGE = :extra_message
+        where updated_response.EXTERNAL_ID = :extra_external_id
+    </sql-query>
+
+    <!--Обновить ФИО отправителя денег в результате обработки запроса
+        Опорный объект: I_FUND_I_RESPONSES_EXT_ID
+        Предикаты доступа: access("EXTERNAL_ID"=:EXTERNAL_ID)
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.fund.initiator.FundInitiatorResponse.updateFIO">
+        update com.rssl.phizic.business.fund.initiator.FundInitiatorResponse response
+        set
+            response.firstName = :first_name,
+            response.surName = :sur_name,
+            response.patrName = :patr_name
+        where response.externalId = :external_id
+    </query>
+
+    <!--Обновить информацию о результате обработки запроса с учетом необходимой суммы
+        Опорный объект: I_FUND_I_RESPONSES_EXT_ID
+        Предикаты доступа: access("EXTERNAL_ID"=:EXTERNAL_ID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.fund.initiator.FundInitiatorResponse.updateInfoBySum">
+        <![CDATA[
+            update FUND_INITIATOR_RESPONSES updated_response
+            set
+                updated_response.STATE = :extra_state,
+                updated_response.SUM = :extra_sum,
+                updated_response.MESSAGE = :extra_message,
+                updated_response.ACCUMULATED = (
+                    case when (
+                            select nvl(sum(resp.SUM),0)
+                            from FUND_INITIATOR_RESPONSES resp
+                            where
+                                resp.REQUEST_ID = updated_response.REQUEST_ID and
+                                resp.STATE = 'SUCCESS'
+                        ) < :extra_calculated_sum
+                        then '0'
+                        else '1'
+                    end
+                )
+            where updated_response.EXTERNAL_ID = :extra_external_id
+        ]]>
+    </sql-query>
+
+    <!--сбросить признак ответов, что необходимая сумма набрана
+        Опорный элемент: I_FUND_I_ACCUMULATED
+        Предикаты доступа: access(DECODE("ACCUMULATED",'1',"REQUEST_ID",NULL)=TO_NUMBER(:REQUEST_ID))
+        Кардинальность: количество ответов, добравших общую сумму до необходимой (не может быть больше ограничения на количество участников запроса в сутки, сейчас 100)
+    -->
+    <query name="com.rssl.phizic.business.fund.initiator.FundInitiatorResponse.resetAccumulatedByRequestId">
+        update com.rssl.phizic.business.fund.initiator.FundInitiatorResponse response
+        set response.accumulated = '0'
+        where decode(response.accumulated,'1',response.requestId,null) = :request_id
+    </query>
+
+    <!--посчитать общую накопленную сумму
+        Опорный элемент: I_FUND_I_RESPONSES_REQUEST
+        Предикаты доступа: access("RESP"."REQUEST_ID"=TO_NUMBER(:REQUEST_ID) AND "RESP"."STATE"='SUCCESS')
+        Кардинальность: количество удовлетворенных ответов (максимальное число равно числу участников запроса, не может быть больше суточного лимита, текущее значение 100)
+    -->
+    <query name="com.rssl.phizic.business.fund.initiator.FundInitiatorResponse.getAccumulatedSum">
+        select nvl(sum(resp.sum),0)
+        from com.rssl.phizic.business.fund.initiator.FundInitiatorResponse resp
+        where
+            resp.requestId = :request_id and
+            resp.state = 'SUCCESS'
+    </query>
+</hibernate-mapping>

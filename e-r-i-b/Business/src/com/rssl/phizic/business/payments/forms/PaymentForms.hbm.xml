@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.payments.forms.meta.MetadataBean" table="PAYMENTFORMS" abstract="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PAYMENTFORMS</param>
+            </generator>
+        </id>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="description" type="string" column="DESCRIPTION" not-null="true"/>
+        <property name="definition" type="string" column="DEFINITION" not-null="true"/>
+        <property name="xmlTransformation" type="string" column="XML_TRANSFORMATION" not-null="true"/>
+	    <property name="stateMachine" type="string" column="STATE_MACHINE" not-null="false"/>
+	    <property name="templateStateMachine" type="string" column="TEMPLATE_STATE_MACHINE" not-null="false"/>
+
+	    <list name="templates" table="FORM_TEMPLATES" lazy="false">
+		  <key column="FORM_ID"/>
+		  <list-index column="LIST_INDEX"/>
+          <many-to-many class="com.rssl.phizic.business.template.DocTemplate" unique="true" column="TEMPLATE_ID"/>
+        </list>
+
+	    <list name="packages" table="FORM_PACKAGES" lazy="false">
+		  <key column="FORM_ID"/>
+		  <list-index column="LIST_INDEX"/>
+          <many-to-many class="com.rssl.phizic.business.template.PackageTemplate" unique="true" column="PACKAGE_ID"/>
+        </list>
+    </class>
+
+    <query name="GetPaymentFormByName">
+        select metadata from com.rssl.phizic.business.payments.forms.meta.MetadataBean metadata where metadata.name = :name
+    </query>
+
+    <sql-query name="GetPaymentFormLight">
+        <return-scalar column="id" type="java.lang.Long"/>
+        <return-scalar column="name" type="java.lang.String"/>
+        <return-scalar column="description" type="java.lang.String"/>
+        <![CDATA[
+        select id, name, description from PAYMENTFORMS
+        ]]>
+    </sql-query>
+</hibernate-mapping>

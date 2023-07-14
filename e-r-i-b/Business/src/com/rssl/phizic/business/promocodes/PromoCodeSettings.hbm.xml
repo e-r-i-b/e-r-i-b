@@ -1,0 +1,28 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.promocodes.PromoCodeSettings" table="PROMO_CODE_SETTINGS">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PROMO_CODE_SETTINGS</param>
+            </generator>
+        </id>
+
+        <many-to-one name="terbank"  column="TB_ID"    class="com.rssl.phizic.business.departments.Department"  lazy="false"/>
+        <property name="startDate"   type="calendar"   column="START_DATE" not-null="true"/>
+        <property name="endDate"     type="calendar"   column="END_DATE"   not-null="false"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.promocodes.PromoCodeService.existPromoAction">
+     <![CDATA[
+        select 1
+        from PromoCodeSettings as settings
+        where settings.terbank.id = :TBId
+          and  settings.startDate <= :date
+          and (settings.endDate = null or settings.endDate > :date )
+     ]]>
+    </query>
+</hibernate-mapping>

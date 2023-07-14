@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="EditInvoiceSubscriptionClaim" description="Редактирование подписки на инвойсы"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.EditInvoiceSubscriptionClaim"/>
+	<statemachine name="EditInvoiceSubscriptionClaim"/>
+    <extended-metadata-loader class="com.rssl.phizic.business.payments.forms.meta.basket.CreateInvoiceSubscriptionClaimMetadataLoader"/>
+	<fields>
+        <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true"/>
+
+         <field name="documentDate"
+                description="Дата документа"
+                type="date"
+                source="document-date"
+                signable="true"/>
+
+        <field  name="documentTime"
+                description="Время документа"
+                source="document-time"
+                type="string">
+        </field>
+
+        <field  name="nameService"
+                description="Наименование услуги в биллинговой системе"
+                type="string"
+                source="extra-parameters/parameter[@name='nameService']/@value">
+        </field>
+
+        <field  name="codeService"
+                description="Идентификатор услуги в биллинговой системе"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='codeService']/@value">
+        </field>
+
+        <field  name="groupService"
+                description="Код группы услуг"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='provider-group-service']/@value">
+        </field>
+
+        <field  name="receiverINN"
+                description="ИНН"
+                type="string"
+                source="extra-parameters/parameter[@name='receiver-inn']/@value"
+                signable="true">
+        </field>
+
+        <field  name="receiverKPP"
+                description="КПП"
+                type="string"
+                source="extra-parameters/parameter[@name='receiver-kpp']/@value"
+                signable="true">
+        </field>
+
+        <field  name="receiverAccount"
+                description="Счет зачисления"
+                type="string"
+                source="receiver-account"
+                signable="true">
+        </field>
+
+        <field  name="receiverBIC"
+                description="БИК"
+                type="string"
+                source="extra-parameters/parameter[@name='receiver-bic']/@value"
+                signable="true">
+        </field>
+
+		<field  name="receiverCorAccount"
+                description="Кор.Счет"
+                type="string"
+                source="extra-parameters/parameter[@name='receiver-cor-account']/@value"
+                signable="true">
+        </field>
+
+        <field  name="receiverOfficeRegionCode"
+                description="Офис получателя"
+                type="string"
+                source="extra-parameters/parameter[@name='receiver-office-region-code']/@value"
+                signable="true">
+        </field>
+
+        <field name="invoiceAccountName"
+               description="Название выставляемого счета"
+               source="extra-parameters/parameter[@name='invoice-account-name']/@value"
+               type="string"/>
+
+        <field  name="recipient"
+                description="Идентифкатор поставщика услуг"
+                type="long"
+                source="recipient">
+        </field>
+
+        <field  name="billingCode"
+                description="Идентфикатор билинговой системы"
+                type="string"
+                source="extra-parameters/parameter[@name='provider-billing-code']/@value">
+        </field>
+
+        <field  name="bankDetails"
+                description="Банковские реквизиты"
+                type="boolean"
+                subType="static"
+                source="extra-parameters/parameter[@name='bank-details']/@value">
+        </field>
+
+        <field  name="receiverBankName"
+                description="Наименование банка Получателя"
+                type="string"
+                source="extra-parameters/parameter[@name='receiver-bank']/@value"
+                signable="true">
+        </field>
+
+        <field  name="phoneNumber"
+                description="Телефон для обращений клиентов"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='receiver-phone-number']/@value">
+        </field>
+
+        <field  name="receiverName"
+                description="Наименование получателя"
+                type="string"
+                source="receiver-name">
+        </field>
+
+        <field  name="receiverId"
+                description="Внешний идентификатор получателя"
+                type="string"
+                source="receiverId">
+        </field>
+
+        <field  name="destinationCurrency"
+                description="Валюта"
+                source="destination-amount-currency"
+                type="string"
+                signable="true">
+        </field>
+
+        <field name="autoSubNumber"
+               source="extra-parameters/parameter[@name='autoPay-number']/@value"
+               description="Номер автоплатежа"
+               type="string"/>
+
+        <field  name="autoSubSumType"
+                description="Тип суммы исполения регулярного платежа"
+                type="string"
+                source="extra-parameters/parameter[@name='long-offer-sum-type']/@value"
+                value="'BY_BILLING'"
+                signable="true">
+        </field>
+
+        <field name="subscriptionName"
+               source="extra-parameters/parameter[@name='subscription-name']/@value"
+               type="string"
+               description="Наименование подписки">
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="document|prepare-long-offer|long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message   text="Наименование автоплатежа не должно превышать 20 символов. Пожалуйста, введите другое название."/>
+                    <parameter name="regexp">^.{0,20}$</parameter>
+                </validator>
+                <validator mode="document|prepare-long-offer|long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Вы указали недопустимые символы. В наименовании можно использовать буквы лат. алфавита, кириллицы, пробел, цифры, ?, !, *, &quot;, двоеточие, точку, запятую, точку с запятой или тире."/>
+                    <parameter name="regexp">[^\|&amp;&amp;a-zA-Z|а-я\u0451А-Я\u0401|0-9|\\|\*|,|\.|;|\!|\?|:|"|\-| ]*</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Источник списания средств: счет, карта"
+                type="resource">
+            <validators>
+                <validator mode="document|prepare-long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="document|prepare-long-offer" class="com.rssl.phizic.business.payments.forms.validators.CheckResourceVisibilityValidator"/>
+            </validators>
+        </field>
+
+        <field  name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+		<field  name="fromAccountSelect"
+                description="Счет/карта списания"
+                type="string"
+                source="payer-account"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getNumber()">
+		</field>
+
+        <field  name="fromAccountType"
+                source="extra-parameters/parameter[@name='from-account-type']/@value"
+                description="Тип (описание) источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getValue().getDescription()">
+        </field>
+
+        <field  name="fromAccountName"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                description="Наименование источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getName()">
+        </field>
+
+        <field  name="fromResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                type="string"
+                value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+                signable="true">
+        </field>
+
+        <field  name="fromResourceLink"
+                source="extra-parameters/parameter[@name='from-resource-link']/@value"
+                description="Ссылка на ресурс списания"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getCode()">
+        </field>
+
+        <field  name="oldSubscriptionName"
+                description="Старое наименование подписки"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='old-subscription-name']/@value">
+		</field>
+
+        <field name="groupName"
+               description="Наименование группы услуг"
+               source="extra-parameters/parameter[@name='group-name']/@value"
+               type="string"/>
+
+        <field  name="accountingEntityId"
+                description="Идентификатор объекта учета"
+                type="long"
+                source="extra-parameters/parameter[@name='account-entity-id']/@value">
+		</field>
+
+        <field  name="oldAccountingEntityId"
+                description="Идентификатор старого объекта учета"
+                type="long"
+                subType="static"
+                source="extra-parameters/parameter[@name='old-account-entity-id']/@value">
+		</field>
+
+        <field  name="oldFromResource"
+                description="Старый источник списания"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='old-from-resource']/@value">
+		</field>
+
+        <field  name="dayPay"
+                description="День платежа"
+                type="date"
+                source="extra-parameters/parameter[@name='day-pay']/@value">
+		</field>
+
+        <field  name="oldDayPay"
+                description="Старый день платежа"
+                type="date"
+                subType="static"
+                source="extra-parameters/parameter[@name='old-day-pay']/@value">
+		</field>
+
+        <field name="invoiceInfo"
+               description="Информация о выставлениии счета по данной услуге"
+               source="extra-parameters/parameter[@name='invoice-info']/@value"
+               type="string"/>
+
+        <field  name="eventType"
+                description="Тип платежа"
+                type="string"
+                source="extra-parameters/parameter[@name='long-offer-event-type']/@value">
+		</field>
+
+        <field  name="oldEventType"
+                description="Тип платежа"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='old-event-type']/@value">
+		</field>
+
+        <field name="subscriptionId"
+               source="extra-parameters/parameter[@name='invoice-sub-id']/@value"
+               type="long"
+               description="Идентификатор подписки"/>
+
+        <field  name="state"
+                source="state"
+                description="Статус платежа"
+                type="string">
+        </field>
+
+        <field  name="isAutoSubExecuteNow"
+                source="extra-parameters/parameter[@name='is-auto-sub-execution-now']/@value"
+                description="Исполнить сразу"
+                type="boolean"
+                value="true"/>
+	</fields>
+
+	<form-validators>
+        <form-validator mode="document|prepare-long-offer|long-offer" class="com.rssl.phizic.business.payments.forms.validators.NotArrestedProductValidator">
+			<field-ref name="fromResource">fromResource</field-ref>
+		</form-validator>
+
+        <form-validator mode="document|prepare-long-offer|long-offer" class="com.rssl.phizic.business.payments.forms.validators.FromResourceFilterValidator"
+                        enabled="form.fromResourceType == 'com.rssl.phizic.business.resources.external.CardLink'">
+            <message text="Вы не можете создать платеж по выбранной карте. Пожалуйста, создайте новый платеж."/>
+			<field-ref name="fromResource">fromResource</field-ref>
+		</form-validator>
+
+        <form-validator  mode="document|prepare-long-offer|long-offer" class="com.rssl.phizic.business.payments.forms.validators.BillingPaymentChargeOffCardValidator">
+            <message text="Вы не можете создать платеж по выбранной карте. Пожалуйста, выберите другую карту."/>
+			<field-ref name="fromResource">fromResource</field-ref>
+            <field-ref name="recipient">recipient</field-ref>
+        </form-validator>
+    </form-validators>
+</payment-form>

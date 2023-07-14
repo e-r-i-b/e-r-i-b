@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+    <xsd:element name="Request" type="RequestType"/>
+    <xsd:element name="Response" type="ResponseType"/>
+
+    <xsd:complexType name="RequestType">
+        <xsd:sequence>
+            <xsd:element name="RqUID"       type="UUIDType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="RqTm"        type="DateTime"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="OperUID"     type="OUUIDType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Data"        type="RequestData"  minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResponseType">
+        <xsd:sequence>
+            <xsd:element name="RqUID"   type="UUIDType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="RqTm"    type="DateTime"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="OperUID" type="OUUIDType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Status"  type="StatusType"   minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Data"    type="ResponseData" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="DateTime">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для представления дат</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+
+    <xsd:simpleType name="UUIDType">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для UUID</xsd:documentation>
+		</xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="OUUIDType">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для OUUID</xsd:documentation>
+		</xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="StatusCodeType">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для кода статуса ответа</xsd:documentation>
+		</xsd:annotation>
+        <xsd:restriction base="xsd:long"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="StatusDescType">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для описания статуса ответа</xsd:documentation>
+		</xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="255"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="StatusType">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для статуса ответа</xsd:documentation>
+		</xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="StatusCode" type="StatusCodeType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="StatusDesc" type="StatusDescType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RequestData">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для данных запроса</xsd:documentation>
+		</xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="GetStoredMDMIdRq"         type="GetStoredMDMIdParametersType"         minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetExternalSystemMDMIdRq" type="GetExternalSystemMDMIdParametersType" minOccurs="1" maxOccurs="1"/>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResponseData">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для данных ответа</xsd:documentation>
+		</xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="GetStoredMDMIdRs"         type="GetStoredMDMIdResultType"         minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetExternalSystemMDMIdRs" type="GetExternalSystemMDMIdResultType" minOccurs="1" maxOccurs="1"/>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetStoredMDMIdParametersType">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для данных запроса поиска mdm_id в БД</xsd:documentation>
+		</xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="innerId" type="xsd:long" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetStoredMDMIdResultType">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для данных ответа поиска mdm_id в БД</xsd:documentation>
+		</xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="mdmId" type="xsd:string" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetExternalSystemMDMIdParametersType">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для данных запроса поиска mdm_id во вншней системе</xsd:documentation>
+		</xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="innerId"         type="xsd:long"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="lastName"        type="xsd:string"   minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="firstName"       type="xsd:string"   minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="middleName"      type="xsd:string"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="birthday"        type="DateTime"     minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="cardNum"         type="xsd:string"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="documentSeries"  type="xsd:string"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="documentNumber"  type="xsd:string"   minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="documentType"    type="xsd:string"   minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetExternalSystemMDMIdResultType">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для данных ответа поиска mdm_id во вншней системе</xsd:documentation>
+		</xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="mdmId" type="xsd:string" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

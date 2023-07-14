@@ -1,0 +1,260 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--
+            объект запроса ClientAccPhRq.
+    -->
+    <class name="com.rssl.phizic.test.mbvmock.ClientAccPh" table="CLIENT_ACC_PH">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CLIENT_ACC_PH</param>
+            </generator>
+        </id>
+
+        <property name="birthday" type="calendar" column="BIRTHDAY" not-null="true"/>
+        <property name="firstName" type="string" column="FIRST_NAME" not-null="true"/>
+        <property name="lastName" type="string" column="SUR_NAME" not-null="true"/>
+        <property name="middleName" type="string" column="PATR_NAME" not-null="false"/>
+        <property name="idType" type="string" column="DOC_TYPE" not-null="true"/>
+        <property name="idSeries" type="string" column="DOC_SERIES" not-null="false"/>
+        <property name="idNum" type="string" column="DOC_NUMBER" not-null="true"/>
+        <property name="retCode" type="string" column="RET_CODE" not-null="true"/>
+        <property name="resultMessage" type="string" column="RESULT_MESSAGE" not-null="false"/>
+
+        <set name="phones"
+             table="CLIENT_ACC_PH_PHONE"
+             cascade="all-delete-orphan"
+             lazy="false"
+             inverse="true"
+             fetch="join">
+            <key column="CLIENT_ID" not-null="true"/>
+            <one-to-many class="com.rssl.phizic.test.mbvmock.ClinetPhone"/>
+        </set>
+
+        <set name="accNumbers"
+             table="CLIENT_ACC_PH_ACC"
+             cascade="all-delete-orphan"
+             lazy="false"
+             inverse="true"
+             fetch="join">
+            <key column="CLIENT_ID" not-null="true"/>
+            <one-to-many class="com.rssl.phizic.test.mbvmock.ClinetAcc"/>
+        </set>
+    </class>
+    <!--
+          + телефоны (ClientAccPhRq)
+    -->
+    <class name="com.rssl.phizic.test.mbvmock.ClinetPhone" table="CLIENT_ACC_PH_PHONE">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CLIENT_ACC_PH_PHONE</param>
+            </generator>
+        </id>
+        <property name="lastUsageDateTime" type="calendar" column="USAGE_DATE" not-null="false"/>
+        <property name="phoneNumber" type="string" column="PHONE_NUMBER" not-null="true"/>
+    </class>
+    <!--
+         + вклады (ClientAccPhRq)
+   -->
+    <class name="com.rssl.phizic.test.mbvmock.ClinetAcc" table="CLIENT_ACC_PH_ACC">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CLIENT_ACC_PH_ACC</param>
+            </generator>
+        </id>
+        <property name="accNumber" type="string" column="CLIENT_ACC_NUMBER" not-null="true"/>
+    </class>
+    <!--
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <!--
+        объект запроса getGetClientByPhone.
+   -->
+    <class name="com.rssl.phizic.test.mbvmock.GetClientByPhone" table="GET_CLIENT_BY_PHONE">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_GET_CLIENT_BY_PHONE</param>
+            </generator>
+        </id>
+        <property name="retCode" type="string" column="RET_CODE" not-null="true"/>
+        <property name="resultMessage" type="string" column="RESULT_MESSAGE" not-null="false"/>
+        <property name="phoneNumber" type="string" column="PHONE_NUMBER" not-null="true"/>
+
+        <set name="clientIdentity"
+             table="GET_CLIENT_BY_PHONE_IDENTITY"
+             cascade="all-delete-orphan"
+             lazy="false"
+             inverse="true"
+             fetch="join">
+            <key column="PHONE_ID" not-null="true"/>
+            <one-to-many class="com.rssl.phizic.test.mbvmock.GetClientByPhoneClientIdintity"/>
+        </set>
+    </class>
+
+    <class name="com.rssl.phizic.test.mbvmock.GetClientByPhoneClientIdintity" table="GET_CLIENT_BY_PHONE_IDENTITY">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_GET_CLIENT_BY_PHONE_IDENTITY</param>
+            </generator>
+        </id>
+        <property name="birthday" type="calendar" column="BIRTHDAY" not-null="true"/>
+        <property name="firstName" type="string" column="FIRST_NAME" not-null="true"/>
+        <property name="lastName" type="string" column="SUR_NAME" not-null="true"/>
+        <property name="middleName" type="string" column="PATR_NAME" not-null="false"/>
+        <property name="idType" type="string" column="DOC_TYPE" not-null="true"/>
+        <property name="idSeries" type="string" column="DOC_SERIES" not-null="false"/>
+        <property name="idNum" type="string" column="DOC_NUMBER" not-null="true"/>
+    </class>
+    <!--
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <!--
+      объект запроса BeginMigration.
+    -->
+    <class name="com.rssl.phizic.test.mbvmock.BeginMigration" table="BEGIN_MIGRATION">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_BEGIN_MIGRATION</param>
+            </generator>
+        </id>
+        <property name="birthday" type="calendar" column="BIRTHDAY" not-null="true"/>
+        <property name="firstName" type="string" column="FIRST_NAME" not-null="true"/>
+        <property name="lastName" type="string" column="SUR_NAME" not-null="true"/>
+        <property name="middleName" type="string" column="PATR_NAME" not-null="false"/>
+        <property name="idType" type="string" column="DOC_TYPE" not-null="true"/>
+        <property name="idSeries" type="string" column="DOC_SERIES" not-null="false"/>
+        <property name="idNum" type="string" column="DOC_NUMBER" not-null="true"/>
+        <property name="retCode" type="string" column="RET_CODE" not-null="true"/>
+        <property name="resultMessage" type="string" column="RESULT_MESSAGE" not-null="false"/>
+        <property name="migrationId" type="string" column="MIGRATION_ID" not-null="false"/>
+    </class>
+    <!--
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <!--
+     объект запроса CommitMigration.
+    -->
+    <class name="com.rssl.phizic.test.mbvmock.CommitMigration" table="COMMIT_MIGRATION">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_COMMIT_MIGRATION</param>
+            </generator>
+        </id>
+        <property name="migrationId" type="string" column="MIGRATION_ID" not-null="false"/>
+        <property name="retCode" type="string" column="RET_CODE" not-null="true"/>
+        <property name="resultMessage" type="string" column="RESULT_MESSAGE" not-null="false"/>
+        <property name="disconnectTime" type="calendar" column="DISCONNECT_TIME" not-null="false"/>
+    </class>
+    <!--
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <!--
+        объект запроса RollbackMigration.
+    -->
+    <class name="com.rssl.phizic.test.mbvmock.RollbackMigration" table="ROLLBACK_MIGRATION">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_ROLLBACK_MIGRATION</param>
+            </generator>
+        </id>
+        <property name="migrationId" type="string" column="MIGRATION_ID" not-null="false"/>
+        <property name="retCode" type="string" column="RET_CODE" not-null="true"/>
+        <property name="resultMessage" type="string" column="RESULT_MESSAGE" not-null="false"/>
+    </class>
+    <!--
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <!--
+        объект запроса ReverseMigration.
+    -->
+    <class name="com.rssl.phizic.test.mbvmock.ReverseMigration" table="REVERSE_MIGRATION">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_REVERSE_MIGRATION</param>
+            </generator>
+        </id>
+        <property name="migrationId" type="string" column="MIGRATION_ID" not-null="false"/>
+        <property name="retCode" type="string" column="RET_CODE" not-null="true"/>
+        <property name="resultMessage" type="string" column="RESULT_MESSAGE" not-null="false"/>
+    </class>
+    <!--
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <!--
+        объект запроса DiscByPhone.
+    -->
+    <class name="com.rssl.phizic.test.mbvmock.DiscByPhone" table="DISC_BY_PHONE">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DISC_BY_PHONE</param>
+            </generator>
+        </id>
+        <property name="retCode" type="string" column="RET_CODE" not-null="true"/>
+        <property name="resultMessage" type="string" column="RESULT_MESSAGE" not-null="false"/>
+        <property name="phoneNumber" type="string" column="PHONE_NUMBER" not-null="true"/>
+    </class>
+    <!--
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    -->
+    <query name="com.rssl.phizic.test.mbvmock.MbvMockService.getGetClientByPhone">
+        select idenPhone
+        from GetClientByPhone as idenPhone
+        where idenPhone.phoneNumber = :phoneNumber
+    </query>
+
+    <query name="com.rssl.phizic.test.mbvmock.MbvMockService.getDiscByPhone">
+        select disckPhone
+        from DiscByPhone as disckPhone
+        where disckPhone.phoneNumber = :phoneNumber
+    </query>
+
+    <query name="com.rssl.phizic.test.mbvmock.MbvMockService.getClientAccPhRq">
+        select res
+        from ClientAccPh as res
+        where upper(concat(replace(res.lastName,' ',''),concat(replace(res.firstName,' ',''),
+        replace(res.middleName,' ','')))) = :FIO
+        and res.birthday = :birthday
+        and res.idType = :docType
+        and res.idSeries = :docSeries
+        and res.idNum = :docNum
+    </query>
+
+    <query name="com.rssl.phizic.test.mbvmock.MbvMockService.getBeginMigration">
+        select res
+        from BeginMigration as res
+        where upper(concat(replace(res.lastName,' ',''),concat(replace(res.firstName,' ',''),
+        replace(res.middleName,' ','')))) = :FIO
+        and res.birthday = :birthday
+        and res.idType = :docType
+        and res.idSeries = :docSeries
+        and res.idNum = :docNum
+    </query>
+
+    <query name="com.rssl.phizic.test.mbvmock.MbvMockService.getCommitMigration">
+        select res
+        from CommitMigration as res
+        where res.migrationId = :migId
+    </query>
+
+    <query name="com.rssl.phizic.test.mbvmock.MbvMockService.getRollbackMigration">
+        select res
+        from RollbackMigration as res
+        where res.migrationId = :migId
+    </query>
+
+    <query name="com.rssl.phizic.test.mbvmock.MbvMockService.getReverseMigration">
+        select res
+        from ReverseMigration as res
+        where res.migrationId = :migId
+    </query>
+</hibernate-mapping>

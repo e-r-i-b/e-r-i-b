@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://ws.rsa.msk.ru/ActivityEngine/" xmlns:tns="http://ws.rsa.msk.ru/ActivityEngine/" elementFormDefault="qualified">
+
+    <complexType name="updateActivityRequestType">
+        <annotation>
+           <documentation>Обновить резолюцию события</documentation>
+        </annotation>
+        <sequence>
+          <element name="eventId" maxOccurs="1" minOccurs="1" type="string">
+                <annotation>
+                   <documentation>Идентификатор события</documentation>
+                </annotation>
+          </element>
+          <element name="resolution" type="tns:ResolutionTypeList" maxOccurs="1" minOccurs="1">
+             <annotation>
+                <documentation>Решение по обновляемому событию</documentation>
+             </annotation></element>
+          <element name="operatorUserName" type="string" maxOccurs="1" minOccurs="0">
+             <annotation>
+                <documentation>Имя пользователя оператора, связаного с кейсом</documentation>
+             </annotation></element>
+          <element name="description" type="string" maxOccurs="1" minOccurs="0">
+             <annotation>
+                <documentation>Описание причины установки статуса</documentation>
+             </annotation></element>
+          <element name="login" maxOccurs="1" minOccurs="1">
+             <annotation>
+                <documentation>Идентификатор пользователя системы с правами работы в casemanagment.</documentation>
+             </annotation>
+             <simpleType>
+                <restriction base="string">
+                   <minLength value="1"></minLength>
+                   <maxLength value="50"></maxLength>
+                </restriction>
+             </simpleType>
+          </element>
+          <element name="password" maxOccurs="1" minOccurs="1">
+             <annotation>
+                <documentation>Пароль пользователя системы фрод-мониторинга, от имени которого отправляется запрос</documentation>
+             </annotation>
+             <simpleType>
+                <restriction base="string">
+                   <minLength value="1"></minLength>
+                   <maxLength value="50"></maxLength>
+                </restriction>
+             </simpleType>
+          </element>
+       </sequence>
+    </complexType>
+
+    <complexType name="updateActivityResponseType">
+        <annotation>
+           <documentation>Результат обновления резолюции события</documentation>
+        </annotation>
+        <sequence>
+          <element name="return" type="tns:ReturnTypeList">
+             <annotation>
+                <documentation>Статус запроса</documentation>
+             </annotation></element>
+       </sequence>
+    </complexType>
+
+    <complexType name="getResolutionRequestType">
+        <annotation>
+           <documentation>Запрос на получение резолюции события</documentation>
+        </annotation>
+        <sequence>
+          <element name="eventId" type="string" maxOccurs="1" minOccurs="1">
+             <annotation>
+                <documentation>Идентификатор события</documentation></annotation></element>
+          <element name="login" maxOccurs="1" minOccurs="1">
+             <annotation>
+                <documentation>Идентификатор пользователя АСВМ, от имени которого отправляется запрос</documentation>
+             </annotation>
+             <simpleType>
+                <restriction base="string">
+                   <minLength value="1"></minLength>
+                   <maxLength value="50"></maxLength>
+                </restriction>
+             </simpleType>
+          </element>
+          <element name="password" maxOccurs="1" minOccurs="1">
+                <annotation>
+                   <documentation>Пароль пользователя АСВМ, от имени которого отправляется запрос</documentation></annotation>
+                <simpleType>
+                <restriction base="string">
+                   <minLength value="1"></minLength>
+                   <maxLength value="50"></maxLength>
+                </restriction>
+             </simpleType>
+          </element>
+       </sequence>
+    </complexType>
+
+    <complexType name="getResolutionResponseType">
+        <annotation>
+           <documentation>Ответ на получение резолюции события</documentation>
+        </annotation>
+        <sequence>
+          <element name="return" type="tns:ReturnTypeList" maxOccurs="1" minOccurs="1">
+             <annotation>
+                <documentation>Статус запроса</documentation>
+             </annotation></element>
+          <element name="resolution" type="tns:ResolutionTypeList" maxOccurs="1" minOccurs="1">
+             <annotation>
+                <documentation>Текущая резолюция</documentation>
+             </annotation></element>
+       </sequence>
+    </complexType>
+    
+    <simpleType name="ResolutionTypeList">
+        <annotation>
+           <documentation>Список возвожных решений (резолюций) по событию</documentation>
+        </annotation>
+        <restriction base="string">
+          <enumeration value="CONFIRMED_FRAUD"></enumeration>
+          <enumeration value="SUSPECTED_FRAUD"></enumeration>
+          <enumeration value="CONFIRMED_GENUINE"></enumeration>
+          <enumeration value="ASSUMED_GENUINE"></enumeration>
+          <enumeration value="UNKNOWN"></enumeration>
+          <enumeration value="ANY"></enumeration>
+       </restriction>
+    </simpleType>
+
+    <simpleType name="ReturnTypeList">
+       <annotation>
+          <documentation>Возможные статусы запроса</documentation>
+       </annotation>
+       <restriction base="string">
+          <enumeration value="SUCCESS"></enumeration>
+          <enumeration value="FAIL"></enumeration>
+          <length value="1"></length>
+       </restriction>
+    </simpleType>    
+
+    <element name="updateActivity">
+         <complexType>
+            <sequence>
+               <element name="request" type="tns:updateActivityRequestType" maxOccurs="1" minOccurs="1">
+                  <annotation>
+                     <documentation>Обновить резолюцию события</documentation>
+                  </annotation></element>
+            </sequence>
+         </complexType>
+    </element>
+
+    <element name="updateActivityResponse">
+         <complexType>
+            <sequence>
+               <element name="updateActivityResponse" type="tns:updateActivityResponseType" maxOccurs="1" minOccurs="1">
+                  <annotation>
+                     <documentation>Результат обновления резолюции события</documentation>
+                  </annotation></element>
+            </sequence>
+         </complexType>
+    </element>
+    <element name="getResolution">
+         <complexType>
+            <sequence>
+               <element name="request" type="tns:getResolutionRequestType" maxOccurs="1" minOccurs="1">
+                  <annotation>
+                     <documentation>Запрос на получение резолюции события</documentation>
+                  </annotation></element>
+            </sequence>
+         </complexType>
+    </element>
+
+    <element name="getResolutionResponse">
+         <complexType>
+            <sequence>
+               <element name="getResolutionResponse" type="tns:getResolutionResponseType" maxOccurs="1" minOccurs="1">
+                  <annotation>
+                     <documentation>Запрос на получение резолюции события</documentation>
+                  </annotation></element>
+            </sequence>
+         </complexType>
+    </element>
+</schema>

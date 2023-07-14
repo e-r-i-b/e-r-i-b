@@ -1,0 +1,249 @@
+/* 
+        Макрос валидирует платеж 
+        Валидация проходит по видам счетов списания и зачисления 
+    проверяем можно ли с данного вида вклада списывать суммуи зачислять (если счет "наш")
+
+        автор - Гайнанов Р.Ф.
+        дата создания - февраль 2009.
+
+    -------------------
+      ИСХОДНЫЕ ДАННЫЕ  
+    -------------------
+request                 
++-id                       string(32)      Идентификатор запроса в системе  ИКФЛ        
+L-validatePayment_q
+  L-ИМЯ_ТЭГА                               Запрос по одному виду вклада            [0..a]
+    +-dateCreated          date            Дата операции
+    +-chargeOffAccount     string(25)      Номер счета - плательщика.
+    +-receiverAccount      string(25)      Номер счета - получателя     
+    +-receiverCurrency     string(3)       Валюта получателя
+    +-ground               string(210)     Назначение платежа   
+    +-type                 int16           Номер (код) операции
+    +-subType              int16           Номер подоперации
+    +-depositConditionsId  string(12)      Вид вклада (условия вклада)
+    +-receiverName         string(320)     Имя получателя       
+    +-receiverBIC          string(9)       БИК банка получателя
+    +-receiverCorAccount   string(20)      Корсчет получателя   
+    +-receiverINN          string(12)      ИНН получателя       
+    +-receiverKPP          string(9)       КПП получателя       
+    +-receiverBankName     string(320)     Имя Банка получателя 
+    +-officeExternalId     int16           Внешний идентификатор подразделения банка, в котором открывается депозит
+    +-transferAccount      string(25)      Счет, на который переводится вклад по концу договора 
+    +-clientCode           int32           Код клиента  
+    +-chargeOffAmount                      Сумма платежа (списания)
+    ¦ +-value              lmoney          Сумма        
+    ¦ L-currencyCode       string(3)       Валюта
+    L-period                               Период вклада (срок договора)
+      +-days               int             Дней 
+      +-months             int             Месяцев      
+      L-years              int             Лет  
+
+
+    -------------------
+          ОТВЕТ
+    -------------------
+Элемент сообщения       Тип             Комментарий
+-----------------------+---------------+----------------------------------------------------------------------
+response                        
++-parentId              string(32)      Идентификатор запроса в системе  ИКФЛ   
++-id                    string(32)      Идентификатор ответа    
+L-validatePayment_a
+  +-errorCode           int             Код ошибки
+  +-errorText           string(80)      Текст ошибки
+
+*/
+
+import "rt_ib_xml.mac";
+
+class(cBaseDeposit)
+    cValidDoc( inXml, outXml )
+
+
+  private macro getAllowedSub(typeOp, subTypeOp, isCur, acc);
+     var cmd, rs;
+     var subOpAllowed = false;
+
+     cmd = RsdCommand(" SELECT                                                       "+
+                      " T_HIDEFROMOPER                                                   "+
+                      " FROM DSUBOPER_DBT                                            "+
+                      " WHERE T_OPERTYPE= ?                                          "+
+                      " and T_TYPE = ?                                               "+
+                      " and T_ISCUR = ?                                              "+
+              " and T_KIND = (                                               "+ 
+              " case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=? and t_flagcur=?)=0  "+
+              "  then ?                                              "+
+              "  else (select t_aptype from DPC_APLTP_DBT where t_iscur=?                                    "+
+                  "       and t_type = ?                                                                         "+
+                  "       and t_typerec = 1003                                                                   "+
+                  "       and t_appltype = 3010)                                     "+
+              "  end                                                 "
+              " )                                                                                            "
+                      );
+
+      cmd.addParam( "type", RSDBP_IN, V_STRING);
+      cmd.value("type") = typeOp;
+      
+      cmd.addParam( "subtype", RSDBP_IN, V_STRING);
+      cmd.value("subtype") = subTypeOp;
+
+      cmd.addParam( "isCur", RSDBP_IN, V_STRING);
+      cmd.value("isCur") = isCur;
+
+      cmd.addParam( "kind", RSDBP_IN, V_STRING);
+      cmd.value("kind") = acc.value("t_type_account");
+
+      cmd.addParam( "t_iscur2", RSDBP_IN, V_STRING);
+      cmd.value("t_iscur2") = isCur;
+
+      cmd.addParam( "kind2", RSDBP_IN, V_STRING);
+      cmd.value("kind2") = acc.value("t_type_account");
+
+      cmd.addParam( "iscur3", RSDBP_IN, V_STRING);
+      cmd.value("iscur3") = isCur;
+
+      cmd.addParam( "kind3", RSDBP_IN, V_STRING);
+      cmd.value("kind3") = acc.value("t_type_account");
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+      if ( (rs.moveNext) and (rs.value("T_HIDEFROMOPER") != "X") )
+        subOpAllowed = true;
+      end;
+
+      return subOpAllowed;
+  end;
+  
+  
+  private macro getAllowed(typeOp)
+    var cmd, rs;
+    var opAllowed = false;
+
+    cmd = RsdCommand(" SELECT                                                                                                               "+
+           "case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=account.t_type_account and t_flagcur=account.t_iscur)=0  "+
+           "     then (case                                                                                                                 "+
+           "             when(select t_sysNumb from DSB_TYPOP_DBT where t_kind = account.t_type_account                                     "+
+           "             and t_iscur=account.t_iscur and t_numopert = ?                                                                     "+
+           "             ) = 0 then 1 else 0 end)                                                                                           "+
+           "     else (case                                                                                                                 "+
+           "             when (select t_sysNumb from DSB_TYPOP_DBT where t_kind =                                                           "+
+           "                     (select t_aptype from DPC_APLTP_DBT where t_iscur=account.t_iscur                                          "+
+           "                         and t_type = account.t_type_account                                                                    "+
+           "                         and t_typerec = 1003                                                                                   "+
+           "                         and t_appltype = 3010)                                                                                 "+
+           "                      and t_iscur=account.t_iscur and t_numopert = ?                                                            "+
+           "                     ) = 0 then 1 else 0 end)                                                                                   "+
+           " end                                                                                                                            "+
+           " as operationAllowed                                                                                                            "+
+           " FROM ddepositr_dbt account                                                                                                     "+
+           " inner join DSB_DTYP_DBT types                                                                                                  "+
+           "     on account.t_type_account = types.t_kind and account.t_iscur = types.t_flagcur                                             "+
+           "  WHERE account.t_Account = ?                                                                                                   "
+           );
+
+
+      cmd.addParam( "code1", RSDBP_IN, V_STRING);
+      cmd.value("code1") = typeOp;
+      cmd.addParam( "code2", RSDBP_IN, V_STRING);
+      cmd.value("code2") = typeOp;
+      cmd.addParam( "account", RSDBP_IN, V_STRING);
+      cmd.value("account") = chargeOffAccount;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+      if ( (rs.moveNext) and (rs.value("operationAllowed") == 1) )
+        opAllowed = true;
+      end;
+
+      return opAllowed;
+  end;
+
+  private macro ValidatePayment (inXml, outXml)
+     var rs_account, rs_accountReceiver, rs;
+     var isFindAccount        = false,
+         isFindAccountReceiver = false;
+     var opAlowed = false;
+     var cmd;
+     /*if ( not (check_chargeOffAccount( outXML ) and
+               check_receiverAccount ( outXML ))
+             )
+       return outXml;
+     end;*/
+     if ( not check_chargeOffAccount( outXML ))
+       return outXml;
+     end;
+     if (chargeOffAmount == null)
+        chargeOffAmount = 0;
+     end;
+
+     isFindAccount         = findAccount( outXML, rs_account, chargeOffAccount, chargeOffAmountCurrency, false );
+     isFindAccountReceiver = findAccount( outXML, rs_accountReceiver, receiverAccount, receiverCurrency, false );
+     getOperTypeByAccount(rs_accountReceiver, rs_account, isFindAccountReceiver, nodeElement.nodeName);
+
+     if(not getAllowed(type))
+        outXML = AddError2OutXml(outXML, -1, "„«п ¤ ­­®© ®ЇҐа жЁЁ § ЇаҐйҐ­® бЇЁблў вм баҐ¤бвў  б® бзҐв  " + chargeOffAccount);
+        return outXml;
+     elif ( ( type != 80 ) and ( type != 65 ) and (not getAllowedSub(type, subType, rs_account.value("T_ISCUR"), rs_account)) )
+        outXML = AddError2OutXml(outXML, -1, "„«п ¤ ­­®© ®ЇҐа жЁЁ § ЇаҐйҐ­® бЇЁблў вм баҐ¤бвў  б® бзҐв  " + chargeOffAccount);
+        return outXml;
+     end;
+
+     if(isFindAccountReceiver)
+         if(not getAllowed(typeReceiver))
+            outXML = AddError2OutXml(outXML, -1, "„«п ¤ ­­®© ®ЇҐа жЁЁ § ЇаҐйҐ­® § зЁб«пвм баҐ¤бвў  ­  бзҐв " + receiverAccount);
+            return outXml;
+         elif ( ( type != 80 ) and ( type != 65 ) and (not getAllowedSub(typeReceiver, subTypeReceiver, rs_accountReceiver.value("T_ISCUR"), rs_accountreceiver)))
+            outXML = AddError2OutXml(outXML, -1, "„«п ¤ ­­®© ®ЇҐа жЁЁ § ЇаҐйҐ­® § зЁб«пвм баҐ¤бвў  ­  бзҐв " + receiverAccount);
+            return outXml;
+         end;
+     end;
+     if((rs_account.value("t_sum_rest")-chargeOffAmount) < rs_account.value("t_limit"))
+        outXML = AddError2OutXml(outXML, -1, "‘г¬¬  ­  бзҐвҐ Ї®б«Ґ б®ўҐаиҐ­Ёп ®ЇҐа жЁЁ ¬Ґ­миҐ ­Ґб­Ё¦ Ґ¬®Ј® ®бв вЄ !");
+        return outXml;
+     end;
+     
+     return outXML;
+
+  end;
+
+
+  macro start( inXml, outXml )
+
+    var nodeParentElement;
+    var stat = 0;
+
+    if(not outXml )
+      outXml = CreateXMLObject();
+      if(not outXml) return; end;
+
+      CreateBeginTag( outXml );
+
+      nodeParentElement = inXml.documentElement.selectSingleNode( "//validatePayment_q" );
+      nodeElement = nodeParentElement.firstChild();
+
+
+      if( nodeElement )
+
+        getParameters( nodeElement );
+
+        outXML = ValidatePayment( inXml, outXML );
+
+      end;
+
+    end;//if(not outXml )
+
+    return outXml;
+  end;   //macro start( inXml, outXml )
+
+end;   //class(cValidatePayment) 
+
+
+// ---------------------------------------
+// Валидация платежа
+// ---------------------------------------
+macro ValidatePayment( inXml, outXml )
+
+  var t = cValidDoc;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;

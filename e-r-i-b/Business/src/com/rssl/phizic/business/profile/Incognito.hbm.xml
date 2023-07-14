@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.profile.IncognitoPhone" table="INCOGNITO_PHONES_JURNAL">
+
+        <id name="phone" type="string" column="PHONE">
+        </id>
+
+        <property name="active" type="boolean" column="ACTIVE"/>
+        <property name="nodeId" type="long" column="NODE_ID"/>
+        <property name="lastUpdateTime" type="java.util.Calendar" column="LAST_UPDATE_TIME"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.profile.images.RemoteAvatarInfo" table="AVATAR_CHANGE_JURNAL">
+        <id name="phone" type="string" column="PHONE">
+        </id>
+
+        <property name="avatarPath" type="string" column="AVATAR_PATH"/>
+        <property name="nodeId" type="long" column="NODE_ID"/>
+        <property name="lastUpdateTime" type="java.util.Calendar" column="LAST_UPDATE_TIME"/>
+    </class>
+
+    <!--
+        получение номеров телефонов по делта.
+        Опорный объект: IDX_INCOG_LAST_DATE
+        Предикат доступа: "PHONE"."LAST_UPDATE_TIME">:TIME
+        Кардинальность: 10000
+    -->
+    <sql-query name="com.rssl.phizic.business.profile.IncognitoPhone.getDelta">
+        <return alias="phone" class="com.rssl.phizic.business.profile.IncognitoPhone"/>
+        <![CDATA[
+            select {phone.*} from INCOGNITO_PHONES_JURNAL phone
+            where phone.LAST_UPDATE_TIME > :time and phone.NODE_ID <> :notNodeId
+            order by phone.LAST_UPDATE_TIME
+        ]]>
+    </sql-query>
+
+    <!--
+        получение информации по аватарам по делта.
+        Опорный объект: IDX_AVTR_LAST_DATE
+        Предикат доступа: "AVATARINFO"."LAST_UPDATE_TIME">:TIME
+        Кардинальность: 10000
+    -->
+    <sql-query name="com.rssl.phizic.business.profile.images.RemoteAvatarInfo.getDelta">
+        <return alias="avatarInfo" class="com.rssl.phizic.business.profile.images.RemoteAvatarInfo"/>
+        <![CDATA[
+            select {avatarInfo.*} from AVATAR_CHANGE_JURNAL avatarInfo
+            where avatarInfo.LAST_UPDATE_TIME > :time and avatarInfo.NODE_ID <> :notNodeId
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

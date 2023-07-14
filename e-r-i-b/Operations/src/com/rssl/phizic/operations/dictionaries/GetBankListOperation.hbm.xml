@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+ <!--ToDO : Если в названии банка более одного пробела между словами то банк не находится
+     IE удаляет дублирующиеся пробелы при отображении и манипуляции со строками в скриптах
+ -->
+<hibernate-mapping>
+
+    <!--
+       Опорный объект: RUSBANKS, джойн: PK_RUSBANKS_RES
+       Предикаты доступа: fullscan, джойн: access("BANK"."ID"="BANKRES"."ID"(+) AND "BANKRES"."LOCALE_ID"(+)=:EXTRA_LOCALEID)
+       Кардинальность: равна количеству подходящих по условию банков резидентов но не более 3160 судя по статистике с прома
+    -->
+    <sql-query name="com.rssl.phizic.operations.dictionaries.GetBankListOperation.list.multilocale">
+        <return class="com.rssl.phizic.gate.dictionaries.ResidentBank">
+            <return-property name="BIC" column="BIC"/>
+            <return-property name="shortName" column="shortName"/>
+            <return-property name="our" column="our"/>
+            <return-property name="address" column="address"/>
+            <return-property name="participantCode" column="participantCode"/>
+            <return-property name="INN" column="INN"/>
+            <return-property name="KPP" column="KPP"/>
+            <return-property name="dateCh" column="dateCh"/>
+            <return-property name="place" column="place"/>
+            <return-property name="name" column="name"/>
+            <return-property name="synchKey" column="id"/>
+            <return-property name="account" column="account"/>
+        </return>
+
+        select
+            bank.BIC as BIC,
+            NVL(bankRes.short_Name, bank.short_Name) as shortName,
+            bank.our as our,
+            NVL(bankRes.address, bank.address) as address,
+            bank.participant_Code as participantCode,
+            bank.INN as INN,
+            bank.KPP as KPP,
+            bank.date_Ch as dateCh,
+            NVL(bankRes.place, bank.place) as place,
+            NVL(bankRes.name, bank.name) as name,
+            bank.id as id,
+            bank.corr_account as account
+        from
+            RUSBANKS bank
+        left join RUSBANKS_RES bankRes
+        on
+            bank.ID = bankRes.ID
+            and bankRes.LOCALE_ID = :extra_localeId
+        where
+            (:extra_name is null or :extra_name = '' or upper(bankRes.name)  like upper(:extra_like_name) ) and
+            (:extra_BIC is null or :extra_BIC = '' or bank.BIC   like :extra_like_BIC) and
+            (:extra_place is null or :extra_place = '' or upper(bankRes.place) like upper(:extra_like_place) ) and
+            (:extra_ourBank is null or :extra_ourBank = '' or bank.our = :extra_ourBank) and
+            (bank.DATE_CH>:extra_currentDate or bank.DATE_CH is null)
+        order by bank.name
+    </sql-query>
+
+
+    <!--
+       Опорный объект: RUSBANKS
+       Предикаты доступа: fullscan
+       Кардинальность: равна количеству подходящих по условию банков резидентов но не более 3160 судя по статистике с прома
+    -->
+    <query name="com.rssl.phizic.operations.dictionaries.GetBankListOperation.list">
+        select
+            bank
+        from
+            com.rssl.phizic.gate.dictionaries.ResidentBank as bank
+        where
+            (:extra_name is null or :extra_name = '' or upper(bank.name)  like upper(:extra_like_name) ) and
+            (:extra_BIC is null or :extra_BIC = '' or bank.BIC   like :extra_like_BIC) and
+            (:extra_place is null or :extra_place = '' or upper(bank.place) like upper(:extra_like_place) ) and
+            (:extra_ourBank is null or :extra_ourBank = '' or bank.our = :extra_ourBank) and
+            (bank.dateCh>:extra_currentDate or bank.dateCh is null)
+        order by bank.name
+    </query>
+</hibernate-mapping>

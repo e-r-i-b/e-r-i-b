@@ -1,0 +1,30 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef  name="ChangeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.synchronization.log.ChangeType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.synchronization.log.DictionaryEntityChangeInfo"
+           table="DICTIONARY_CHANGE_INFO">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_DICTIONARY_CHANGE_INFO</param>
+            </generator>
+        </id>
+        <property name="updateDate"     type="calendar"    column="UPDATE_DATE"     insert="false"/>
+        <property name="uid"            type="string"      column="UUID"            not-null="true"/>
+        <property name="dictionaryType" type="string"      column="DICTIONARY_TYPE" not-null="true"/>
+        <property name="changeType"     type="ChangeType"  column="CHANGE_TYPE"     not-null="true"/>
+        <property name="entityData"     type="text"        column="ENTITY_DATA"     not-null="false"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.dictionaries.synchronization.log.DictionaryEntityChangeInfo.getChanged">
+        select info
+        from DictionaryEntityChangeInfo info
+        where info.id > :extra_id
+        order by info.id asc
+    </query>
+</hibernate-mapping>

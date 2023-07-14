@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="../../schemas/bankrollServices.xsd">
+
+	<sources default="manager">
+        <source alias="manager" class-name="com.rssl.phizicgate.manager.services.esb.bankroll.BankrollServiceImpl"/>
+		<source alias="esb" class-name="com.rssl.phizicgate.esberibgate.bankroll.BankrollServiceImpl"/>
+        <source alias="preRoutable" class-name="com.rssl.phizicgate.manager.services.routable.bankroll.BankrollServiceImplPreRoutable"/>
+	</sources>
+	
+	<methods>
+
+        <!--getAbstract-->
+        <method signature="public com.rssl.phizic.gate.bankroll.AbstractBase com.rssl.phizic.business.bankroll.BankrollServiceManager.getAbstract(java.lang.Object,java.util.Calendar,java.util.Calendar,java.lang.Boolean) throws com.rssl.phizic.gate.exceptions.GateLogicException,com.rssl.phizic.gate.exceptions.GateException"
+                condition="objectType">
+            <conditions>
+				<condition alias="objectType" parameterNmber="0">
+					<case value="com.rssl.phizic.gate.bankroll.Account" source="preRoutable"/>
+                    <case value="com.rssl.phizic.gate.bankroll.Card" source="esb"/>
+				</condition>
+			</conditions>
+        </method>
+        <!--getAbstract-->
+        <method
+                signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getAbstract(java.lang.Long,java.lang.Object[])"
+                condition="objectType">
+			<conditions>
+				<condition alias="objectType" parameterNmber="1">
+					<case value="com.rssl.phizic.gate.bankroll.Account" source="manager"/>
+                    <case value="com.rssl.phizic.gate.bankroll.Card" source="esb"/>
+				</condition>
+			</conditions>
+		</method>
+
+        <!--Счет-->
+
+        <!--getAccount-->
+        <method signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getAccount(java.lang.String[])"/>
+        <!--getClientAccounts-->
+        <method signature="public java.util.List com.rssl.phizic.business.bankroll.BankrollServiceManager.getClientAccounts(com.rssl.phizic.gate.clients.Client) throws com.rssl.phizic.gate.exceptions.GateException,com.rssl.phizic.gate.exceptions.GateLogicException"/>
+        <!--getOwnerInfo-->
+        <method signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getOwnerInfo(com.rssl.phizic.gate.bankroll.Account[])"/>
+        <!--getAccountExtendedAbstract-->
+        <method signature="public com.rssl.phizic.gate.bankroll.AccountAbstract com.rssl.phizic.business.bankroll.BankrollServiceManager.getAccountExtendedAbstract(com.rssl.phizic.gate.bankroll.Account,java.util.Calendar,java.util.Calendar) throws com.rssl.phizic.gate.exceptions.GateException,com.rssl.phizic.gate.exceptions.GateLogicException"
+                source="preRoutable"/>
+        <!--getAccountByNumber-->
+        <method signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getAccountByNumber(com.rssl.phizic.common.types.transmiters.Pair[])"/>
+        <!--Карта-->
+
+        <!--getCard-->
+        <method signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getCard(java.lang.String[])"
+                source="esb"/>
+        <!--getClientCards-->
+        <method signature="public java.util.List com.rssl.phizic.business.bankroll.BankrollServiceManager.getClientCards(com.rssl.phizic.gate.clients.Client) throws com.rssl.phizic.gate.exceptions.GateException,com.rssl.phizic.gate.exceptions.GateLogicException"
+                source="esb"/>
+        <!--getCardPrimaryAccount-->
+        <method signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getCardPrimaryAccount(com.rssl.phizic.gate.bankroll.Card[])"/>
+        <!--getOwnerInfo-->
+        <method signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getOwnerInfo(com.rssl.phizic.gate.bankroll.Card[])"
+                source="esb"/>
+        <!--getOwnerInfoByCardNumber-->
+        <method signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getOwnerInfoByCardNumber(com.rssl.phizic.common.types.transmiters.Pair[])"
+                source="esb"/>
+        <!--getAdditionalCards-->
+        <method signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getAdditionalCards(com.rssl.phizic.gate.bankroll.Card[])"
+                source="esb"/>
+        <!--getCardByNumber-->
+        <method signature="public com.rssl.phizic.common.types.transmiters.GroupResult com.rssl.phizic.business.bankroll.BankrollServiceManager.getCardByNumber(com.rssl.phizic.gate.clients.Client,com.rssl.phizic.common.types.transmiters.Pair[])"
+                source="esb"/>
+
+        <!--getAccHistoryFullExtract-->
+        <method signature="public com.rssl.phizic.gate.bankroll.AccountAbstract com.rssl.phizic.business.bankroll.BankrollServiceManager.getAccHistoryFullExtract(com.rssl.phizic.gate.bankroll.Account,java.util.Calendar,java.util.Calendar,java.lang.Boolean) throws com.rssl.phizic.gate.exceptions.GateException,com.rssl.phizic.gate.exceptions.GateLogicException"
+                source="preRoutable"/>
+	</methods>
+
+</services>

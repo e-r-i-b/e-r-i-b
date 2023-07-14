@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+	<typedef name="ContractType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.loans.ContractType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+	<typedef name="ContractState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.loans.ContractState</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+	<class name="ru.softlab.phizicgate.rsloansV64.loans.GuaranteeContractImpl">
+		<id name="number"/>
+		<property name="type" type="ContractType"/>
+		<property name="state" type="ContractState"/>
+		<property name="openDate" type="calendar"/>
+		<property name="closeDate" type="calendar"/>
+		<property name="summ" type="ru.softlab.phizicgate.rsloansV64.hibernate.RSLoansMoneyType"
+		          insert="false" update="false">
+		    <column name="summVal"/>
+		    <column name="AmountCur"/>
+	    </property>
+	</class>
+
+	<sql-query name="GetGuaranteeContracts">
+	    <return alias="loans" class="ru.softlab.phizicgate.rsloansV64.loans.GuaranteeContractImpl">
+	        <return-property name="number"    column="id"/>
+		    <return-property name="type"      column="contractType"/>
+		    <return-property name="state"     column="contractState"/>
+		    <return-property name="openDate"  column="openDate"/>
+		    <return-property name="closeDate" column="closeDate"/>
+			<return-property name="summ">
+				<return-column name="summVal"/>
+				<return-column name="AmountCur"/>
+			</return-property>
+		</return>
+    	<![CDATA[
+    	SELECT
+    	 contract.t_enscontractid as id
+    	 ,contract.t_enssystype as contractType
+    	 ,contract.t_enscontractstatus as contractState
+    	 ,contract.t_enscontractfirstdate as openDate
+    	 ,contract.t_enscontractlastdate as closeDate
+    	 ,contract.t_enscontractsum as summVal
+    	 ,contract.t_enscontractcur as AmountCur
+    	 ,contract.t_enscontractpersonid_ref as clientId
+    	FROM
+    	    denscontr_dbt contract
+    	WHERE
+    	    contract.t_enscontractid in (select dens_crd_dbt.t_enscontractid_ref from dens_crd_dbt where t_creditnumber_ref = :loanId)
+		]]>
+	</sql-query>
+
+	<sql-query name="getGuaranteeIdByContractId">
+		<return-scalar column="id" type="long"/>
+		SELECT
+    	 contract.t_enscontractpersonid_ref as id
+    	FROM
+    	    denscontr_dbt contract
+    	WHERE
+    	    contract.t_enscontractid = :contractId
+	</sql-query>
+
+</hibernate-mapping>

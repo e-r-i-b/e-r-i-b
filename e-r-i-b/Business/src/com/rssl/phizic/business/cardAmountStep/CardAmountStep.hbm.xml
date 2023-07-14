@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.cardAmountStep.CardAmountStep" table="CARD_AMOUT_STEP">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CARD_AMOUT_STEP</param>
+            </generator>
+        </id>
+
+        <property name="value" type="money" not-null="true">
+            <column name="VALUE_AMOUNT" not-null="true"/>
+            <column name="VALUE_CURRENCY" not-null="true"/>
+        </property>
+    </class>
+
+    <!-- Поиск кредитного лимита по сумме, валюте (требуется при проверке на существование такого же лимита при редактировании) -->
+    <sql-query name="com.rssl.phizic.business.cardAmountStep.CardAmountStep.getListByMoneyAndId">
+        <return alias="cardAmountStep" class="com.rssl.phizic.business.cardAmountStep.CardAmountStep"/>
+        <![CDATA[
+            SELECT {cardAmountStep.*}
+            FROM CARD_AMOUT_STEP cardAmountStep
+            where cardAmountStep.VALUE_AMOUNT = :amount
+            and   cardAmountStep.VALUE_CURRENCY = :currency
+            and   cardAmountStep.ID <> :id
+		]]>
+    </sql-query>
+
+    <!-- Поиск кредитного лимита по сумме, валюте (требуется при проверке на существование такого же лимита при добавлении) -->
+    <sql-query name="com.rssl.phizic.business.cardAmountStep.CardAmountStep.getListByMoney">
+        <return alias="cardAmountStep" class="com.rssl.phizic.business.cardAmountStep.CardAmountStep"/>
+        <![CDATA[
+            SELECT {cardAmountStep.*}
+            FROM CARD_AMOUT_STEP cardAmountStep
+            where cardAmountStep.VALUE_AMOUNT = :amount
+            and   cardAmountStep.VALUE_CURRENCY = :currency
+		]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.cardAmountStep.CardAmountStep.getRangeLimit">
+        <return alias="cardAmountStep" class="com.rssl.phizic.business.cardAmountStep.CardAmountStep"/>
+        <![CDATA[
+            SELECT {cardAmountStep.*}
+            FROM CARD_AMOUT_STEP cardAmountStep
+            where cardAmountStep.VALUE_CURRENCY = :fromCurrency and cardAmountStep.VALUE_CURRENCY = :toCurrency
+                and cardAmountStep.VALUE_AMOUNT >= :fromAmount
+                and ((cardAmountStep.VALUE_AMOUNT <= :toAmount and :include = 'true')
+                    or
+                    (cardAmountStep.VALUE_AMOUNT < :toAmount and :include = 'false'))
+            ORDER BY cardAmountStep.VALUE_AMOUNT
+		]]>
+    </sql-query>
+
+    <!-- Поиск списка кредитных лимитов, отсортированных по сумме (необходимо при отображении выбора) -->
+    <query name="com.rssl.phizic.business.cardAmountStep.CardAmountStep.findAll">
+            SELECT cardAmountStep
+            FROM com.rssl.phizic.business.cardAmountStep.CardAmountStep cardAmountStep
+            ORDER BY cardAmountStep.value.decimal
+    </query>
+
+    <!--Проверяет использование кредитного лимита в карточных кредитных продуктах и в уровнях доходов-->
+    <sql-query name="com.rssl.phizic.business.cardAmountStep.CardAmountStep.isUsed">
+        select sum(cnt)
+        from
+        (   select count(*) cnt
+            from CREDIT_CARD_CONDITIONS condition
+            where condition.MIN_CREDIT_LIMIT = :cardLimitId
+                or condition.MAX_CREDIT_LIMIT = :cardLimitId
+        union all
+            select count(*)
+            from INCOME_CONDITIONS condition
+            where condition.MIN_CREDIT_LIMIT = :cardLimitId
+                or condition.MAX_CREDIT_LIMIT = :cardLimitId
+        )
+    </sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="InternalPayment" description="Перевод между счетами"
+              detailedDescription="Перевод денежных средств между вашими счетами"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.InternalTransfer"/>
+	<statemachine name="PaymentStateMachine"/>
+	<withdraw-options>
+	   <form name="RecallPayment"/>
+	   <check class="com.rssl.phizic.business.documents.metadata.checkers.DocumentStateChecker">
+		   <parameter name="state">dispatched</parameter>
+	   </check>
+	</withdraw-options>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+		       type="string">
+		</field>
+		<field
+				name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"
+				signable="true">
+		</field>
+		<field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field name="admissionDate"
+		       source="admission-date"
+		       type="date"
+		       description="Дата приема плaтежа банком">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="fromAccountSelect"
+				description="Счет списания"
+				type="account"
+				source="payer-account"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="toAccountSelect"
+				description="Счет зачисления"
+				type="account"
+				source="receiver-account"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="amount"
+				description="Сумма"
+				source="amount"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="commissionAmount"
+				description="Сумма коммисии"
+				source="commission"
+				type="money"
+				signable="true">
+		</field>
+
+		<field
+				name="amountCurrency"
+				description="Валюта"
+				source="amount-currency"
+				type="string"
+				signable="true"
+				value="form.fromAccountSelect==null?null:form.fromAccountSelect.getCurrency().getCode()"/>
+		<field
+				name="fromAccountType"
+				description="Тип счета списания"
+				source="extra-parameters/parameter[@name='from-account-type']/@value"
+				type="string"
+				signable="true"
+				value="form.fromAccountSelect==null?null:form.fromAccountSelect.getDescription()"/>
+
+		<field
+				name="toAccountType"
+				description="Тип счета зачисления"
+				source="extra-parameters/parameter[@name='to-account-type']/@value"
+				type="string"
+				signable="true"
+				value="form.toAccountSelect==null?null:form.toAccountSelect.getDescription()"/>
+	</fields>
+
+	<form-validators>
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountsNotEqualValidator">
+			<field-ref name="fromAccount">fromAccountSelect</field-ref>
+			<field-ref name="toAccount">toAccountSelect</field-ref>
+		</form-validator>
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">fromAccountSelect</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+		<form-validator
+				class="com.rssl.phizic.business.payments.forms.validators.AccountCurrenciesEqualValidator">
+			<field-ref name="fromAccount">fromAccountSelect</field-ref>
+			<field-ref name="toAccount">toAccountSelect</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

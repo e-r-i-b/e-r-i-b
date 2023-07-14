@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.employees.EmployeeWrapper" table="EMPLOYEES" lazy="false" mutable="false">
+        <id name="loginId" column="LOGIN_ID" type="long" access="field"/>
+        <property name="employeeId" column="ID" type="long" access="field"/>
+        <property name="managerChannel" type="string" formula="(SELECT CH.NAME FROM PFP_CHANNELS CH WHERE CH.ID = CHANNEL_ID)"/>
+        <many-to-one name="employee" class="com.rssl.phizic.business.employees.EmployeeImpl" access="field" column="ID" not-null="true" lazy="false" insert="false" update="false" fetch="select"/>
+        <many-to-one name="department" class="com.rssl.phizic.business.departments.Department" access="field" column="DEPARTMENT_ID" not-null="true" lazy="false" insert="false" update="false" fetch="select"/>
+        <join table="SCHEMEOWNS" optional="true" fetch="select">
+            <key column="LOGIN_ID"/>
+            <many-to-one name="scheme" class="com.rssl.phizic.business.schemes.AccessScheme" access="field" column="SCHEME_ID" not-null="true" lazy="false" insert="false" update="false" fetch="select"/>
+        </join>
+    </class>
+
+    <resultset name="com.rssl.phizic.business.employees.queries.list.resultset">
+        <return alias="employee" class="com.rssl.phizic.business.employees.EmployeeWrapper"/>
+    </resultset>
+
+    <sql-query name="com.rssl.phizic.business.employees.queries.list"/>
+
+    <sql-query name="com.rssl.phizic.business.employees.queries.checkTb">
+        <return-scalar column="count" type="integer"/>
+        SELECT
+            count(case when ad.TB != '*' then 1 end) * count(case when ad.TB = '*' then 1 end) COUNT
+        FROM
+            ALLOWED_DEPARTMENTS ad
+        WHERE
+            LOGIN_ID = :extra_loginId
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.employees.queries.checkOsb">
+        <return-scalar column="count" type="integer"/>
+        SELECT
+            sum(count(case when ad.OSB != '*' then 1 end) * count(case when ad.OSB = '*' then 1 end)) COUNT
+        FROM
+            ALLOWED_DEPARTMENTS ad
+        WHERE
+            ad.LOGIN_ID = :extra_loginId
+        GROUP BY
+            ad.TB
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.employees.queries.checkVsp">
+        <return-scalar column="count" type="integer"/>
+        SELECT
+            sum(count(case when ad.VSP != '*' then 1 end) * count(case when ad.VSP = '*' then 1 end)) COUNT
+        FROM
+            ALLOWED_DEPARTMENTS ad
+        WHERE
+            ad.LOGIN_ID = :extra_loginId
+        GROUP BY
+            ad.TB,ad.OSB
+    </sql-query>
+</hibernate-mapping>

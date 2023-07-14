@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<wsdl:definitions name="Esk4IQWaveService"
+             targetNamespace="http://www.sbrf.ru/sbol/esk"
+             xmlns:tns="http://www.sbrf.ru/sbol/esk"
+             xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    <wsdl:types>
+      <xsd:schema targetNamespace="http://www.sbrf.ru/sbol/esk">
+        <xsd:element name="XmlInputString" type="xsd:string"/>
+        <xsd:element name="XmlOutputString" type="xsd:string"/>
+      </xsd:schema>
+    </wsdl:types>
+    <wsdl:message name="getXMLmessageRequest">
+        <wsdl:part element="tns:XmlInputString" name="request"/>
+    </wsdl:message>
+    <wsdl:message name="getXMLmessageResponse">
+        <wsdl:part element="tns:XmlOutputString" name="response"/>
+    </wsdl:message>
+    <wsdl:portType name="Esk4IQWaveProtType">
+      <wsdl:operation name="getXMLmessage">
+        <wsdl:input message="tns:getXMLmessageRequest"/>
+        <wsdl:output message="tns:getXMLmessageResponse"/>
+      </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="Esk4IQWaveSoapBinding" type="tns:Esk4IQWaveProtType">
+      <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+      <wsdl:operation name="getXMLmessage">
+        <soap:operation soapAction="http://www.sbrf.ru/sbol/getXmlmessage"/>
+        <wsdl:input>
+          <soap:body use="literal"/>
+        </wsdl:input>
+        <wsdl:output>
+          <soap:body use="literal"/>
+        </wsdl:output>
+      </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="Esk4IQWaveService">
+      <wsdl:port binding="tns:Esk4IQWaveSoapBinding" name="Esk4IQWave">
+        <soap:address location="http://sbrf.ru/sbol/esk4iwqwave"/>
+      </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

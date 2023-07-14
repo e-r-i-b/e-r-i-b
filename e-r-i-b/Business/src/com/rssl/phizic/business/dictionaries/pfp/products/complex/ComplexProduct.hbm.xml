@@ -1,0 +1,129 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="SegmentCodeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.SegmentCodeType</param>
+    </typedef>
+    <typedef name="PortfolioType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.dictionaries.pfp.common.PortfolioType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.dictionaries.pfp.products.complex.ComplexProductBase"
+           abstract="true"
+           table="PFP_COMPLEX_PRODUCTS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PFP_COMPLEX_PRODUCTS</param>
+            </generator>
+        </id>
+        <discriminator column="TYPE" type="string" not-null="true"/>
+        <property name="uuid"        type="string"      column="UUID"        not-null="true" update="false"/>
+        <property name="description" type="string"      column="DESCRIPTION" not-null="true"/>
+        <property name="imageId"     type="long"        column="IMAGE_ID"    not-null="false"/>
+        <many-to-one name="account"  class="com.rssl.phizic.business.dictionaries.pfp.products.simple.AccountProduct" lazy="false" column="ACCOUNT_ID" not-null="true"/>
+        <set name="targetGroup" table="PFP_CP_TARGET_GROUPS_BUNDLE" cascade="none" lazy="false">
+            <key     column="PRODUCT_ID"   not-null="true"/>
+			<element column="SEGMENT_CODE" not-null="true" type="SegmentCodeType"/>
+        </set>
+        <component name="tableParameters" class="com.rssl.phizic.business.dictionaries.pfp.products.TableViewParameters">
+            <property name="useIcon"      type="boolean"   column="USE_ICON"   not-null="true"/>
+            <map name="columns" table="PFP_CP_TABLE_VIEW_PARAMETERS" cascade="all-delete-orphan" lazy="false" sort="com.rssl.phizic.business.dictionaries.pfp.products.types.TableColumnComparator">
+                <key column="PRODUCT_ID"/>
+                <map-key-many-to-many column="TABLE_COLUMN_ID" class="com.rssl.phizic.business.dictionaries.pfp.products.types.TableColumn"/>
+                <element column="VALUE" type="string" not-null="true"/>
+            </map>
+        </component>
+    </class>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.complex.ComplexInsuranceProduct"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.complex.ComplexProductBase"
+              discriminator-value="I">
+        <property name="minSum"          type="big_decimal" column="MIN_SUM"           not-null="true"/>
+        <property name="minSumInsurance" type="big_decimal" column="MIN_SUM_INSURANCE" not-null="true"/>
+        <list name="insuranceProducts" table="PFP_C_INSURANCE_PRODUCTS" cascade="none" lazy="false">
+            <key column="C_PRODUCT_ID" not-null="true"/>
+			<list-index column="LIST_INDEX"/>
+			<many-to-many class="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceProduct" column="INSURANCE_ID"/>
+        </list>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.complex.ComplexInvestmentProductBase"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.complex.ComplexProductBase"
+              abstract="true">
+        <map name="parameters" table="PFP_C_PRODUCT_PARAMETERS" cascade="all-delete-orphan" lazy="false">
+            <key column="PRODUCT_ID"/>
+            <map-key column="KEY_PARAMETER" type="PortfolioType"/>
+            <composite-element class="com.rssl.phizic.business.dictionaries.pfp.products.ProductParameters">
+                <property name="minSum" type="big_decimal" column="MIN_SUM" not-null="true"/>
+            </composite-element>
+        </map>
+        <list name="fundProducts" table="PFP_C_FUND_PRODUCTS" cascade="none" lazy="false">
+            <key column="C_PRODUCT_ID" not-null="true"/>
+			<list-index column="LIST_INDEX"/>
+			<many-to-many class="com.rssl.phizic.business.dictionaries.pfp.products.simple.FundProduct" column="PRODUCT_ID"/>
+        </list>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.complex.ComplexFundInvestmentProduct"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.complex.ComplexInvestmentProductBase"
+              discriminator-value="F">
+    </subclass>
+
+    <subclass name="com.rssl.phizic.business.dictionaries.pfp.products.complex.ComplexIMAInvestmentProduct"
+              extends="com.rssl.phizic.business.dictionaries.pfp.products.complex.ComplexInvestmentProductBase"
+              discriminator-value="A">
+        <list name="imaProducts" table="PFP_C_IMA_PRODUCTS" cascade="none" lazy="false">
+            <key column="C_PRODUCT_ID" not-null="true"/>
+			<list-index column="LIST_INDEX"/>
+			<many-to-many class="com.rssl.phizic.business.dictionaries.pfp.products.simple.IMAProduct" column="PRODUCT_ID"/>
+        </list>
+    </subclass>
+
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.products.simple.AccountProduct.containProduct">
+        <return-scalar column="counter" type="long"/>
+        <![CDATA[
+           SELECT
+                count(*) counter
+           FROM
+               PFP_COMPLEX_PRODUCTS
+           WHERE
+               ACCOUNT_ID = :product_id
+        ]]>
+    </sql-query>
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.products.simple.FundProduct.containProduct">
+        <return-scalar column="counter" type="long"/>
+        <![CDATA[
+           SELECT
+                count(*) counter
+           FROM
+               PFP_C_FUND_PRODUCTS
+           WHERE
+               PRODUCT_ID = :product_id
+        ]]>
+    </sql-query>
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.products.simple.IMAProduct.containProduct">
+        <return-scalar column="counter" type="long"/>
+        <![CDATA[
+           SELECT
+                count(*) counter
+           FROM
+               PFP_C_IMA_PRODUCTS
+           WHERE
+               PRODUCT_ID = :product_id
+        ]]>
+    </sql-query>
+    <sql-query name="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceProduct.containProduct">
+        <return-scalar column="counter" type="long"/>
+        <![CDATA[
+           SELECT
+                count(*) counter
+           FROM
+               PFP_C_INSURANCE_PRODUCTS
+           WHERE
+               INSURANCE_ID = :product_id
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

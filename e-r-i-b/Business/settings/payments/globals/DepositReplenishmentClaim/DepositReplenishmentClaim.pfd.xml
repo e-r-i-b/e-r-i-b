@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form
+		name="DepositReplenishmentClaim"
+		description="Заявка на пополнение вклада"
+		detailedDescription="Перевод денежных средств с вашего счета для пополнения срочного вклада."
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.InternalTransfer"/>
+	<statemachine name="PaymentStateMachine"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+		<!--TODO-->
+		<field name="refusingReason"
+		       source="refusingReason"
+		       description="Причина отказа"
+			   type="string"/>
+
+		<field
+				name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"
+				signable="true">
+		</field>
+
+		<field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				<validator mode="document" class="com.rssl.common.forms.validators.DatePeriodFieldValidator">
+					<message text="Дата документа не должна превышать срок действия заявки (10 дней с момента создания заявки)."/>
+					<parameter name="after">10</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="admissionDate"
+		       source="admission-date"
+			   type="date"
+		       description="Дата приема плaтежа банком">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+		
+		<field
+				name="account"
+				description="Счет списания"
+				type="account"
+				source="payer-account"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="accountType"
+				description="Вид счета"
+				type="account"
+				source="extra-parameters/parameter[@name='account-type']/@value"
+				signable="true"
+				value="form.account.getDescription()"/>
+
+		<field
+				name="amount"
+				description="Сумма"
+				source="amount"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="commissionAmount"
+				description="Сумма коммисии"
+				source="commission"
+				type="money"
+				signable="true">
+		</field>
+
+		<field
+				name="currency"
+				description="Валюта"
+				type="string"
+				source="amount-currency"
+				signable="true"
+				value="form.account.getCurrency().getCode()">
+		</field>
+
+		<!-- Вспомогательные поля -->
+		<field
+				name="deposit"
+				description="Вклад для пополнения"
+				type="deposit"
+				source="extra-parameters/parameter[@name='deposit-id']/@value"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.DepositIsOpenValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.DepositInfoPropertyValidator">
+					<message text="Для данного вида вклада запрещено пополнение"/>
+					<parameter name="property">additionalFee</parameter>
+					<parameter name="expected-value">true</parameter>
+				</validator>
+			</validators>
+		</field>
+		<field
+				name="depositAccount"
+				description="Депозитный счет"
+				type="string"
+				source="receiver-account"
+				signable="true"
+				value="xpath:phiz:document('deposits.xml')/deposits/deposit[@external_id=$deposit]/@deposit-account">
+		</field>
+
+		<field
+				name="contractNumber"
+				description="Номер договора"
+				type="string"
+				source="extra-parameters/parameter[@name='contract-number']/@value"
+				signable="true"
+				value="xpath:phiz:document('deposits.xml')/deposits/deposit[@external_id=$deposit]/@contract-number">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="openingDate"
+				description="Дата открытия"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='opening-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='opening-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='opening-date']/@value,1,4))"
+				signable="true"
+				value="form.deposit.getOpenDate().getTime()">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="finishingDate"
+				description="Дата окончания"
+				type="date"
+				source="concat(substring(extra-parameters/parameter[@name='finishing-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='finishing-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='finishing-date']/@value,1,4))"
+				signable="true"
+				value="form.deposit.getEndDate().getTime()">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="depositDescription"
+				description="Название депозита"
+				type="string"
+				source="extra-parameters/parameter[@name='deposit-description']/@value"
+				signable="true"
+				value="form.deposit.getDescription()">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+	</fields>
+
+	<form-validators>
+		<form-validator
+				class="com.rssl.phizic.business.payments.forms.validators.DepositMinReplenishmentAmountValidator"
+				mode="document">
+			<message text="Сумма доп. взноса должна быть больше минимальной суммы доп. взноса"/>
+			<field-ref name="deposit">deposit</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+
+		<form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<message text="Сумма доп. взноса превышает остаток на счету"/>
+			<field-ref name="account">account</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

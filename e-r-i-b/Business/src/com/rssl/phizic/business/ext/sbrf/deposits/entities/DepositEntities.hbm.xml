@@ -1,0 +1,248 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity" mutable="false">
+        <id name="id"                               type="string"       column="ID"/>
+        <property name="groupCode"                  type="long"         column="GROUP_CODE"/>
+        <property name="depositType"                type="long"         column="DEPOSIT_TYPE"/>
+        <property name="groupName"                  type="string"       column="GROUP_NAME"/>
+        <property name="allowPensionRates"          type="boolean"      column="PG_PENS"/>
+        <property name="promoCodeSupported"         type="boolean"      column="PG_PROMO"/>
+        <property name="initialFee"                 type="boolean"      column="QPFS"/>
+        <property name="withMinimumBalance"         type="boolean"      column="QN_RESN"/>
+        <property name="debitOperationsCode"        type="long"         column="Q_EXPENS"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductRate" mutable="false">
+        <id name="id"                               type="long"         column="ID"/>
+        <property name="depositType"                type="long"         column="KOD_VKL_QDTN"/>
+        <property name="depositSubType"             type="long"         column="KOD_VKL_QDTSUB"/>
+        <property name="clientCategory"             type="long"         column="KOD_VKL_CLNT"/>
+        <property name="dateBegin"                  type="calendar"     column="DATE_BEG"/>
+        <property name="sumBegin"                   type="big_decimal"  column="SUM_BEG"/>
+        <property name="baseRate"                   type="big_decimal"  column="TAR_VKL"/>
+        <property name="currencyCode"               type="string"       column="DCF_VAL"/>
+        <property name="segment"                    type="long"         column="DCF_SEG"/>
+        <property name="periodBegin"                type="long"         column="BEG_SROK"/>
+        <property name="periodEnd"                  type="long"         column="END_SROK"/>
+        <property name="dictionaryPeriod"           type="string"       column="Q_SROK"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntitySubType" mutable="false">
+        <id name="id"                               type="long"             column="ID"/>
+        <property name="dateBegin"                  type="calendar"         column="DATE_BEGIN"/>
+        <property name="dateEnd"                    type="calendar"         column="DATE_END"/>
+        <property name="minAdditionalFee"           type="big_decimal"      column="MIN_ADD_FEE"/>
+        <property name="name"                       type="string"           column="NAME"/>
+    </class>
+
+    <!--
+        Получить список вкладных продуктов (тип, группа вклада, минимальные настройки) для списка вкладов
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: ("QVB"."Q_GROUP"="PAR"."PG_CODGR"(+)) AND ("QVB"."Q_GROUP"="GR"."GR_CODE")AND ("QVB"."QDTN1"=TO_NUMBER(:DEPOSITTYPES))
+        Кардинальность: максимально - 56 (учетом всех выбранных и отфильтрованных в прикладе видов вкладов)
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity.getGroups">
+        <return class="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity">
+            <return-property name="id"                  column="ID"/>
+            <return-property name="depositType"         column="DEPOSIT_TYPE"/>
+            <return-property name="groupCode"           column="GROUP_CODE"/>
+            <return-property name="groupName"           column="GROUP_NAME"/>
+            <return-property name="allowPensionRates"   column="PG_PENS"/>
+            <return-property name="promoCodeSupported"  column="PG_PROMO"/>
+            <return-property name="initialFee"          column="QPFS"/>
+            <return-property name="withMinimumBalance"  column="QN_RESN"/>
+            <return-property name="debitOperationsCode" column="Q_EXPENS"/>
+        </return>
+        <![CDATA[
+        SELECT distinct
+            qvb.QDTN1  || gr.GR_CODE                            as ID,
+            qvb.QDTN1                                           as DEPOSIT_TYPE,
+            gr.GR_CODE                                          as GROUP_CODE,
+            gr.GR_NAME                                          as GROUP_NAME,
+            par.PG_PENS                                         as PG_PENS,
+            par.PG_PROMO                                        as PG_PROMO,
+            (CASE WHEN (qvb.QPFS) = 0 THEN 0 ELSE 1 END)        as QPFS,
+            qvb.QN_RESN                                         as QN_RESN,
+            qvb.Q_EXPENS                                        as Q_EXPENS
+        FROM
+            DEPOSITS_QVB qvb
+            JOIN DEPOSITS_QVB_GROUP gr on qvb.Q_GROUP = gr.GR_CODE
+            LEFT JOIN DEPOSITS_QVB_PARGR par on qvb.Q_GROUP = par.PG_CODGR
+        WHERE
+            qvb.QDTN1 in (:extra_depositTypes) AND
+            QVB.QOPEND >= :extra_curDate AND
+            (qvb.Q_GROUP = 0 OR par.PG_BDATE = (select max(PG_BDATE) from DEPOSITS_QVB_PARGR where PG_CODGR = qvb.Q_GROUP AND PG_BDATE <= :extra_curDate))
+        ]]>
+    </sql-query>
+
+    <!--
+        Получить вкладной продукт (тип, группа вклада, минимальные настройки)
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: ("QVB"."Q_GROUP"="PAR"."PG_CODGR"(+)) AND ("QVB"."QDTN1"=TO_NUMBER(:DEPOSITTYPE))
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity.getGroup">
+        <return class="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity">
+            <return-property name="id"                  column="ID"/>
+            <return-property name="depositType"         column="DEPOSIT_TYPE"/>
+            <return-property name="groupCode"           column="GROUP_CODE"/>
+            <return-property name="groupName"           column="GROUP_NAME"/>
+            <return-property name="allowPensionRates"   column="PG_PENS"/>
+            <return-property name="promoCodeSupported"  column="PG_PROMO"/>
+            <return-property name="initialFee"          column="QPFS"/>
+            <return-property name="withMinimumBalance"  column="QN_RESN"/>
+            <return-property name="debitOperationsCode" column="Q_EXPENS"/>
+        </return>
+        <![CDATA[
+        SELECT distinct
+            qvb.QDTN1 || gr.GR_CODE                             as ID,
+            qvb.QDTN1                                           as DEPOSIT_TYPE,
+            gr.GR_CODE                                          as GROUP_CODE,
+            gr.GR_NAME                                          as GROUP_NAME,
+            par.PG_PENS                                         as PG_PENS,
+            par.PG_PROMO                                        as PG_PROMO,
+            (CASE WHEN (qvb.QPFS) = 0 THEN 0 ELSE 1 END)        as QPFS,
+            qvb.QN_RESN                                         as QN_RESN,
+            qvb.Q_EXPENS                                        as Q_EXPENS
+        FROM
+            DEPOSITS_QVB qvb
+            JOIN DEPOSITS_QVB_GROUP gr on qvb.Q_GROUP = gr.GR_CODE
+            LEFT JOIN DEPOSITS_QVB_PARGR par on qvb.Q_GROUP = par.PG_CODGR
+        WHERE
+            qvb.QDTN1 = :depositType AND
+            qvb.Q_GROUP = :depositGroup AND
+            QVB.QOPEND >= :curDate AND
+            (qvb.Q_GROUP = 0 OR par.PG_BDATE = (select max(PG_BDATE) from DEPOSITS_QVB_PARGR where PG_CODGR = qvb.Q_GROUP AND PG_BDATE <= :curDate))
+        ]]>
+    </sql-query>
+
+    <!--
+        Получить список ставок для депозитного продукта
+        Опорный объект: DEPOSITS_DCF_TAR_IDX
+        Предикаты доступа: ("DCFTAR"."KOD_VKL_QDTSUB"="BUX"."BCH_PVVKL"(+) AND "DCFTAR"."KOD_VKL_QDTN1"="BUX"."BCH_VKL"(+))
+                            AND ("DCFTAR"."KOD_VKL_QDTSUB"="QVB"."QDTSUB"(+) AND "DCFTAR"."KOD_VKL_QDTN1"="QVB"."QDTN1"(+))
+                            AND  ("DCFTAR"."KOD_VKL_QDTN1"=TO_NUMBER(:TYPE) AND "DCFTAR"."KOD_VKL_QDTSUB"=TO_NUMBER(:SUBTYPES))
+                            AND ("QVB"."QDTN1"(+)=TO_NUMBER(:TYPE) AND "QVB"."QDTSUB"(+)=TO_NUMBER(:SUBTYPES))
+                            AND ("BUX"."BCH_VKL"(+)=TO_NUMBER(:TYPE) AND "BUX"."BCH_PVVKL"(+)=TO_NUMBER(:SUBTYPES))
+        Кардинальность: порядка 1500 для наиболее заполненных и часто обновляемых вкладов (относящихся к 91, 93 типам),
+                        для остальных разброс от единиц до тысячи, большинство вкладов с небольшим количеством ставок. Возможен постепенный небольшой рост.
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity.findDepositEntityRates">
+        <return class="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductRate">
+            <return-property name="id"                         column="ID"/>
+            <return-property name="depositType"                column="KOD_VKL_QDTN"/>
+            <return-property name="depositSubType"             column="KOD_VKL_QDTSUB"/>
+            <return-property name="clientCategory"             column="KOD_VKL_CLNT"/>
+            <return-property name="dateBegin"                  column="DATE_BEG"/>
+            <return-property name="sumBegin"                   column="SUM_BEG"/>
+            <return-property name="baseRate"                   column="TAR_VKL"/>
+            <return-property name="currencyCode"               column="DCF_VAL"/>
+            <return-property name="segment"                    column="DCF_SEG"/>
+            <return-property name="periodBegin"                column="BEG_SROK"/>
+            <return-property name="periodEnd"                  column="END_SROK" />
+            <return-property name="dictionaryPeriod"           column="Q_SROK" />
+        </return>
+        <![CDATA[
+        SELECT
+            dcftar.ID                   as ID,
+            dcftar.KOD_VKL_QDTN1        as KOD_VKL_QDTN,
+            dcftar.KOD_VKL_QDTSUB       as KOD_VKL_QDTSUB,
+            dcftar.KOD_VKL_CLNT         as KOD_VKL_CLNT,
+            dcftar.DATE_BEG             as DATE_BEG,
+            dcftar.SUM_BEG              as SUM_BEG,
+            dcftar.TAR_VKL              as TAR_VKL,
+            dcftar.DCF_VAL              as DCF_VAL,
+            dcftar.DCF_SEG              as DCF_SEG,
+            bux.BEG_SROK                as BEG_SROK,
+            bux.END_SROK                as END_SROK,
+            qvb.Q_SROK                  as Q_SROK
+        FROM
+            DEPOSITS_DCF_TAR dcftar
+            LEFT JOIN DEPOSITS_BCH_BUX bux on dcftar.KOD_VKL_QDTN1 = bux.BCH_VKL and dcftar.KOD_VKL_QDTSUB = bux.BCH_PVVKL
+            LEFT JOIN DEPOSITS_QVB qvb on dcftar.KOD_VKL_QDTN1 = qvb.QDTN1 and dcftar.KOD_VKL_QDTSUB = qvb.QDTSUB
+        WHERE
+            dcftar.KOD_VKL_QDTN1 = :type AND
+            dcftar.KOD_VKL_QDTSUB in (:subTypes) AND
+            dcftar.DATE_BEG <= SYSDATE AND
+            (BUX.FL_REZ = 0 or BUX.FL_REZ is null)
+        ]]>
+    </sql-query>
+
+    <!--
+        Получить название минимального подвида вкладного продукта (только для группы с кодом == 0)
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: ("QVB"."QDTN1"=TO_NUMBER(:TYPE) AND "QVB"."QDTSUB"= (SELECT MIN("QVB_SUB"."QDTSUB")
+                      FROM "DEPOSITS_QVB" "QVB_SUB" WHERE "QVB_SUB"."QDTN1"=TO_NUMBER(:TYPE))) AND "QVB_SUB"."QDTN1"=TO_NUMBER(:TYPE)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity.getName">
+        <return-scalar column="DEPOSIT_NAME" type="string"/>
+        <![CDATA[
+        SELECT
+            qvb.QDN as DEPOSIT_NAME
+        FROM
+            DEPOSITS_QVB qvb
+        WHERE
+            qvb.QDTN1 = :extra_type AND
+            qvb.Q_GROUP = 0 AND
+            qvb.QDTSUB = (select min(qvb_sub.QDTSUB) from DEPOSITS_QVB qvb_sub where qvb_sub.QDTN1 = :extra_type and qvb_sub.Q_GROUP = 0)
+        ]]>
+    </sql-query>
+
+    <!--
+        Получение значений минимальных доп. взносов и валют (для детальной информации).
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: ("QVB"."QDTN1"=TO_NUMBER(:TYPE)) AND ("ITEM_2"="VAL"."QVKL_T_QDTN1" AND "ITEM_1"="VAL"."QVKL_T_QDTSUB")
+        Кардинальность: от 1 до 19 (в зависимости от количества валют вклада). Чаще всего 1 – 3
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity.getMinAdditionalFeeValues">
+        <return-scalar column="SUM" type="big_decimal"/>
+        <return-scalar column="CURRENCY" type="string"/>
+        <![CDATA[
+        SELECT
+            min(qvb.QMINADD)    as SUM,
+            val.QVKL_V          as CURRENCY
+        FROM
+             DEPOSITS_QVB qvb
+             JOIN DEPOSITS_QVKL_VAL val on qvb.QDTN1 = val.QVKL_T_QDTN1 and qvb.QDTSUB = val.QVKL_T_QDTSUB
+        WHERE
+             qvb.QDTN1 = :type and qvb.Q_GROUP = :groupCode
+        GROUP BY
+            val.QVKL_V
+        ]]>
+    </sql-query>
+
+    <!--
+        Получение доп. информации о каждом подвиде вкладного продукта (для формы открытия вклада)
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: "QVB"."QDTN1"=TO_NUMBER(:TYPE)
+        Кардинальность: количество подвидов во вкладном продукте. Максимально - 65
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntity.getEntitySubTypesInfo">
+        <return class="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositProductEntitySubType">
+            <return-property name="id"                  column="ID"/>
+            <return-property name="dateBegin"           column="DATE_BEGIN"/>
+            <return-property name="dateEnd"             column="DATE_END"/>
+            <return-property name="minAdditionalFee"    column="MIN_ADD_FEE"/>
+            <return-property name="name"                column="NAME"/>
+        </return>
+        <![CDATA[
+        SELECT
+            qvb.QDTSUB          as ID,
+            qvb.QOPBEG          as DATE_BEGIN,
+            qvb.QOPEND          as DATE_END,
+            qvb.QMINADD         as MIN_ADD_FEE,
+            qvb.QDN             as NAME
+        FROM
+             DEPOSITS_QVB qvb
+        WHERE
+             qvb.QDTN1 = :type and qvb.Q_GROUP = :groupCode
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

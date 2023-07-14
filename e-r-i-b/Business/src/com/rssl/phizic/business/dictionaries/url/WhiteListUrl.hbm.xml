@@ -1,0 +1,75 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.url.WhiteListUrl"
+           table="WHITE_LIST_URL">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_WHITE_LIST_URL</param>
+            </generator>
+        </id>
+        <property name="url" type="string" column="URL" not-null="true"/>
+    </class>
+    
+     <!-- входит ли URL в список разрешенных -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.url.WhiteListUrl.inWhiteList">
+        <return-scalar column="IN_LIST" type="boolean"/>
+        <![CDATA[
+            SELECT
+                DECODE(count(*), 0, 0, 1) IN_LIST
+            FROM
+                WHITE_LIST_URL
+            WHERE
+                :url LIKE WHITE_LIST_URL.url||'%'
+		]]>
+    </sql-query>
+
+    <!--список всех URL-адресов-->
+    <query name="com.rssl.phizic.business.dictionaries.url.WhiteListUrl.getMaskUrlList">
+        select url
+        from com.rssl.phizic.business.dictionaries.url.WhiteListUrl url
+    </query>
+    <!--удаление URL-адреса по id-->
+    <query name="com.rssl.phizic.business.dictionaries.url.WhiteListUrl.removeById">
+        delete from com.rssl.phizic.business.dictionaries.url.WhiteListUrl url
+            where url.id in (:ids)
+    </query>
+
+    <!-- входит ли URL в список разрешенных -->
+   <sql-query name="com.rssl.phizic.business.dictionaries.url.WhiteListUrl.canEditList">
+        <return-scalar column="advertisingNames" type="string"/>
+       <![CDATA[
+           SELECT
+                distinct(names) advertisingNames
+            FROM(
+                SELECT
+                    advert.NAME names
+                FROM
+                    IMAGES img join  ADVERTISINGS advert on advert.IMAGE_ID = img.id and  advert.STATE != 'DELETED'
+                WHERE
+                   img.LINK_URL is not NULL and (:regexpString is null or not REGEXP_LIKE(img.LINK_URL, :regexpString))
+
+                UNION ALL
+
+                SELECT
+                    advert.NAME names
+                FROM
+                        ADVERTISING_BUTTONS buttons join  ADVERTISINGS advert on advert.id = buttons.ADVERTISING_ID and  advert.STATE != 'DELETED'
+                WHERE
+                    buttons.url is not null and (:regexpString is null or not REGEXP_LIKE(buttons.url, :regexpString))
+
+                UNION ALL
+
+                SELECT
+                   advert.NAME names
+                FROM
+                       ADVERTISINGS advert
+                WHERE                                                               
+                    advert.STATE != 'DELETED' and REGEXP_LIKE(REGEXP_REPLACE(advert.text, :regexpStringText, '', 1, 0, 'im'), '\[url=[^\[]*]', 'im')
+            )
+       ]]>
+   </sql-query>
+
+</hibernate-mapping>

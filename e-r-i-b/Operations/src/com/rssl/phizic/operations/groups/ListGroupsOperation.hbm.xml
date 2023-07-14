@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<sql-query name="com.rssl.phizic.operations.groups.ListGroupsOperationC.list">
+		<return alias="gr" class="com.rssl.phizic.business.groups.Group"/>
+		SELECT
+            {gr.*}
+        FROM
+            UGROUP gr
+            LEFT JOIN DEPARTMENTS dep on gr.department_id = dep.id
+		WHERE
+            gr.category = 'C'
+        AND
+            (:extra_name is null or :extra_name = '' or upper(gr.name) like upper(:extra_like_name))
+        AND
+            (
+                gr.department_id is null
+            OR
+                :allTbAccess = '1'
+            OR
+                exists(SELECT 1 FROM ALLOWED_DEPARTMENTS ad
+                         WHERE ad.LOGIN_ID = :employeeLoginId
+                         AND ad.TB||'|'||ad.OSB||'|'||ad.VSP in (
+                                                         dep.TB||'|*|*',
+                                                         dep.TB||'|'||dep.OSB||'|*',
+                                                         dep.TB||'|'||dep.OSB||'|'||dep.OFFICE,
+                                                         '*|*|*')
+                    )
+              )
+		order by gr.name
+	</sql-query>
+	<sql-query name="com.rssl.phizic.operations.groups.ListGroupsOperationA.list">
+		<return alias="gr" class="com.rssl.phizic.business.groups.Group"/>
+		SELECT
+            {gr.*}
+        FROM
+            UGROUP gr
+            LEFT JOIN DEPARTMENTS dep on gr.department_id = dep.id
+		WHERE
+            gr.category = 'A'
+        AND
+            (:extra_name is null or :extra_name = '' or upper(gr.name) like upper(:extra_like_name))
+        AND
+            (
+                gr.department_id is null
+            OR
+                :allTbAccess = '1'
+            OR
+                exists(SELECT 1 FROM ALLOWED_DEPARTMENTS ad
+                         WHERE ad.LOGIN_ID = :employeeLoginId
+                         AND ad.TB||'|'||ad.OSB||'|'||ad.VSP in (
+                                                         dep.TB||'|*|*',
+                                                         dep.TB||'|'||dep.OSB||'|*',
+                                                         dep.TB||'|'||dep.OSB||'|'||dep.OFFICE,
+                                                         '*|*|*')
+                    )
+              )
+        order by gr.name
+	</sql-query>
+</hibernate-mapping>

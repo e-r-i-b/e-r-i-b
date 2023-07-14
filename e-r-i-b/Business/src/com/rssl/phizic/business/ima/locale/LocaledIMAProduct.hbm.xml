@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+    <class name="com.rssl.phizic.business.ima.locale.IMAProductResources" table="IMAPRODUCT_RES">
+        <composite-id>
+            <key-property name="id" column="ID" type="long"/>
+            <key-property name="localeId" column="LOCALE_ID" type="string"/>
+        </composite-id>
+
+        <property name="name" column="NAME" type="string" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.ima.locale.LocaledIMAProduct" table="IMAPRODUCT" abstract="false" mutable="false">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_IMAPRODUCT</param>
+            </generator>
+        </id>
+        <property name="uuid" type="string" column="UUID" not-null="true"/>
+        <property name="type" type="long" column="TYPE" not-null="true"/>
+        <property name="subType" type="long" column="SUBTYPE" not-null="true"/>
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="contractTemplate" type="string" column="CONTRACT_TEMPLATE" not-null="true"/>
+        <property name="currency" type="currency" column="CURRENCY" not-null="true"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.ima.locale.IMAProductResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+    <!--
+        Получить все виды ОМС для открытия
+        Опорный объект: IMAPRODUCT
+        Предикаты доступа: TABLE ACCESS FULL
+        Кардинальность: все продукты ОМС
+    -->
+    <sql-query name="com.rssl.phizic.business.ima.IMAProduct.getAll.multilocale">
+        <return alias="imaProduct" class="com.rssl.phizic.business.ima.locale.LocaledIMAProduct"/>
+        <return-join alias="imaProductRes" property="imaProduct.resources"/>
+        SELECT
+            {imaProduct.*},
+            {imaProductRes.*}
+        FROM
+            IMAPRODUCT imaProduct
+        LEFT JOIN
+            IMAPRODUCT_RES imaProductRes ON imaProduct.ID = imaProductRes.ID AND imaProductRes.LOCALE_ID = :extra_localeId
+        ORDER BY imaProduct.TYPE, imaProduct.SUBTYPE
+    </sql-query>
+
+    <!--
+        Удаление локализованных ресурсов для ОМС
+        Опорный объект: PK_IMAPRODUCT_RES
+        Предикаты доступа: "RES"."ID"=TO_NUMBER(:IMAID)
+        Кардинальность: Количество записей будет равно количеству локалей в системе (за вычетом базовой) умноженное на количество локализованных полей.
+    -->
+    <query name="com.rssl.phizic.business.ima.IMAProduct.deleteIMAProductResources">
+        delete from com.rssl.phizic.business.ima.locale.IMAProductResources res
+        where res.id = :imaId
+    </query>
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

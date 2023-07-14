@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+   <class name="com.rssl.phizic.business.resources.external.PaymentSystemIdLink"
+           table="PAYMENTS_SYSTEM_LINKS" >
+		<id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PAYMENTS_SYSTEM_LINKS</param>
+            </generator>
+		</id>
+        <property name="externalId"     column="EXTERNAL_ID"/>
+        <property name="loginId" type="long" not-null="true" column="LOGIN_ID" />
+        <many-to-one name="billing" class="com.rssl.phizic.business.dictionaries.billing.Billing" column="BILLING_ID" not-null="false" lazy="false"/>
+    </class>
+
+	<query name="com.rssl.phizic.business.resources.external.PaymentSystemIdLink.list">
+		select link
+		from   com.rssl.phizic.business.resources.external.PaymentSystemIdLink link
+		where  link.loginId = :login
+	</query>
+</hibernate-mapping>

@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="SecuritiesTransferClaim"
+              description="Поручение на перевод/прием перевода ценных бумаг"
+              templateName="Перевод/прием ценных бумаг"
+              detailedDescription="С помощью этой формы Вы можете создать поручение на перевод/прием перевода
+              ценных бумаг между разделами счета депо, на счет в другом депозитарии или реестре с изменением
+              или без изменения права собственности.
+              Для совершения операции заполните поля формы и нажмите на кнопку Сохранить.
+              Обратите внимание: на раздел 22 (торговый) могут быть зачислены только бумаги, включенные в
+              список ценных бумаг, допущенных к торгам на ЗАО «Фондовая биржа ММВБ».
+              Расходные операции по торговому разделу недоступны. Если Вы хотите перевести учитывающиеся на
+              нем бумаги на другой раздел или в другой депозитарий, то обратитесь к брокеру по месту
+              обслуживания или воспользуйтесь электронными торговыми системами для перевода бумаг на
+              основной раздел."
+              confirmDescription="Поручение успешно отправлено в банк. При переводе ценных бумаг на счет депо в другой депозитарий, Вам необходимо в ближайшее время подать встречное поручение в депозитарий, в который Вы переводите ценные бумаги. Спасибо, что Вы воспользовались «Сбербанк Онлайн»!"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+    <implementation class="com.rssl.phizic.business.documents.SecuritiesTransferClaim"/>
+    <template-implementation class="com.rssl.phizic.business.documents.templates.impl.SecuritiesTransferTemplate"/>
+    <extended-metadata-loader class="com.rssl.phizic.business.documents.metadata.SimpleExtendedMetadataLoader"/>
+
+    <fields>
+        <field  name="state"
+                description="Статус заявки"
+                type="string"
+                source="state"/>
+
+        <field  name="documentNumber"
+                description="Номер поручения"
+				type="string"
+				source="document-number"/>
+
+        <field  name="documentDate"
+				description="Дата поручения"
+				type="date"
+				source="document-date"/>
+
+        <field name="documentTime"
+				description="Время документа"
+				source="document-time"
+				type="string"/>
+
+        <field  name="operationType"
+                description="Тип операции"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='operation-type']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field  name="operationSubType"
+                description="Содержание операции"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='operation-sub-type']/@value">
+            <validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+        
+        <field  name="depositor"
+                description="Депонент"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='depositor']/@value"/>
+
+        <field  name="operationInitiator"
+                description="Инициатор операции"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='operation-initiator']/@value"/>
+
+        <field  name="managerFIO"
+                description="ФИО распорядителя"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='manager-fio']/@value"/>
+
+        <field  name="operationDesc"
+                description="Комментарий к операции"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='operation-desc']/@value">
+
+            <validators>
+				<!--<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.operationSubType =='LIST_TRANSFER' || form.operationSubType =='EXTERNAL_TRANSFER'"/>-->
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator" >
+					<message text="Пожалуйста, введите не более 1080 символов."/>
+					<parameter name="regexp">^.{1,1080}$</parameter>
+				</validator>
+			    <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+            </validators>
+        </field>
+
+        <field  name="depoAccount"
+                description="Счет депо"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='depo-account']/@value">
+            <validators>
+				<validator mode="pre-template|template|by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, выберите номер счета депо."/>
+                </validator>
+			</validators>
+        </field>
+
+        <!--Внешний идентификатор счета Депо-->
+        <field  name="depoExternalId"
+                description="Внешний идентификатор счета Депо"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='depo-external-id']/@value">
+        </field>
+
+        <field  name="divisionType"
+                description="Тип раздела счета депо"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='division-type']/@value">
+        </field>
+
+        <!--Раздел счета депо, фактически храним только номер раздела-->
+        <field  name="divisionNumber"
+                description="Тип и номер раздела"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='division-number']/@value">
+
+            <validators>
+				<validator mode="pre-template|template|by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, выберите интересующий раздел счета депо."/>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator" enabled="form.operationType != 'RECEPTION'">
+					<message text="Пожалуйста, укажите другой раздел счета депо. Вы не можете переводить ценные бумаги с разделов «Для торгов» и «Блокированы в залоге»: 22ХХХХ и 27ХХХХ, где ХХХХ – любые символы."/>
+					<parameter name="regexp">^(2[^2,7]|[^2]).{0,48}$</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator"
+                           enabled="form.operationType == 'RECEPTION'">
+					<message text="Вы можете принимать ценные бумаги только на разделы 10ХХХХ и 22ХХХХ, где ХХХХ – любые символы."/>
+					<parameter name="regexp">^(10|22).{0,48}$</parameter>
+				</validator>
+			</validators>
+        </field>
+
+        <field  name="registrationNumber"
+                description="Регистрационный номер"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='registration-number']/@value">
+            <validators>
+				<validator mode="pre-template|template|by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                            enabled="form.securityName == null">
+                    <message text="Не задан номер гос. регистрации ценных бумаг. Выберите наименование ценных бумаг из справочника"/>
+                </validator>
+                <validator mode="pre-template|template|by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                            enabled="form.securityName != null">
+                    <message text="В справочнике отсутствует регистрационный номер выбранной Вами ценной бумаги. Пожалуйста, обратитесь в банк для изменения справочных данных."/>
+                </validator>
+			</validators>
+        </field>
+
+        <field  name="securityName"
+                description="Наименование ценных бумаг"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='security-name']/@value">
+            <validators>
+				<validator mode="pre-template|template|by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message
+                            text="Пожалуйста, введите вручную или выберите из справочника наименование
+                            нужной ценной бумаги. Чтобы воспользоваться справочником, нажмите на ссылку
+                            Выбрать из справочника. В открывшемся окне установите флажок напротив нужной
+                            ценной бумаги и нажмите на кнопку Выбрать."/>
+                </validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 255 символов."/>
+					<parameter name="regexp">^.{1,255}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <field  name="insideCode"
+                description="Внутренний код"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='inside-code']/@value">
+        </field>
+
+        <!-- Для пилотного проекта ЕРИБ используется только значение "open" -->
+        <field  name="storageMethod"
+                description="Способ хранения"
+                type="string"
+                subType="static"
+                source="extra-parameters/parameter[@name='storage-method']/@value"
+                value="'open'">
+            <validators>
+				<validator mode="pre-template|template|by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+        </field>
+
+        <field  name="securityCount"
+                description="Количество ценных бумаг"
+                type="integer"
+                source="extra-parameters/parameter[@name='security-count']/@value">
+            <validators>
+				<validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, укажите количество ценных бумаг."/>
+                </validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 10 цифр."/>
+					<parameter name="regexp">^\d{1,10}$</parameter>
+				</validator>
+			</validators>
+        </field>
+
+        <field  name="nominalAmount"
+                description="Номинал ценных бумаг"
+                type="string"
+                source="extra-parameters/parameter[@name='nominal-amount']/@value">
+        </field>
+               
+        <field  name="currencyCode"
+                description="ISO-код валюты номинала"
+                type="string"
+                source="extra-parameters/parameter[@name='currency-code']/@value">
+            <validators>
+				<validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                            enabled="form.securityName == null">
+                    <message text="Не указан код валюты ценных бумаг. Выберите наименование ценных бумаг из справочника."/>
+                </validator>
+                <validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                            enabled="form.securityName != null  &amp;&amp; form.nominalAmount != null &amp;&amp; form.nominalAmount != ''">
+                    <message text="В справочнике ценных бумаг для выбранных Вами ценных бумаг не указана их валюта. Обратитесь в банк для изменения справочных данных"/>
+                </validator>
+			</validators>
+        </field>
+
+        <field  name="operationReason"
+                description="Основание"
+                type="string"
+                source="extra-parameters/parameter[@name='operation-reason']/@value">
+            <validators>
+				<validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, укажите  основание операции."/>
+                </validator>    
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 255 символов."/>
+					<parameter name="regexp">^.{1,255}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <!--для 1го этапа ЕРИБ равно 0 и не редактируется пользователем-->
+        <field  name="countOfSheet"
+                description="Количество приложений, листов"
+                type="integer"
+                source="extra-parameters/parameter[@name='count-of-sheet']/@value"/>
+
+
+        <!--Информация о противоположной стороне-->
+        
+        <field  name="corrDepositary"
+                description="Депозитарий/Регистратор"
+                type="string"
+                source="extra-parameters/parameter[@name='corr-depositary']/@value">
+            <validators>
+				<validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, введите наименование депозитария или регистратора, через который осуществляется прием или перевод ценных бумаг."/>
+                </validator>    
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 255 символов."/>
+					<parameter name="regexp">^.{1,255}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <!--номер счета депо, номер раздела, номер счета в реестре или наименование депозитария-->
+        <field  name="corrDepoAccount"
+                description="Номер счета"
+                type="string"
+                source="extra-parameters/parameter[@name='corr-depo-account']/@value">
+            <validators>
+				<validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Пожалуйста, введите номер счета, на который Вы переводите или с которого принимаете ценные бумаги."/>
+                </validator>    
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator" >
+					<message text="Пожалуйста, введите не более 255 символов."/>
+					<parameter name="regexp">^.{1,255}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <field  name="corrDepoAccountOwner"
+                description="Владелец счета"
+                type="string"
+                source="extra-parameters/parameter[@name='corr-depo-account-owner']/@value">
+            <validators>
+				<validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message  text="Пожалуйста, введите наименование или ФИО владельца счета депо,
+                    на который  Вы хотите перевести бумаги или с которого хотите их принять."/>
+                </validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 255 символов."/>
+					<parameter name="regexp">^.{1,255}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <field  name="additionalInfo"
+                description="Дополнительные реквизиты"
+                type="string"
+                source="extra-parameters/parameter[@name='additional-info']/@value">
+            <validators>
+				<validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                           enabled="form.operationSubType=='LIST_RECEPTION'">
+                    <message text="Пожалуйста, введите дополнительные реквизиты."/>
+                </validator>
+                <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Пожалуйста, введите не более 120 символов."/>
+					<parameter name="regexp">^.{1,120}$</parameter>
+				</validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+			</validators>
+        </field>
+
+        <field  name="deliveryType"
+                description="Способ доставки сертификатов"
+                type="string"
+                source="extra-parameters/parameter[@name='delivery-type']/@value">
+                <validators>
+				    <validator mode="by-template|document" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                               enabled="form.storageMethod == 'closed'"/>
+			    </validators>
+        </field>
+
+    </fields>
+    <form-validators>
+        <form-validator mode="by-template|document" class="com.rssl.phizic.business.payments.forms.validators.SecuritiesCountValidator"
+                 enabled="form.operationType != 'RECEPTION'">
+        <message text="Для исполнения поручения на указанном разделе Вашего счета депо отсутствует необходимое количество ценных бумаг. Уменьшите количество ценных бумаг или отмените поручение."/>
+			<field-ref name="secCount">securityCount</field-ref>
+			<field-ref name="depoAcc">depoAccount</field-ref>
+			<field-ref name="divType">divisionType</field-ref>
+			<field-ref name="divNum">divisionNumber</field-ref>
+            <field-ref name="regCode">registrationNumber</field-ref>
+        </form-validator>
+    </form-validators>
+</payment-form>

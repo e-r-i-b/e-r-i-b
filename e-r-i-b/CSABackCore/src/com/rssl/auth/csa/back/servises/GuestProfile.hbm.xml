@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.auth.csa.back.servises.GuestProfile" table="GUEST_PROFILES" abstract="true">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_GUEST_PROFILES</param>
+            </generator>
+        </id>
+        <property name="phone"          type="string"           column="PHONE"          not-null="true"/>
+        <property name="code"           type="long"             column="CODE"           not-null="false"/>
+        <property name="blockedUntil"   type="calendar"         column="BLOCKED_UNTIL"  not-null="false"/>
+        <property name="authErrors"     type="long"             column="AUTH_ERRORS"    not-null="false"/>
+        <property name="firstname"      type="string"           column="FIRST_NAME"     not-null="false"/>
+        <property name="patrname"       type="string"           column="PATR_NAME"      not-null="false"/>
+        <property name="surname"        type="string"           column="SUR_NAME"       not-null="false"/>
+        <property name="birthdate"      type="calendar"         column="BIRTHDATE"      not-null="false"/>
+        <property name="passport"       type="string"           column="PASSPORT"       not-null="false"/>
+        <property name="tb"             type="string"           column="TB"             not-null="false"/>
+    </class>
+
+    <sql-query name="com.rssl.auth.csa.back.servises.GuestProfile.generateCode">
+        <return-scalar column="CODE" type="long"/>
+            SELECT S_GUEST_CODE_PROFILES.nextval as CODE FROM DUAL
+    </sql-query>
+
+
+    <!--
+        Выборка гостевого профиля по его логину
+        Опорный объект: IDX_CSA_LOGINS, PK_CSA_CONNECTORS
+        Предикаты доступа: (UPPER("LOGIN")=UPPER(:LOGIN)),
+                            ("LOGIN"."GUEST_ID"="GUEST_PROFILE"."ID")
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.GuestProfile.getByLogin">
+        <return alias="profile" class="com.rssl.auth.csa.back.servises.GuestProfile"/>
+        <![CDATA[
+            select {profile.*} from CSA_LOGINS login inner join GUEST_PROFILES profile on login.GUEST_ID = profile.ID
+            where upper(login.LOGIN) = upper(:login)
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

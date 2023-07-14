@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <typedef name="AccountState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.bankroll.AccountState</param>
+		<param name="identifierMethod">getId</param>
+		<param name="valueOfMethod">valueOf</param>
+	</typedef>
+
+	<class name="com.rssl.phizicgate.rsretailV6r4.bankroll.AccountImpl">
+		<id name="longId"/>
+		<property name="description"/>
+		<property name="number"/>
+		<property name="currency" type="com.rssl.phizicgate.rsretailV6r4.hibernate.RSRetailCurrencyType"/>
+		<property name="openDate"/>
+		<property name="branch"/>
+		<property name="debitAllowed"/>
+		<property name="creditAllowed"/>
+        <property name="accountState" type="AccountState"/>
+	</class>
+
+	<sql-query name="GetClientAccountByNumber">
+	    <return alias="account" class="com.rssl.phizicgate.rsretailV6r4.bankroll.AccountImpl">
+	        <return-property name="longId"          column="id"/>
+	        <return-property name="number"          column="tnumber"/>
+	        <return-property name="description"     column="accType"/>
+	        <return-property name="currency"        column="currencyId"/>
+		    <return-property name="openDate"        column="OpenDate"/>
+		    <return-property name="branch"          column="FNCash"/>
+		    <return-property name="creditAllowed"   column="creditAllowed"/>
+		    <return-property name="debitAllowed"    column="debitAllowed"/>
+            <return-property name="accountState"    column="accountState"/>
+	    </return>
+	    SELECT
+	        account.t_Referenc      AS id,
+	        account.t_Account       AS tnumber,
+	        account.t_Code_Currency AS currencyId,
+	        account.t_Type_Account  AS accType,
+            to_char(to_date(account.t_Open_Date, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS OpenDate, <!-- перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   -->
+		    account.t_FNCash        AS FNCash,
+           case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=account.t_type_account and t_flagcur=account.t_iscur)=0
+	            then (case
+                        when(select count (*) from DSB_TYPOP_DBT where t_kind = account.t_type_account
+                        and t_iscur=account.t_iscur and t_numopert in ( 62, 63, 64, 65, 66, 67)
+                        and t_sysNumb = 0) > 0 then 1 else 0 end)
+                else (case
+                        when (select count(*) from DSB_TYPOP_DBT where t_kind =
+                                (select t_aptype from DPC_APLTP_DBT where t_iscur=account.t_iscur
+                                    and t_type = account.t_type_account
+                                    and t_typerec = 1003
+                                    and t_appltype = 3010)
+                                 and t_iscur=account.t_iscur and t_numopert in ( 62, 63, 64, 65, 66, 67)
+                                and t_sysNumb =0)>0 then 1 else 0 end)
+
+            end
+            as debitAllowed,
+
+            case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=account.t_type_account and t_flagcur=account.t_iscur)=0
+	            then (case
+                        when(select count(*) from DSB_TYPOP_DBT where t_kind = account.t_type_account
+                        and t_iscur=account.t_iscur and t_numopert in (70, 71, 73)
+                        and t_SysNumb=0) >0 then 1 else 0 end)
+                else (case
+                        when (select count(*)  from DSB_TYPOP_DBT where t_kind =
+                                (select t_aptype from DPC_APLTP_DBT where t_iscur=account.t_iscur
+                                    and t_type = account.t_type_account
+                                    and t_typerec = 1003
+                                    and t_appltype = 3010)
+                                 and t_iscur=account.t_iscur and t_numopert in (70, 71, 73)
+                                and t_SysNumb =0) >0 then 1 else 0 end)
+               end
+            as creditAllowed,
+
+            case when account.t_open_close not like '%З%'
+                    then 0
+                else (case
+                        when account.t_UserTypeAccount like '%Я%' OR account.t_UserTypeAccount like '%Т%'
+                            then 3 end)
+            end  as accountState    
+
+        FROM ddepositr_dbt account
+        INNER JOIN dpersn_dbt person
+            ON account.t_codclient = person.t_personid
+        inner join DSB_DTYP_DBT	types
+            on account.t_type_account = types.t_kind and account.t_iscur = types.t_flagcur
+         WHERE account.t_Account = :accountNumber
+	</sql-query>
+
+    <sql-query name="GetAccount">
+        <return alias="accounts" class="com.rssl.phizicgate.rsretailV6r4.bankroll.AccountImpl">
+            <return-property name="longId"          column="id"/>
+            <return-property name="number"          column="tnumber"/>
+            <return-property name="description"     column="accType"/>
+            <return-property name="currency"        column="currencyId"/>
+	        <return-property name="openDate"        column="OpenDate"/>
+	        <return-property name="branch"          column="FNCash"/>
+	        <return-property name="creditAllowed"   column="creditAllowed"/>
+	        <return-property name="debitAllowed"    column="debitAllowed"/>
+            <return-property name="accountState"    column="accountState"/>
+        </return>
+       SELECT
+            accounts.t_Referenc      AS id,
+            accounts.t_Account       AS tnumber,
+            accounts.t_Code_Currency AS currencyId,
+            accounts.t_Type_Account  AS accType,
+            to_char(to_date(accounts.t_Open_Date, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS OpenDate, <!-- перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   -->
+	        accounts.t_FNCash        AS FNCash,
+              case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=accounts.t_type_account and t_flagcur=accounts.t_iscur)=0
+	            then (case
+                        when(select count (*) from DSB_TYPOP_DBT where t_kind = accounts.t_type_account
+                        and t_iscur=accounts.t_iscur and t_numopert in ( 62, 63, 64, 65, 66, 67)
+                        and t_sysNumb = 0) > 0 then 1 else 0 end)
+                else (case
+                        when (select count(*) from DSB_TYPOP_DBT where t_kind =
+                                (select t_aptype from DPC_APLTP_DBT where t_iscur=accounts.t_iscur
+                                    and t_type = accounts.t_type_account
+                                    and t_typerec = 1003
+                                    and t_appltype = 3010)
+                                 and t_iscur=accounts.t_iscur and t_numopert in ( 62, 63, 64, 65, 66, 67)
+                                and t_sysNumb =0)>0 then 1 else 0 end)
+
+            end
+            as debitAllowed,
+
+            case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=accounts.t_type_account and t_flagcur=accounts.t_iscur)=0
+	            then (case
+                        when(select count(*) from DSB_TYPOP_DBT where t_kind = accounts.t_type_account
+                        and t_iscur=accounts.t_iscur and t_numopert in (70, 71, 73)
+                        and t_SysNumb=0) >0 then 1 else 0 end)
+                else (case
+                        when (select count(*)  from DSB_TYPOP_DBT where t_kind =
+                                (select t_aptype from DPC_APLTP_DBT where t_iscur=accounts.t_iscur
+                                    and t_type = accounts.t_type_account
+                                    and t_typerec = 1003
+                                    and t_appltype = 3010)
+                                 and t_iscur=accounts.t_iscur and t_numopert in (70, 71, 73)
+                                and t_SysNumb =0) >0 then 1 else 0 end)
+               end
+            as creditAllowed,
+
+            case when accounts.t_open_close not like '%З%'
+                    then 0
+                else (case
+                        when accounts.t_UserTypeAccount like '%Я%' OR accounts.t_UserTypeAccount like '%Т%'
+                            then 3 end)
+            end  as accountState
+
+        FROM ddepositr_dbt accounts
+        INNER JOIN dpersn_dbt person
+            ON accounts.t_codclient = person.t_personid
+        inner join DSB_DTYP_DBT	types
+            on accounts.t_type_account = types.t_kind and accounts.t_iscur = types.t_flagcur
+        WHERE accounts.t_Referenc = :accountId
+    </sql-query>
+
+	<sql-query name="GetClientAccounts">
+	    <return alias="accounts" class="com.rssl.phizicgate.rsretailV6r4.bankroll.AccountImpl">
+	        <return-property name="longId"          column="id"/>
+	        <return-property name="number"          column="tnumber"/>
+	        <return-property name="description"     column="accType"/>
+	        <return-property name="currency"        column="currencyId"/>
+		    <return-property name="openDate"        column="OpenDate"/>
+		    <return-property name="branch"          column="FNCash"/>
+		    <return-property name="creditAllowed"   column="creditAllowed"/>
+		    <return-property name="debitAllowed"    column="debitAllowed"/>
+            <return-property name="accountState"    column="accountState"/>
+	    </return>
+    	<![CDATA[
+		SELECT
+		   owned.t_Referenc       AS id,
+		   owned.t_Account        AS tnumber,
+		   owned.t_Code_Currency  AS currencyId,
+		   owned.t_Type_Account   AS accType,
+		   to_char(to_date(owned.t_Open_Date, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS OpenDate, /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+		   owned.t_FNCash         AS FNCash,
+           case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=owned.t_type_account and t_flagcur=owned.t_iscur)=0
+	            then (case
+                        when(select count (*) from DSB_TYPOP_DBT where t_kind = owned.t_type_account
+                        and t_iscur=owned.t_iscur and t_numopert in ( 62, 63, 64, 65, 66, 67)
+                        and t_sysNumb = 0) > 0 then 1 else 0 end)
+                else (case
+                        when (select count(*) from DSB_TYPOP_DBT where t_kind =
+                                (select t_aptype from DPC_APLTP_DBT where t_iscur=owned.t_iscur
+                                    and t_type = owned.t_type_account
+                                    and t_typerec = 1003
+                                    and t_appltype = 3010)
+                                 and t_iscur=owned.t_iscur and t_numopert in ( 63, 64, 65, 66, 67)
+                                and t_sysNumb =0)>0 then 1 else 0 end)
+
+            end
+            as debitAllowed,
+
+            case when (select t_OpFromOtherDepType from dsb_dtyp_dbt  where T_KIND=owned.t_type_account and t_flagcur=owned.t_iscur)=0
+	            then (case
+                        when(select count(*) from DSB_TYPOP_DBT where t_kind = owned.t_type_account
+                        and t_iscur=owned.t_iscur and t_numopert in (70, 71, 73)
+                        and t_SysNumb=0) >0 then 1 else 0 end)
+                else (case
+                        when (select count(*)  from DSB_TYPOP_DBT where t_kind =
+                                (select t_aptype from DPC_APLTP_DBT where t_iscur=owned.t_iscur
+                                    and t_type = owned.t_type_account
+                                    and t_typerec = 1003
+                                    and t_appltype = 3010)
+                                 and t_iscur=owned.t_iscur and t_numopert in (70, 71, 73)
+                                and t_SysNumb =0) >0 then 1 else 0 end)
+               end
+            as creditAllowed,
+
+            case when owned.t_open_close not like '%З%'
+                    then 0
+                else (case
+                        when owned.t_UserTypeAccount like '%Я%' OR owned.t_UserTypeAccount like '%Т%'
+                            then 3 end)
+            end  as accountState
+                
+		FROM ddepositr_dbt owned
+        INNER JOIN dpersn_dbt person
+            ON owned.t_codclient = person.t_personid
+        inner join DSB_DTYP_DBT	types
+            on owned.t_type_account = types.t_kind and owned.t_iscur = types.t_flagcur
+        WHERE owned.t_CodClient = :clientId
+			  And owned.t_UserTypeAccount NOT LIKE '%К%'
+			  And (owned.t_Account LIKE '40817%' or owned.t_Account LIKE '40820%' or
+			       owned.t_Account LIKE '423%' or owned.t_Account LIKE '426%' or owned.t_Account LIKE '20309%'
+			       or owned.t_Account LIKE '20310%' or owned.t_Account LIKE '40802%')
+			  and owned.t_action < 2
+			  and owned.t_open_close not like '%З%'
+				]]>
+	</sql-query>
+
+	<sql-query name="GetAccountOwnerId">
+        <return-scalar column="CodClient" type="long"/>
+	    <![CDATA[
+	        SELECT * FROM(
+                SELECT owned.t_CodClient AS CodClient
+                FROM ddepositr_dbt owned
+                WHERE owned.t_Referenc = :accountId
+			)WHERE ROWNUM<2
+        ]]>
+    </sql-query>
+
+
+</hibernate-mapping>

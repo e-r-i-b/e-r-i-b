@@ -1,0 +1,93 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.gate.einvoicing.FacilitatorProvider" table="FACILITATOR_PROVIDERS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_FACILITATOR_PROVIDERS</param>
+            </generator>
+        </id>
+
+        <property name="facilitatorCode" column="FACILITATOR_CODE" type="string" not-null="true"/>
+        <property name="code" column="CODE" type="string" not-null="true"/>
+        <property name="name" column="NAME" type="string" not-null="true"/>
+        <property name="inn" column="INN" type="string" not-null="true"/>
+        <property name="url" column="URL" type="string" not-null="true"/>
+        <property name="deleted" column="DELETED" type="boolean" not-null="true"/>
+        <property name="mobileCheckoutEnabled" column="MCHECKOUT_ENABLED" type="boolean" not-null="true"/>
+        <property name="einvoiceEnabled" column="EINVOICE_ENABLED" type="boolean" not-null="true"/>
+        <property name="mbCheckEnabled" column="MB_CHECK_ENABLED" type="boolean" not-null="true"/>
+    </class>
+
+    <!--
+       Поиск поставщика по коду фасилитатора.
+
+       Опорный объект: UNIQ_PROV
+       Предикаты доступа: access("FACILITATOR_CODE"=:CODE)
+       Кардинальность: 150 стоп-условие.
+    -->
+    <query name="com.rssl.phizic.gate.einvoicing.FacilitatorProvider.findByCode">
+        select provider from com.rssl.phizic.gate.einvoicing.FacilitatorProvider provider
+        where provider.facilitatorCode = :code and provider.deleted = '0'
+    </query>
+
+    <!--
+        Поиск поставщика по инн и имени.
+
+        Опорный объект: FACILITATOR_PROVIDERS.
+        Предикаты доступа: нет. Full scan.
+        Кардинальность: 150 стоп-условие.
+        -->
+    <query name="com.rssl.phizic.gate.einvoicing.FacilitatorProvider.findByName">
+        select provider from com.rssl.phizic.gate.einvoicing.FacilitatorProvider provider
+        where upper(provider.name) like upper('%'||:name||'%') and provider.inn like '%'||:inn||'%' and provider.deleted = '0'
+    </query>
+
+    <!-- Запрос возвращает количество КПУ для фасилитатора
+
+        Опорный объект: UNIQ_PROV.
+        Предикаты доступа: "FACILITATOR_CODE"=:T
+        Кардинальность: = настройке лимита динамической загрузки КПУ + дельта(несколько записей)
+        -->
+    <query name="com.rssl.phizic.gate.einvoicing.FacilitatorProvider.findCount">
+        select count(provider) from com.rssl.phizic.gate.einvoicing.FacilitatorProvider provider
+        where provider.facilitatorCode = :facilitatorCode and provider.deleted = '0'
+    </query>
+
+    <!-- Обновление свойства "доступность оплаты по mobile-checkout" всех КПУ, привязанных к конкретному фасилитатору.
+
+        Опорный объект: UNIQ_PROV.
+        Предикаты доступа: "FACILITATOR_CODE"=:FACILITATORCODE
+        Кардинальность: = настройке лимита динамической загрузки КПУ + дельта(несколько записей)
+        -->
+    <query name="com.rssl.phizic.einvoicing.FacilitatorProvider.updateMcheckout">
+        update com.rssl.phizic.gate.einvoicing.FacilitatorProvider provider set provider.mobileCheckoutEnabled=:newValue
+        where provider.facilitatorCode = :facilitatorCode and provider.deleted = '0'
+    </query>
+
+    <!-- Обновление свойства "доступность оплаты по e-invoicing" всех КПУ, привязанных к конкретному фасилитатору.
+
+        Опорный объект: UNIQ_PROV.
+        Предикаты доступа: "FACILITATOR_CODE"=:FACILITATORCODE
+        Кардинальность: = настройке лимита динамической загрузки КПУ + дельта(несколько записей)
+        -->
+    <query name="com.rssl.phizic.einvoicing.FacilitatorProvider.updateEInvoicing">
+        update com.rssl.phizic.gate.einvoicing.FacilitatorProvider provider set provider.einvoiceEnabled=:newValue
+        where provider.facilitatorCode = :facilitatorCode and provider.deleted = '0'
+    </query>
+
+    <!-- Обновление свойства "доступность для проверки номера МТ в МБ" всех КПУ, привязанных к конкретному фасилитатору.
+
+        Опорный объект: UNIQ_PROV.
+        Предикаты доступа: "FACILITATOR_CODE"=:FACILITATORCODE
+        Кардинальность: = настройке лимита динамической загрузки КПУ + дельта(несколько записей)
+        -->
+    <query name="com.rssl.phizic.einvoicing.FacilitatorProvider.updateMbCheck">
+        update com.rssl.phizic.gate.einvoicing.FacilitatorProvider provider set provider.mbCheckEnabled=:newValue
+        where provider.facilitatorCode = :facilitatorCode and provider.deleted = '0'
+    </query>
+
+</hibernate-mapping>

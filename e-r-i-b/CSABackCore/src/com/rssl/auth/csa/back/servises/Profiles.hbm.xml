@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="CreationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+   		<param name="enumClass">com.rssl.phizic.common.types.client.CreationType</param>
+   	</typedef>
+    <typedef name="SecurityType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.security.SecurityType</param>
+    </typedef>
+
+    <class name="com.rssl.auth.csa.back.servises.Profile" table="CSA_PROFILES">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CSA_PROFILES</param>
+            </generator>
+        </id>
+
+        <property name="firstname" type="string" column="FIRST_NAME" not-null="true"/>
+        <property name="surname" type="string" column="SUR_NAME" not-null="true"/>
+        <property name="patrname" type="string" column="PATR_NAME" not-null="false"/>
+
+        <property name="birthdate" type="calendar" column="BIRTHDATE" not-null="true"/>
+        <property name="passport" type="string" column="PASSPORT" not-null="true"/>
+        <property name="tb" type="string" column="TB" not-null="true"/>
+        <property name="incognito" type="boolean" column="INCOGNITO" not-null="true"/>
+        <property name="agreementNumber" type="string"       column="AGREEMENT_NUMBER" not-null="false"/>
+        <property name="creationType"    type="CreationType" column="CREATION_TYPE"    not-null="false"/>
+        <property name="phone"           type="string"       column="PHONE"            not-null="false"/>
+        <property name="securityType"    type="SecurityType" column="SECURITY_TYPE"    not-null="false"/>
+        <component name="mapiPassword" class="com.rssl.auth.csa.back.servises.Password" >
+            <property name="hash" type="string" column="MAPI_PASSWORD_VALUE" not-null="false"/>
+            <property name="salt" type="string" column="MAPI_PASSWORD_SALT" not-null="false"/>
+            <property name="creationDate" type="calendar" column="MAPI_PASSWORD_CREATION_DATE" not-null="false"/>
+        </component>
+    </class>
+
+    <!--Получить профиль
+        Опорный объект: CSA_PROFILES
+        Предикаты доступа:     2 - access(UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'(
+                               )+',' ')))=UPPER(TRIM( REGEXP_REPLACE (:SURNAME||' '||:FIRSTNAME||' '||:PATRNAME,'( )+',' ')))
+                               AND "PROFILE"."BIRTHDATE"=TO_TIMESTAMP(:BIRTHDATE) AND REPLACE("PASSPORT",'
+                               ','')=REPLACE(:PASSPORT,' ',''))
+                        filter("PROFILE"."TB"=DECODE(:TB,NULL,"PROFILE"."TB",:TB))
+        Кардинальность: 0/2 (INDEX RANGE SCAN)-->
+    <sql-query name="com.rssl.auth.csa.back.servises.Profile.getByUniversalId">
+        <return alias="profile" class="com.rssl.auth.csa.back.servises.Profile"/>
+        <![CDATA[
+         SELECT {profile.*} FROM CSA_PROFILES profile
+         WHERE
+             UPPER(TRIM(REGEXP_REPLACE(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+             AND REPLACE(profile.PASSPORT,' ','') = REPLACE(:passport,' ','')
+             AND profile.birthdate = :birthdate
+             AND decode(:tb, null, profile.tb, :tb)= profile.tb
+      ]]>
+    </sql-query>
+
+    <!--Получить идентификатор профиля
+       Опорный объект: CSA_PROFILES
+       Предикаты доступа:     2 - access(UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'(
+                              )+',' ')))=UPPER(TRIM( REGEXP_REPLACE (:SURNAME||' '||:FIRSTNAME||' '||:PATRNAME,'( )+',' ')))
+                              AND "PROFILE"."BIRTHDATE"=TO_TIMESTAMP(:BIRTHDATE) AND REPLACE("PASSPORT",'
+                              ','')=REPLACE(:PASSPORT,' ',''))
+                       filter("PROFILE"."TB"=DECODE(:TB,NULL,"PROFILE"."TB",:TB))
+       Кардинальность: 0/2 (INDEX RANGE SCAN)-->
+    <sql-query name="com.rssl.auth.csa.back.servises.Profile.getProfileIdByUniversalId">
+        <![CDATA[
+         SELECT profile.ID FROM CSA_PROFILES profile
+         WHERE
+             UPPER(TRIM(REGEXP_REPLACE(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+             AND REPLACE(profile.PASSPORT,' ','') = REPLACE(:passport,' ','')
+             AND profile.birthdate = :birthdate
+             AND decode(:tb, null, profile.tb, :tb)= profile.tb
+      ]]>
+    </sql-query>
+
+
+
+
+    <!--Получить профиль ()
+        Опорный объект: CSA_PROFILES
+        Предикаты доступа:     2 - access(UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'(
+                               )+',' ')))=UPPER(TRIM( REGEXP_REPLACE (:SURNAME||' '||:FIRSTNAME||' '||:PATRNAME,'( )+',' ')))
+                               AND "PROFILE"."BIRTHDATE"=TO_TIMESTAMP(:BIRTHDATE) AND REPLACE("PASSPORT",'
+                               ','')=REPLACE(:PASSPORT,' ',''))
+                        filter("PROFILE"."TB"=DECODE(:TB,NULL,"PROFILE"."TB",:TB))
+        Кардинальность: 0/2 (INDEX RANGE SCAN)-->
+    <sql-query name="com.rssl.auth.csa.back.servises.Profile.getByUniversalId.withLock">
+        <return alias="profile" class="com.rssl.auth.csa.back.servises.Profile"/>
+       <![CDATA[
+         SELECT {profile.*} FROM CSA_PROFILES profile
+         WHERE
+             UPPER(TRIM(REGEXP_REPLACE(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+             AND REPLACE(profile.PASSPORT,' ','') = REPLACE(:passport,' ','')
+             AND profile.birthdate = :birthdate
+             AND decode(:tb, null, profile.tb, :tb)= profile.tb
+         FOR UPDATE NOWAIT
+        ]]>
+     </sql-query>
+
+    <query name="com.rssl.auth.csa.back.servises.Profile.getByUserId">
+         select profile from com.rssl.auth.csa.back.servises.Profile profile
+         where profile in
+         (
+            select connector.profile from com.rssl.auth.csa.back.servises.Connector connector where connector.userId =:user_id
+         )
+     </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Profile.getByCardNumber">
+         select profile from com.rssl.auth.csa.back.servises.Profile profile
+         where profile in
+         (
+            select connector.profile from com.rssl.auth.csa.back.servises.Connector connector where connector.cardNumber =:card_number
+         )
+     </query>
+
+    <!--Получить список номеров карт из коннекторов для профиля
+        Опорный объект: CSA_PROFILES_UNIVERSAL_ID
+        Предикаты доступа:    4 - access(UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'( )+','
+                       ')))=UPPER(TRIM( REGEXP_REPLACE (:SURNAME||' '||:FIRSTNAME||' '||:PATRNAME,'( )+',' '))) AND
+                       "PROFILE"."BIRTHDATE"=TO_TIMESTAMP(:BIRTHDATE) AND "PROFILE"."TB"=:TB AND REPLACE("PASSPORT",'
+                       ','')=REPLACE(:PASSPORT,' ',''))
+        Кардинальность: 0/1 (INDEX UNIQUE SCAN)-->
+    <sql-query name="com.rssl.auth.csa.back.servises.Profile.getCardNumberList">
+        <return-scalar column="cardNumber" type="string"/>
+        <![CDATA[
+         SELECT distinct connector.CARD_NUMBER as cardNumber from CSA_PROFILES profile
+         JOIN CSA_CONNECTORS connector on profile.id = connector.PROFILE_ID
+         WHERE
+             UPPER(TRIM(REGEXP_REPLACE(profile.SUR_NAME||' '||profile.FIRST_NAME||' '||profile.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surname||' '||:firstname||' '||:patrname,'( )+',' ')))
+             AND REPLACE(profile.PASSPORT,' ','') = REPLACE(:passport,' ','')
+             AND profile.birthdate = :birthdate
+             AND profile.tb = :tb
+             AND connector.CARD_NUMBER is not null
+        ]]>
+    </sql-query>
+
+    <!--
+         Обновление данных из мдм
+         Опорный объект:    U_CSA_PROFILE_ID
+         Предикаты доступа: 2 - access("CSA_PROFILE_ID"=TO_NUMBER(:EXTRA_PROFILE_ID))
+         Кардинальность:    0/1 (INDEX UNIQUE SCAN)
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Profile.updateClientMDMInfo">
+         UPDATE PROFILE_MDM_IDS SET MDM_ID = :extra_MDM_ID where CSA_PROFILE_ID = :extra_PROFILE_ID
+    </sql-query>
+
+    <!-- Вставка записи в PROFILE_MDM_IDS-->
+     <sql-query name="com.rssl.auth.csa.back.servises.Profile.insertClientMDMInfo">
+        INSERT INTO PROFILE_MDM_IDS(CSA_PROFILE_ID, MDM_ID) VALUES (:extra_PROFILE_ID, :extra_MDM_ID)
+    </sql-query>
+
+    <!--
+         Обновление данных из мдм при мерже профиля
+         Опорный объект:    U_CSA_PROFILE_ID
+         Предикаты доступа: 4 - access("CSA_PROFILE_ID"=TO_NUMBER(:EXTRA_OLD_PROFILE_ID))
+         Кардинальность:    0/1 (INDEX UNIQUE SCAN)
+    -->
+    <sql-query name="com.rssl.auth.csa.back.servises.Profile.mergeMDMId">
+        INSERT INTO PROFILE_MDM_IDS (CSA_PROFILE_ID, MDM_ID)
+        SELECT
+            :extra_NEW_PROFILE_ID, MDM_ID
+        FROM
+            PROFILE_MDM_IDS
+        WHERE
+            CSA_PROFILE_ID = :extra_OLD_PROFILE_ID AND not exists (SELECT 1 FROM PROFILE_MDM_IDS WHERE CSA_PROFILE_ID = :extra_NEW_PROFILE_ID)
+    </sql-query>
+
+</hibernate-mapping>

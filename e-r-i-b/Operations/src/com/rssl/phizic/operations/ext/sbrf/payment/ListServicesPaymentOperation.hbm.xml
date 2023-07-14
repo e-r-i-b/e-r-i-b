@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+   <!--получение списка услуг-->
+   <resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.childServiceList.resultset">
+        <return-scalar column="SERVICE_ID" type="long"/>        <!--0-->
+        <return-scalar column="SERVICE_NAME" type="string"/>    <!--1-->
+        <return-scalar column="SERVICE_IMAGE" type="string"/>   <!--2-->
+        <return-scalar column="SERVICE_IMAGE_NAME" type="string"/> <!--3-->
+        <return-scalar column="SERVICE_DESCRIPTION" type="string"/> <!--4-->
+        <return-scalar column="GUID" type="string"/>            <!--5-->
+   </resultset>
+
+    <resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.childServiceListMApiLT52.resultset">
+        <return-scalar column="SERVICE_ID" type="long"/>        <!--0-->
+        <return-scalar column="SERVICE_NAME" type="string"/>    <!--1-->
+        <return-scalar column="SERVICE_IMAGE" type="string"/>   <!--2-->
+        <return-scalar column="SERVICE_IMAGE_NAME" type="string"/> <!--3-->
+        <return-scalar column="SERVICE_DESC" type="string"/>    <!--4-->
+        <return-scalar column="PROVIDER_ID" type="long"/>       <!--5-->
+        <return-scalar column="PROVIDER_NAME" type="string"/>   <!--6-->
+        <return-scalar column="PROVIDER_SORT_PRIORITY" type="long"/> <!--7-->
+   </resultset>
+
+   <resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.serviceProviderList.resultset">
+        <return-scalar column="PROVIDER_ID" type="long"/>       <!--0-->
+        <return-scalar column="PROVIDER_NAME" type="string"/>   <!--1-->
+        <return-scalar column="PROVIDER_IMAGE" type="string"/>  <!--2-->
+        <return-scalar column="TIP_OF_PROVIDER" type="string"/> <!--3-->
+        <return-scalar column="CODE_RECIPIENT_SBOL" type="string"/> <!--4-->
+        <return-scalar column="BILLING_ID" type="long"/>        <!--5-->
+        <return-scalar column="SORT_PRIORITY" type="long"/>     <!--6-->
+        <return-scalar column="IS_AUTOPAYMENT_SUPPORTED" type="boolean"/> <!--7-->
+        <return-scalar column="GUID" type="string"/>            <!--8-->
+   </resultset>
+
+    <resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.serviceProviderListMApiLT52.resultset">
+        <return-scalar column="PROVIDER_ID" type="long"/>       <!--0-->
+        <return-scalar column="PROVIDER_NAME" type="string"/>   <!--1-->
+        <return-scalar column="PROVIDER_IMAGE" type="string"/>  <!--2-->
+        <return-scalar column="TIP_OF_PROVIDER" type="string"/> <!--3-->
+        <return-scalar column="CODE_RECIPIENT_SBOL" type="string"/> <!--4-->
+        <return-scalar column="BILLING_ID" type="long"/>        <!--5-->
+        <return-scalar column="SORT_PRIORITY" type="long"/>     <!--6-->
+        <return-scalar column="IS_AUTOPAYMENT_SUPPORTED" type="boolean"/> <!--7-->
+   </resultset>
+
+    <resultset name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.listProvidersByCategory.resultset">
+        <return-scalar column="PROVIDER_ID" type="long"/>
+        <return-scalar column="PROVIDER_NAME" type="string"/>
+        <return-scalar column="PROVIDER_IMAGE" type="string"/>
+        <return-scalar column="SORT_PRIORITY" type="long"/>
+    </resultset>
+
+   <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.childServiceList"/>
+   <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.childServiceListMApiLT52"/>
+
+   <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.serviceProviderList"/>
+   <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.serviceProviderListMApiLT52"/>
+
+   <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.listPersonalPayments.oracle">
+        <return-scalar column="PROVIDER_ID" type="long"/>
+        <return-scalar column="PROVIDER_NAME" type="string"/>
+        <![CDATA[
+                SELECT
+                    providers.ID PROVIDER_ID,
+                    providers.NAME PROVIDER_NAME
+                FROM
+                    SERVICE_PROVIDERS providers
+                WHERE
+                    providers.KIND <> 'T'
+                    AND
+                    providers.STATE = 'ACTIVE'
+                    AND
+                    (:clientType <> 'CARD' OR (providers.ACCOUNT_TYPE = 'CARD' OR providers.ACCOUNT_TYPE = 'ALL'))
+                    AND not(providers.BILLING_ID is null)
+                    AND
+                        -- хоть каке-то переводы должны быть доступны
+                        (:cardProvidersAllowed = 1 or :accountProvidersAllowed = 1  or :federalProvidersAllowed = 1) and
+                        (
+                            -- A. Либо поставщик поддерживает переводы со счёта
+                            ( (providers.ACCOUNT_TYPE in ('DEPOSIT', 'ALL')) and (:accountProvidersAllowed = 1) ) or
+                            -- B. Либо поставщик поддерживает карточные переводы
+                            ( (providers.ACCOUNT_TYPE in ('CARD', 'ALL')) and
+                              -- карточные переводы разрешены для любых поставщиков (1) либо только для федеральных (2)
+                              (:cardProvidersAllowed = 1 or (:cardProvidersAllowed = 2 and :federalProvidersAllowed = 1 and providers.IS_FEDERAL = 1))
+                            )
+                        )
+                        -- указан список внешних ID, не содержащих услугу
+                        AND not(providers.BILLING_ID is null)
+                        AND ( :externalIdCount=0 OR
+                                SUBSTR(providers.EXTERNAL_ID, INSTR(providers.EXTERNAL_ID, '@')+1) IN (:servicelessExternalIdList)
+                                )
+
+                        AND providers.ID IN
+                            (SELECT prov_serv.service_provider_id
+                             FROM SERV_PROVIDER_PAYMENT_SERV prov_serv
+                             INNER JOIN PAYMENT_SERVICES services on services.id = prov_serv.payment_service_id AND services.VISIBLE_IN_SYSTEM = 1 AND services.SYSTEM = 0
+                             WHERE prov_serv.service_provider_id = providers.id)
+
+                        AND ( :extra_region_id is null
+                            OR providers.IS_FEDERAL = 1
+                            OR providers.ID in
+                               (
+                                select id from service_providers
+                                minus
+                                select service_provider_id from service_provider_regions 
+                                union all
+                                select spr.service_provider_id
+                                from
+                                    (select r.id from regions r
+                                        start with r.id = :extra_region_id
+                                        connect by r.parent_id = prior r.id
+                                    union all
+                                    select r.id from regions r where level>1
+                                        start with r.id = :extra_region_id
+                                        connect by r.id = prior r.parent_id
+                                    )
+                                    region_ids,
+                                    service_provider_regions spr
+                                where spr.region_id = region_ids.id
+                                 )
+                        )
+            ORDER BY PROVIDER_NAME ASC
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.paymentServicesList.oracle">
+        <return alias="service" class="com.rssl.phizic.business.dictionaries.payment.services.PaymentService"/>
+        <![CDATA[
+            SELECT {service.*}
+            FROM PAYMENT_SERVICES service
+            START WITH service.id = :extra_serviceId
+            CONNECT BY PRIOR service.parent_id = service.id
+            ORDER BY LEVEL desc
+		]]>
+    </sql-query>
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.parentServicesList.oracle">
+        <return-scalar column="SERVICE_ID" type="long"/>
+        <return-scalar column="SERVICE_NAME" type="string"/>
+        <![CDATA[
+            SELECT service.id SERVICE_ID,
+            service.name SERVICE_NAME
+            FROM PAYMENT_SERVICES service
+            where service.id in (:extra_parentIds)
+		]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServicesPaymentOperation.listProvidersByCategory"/>
+</hibernate-mapping>

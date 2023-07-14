@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping catalog="RSRetailV51">
+
+   <class name="com.rssl.phizic.gate.dictionaries.ForeignBank" table="CURBANKS"
+        batch-size="500">
+
+       <id name="synchKey" type="string" column="id"/>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+		<property name="place" type="string" column="PLACE"/>
+        <property name="account" type="string" column="CORR_ACCOUNT" />
+        <property name="SWIFT" type="string" column="SWIFT" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.gate.dictionaries.ResidentBank" table="RUSBANKS"
+        batch-size="500">
+
+       <id name="synchKey" type="string" column="id"/>
+
+        <property name="name" type="string" column="NAME" not-null="true"/>
+		<property name="place" type="string" column="PLACE"/>
+        <property name="account" type="string" column="CORR_ACCOUNT" />
+        <property name="BIC" type="string" column="BIC" not-null="true"/>
+     	<property name="shortName" type="string" column="SHORT_NAME"/>
+    </class>
+
+    <sql-query name="GetResidentBanks">
+        <return alias="party" class="com.rssl.phizic.gate.dictionaries.ResidentBank">
+
+            <return-property name="synchKey" column="synchKey"/>
+            <return-property name="name" column="tname"/>
+            <return-property name="BIC" column="BIC"/>
+            <return-property name="place" column="place"/>
+            <return-property name="account" column="taccount"/>
+        </return>
+        <![CDATA[
+            SELECT
+                bic.t_Code AS synchKey,
+                party.t_Name AS tname,
+                bic.t_Code AS BIC,
+                party.t_NrCountry AS place,
+                case when length(bank.t_CorAcc) = 1 then null else bank.t_CorAcc end  AS taccount
+
+            FROM dpartyown_dbt own
+            INNER JOIN dparty_dbt party ON own.t_PartyId = party.t_PartyId
+            INNER JOIN dbankdprt_dbt bank ON own.t_PartyId = bank.t_PartyId
+            INNER JOIN dpartcode_dbt bic ON own.t_PartyId = bic.t_PartyId AND bic.t_CodeKind = 3
+            WHERE own.t_PartyKind = 2
+            ORDER BY synchKey
+        ]]>
+    </sql-query>
+
+    <sql-query name="GetForeignBanks">
+        <return alias="party" class="com.rssl.phizic.gate.dictionaries.ForeignBank">
+
+            <return-property name="synchKey" column="synchKey"/>
+            <return-property name="name" column="tname"/>
+            <return-property name="SWIFT" column="SWIFT"/>
+            <return-property name="place" column="place"/>
+            <return-property name="account" column="taccount"/>
+	        <return-property name="countryCode" column="countryCode"/>
+	        <return-property name="address" column="address"/>
+        </return>
+        <![CDATA[
+            SELECT
+                bic.t_Code AS synchKey,
+                party.t_Name AS tname,
+                bic.t_Code AS SWIFT,
+                party.t_NrCountry AS place,
+                bank.t_CorAcc AS taccount,
+                party.t_NrCountry AS countryCode,
+                party.t_NrCountry AS address
+
+            FROM dpartyown_dbt own
+            INNER JOIN dparty_dbt party ON own.t_PartyId = party.t_PartyId
+            INNER JOIN dbankdprt_dbt bank ON own.t_PartyId = bank.t_PartyId
+            INNER JOIN dpartcode_dbt bic ON own.t_PartyId = bic.t_PartyId AND bic.t_CodeKind = 6
+            WHERE own.t_PartyKind = 2
+            ORDER BY synchKey
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

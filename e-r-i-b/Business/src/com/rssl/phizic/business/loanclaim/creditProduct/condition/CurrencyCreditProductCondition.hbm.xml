@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.loanclaim.creditProduct.condition.CurrencyCreditProductCondition" table="CURR_CRED_PROD_COND">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CURR_CRED_PROD_COND</param>
+            </generator>
+        </id>
+
+        <property name="clientAvaliable" type="boolean" column="CLIENT_AVALIABLE" not-null="true"/>
+        <property name="startDate" type="calendar" column="START_DATE" not-null="true"/>
+        <property name="currency"  type="currency" column="CURRENCY"   not-null="true"/>
+        <property name="minLimitAmount" type="money" not-null="true">
+            <column name="MIN_LIMIT_AMOUNT"/>
+            <column name="MIN_LIMIT_CURRENCY"/>
+        </property>
+        <property name="maxLimitAmount" type="money" not-null="true">
+            <column name="MAX_LIMIT_AMOUNT"/>
+            <column name="MAX_LIMIT_CURRENCY"/>
+        </property>
+        <property name="maxLimitInclude" type="boolean" column="MAX_LIMIT_INCLUDE" not-null="true"/>
+        <property name="maxLimitPercentUse" type="boolean" column="PERCENT_USE" not-null="true"/>
+        <property name="maxLimitPercent" type="big_decimal" column="MAX_LIMIT_PERCENT" not-null="false"/>
+        <property name="minPercentRate" type="big_decimal" column="MIN_PROCENT_RATE" not-null="true"/>
+        <property name="maxPercentRate" type="big_decimal" column="MAX_PROCENT_RATE" not-null="true"/>
+        <property name="maxPercentRateInclude" type="boolean" column="MAX_PROCENT_RATE_INCLUDE" not-null="true"/>
+        <many-to-one name="creditProductCondition"
+                     class="com.rssl.phizic.business.loanclaim.creditProduct.condition.CreditProductCondition"
+                     column="CRED_PROD_COND_ID"
+                     not-null="true"
+                     fetch="join"
+                     lazy="false"/>
+    </class>
+</hibernate-mapping>

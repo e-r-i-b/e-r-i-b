@@ -1,0 +1,39 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="UUID" class="com.rssl.phizic.dataaccess.hibernate.UUIDType"/>
+	<class name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.MigrationInfo" table="MIGRATION_INFO">
+        <id name="id" type="long" column="CLIENT_ID">
+            <generator class="foreign">
+                <param name="property">client</param>
+            </generator>
+        </id>
+
+        <one-to-one name="client" class="com.rssl.phizic.business.ermb.migration.list.entity.migrator.Client" constrained="true" lazy="false"/>
+        <property name="mbvMigrationId" type="UUID"     column="MBV_MIGRATION_ID"   not-null="false"/>
+        <property name="mbkMigrationId" type="long"     column="MBK_MIGRATION_ID"   not-null="false"/>
+        <property name="migrationDate"  type="calendar" column="MIGRATION_DATE"     not-null="false"/>
+        <property name="rollbackError"  type="boolean"  column="ERROR"              not-null="true"/>
+   </class>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.MigrationInfo.findMigrationInfoAfterDate">
+        from
+            com.rssl.phizic.business.ermb.migration.list.entity.migrator.MigrationInfo
+        where
+            migrationDate >= :date
+            and rollbackError = false
+        order by
+            migrationDate desc
+    </query>
+
+    <query name="com.rssl.phizic.business.ermb.migration.list.entity.migrator.MigrationInfo.setMigrationError">
+        update
+            com.rssl.phizic.business.ermb.migration.list.entity.migrator.MigrationInfo
+        set
+            rollbackError = true
+        where
+            id = :infoId
+    </query>
+</hibernate-mapping>

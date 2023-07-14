@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.cellOperator.CellOperator" table="CELL_OPERATORS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_CELL_OPERATORS</param>
+            </generator>
+        </id>
+
+        <property name="orgName"               type="string"  column="ORGNAME"                 not-null="true"/>
+        <property name="orgCode"               type="string"  column="ORGCODE"                 not-null="true"/>
+        <property name="mnc"                   type="string"  column="MNC"                     not-null="true"/>
+        <property name="tin"                   type="string"  column="TIN"                     not-null="false"/>
+        <property name="mbOperatorNumber"      type="long"    column="MBOPERATOR_NUMBER"      not-null="false"/>
+        <property name="flAuto"                type="string"  column="FL_AUTO"                 not-null="false"/>
+        <property name="balance"               type="long"    column="BALANCE"                 not-null="false"/>
+        <property name="minSumm"               type="long"    column="MIN_SUMM"                not-null="false"/>
+        <property name="maxSumm"               type="long"    column="MAX_SUMM"                not-null="false"/>
+
+
+    </class>
+
+    <!--
+           удалить все записи из справочника операторов сотовой связи
+           Опорный объект: CELL_OPERATORS
+           Предикаты доступа: нет
+    -->
+    <query name="com.rssl.phizic.business.dictionaries.cellOperator.CellOperator.deleteAll">
+        delete from com.rssl.phizic.business.dictionaries.cellOperator.CellOperator
+    </query>
+
+
+    <!--
+        Опорный объект: IDX_NUMBER_ARRAYS_RANGE
+        Кардинальность: не более 1 записи таблицы, не более 1 значения каждого из столбцов записи
+        Предикаты доступа:
+        SYS_OP_DESCEND("NUMBERFROM")>=SYS_OP_DESCEND(TO_NUMBER(:PHONENUM)) AND SYS_OP_DESCEND("NUMBERFROM") IS NOT NULL
+        "OWNERID"="CO"."ORGCODE" AND "MNC"="CO"."MNC"
+    -->
+    <sql-query name="com.rssl.phizic.business.dictionaries.cellOperator.CellOperator.selectByPhoneNumber">
+        <return-scalar column="FL_AUTO"    type="string"/>
+        <return-scalar column="BALANCE"    type="long"/>
+        <return-scalar column="MIN_SUMM"    type="long"/>
+        <return-scalar column="MAX_SUMM"    type="long"/>
+         <![CDATA[
+                select  FL_AUTO, BALANCE, MIN_SUMM, MAX_SUMM from(
+                    select MNC, OWNERID, NUMBERTO from (
+                        select MNC, OWNERID, NUMBERTO from(
+                            select MNC, OWNERID, NUMBERTO
+                            from NUMBER_ARRAYS NA
+                            where NA.NUMBERFROM <= :phoneNum order by NA.NUMBERFROM desc
+                        ) where rownum <= 1
+                    ) where NUMBERTO >= :phoneNum) NA join CELL_OPERATORS CO on (NA.MNC = CO.MNC) and (NA.OWNERID = CO.ORGCODE)
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

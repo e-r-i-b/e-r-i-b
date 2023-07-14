@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="CreditOfferTemplateType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.template.offer.CreditOfferTemplateType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.template.offer.CreditOfferTemplate" table="CREDIT_OFFER_TEMPLATE">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_CREDIT_OFFER_TEMPLATE</param>
+            </generator>
+        </id>
+
+        <property name="text" column="OFFER"     type="string"                  not-null="true"/>
+        <property name="from" column="DATE_FROM" type="calendar"                not-null="true"/>
+        <property name="uuid" column="UUID"      type="string"                  not-null="true"/>
+        <property name="type" column="TYPE"      type="CreditOfferTemplateType" not-null="true"/>
+        <property name="to"   column="DATE_TO"   type="calendar" />
+    </class>
+
+    <!--
+       - Используется для отображения списка шаблонов кредитных оферт сотруднику банка. Полученный список
+       - сохраняется в кэше (время жизни кэша 15 минут) и дальнейшая работа сотрудника происходит со списком
+       - из кэша.
+       -
+       - Кардинальность:    Все элементы таблицы CREDIT_OFFER_TEMPLATE
+       - Опорный объект:    CREDIT_OFFER_TEMPLATE
+       - Предикаты доступа: TABLE ACCESS FULL
+       -->
+    <sql-query name="com.rssl.phizic.operations.templates.offer.CreditOfferTemplateListOperation.list">
+        <return alias="template" class="com.rssl.phizic.business.template.offer.CreditOfferTemplate"/>
+        <![CDATA[
+        SELECT {template.*}
+          FROM CREDIT_OFFER_TEMPLATE template
+        ]]>
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+     "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+     "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class
+		name="com.rssl.phizic.business.calendar.WorkDay"
+		table="WORK_DAYS"
+		>
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_WORK_DAYS</param>
+            </generator>
+        </id>
+
+        <property name="date"       type="calendar" column="WORK_DATE"          not-null="true"/>
+	    <property name="isWorkDay"  type="boolean"  column="WORK_DAY"      not-null="true"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.calendar.findWorkDay">
+        <return alias="workday" class="com.rssl.phizic.business.calendar.WorkDay"/>
+        <![CDATA[
+        select {workday.*}
+        from WORK_DAYS workday
+        where workday.CALENDAR_ID = :calendarId
+          and TRUNC(workday.work_date, 'DDD')=TRUNC(:extr_date, 'DDD')
+        ]]>
+    </sql-query>
+
+    <!--находит даты в переданном временном промежутке и для заданного тб
+        Опорный объект:  DXREFERENCE_41, I_TB_CALENDARS
+        Предикаты доступа: WORKDAY"."CALENDAR_ID"="CALENDARS"."ID, "CALENDARS"."TB"=:TB
+        Кардинальность: в большинстве случаев менее 50.  Даты берутся за небольшой промежуток. В среднем число дней за этот промежуток будет очень мало.
+    -->
+    <sql-query name="com.rssl.phizic.business.calendar.findWorkDaysForPeriod">
+        <return alias="workday" class="com.rssl.phizic.business.calendar.WorkDay"/>
+        <![CDATA[
+        select {workday.*}
+        from WORK_DAYS workday join CALENDARS calendars on workday.calendar_id=calendars.id
+        where calendars.tb = :tb
+            AND (workday.work_date >= :fromDate)
+            AND (workday.work_date <= :toDate)
+        ]]>
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,175 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="FundRequestState">
+        <param name="enumClass">com.rssl.phizic.common.types.fund.FundRequestState</param>
+    </typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="FundClosedReason">
+        <param name="enumClass">com.rssl.phizic.common.types.fund.ClosedReasonType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.fund.initiator.FundRequest" table="FUND_INITIATOR_REQUESTS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_FUND_INITIATOR_REQUESTS</param>
+            </generator>
+        </id>
+
+        <property name="externalId"             type="string"               column="EXTERNAL_ID"            not-null="true"/>
+        <property name="loginId"                type="long"                 column="LOGIN_ID"               not-null="true"/>
+        <property name="state"                  type="FundRequestState"     column="STATE"                  not-null="true"/>
+        <property name="viewState"              type="FundRequestState"     insert="false"                  update="false">
+            <formula>
+                case
+                    when STATE = 'CLOSED'
+                        then 'CLOSED'
+                    when STATE = 'SYNC_CLOSED'
+                        then 'CLOSED'
+                    else
+                        case
+                            when current_date >= EXPECTED_CLOSED_DATE
+                                then 'CLOSED'
+                            else 'OPEN'
+                        end
+                end
+            </formula>
+        </property>
+        <property name="requiredSum"            type="big_decimal"          column="REQUIRED_SUM"           not-null="false"/>
+        <property name="reccomendSum"           type="big_decimal"          column="RECCOMEND_SUM"          not-null="false"/>
+        <property name="message"                type="string"               column="MESSAGE"                not-null="true"/>
+        <property name="resource"               type="string"               column="TO_RESOURCE"            not-null="true"/>
+        <property name="expectedClosedDate"     type="calendar"             column="EXPECTED_CLOSED_DATE"   not-null="true"/>
+        <property name="closedDate"             type="calendar"             column="CLOSED_DATE"            not-null="false"/>
+        <property name="viewClosedDate"         type="calendar"             update="false"                  insert="false">
+            <formula>
+                case
+                    when STATE = 'CLOSED'
+                        then CLOSED_DATE
+                    when STATE = 'SYNC_CLOSED'
+                        then CLOSED_DATE
+                    else
+                        case
+                            when current_date >= EXPECTED_CLOSED_DATE
+                                then EXPECTED_CLOSED_DATE
+                            else CLOSED_DATE
+                        end
+                end
+            </formula>
+        </property>
+        <property name="closedReason"           type="FundClosedReason"     column="CLOSED_REASON"          not-null="false"/>
+        <property name="viewClosedReason"       type="FundClosedReason"     insert="false"                  update="false">
+            <formula>
+                case
+                    when STATE = 'CLOSED'
+                        then CLOSED_REASON
+                    when STATE = 'SYNC_CLOSED'
+                        then CLOSED_REASON
+                    else
+                        case
+                            when current_date >= EXPECTED_CLOSED_DATE
+                                then 'FUND_TIMEOUT'
+                            else CLOSED_REASON
+                        end
+                end
+            </formula>
+        </property>
+        <property name="createdDate"            type="calendar"             column="CREATED_DATE"           not-null="true"/>
+        <property name="sendersCount"           type="int"                  column="SENDERS_COUNT"          not-null="true"/>
+        <property name="initiatorPhones"        type="string"               column="INITIATOR_PHONES"       not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.fund.initiator.FundRequestInfo">
+        <id name="internalId"   type="long"/>
+        <property name="state"  type="FundRequestState"/>
+    </class>
+
+    <!--Получить запросы инициатора по статусу и дате
+        Опорный элемент: I_FUND_I_REQUESTS_STATE
+        Предикаты доступа: access("REQ"."STATE"=:STATE AND "REQ"."CREATED_DATE">=TO_TIMESTAMP(:FROM_DATE))
+        Кардинальность: 0-количество запросов инициатора за месяц
+    -->
+    <query name="com.rssl.phizic.business.fund.initiator.FundRequest.getByStateAndDate">
+        select request from com.rssl.phizic.business.fund.initiator.FundRequest request
+        where
+            request.state = :state and
+            request.createdDate >= :from_date
+    </query>
+
+    <!--Получить статус запроса по внешнему идентификатору ответа
+        Опорный объект: I_FUND_I_RESPONSES_EXT_ID
+        Предикаты доступа: access("RESP"."EXTERNAL_ID"=:EXTERNAL_ID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.fund.initiator.FundRequest.getStateByExternalResponseId">
+        <return class="com.rssl.phizic.business.fund.initiator.FundRequestInfo">
+            <return-property name="internalId"  column="requestId"/>
+            <return-property name="state"       column="requestState"/>
+        </return>
+        <![CDATA[
+            select
+                req.ID as requestId,
+                req.STATE as requestState
+            from FUND_INITIATOR_REQUESTS req inner join FUND_INITIATOR_RESPONSES resp on resp.REQUEST_ID = req.ID
+            where resp.EXTERNAL_ID = :external_id
+        ]]>
+    </sql-query>
+
+    <!--Завершить открытие запроса
+        Опорный элемент: I_PK_FUND_REQUESTS
+        Предикаты доступа: access("ID"=TO_NUMBER(:ID))
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.fund.initiator.FundRequest.finishOpen">
+        update com.rssl.phizic.business.fund.initiator.FundRequest request
+        set request.state = 'OPEN'
+        where
+            request.id = :id and
+            request.state = 'SYNC_OPEN'
+    </query>
+
+    <!--Получить все запросы, набравшие необходимую сумму
+        Опорный элемент: I_FUND_I_ACCUMULATED
+        Предикаты доступа: filter(DECODE("ACCUMULATED",'1',"REQUEST_ID",NULL) IS NOT NULL)
+        Кардинальность: все ответы, которые добрали необходимую сумму (стоп-условие 1000 записей)
+    -->
+    <sql-query name="com.rssl.phizic.business.fund.initiator.FundRequest.getAccumulated">
+        <return alias="req" class="com.rssl.phizic.business.fund.initiator.FundRequest"/>
+        <![CDATA[
+            select  {req.*} from FUND_INITIATOR_REQUESTS req
+            where
+                req.ID in (
+                    select decode(resp.ACCUMULATED, '1', resp.REQUEST_ID, null)
+                    from FUND_INITIATOR_RESPONSES resp
+                    where
+                        decode(resp.ACCUMULATED, '1', resp.REQUEST_ID, null) is not null and
+                        rownum <= :pack_size
+                )
+        ]]>
+    </sql-query>
+
+    <!--Закрыть запрос на сбор средств
+        Опорный элемент: I_PK_FUND_REQUESTS
+        Предикаты доступа: access("ID"=TO_NUMBER(:ID))
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.fund.initiator.FundRequest.close">
+        update com.rssl.phizic.business.fund.initiator.FundRequest request
+        set
+            request.closedDate = current_date,
+            request.closedReason = 'FUND_CLOSED',
+            request.state =
+                case
+                    when request.state = 'OPEN'
+                        then 'SYNC_CLOSED'
+                    else'CLOSED'
+                end
+        where
+            request.id = :id and
+            request.loginId = :loginId and
+            (request.state = 'OPEN' or request.state = 'SYNC_OPEN')
+    </query>
+
+</hibernate-mapping>

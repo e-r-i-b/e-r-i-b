@@ -1,0 +1,39 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.menulinks.MenuLink" table="MENU_LINKS">
+        <id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_MENU_LINKS</param>
+			</generator>
+		</id>
+
+        <property name="loginId"       type="long"   not-null="true" column="LOGIN_ID"/>
+
+        <property name="linkId"       type="integer"   not-null="true" column="LINK_ID"/>
+        <property name="orderInd"   type="integer"  not-null="true" column="ORDER_IND"/>
+        <property name="use"        type="boolean"  not-null="true" column="IS_USE"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.menulinks.MenuLink.getUserLinks">
+        select menuLinks
+		from com.rssl.phizic.business.menulinks.MenuLink as menuLinks
+    	where menuLinks.loginId = :loginId
+        order by menuLinks.orderInd asc
+    </query>
+
+    <query name="com.rssl.phizic.business.menulinks.MenuLink.getUsedUserLinks">
+        select menuLinks
+		from com.rssl.phizic.business.menulinks.MenuLink as menuLinks
+    	where menuLinks.loginId = :loginId  and menuLinks.use = true
+        order by menuLinks.orderInd asc
+    </query>
+
+    <query name="com.rssl.phizic.business.menulinks.MenuLink.removeByUserId">
+        delete from com.rssl.phizic.business.menulinks.MenuLink as menuLinks
+    	where menuLinks.loginId = :loginId
+    </query>
+
+</hibernate-mapping>

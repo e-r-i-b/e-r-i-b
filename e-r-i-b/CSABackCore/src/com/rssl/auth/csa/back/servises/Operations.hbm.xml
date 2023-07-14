@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="OperationStateType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.auth.csa.back.servises.OperationState</param>
+	</typedef>
+    <typedef name="ConfirmType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.ConfirmStrategyType</param>
+	</typedef>
+
+    <class name="com.rssl.auth.csa.back.servises.Operation" table="CSA_OPERATIONS" abstract="true">
+
+        <id name="ouid" type="string" column="OUID">
+            <generator class="com.rssl.phizic.dataaccess.hibernate.GUIDGenerator"/>
+        </id>
+
+        <discriminator column="TYPE" type="string"/>
+        <property name="creationDate" type="calendar" formula="CREATION_DATE" not-null="true" generated="insert"/>
+        <property name="state" type="OperationStateType" column="STATE" not-null="true"/>
+
+        <property name="profileId" type="long" column="PROFILE_ID" not-null="true" update="false"/>
+        <property name="firstname" type="string" column="FIRST_NAME" not-null="true"/>
+        <property name="surname" type="string" column="SUR_NAME" not-null="true"/>
+        <property name="patrname" type="string" column="PATR_NAME" not-null="false"/>
+        <property name="birthdate" type="calendar" column="BIRTHDATE" not-null="true"/>
+        <property name="passport" type="string" column="PASSPORT" not-null="true"/>
+        <property name="cbCode" type="string" column="CB_CODE" not-null="true"/>
+        <property name="info" type="text" column="INFO" not-null="false"/>
+        <property name="ipAddress" type="string" column="IP_ADDRESS" not-null="false"/>
+        <property name="parameters" type="text" column="PARAMS" not-null="false"/>
+    </class>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.ConfirmableOperationBase"
+              extends="com.rssl.auth.csa.back.servises.Operation">
+        <property name="confirmStrategyType" type="ConfirmType" column="CONFIRM_TYPE"   not-null="true"/>
+
+        <component name="confirmCode" class="com.rssl.auth.csa.back.servises.operations.confirmations.DisposablePassword">
+            <property name="hash"           type="string"   column="CONFIRM_CODE_HASH"          not-null="false"/>
+            <property name="salt"           type="string"   column="CONFIRM_CODE_SALT"          not-null="false"/>
+            <property name="creationDate"   type="calendar" column="CONFIRM_CODE_CREATION_DATE" not-null="false"/>
+            <property name="confirmErrors"  type="long"     column="CONFIRM_ERRORS"             not-null="false"/>
+        </component>
+        <component name="confirmInformation" class="com.rssl.auth.csa.back.integration.ipas.IPasPasswordInformation">
+            <property name="SID"            type="string"   column="CONFIRM_SID"             not-null="false"/>
+            <property name="passwordNo"     type="string"   column="CONFIRM_PASSWORD_NUMBER" not-null="false"/>
+            <property name="receiptNo"      type="string"   column="CONFIRM_RECEIPT_NUMBER"  not-null="false"/>
+            <property name="passwordsLeft"  type="int"      column="CONFIRM_PASSWORD_LEFT"   not-null="false"/>
+            <property name="lastAtempts"    type="int"      column="CONFIRM_LAST_ATEMPTS"    not-null="false"/>
+        </component>
+    </subclass>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.UserRegistrationOperation"
+              extends="com.rssl.auth.csa.back.servises.operations.ConfirmableOperationBase"
+              discriminator-value="UserRegistrationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.UserSelfRegistrationOperation"
+              extends="com.rssl.auth.csa.back.servises.operations.UserRegistrationOperation"
+              discriminator-value="UserSelfRegistrationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.UserLogonOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="UserLogonOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.AuthenticationOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="AuthenticationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.RestorePasswordOperation"
+              extends="com.rssl.auth.csa.back.servises.operations.ConfirmableOperationBase"
+              discriminator-value="RestorePasswordOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.MobileRegistrationOperation"
+              extends="com.rssl.auth.csa.back.servises.operations.ConfirmableOperationBase"
+              discriminator-value="MobileRegistrationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.MobileAuthenticationOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="MobileAuthenticationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.CancelMobileRegistrationOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="CancelMobileRegistrationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.SocialRegistrationOperation"
+              extends="com.rssl.auth.csa.back.servises.operations.ConfirmableOperationBase"
+              discriminator-value="SocialRegistrationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.SocialAuthenticationOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="SocialAuthenticationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.CancelSocialRegistrationOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="CancelSocialRegistrationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.CloseSessionOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="CloseSessionOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.GeneratePasswordOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="GeneratePasswordOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.ChangePasswordOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="ChangePasswordOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.ChangeLoginOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="ChangeLoginOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.CheckPasswordOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="CheckPasswordOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.ValidateLoginOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="ValidateLoginOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.ValidatePasswordOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="ValidatePasswordOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.ActualizationLogonInfoOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="ActualizationLogonInfoOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.verification.VerifyUserRegistrationModeOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="VerifyUserRegistrationModeOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.verification.VerifyBusinessEnvironmentOperation"
+              extends="com.rssl.auth.csa.back.servises.operations.ConfirmableOperationBase"
+              discriminator-value="VerifyBusinessEnvironmentOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.GetConfirmationInfoOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="GetConfirmationInfoOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.ChangePushSupportedParamOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="ChangePushSupportedParamOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.ATMAuthenticationOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="TerminalAuthenticationOperation"/>
+    <subclass name="com.rssl.auth.csa.back.servises.operations.UserRegistrationDisposableOperation"
+              extends="com.rssl.auth.csa.back.servises.Operation"
+              discriminator-value="UserRegistrationDisposableOperation"/>
+     <subclass name="com.rssl.auth.csa.back.servises.operations.AutoUserRegistrationOperation"
+               extends="com.rssl.auth.csa.back.servises.Operation"
+               discriminator-value="AutoUserRegistrationOperation"/>
+
+    <query name="com.rssl.auth.csa.back.servises.Operation.getByOUID">
+		<![CDATA[
+        select operation from com.rssl.auth.csa.back.servises.Operation operation
+        where operation.ouid = :ouid
+      ]]>
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Operation.getCount">
+         <![CDATA[
+         select count(operation) from com.rssl.auth.csa.back.servises.Operation operation
+         where operation.class = :type
+             and operation.profileId = :profile_id
+             and operation.state in (:states)
+             and operation.creationDate >= :start_date
+             and operation.creationDate <= :end_date
+       ]]>
+    </query>
+
+    <query name="com.rssl.auth.csa.back.servises.Operation.changeProfile">
+        update com.rssl.auth.csa.back.servises.Operation operation
+        set profileId = :new_profile
+        where profileId in (:old_profile)
+    </query>
+</hibernate-mapping>

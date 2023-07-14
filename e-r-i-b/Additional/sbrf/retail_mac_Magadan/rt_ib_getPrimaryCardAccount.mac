@@ -1,0 +1,79 @@
+import "rt_ib_xml.mac";
+class(cBaseDeposit) 
+    cGetPrimaryCardAccount( inXml, outXml ) 
+
+   private macro getPrimaryAccountByReferenc(cardRef)
+      var cmd, rs;
+      cmd = RsdCommand("SELECT * FROM( "+
+		       	"SELECT t_cardAccRef AS accountId "+
+		       	"FROM dscLink_dbt "+
+			"WHERE t_CardRef = (select T_CARDREF from dsccard_dbt where T_CARDNUMBER = ?) "+
+			"and t_fncash=(select T_fncash from dsccard_dbt where T_CARDNUMBER=?) "+
+			"ORDER BY t_mainAcc DESC "+
+			")WHERE ROWNUM<2 ");
+     
+      cmd.addParam( "referenc", RSDBP_IN, V_STRING);
+      cmd.value("referenc") = cardRef;
+
+      cmd.addParam( "referenc2", RSDBP_IN, V_STRING);
+      cmd.value("referenc2") = cardRef;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+
+      if ( (rs.moveNext))
+         return rs.value("accountId");
+      end;   
+
+      return Null;
+   end;//private macro getPrimaryAccountByReferenc(cardRef)
+
+   macro start(inXml, outXml)
+	  var nodeReferences = Null;
+	  var nodeAnswer = Null;
+	  var cardRefNode = Null;
+	  var accountNode = Null;
+	  var resultNode = Null;
+	  var cardRef, accRef;
+      var stat = 0;
+	  var index;
+
+      if(not outXml )
+         outXml = CreateXMLObject();         
+         if(not outXml) return; end;
+         CreateBeginTag( outXml );
+		 nodeAnswer = outXml.documentElement.selectSingleNode(
+			"//getPrimaryCardAccount_a");
+
+ 		 nodeReferences = inXml.documentElement.selectNodes(
+			"//getPrimaryCardAccount_q/cardReferenc");
+		 if (nodeReferences != Null)
+			index = 0;
+			while(index < nodeReferences.length)
+				cardRefNode = nodeReferences.item(index);
+				cardRef = cardRefNode.text;
+				accRef = getPrimaryAccountByReferenc(cardRef);
+
+				resultNode = nodeAnswer.appendChild( outXML.createNode(1, "result", "") );
+				accountNode = resultNode.appendChild( outXML.createNode(1, "accountReferenc", "") );
+				accountNode.text = accRef;
+				accountNode = resultNode.appendChild( outXML.createNode(1, "cardReferenc", "") );
+				accountNode.text = cardRef;
+				
+				index = index + 1;
+			end;  		
+		 end;
+      end;//if(not outXml )
+      return outXml;
+   end;//private macro start(inXml, outXml)
+
+end;  //class(cBaseDeposit) 
+
+macro GetPrimaryCardAccount( inXml, outXml )
+
+  var t = cGetPrimaryCardAccount;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;
+

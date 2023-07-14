@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.dictionaries.pfp.insurance.ListInsuranceTypeOperation.list">
+        <return alias="types" class="com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceType"/>
+        <![CDATA[
+            SELECT {types.*}
+            FROM PFP_INSURANCE_TYPES types
+            START WITH PARENT_ID IS NULL
+            CONNECT BY PRIOR id = PARENT_ID
+            ORDER SIBLINGS BY NAME ASC
+        ]]>
+    </sql-query>
+
+    <query name="com.rssl.phizic.operations.dictionaries.pfp.insurance.ListInsuranceTypeOperation.parentList">
+        select types
+        from com.rssl.phizic.business.dictionaries.pfp.products.insurance.InsuranceType types
+        where types.parent is null
+        order by types.name asc
+    </query>
+</hibernate-mapping>

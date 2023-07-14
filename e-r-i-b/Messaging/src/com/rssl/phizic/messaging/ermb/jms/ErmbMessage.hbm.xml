@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.messaging.ermb.jms.ErmbCheckIMSIResult" table="ERMB_CHECK_IMSI_RESULTS">
+        <id name="smsRqUid" column="SMS_UID" type="string"/>
+
+        <property name="result" type="boolean"  column="RESULT"         not-null="false"/>
+        <property name="phone"  type="string"   column="PHONE_NUMBER"   not-null="false"/>
+    </class>
+
+    <query name="com.rssl.phizic.messaging.ermb.jms.getResultBySmsId">
+        select result
+        from ErmbCheckIMSIResult as result
+        where result.smsRqUid in (:smsRqUidList)
+    </query>
+
+    <query name="com.rssl.phizic.messaging.ermb.jms.removeResultList">
+        delete
+        from ErmbCheckIMSIResult as result
+        where result.smsRqUid in (:smsRqUidList)
+    </query>
+
+</hibernate-mapping>

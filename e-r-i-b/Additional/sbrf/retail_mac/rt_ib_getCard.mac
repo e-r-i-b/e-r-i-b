@@ -1,0 +1,210 @@
+import "rt_ib_xml.mac";
+class(cBaseDeposit) 
+    cGetCard( inXml, outXml ) 
+   
+   var cardId;   
+   var clientId;
+
+   private macro readParameters( nodeElement )
+      var nodeComPay;
+      nodeComPay = nodeElement;
+      while( nodeComPay )
+         if   ( nodeComPay.NodeName == "cardId" )
+            cardId = int( nodeComPay.text );
+         end;
+         if   ( nodeComPay.NodeName == "clientId" )
+            clientId = int( nodeComPay.text );
+         end;
+         nodeComPay = nodeComPay.nextSibling();
+      end;// while( nodeComPay )
+   end;//private macro readParameters( nodeElement )   
+
+   private macro fillCardType(outXml, parentNode, cardNumber)
+      var cmd, rs, node;
+      cmd = RsdCommand("select * from( "+
+            "select "+
+            "   case when types.t_identchar like '%CC%' "+
+            "   then 'c' "+
+            "   else case when deposits.t_limit = 0 "+
+            "      then 'd' else 'o' end "+
+            "   end as cardType "+
+            "from dsccard_dbt   cards "+
+            "   ,ddepositr_dbt deposits "+
+            "   ,dsb_dtyp_dbt  types "+
+            "   ,dsclink_dbt   links "+
+            "where cards.t_cardnumber = ? "+
+            "and types.t_kind = deposits.t_type_account "+
+            "and links.t_cardaccref = deposits.t_referenc "+
+            "and links.t_cardref = cards.t_cardref "+
+            ")WHERE ROWNUM<2");
+
+      cmd.addParam( "cardNumber", RSDBP_IN, V_STRING);
+      cmd.value("cardNumber") = cardNumber;
+
+      cmd.execute;
+      rs = RsdRecordSet(cmd);
+      if((rs.moveNext))
+         node = parentNode.appendChild(outXml.createNode(1,"cardType",""));
+         node.text = rs.value("cardType");
+      end;//if((rs.moveNext))
+
+      SetParm(1, outXml);
+   end;//fillCardType(outXml, parentNode)
+
+   private macro fillAgreement(outXml, parentNode, cardId)
+      var cmd, rs, node;
+      cmd = RsdCommand("select "+
+                  "accounts.t_Open_Date      AS OpenDate "+
+                  ",accounts.t_svodaccount   AS agreementNumber "+
+                  "from dsclink_dbt links inner join ddepositr_dbt accounts on links.t_cardAccRef = accounts.t_referenc "+
+                  "where links.t_CardRef = ? "+
+                  "and rownum < 2 "+
+                  "ORDER BY links.t_mainAcc desc");
+
+      cmd.addParam( "cardId", RSDBP_IN, V_STRING);
+      cmd.value("cardId") = cardId;
+
+      cmd.execute;
+      rs = RsdRecordSet(cmd);
+      if((rs.moveNext))
+         node = parentNode.appendChild(outXml.createNode(1,"agreementDate",""));
+         node.text = rs.value("OpenDate");
+
+         node = parentNode.appendChild(outXml.createNode(1,"agreementNumber",""));
+         node.text = rs.value("agreementNumber");
+
+      end;//if((rs.moveNext))
+
+      SetParm(1, outXml);
+   end;//private macro fillAgreement(cardId)
+
+   
+   private macro createCardXml(rs, outXml, parentNode)
+      var cardNode, node;   
+
+      cardNode = parentNode.appendChild( outXML.createNode(1, "card", "") );
+
+      node = cardNode.appendChild( outXML.createNode(1, "id", "") );
+      node.text = rs.value("id");
+
+      node = cardNode.appendChild( outXML.createNode(1, "description", "") );
+      node.text = rs.value("description");
+
+      node = cardNode.appendChild( outXML.createNode(1, "number", "") );
+      node.text = rs.value("tnumber");
+
+      node = cardNode.appendChild( outXML.createNode(1, "ownerLastName", "") );
+      node.text = rs.value("ownerLastName");
+
+      node = cardNode.appendChild( outXML.createNode(1, "ownerFirstName", "") );
+      node.text = rs.value("ownerFirstName");
+
+      node = cardNode.appendChild( outXML.createNode(1, "issueDate", "") );
+      node.text = rs.value("issueDate");
+
+      node = cardNode.appendChild( outXML.createNode(1, "expireDate", "") );
+      node.text = rs.value("expireDate");
+
+      node = cardNode.appendChild( outXML.createNode(1, "isMain", "") );
+      node.text = rs.value("main");
+
+      node = cardNode.appendChild( outXML.createNode(1, "codeWord", "") );
+      node.text = rs.value("codeWord");
+
+      fillCardType(outXml, cardNode, rs.value("tnumber"));
+      fillAgreement(outXml, cardNode, rs.value("id"));
+
+      SetParm( 2, outXml );
+   end;//private macro createAccountXml(rs, outXml, parentNode)
+   
+   private macro getCardByReferenc(inXml, outXml)
+      var cmd, rs;
+      cmd = RsdCommand("SELECT cards.t_cardRef             AS id "+
+                  ",cardTypes.t_codName         AS description "+
+                  ",RTRIM(cards.t_cardNumber)   AS tnumber "+
+                  ",cards.t_embossingName1      AS ownerLastName "+
+                  ",cards.t_embossingName2      AS ownerFirstName "+
+                  ",cards.t_cardRecDate AS issueDate  "+
+                  ",cards.t_cardMaturityDate AS expireDate "+ 
+                  ",1                           AS main "+
+                  ",cards.t_clientpassword      AS codeWord "+
+            "FROM  dscCard_dbt cards, dscCodif_dbt cardTypes "+
+            "WHERE cards.t_cardRef = ? "+
+            "  AND cards.t_CodClient = ? "+
+            "  AND cardTypes.t_codType = 7 "+
+            "  AND cardTypes.t_codCode = cards.t_cardTypeCode "+
+            "  AND ((cards.t_psRef = cardTypes.t_psRef) OR (cardTypes.t_psRef =0)) "+
+            "    UNION "+
+            "SELECT cards.t_cardRef             AS id "+
+            "      ,cardTypes.t_codName         AS description "+
+            "      ,RTRIM(cards.t_cardNumber)   AS tnumber "+
+            "      ,cards.t_embossingName1      AS ownerLastName "+
+            "      ,cards.t_embossingName2      AS ownerFirstName "+
+            "      ,cards.t_cardRecDate AS issueDate "+
+            "      ,cards.t_cardMaturityDate AS expireDate "+
+            "      ,0                         AS main "+
+            "      ,cards.t_clientpassword      AS codeWord "+
+            "FROM  dscCard_dbt    cards "+
+            "    , dscLink_dbt    links "+
+            "    , ddepositr_dbt  accounts "+
+            "    , dscCodif_dbt   cardTypes "+
+            "WHERE cards.t_cardRef = ? "+
+            "  AND cards.t_cardRef = links.t_cardRef "+
+            "  AND links.t_mainCard = ' ' "+
+            "  AND links.t_cardAccRef = accounts.t_Referenc "+
+            "  AND cardTypes.t_codType = 7 "+
+            "  AND cardTypes.t_codCode = cards.t_cardTypeCode "+
+            "  AND accounts.t_CodClient = ? "+
+            "  AND accounts.t_UserTypeAccount like '%Š%'");
+      cmd.addParam( "cardId", RSDBP_IN, V_STRING);
+      cmd.value("cardId") = cardId;
+
+      cmd.addParam( "clientId", RSDBP_IN, V_STRING);
+      cmd.value("clientId") = clientId;
+
+      cmd.addParam( "cardId2", RSDBP_IN, V_STRING);
+      cmd.value("cardId2") = cardId;
+
+      cmd.addParam( "clientId2", RSDBP_IN, V_STRING);
+      cmd.value("clientId2") = clientId;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+
+      if ( (rs.moveNext))
+         createCardXml(rs, outXml,nodeAnswer);
+      end;   
+
+      return outXml;
+   end;//private macro getAccountByReferenc(inXml, outXml)
+
+   macro start(inXml, outXml)
+      var nodeParentElement;
+      var stat = 0;
+
+      if(not outXml )
+         outXml = CreateXMLObject();
+         
+         if(not outXml) return; end;
+         CreateBeginTag( outXml );
+         nodeParentElement = inXml.documentElement.selectSingleNode( "//getCard_q" );
+         nodeElement = nodeParentElement.firstChild();
+
+        if( nodeElement )
+            readParameters( nodeElement );
+            outXML = getCardByReferenc( inXml, outXML );
+         end;
+      end;//if(not outXml )
+      return outXml;
+   end;//private macro start(inXml, outXml)
+
+end;  //class(cBaseDeposit) 
+
+macro GetCardById( inXml, outXml )
+
+  var t = cGetCard;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;
+

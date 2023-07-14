@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServiceProvidersOperation.list">
+        <return-scalar column="SERVICES_NAME" type="string"/>
+        <return-scalar column="SERVICES_ID" type="long"/>
+        <return-scalar column="PROVIDER_ID" type="long"/>
+        <return-scalar column="PROVIDER_NAME" type="string"/>
+        <return-scalar column="PROVIDER_INN" type="string"/>
+        <return-scalar column="PROVIDER_ACCOUNT" type="string"/>
+        <![CDATA[
+            SELECT
+                services.NAME SERVICES_NAME,
+                services.ID SERVICES_ID,
+                providers.ID PROVIDER_ID,
+                providers.NAME PROVIDER_NAME,
+                providers.INN PROVIDER_INN,
+                providers.ACCOUNT PROVIDER_ACCOUNT
+            FROM
+                PAYMENT_SERVICES  services
+                JOIN SERVICE_PROVIDERS providers ON services.ID = providers.SERVICE_ID
+                LEFT OUTER JOIN SERVICE_PROVIDER_REGIONS serviceProviderRegions ON serviceProviderRegions.SERVICE_PROVIDER_ID = providers.ID
+            WHERE
+                providers.SERVICE_ID=:extra_service_id
+                and
+                -- хоть каке-то переводы должны быть доступны
+                (:cardProvidersAllowed = 1 or :accountProvidersAllowed = 1  or :federalProvidersAllowed = 1) and
+                (
+                    -- A. Либо поставщик поддерживает переводы со счёта
+                    ( (providers.ACCOUNT_TYPE in ('DEPOSIT', 'ALL')) and (:accountProvidersAllowed = 1) ) or
+                    -- B. Либо поставщик поддерживает карточные переводы
+                    ( (providers.ACCOUNT_TYPE in ('CARD', 'ALL')) and
+                      -- карточные переводы разрешены для любых поставщиков (1) либо только для федеральных (2)
+                      (:cardProvidersAllowed = 1 or (:cardProvidersAllowed = 2 and :federalProvidersAllowed = 1 and providers.IS_FEDERAL = 1))
+                    )
+                )
+                AND providers.STATE='ACTIVE'
+                AND providers.IS_ALLOW_PAYMENTS=1
+                AND services.SYSTEM = 0
+                AND ( :extra_region_id is null OR providers.IS_FEDERAL = 1 OR serviceProviderRegions.REGION_ID is NULL
+                    OR serviceProviderRegions.REGION_ID in
+                       (select ID from REGIONS regions
+                            START WITH regions.ID = :extra_region_id
+                            CONNECT BY regions.ID = PRIOR regions.PARENT_ID)
+                    )
+            ORDER BY PROVIDER_NAME ASC
+        ]]>
+    </sql-query>
+</hibernate-mapping>

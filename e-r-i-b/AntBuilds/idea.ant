@@ -1,0 +1,939 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<project name="idea" basedir=".">
+
+	<import id="configs"     file="configs.ant"/>
+	<import id="builder"     file="builder.ant"/>
+
+    <taskdef resource="axis-tasks.properties">
+        <classpath refid="project.tasks.classpath"/>
+    </taskdef>
+
+    <taskdef name="xjc" classname="com.sun.tools.xjc.XJC2Task">
+        <classpath refid="project.tasks.classpath"/>
+    </taskdef>
+
+    <taskdef name="schemagen" classname="com.sun.tools.jxc.SchemaGenTask">
+        <classpath refid="project.tasks.classpath"/>
+    </taskdef>
+
+    <!-- Быстрая остановка всех ява приложений -->
+    <target name="fastJavaStop" description="Быстрая остановка всех java приложений">
+        <exec executable="cmd">
+            <arg value="/c" />
+            <arg value="fastStop.bat" />
+        </exec>
+    </target>
+
+    <target name="configure-oc4j"
+            depends="setup_project_paths,init.configuration"
+            if="current.config.name">
+        <taskdef name="setupOC4J"
+                 classname="com.rssl.phizic.tool.SetupOC4JTool"
+                 classpathref="project.tasks.classpath">
+        </taskdef>
+        <setupOC4J/>
+    </target>
+
+    <target name=".switch"
+            depends=".save.current.configuration, compile.configs.ant.tasks, get.list.of.all.ejbConfigPaths"
+            if="current.config.name">
+        <taskdef name="setupOC4J"
+                 classname="com.rssl.phizic.tool.SetupOC4JTool"
+                 classpathref="project.tasks.classpath">
+        </taskdef>
+        <setupOC4J ejbConfigPaths = "${list.of.ejbConfigPath.names}"/>
+    </target>
+
+    <target name="configure.oc4j.by.exploded.apps" depends="compile.configs.ant.tasks, get.list.of.all.exploded, get.list.of.all.ejbConfigPaths, get.list.of.all.ejbConfigPaths"  if="build.gates.by.earGatesConfig">
+        <taskdef name="setupOC4J"
+                 classname="com.rssl.phizic.tool.SetupOC4JTool"
+                 classpathref="project.tasks.classpath">
+        </taskdef>
+
+        <setupOC4J apps="${list.of.app.names}"
+                   ejbConfigPaths="${list.of.ejbConfigPath.names}"
+                   configSettingsPath="${settings.dir}/bin"/>
+    </target>
+
+	<target name="switch-to-sbrf">
+		<antcall target=".switch">
+			<param name="current.config.name" value="sbrf"/>
+		</antcall>
+	</target>
+
+	<target name="switch-to-demo">
+        <antcall target=".switch">
+			<param name="current.config.name" value="demo"/>
+		</antcall>
+	</target>
+
+	<target name="switch-to-russlav">
+        <antcall target=".switch">
+			<param name="current.config.name" value="russlav"/>
+		</antcall>
+	</target>
+
+	<target name="switch-to-mzb">
+        <antcall target=".switch">
+			<param name="current.config.name" value="mzb"/>
+		</antcall>
+	</target>
+
+	<target name="switch-to-sbercred">
+        <antcall target=".switch">
+			<param name="current.config.name" value="sbercred"/>
+		</antcall>
+	</target>
+
+	<target name="switch-to-derjava">
+        <antcall target=".switch">
+			<param name="current.config.name" value="derjava"/>
+		</antcall>
+	</target>
+
+	<target name="switch-to-taatta">
+        <antcall target=".switch">
+			<param name="current.config.name" value="taatta"/>
+		</antcall>
+	</target>
+
+	<target name="switch-to-sevb">
+        <antcall target=".switch">
+			<param name="current.config.name" value="sevb"/>
+		</antcall>
+	</target>
+
+	<target name="before-run-oc4j" depends="init.configuration, append.project.path, explode">
+        <antcall target="prepare_last" inheritall="true"/>
+        <antcall target="configure.oc4j.by.exploded.apps"/>
+        <antcall target="ide_fix_oracle_application_xml"  inheritall="true"/>
+	</target>
+
+	<target name="before-run-jboss" depends="prepare_last,explode">
+        <antcall target="clear_dll"/>
+	</target>
+
+	<target name="before-run-webSphere" depends="init.configuration, explode">
+        <antcall target="prepare_last" inheritall="true"/>
+	</target>
+
+	<target name="before-run-tests" depends="init.configuration">
+        <antcall target="prepare_last" inheritall="true"/>
+	</target>
+
+    <target name=".ide_fix_oracle_application_xml" depends=".init.application.configuration">
+		<echo>Хак для запуска OC4J (только под IDEA)</echo>
+		<replaceregexp file="${application.explode.dir}/META-INF/application.xml" flags="gi" match="(\w\w\w\w\.war)(&lt;)" replace="\1.war\2"/>
+	</target>
+    <target name= ".ide_fix_oracle_application_xml.by.config" if=".config.name">
+        <propertyregex property="application.name"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false" />
+
+        <propertyregex property="ear.suffix"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false"/>
+
+        <antcall target=".ide_fix_oracle_application_xml">
+            <param name="application.name" value="${application.name}"/>
+            <param name="ear.suffix" value="${ear.suffix}"/>
+        </antcall>
+    </target>
+
+    <target name="ide_fix_oracle_application_xml" depends="init.configuration, get.list.of.exploded.ears" >
+        <!-- формируем список конфигурационных файлов, для приложений которые надо собрать -->
+        <var name="filenames" value= "" />
+        <for list="${ikfl.build.app}" delimiter="," param="app">
+          <sequential>
+              <var name="filenames" value= "${filenames}${current.config.name}.@{app}.properties|"/>
+          </sequential>
+        </for>
+        <property name=".aplications.configs.list" value= "${filenames}" />
+
+        <foreach list="${.aplications.configs.list}" delimiter="|" target=".ide_fix_oracle_application_xml.by.config" param=".config.name" inheritall="true"/>
+
+        <for list="${list.of.exploded.ears}" delimiter="," param="application.name">
+            <sequential>
+                <replaceregexp file="${project.root}/@{application.name}/META-INF/application.xml" flags="gi" match="(\w\w\w\w\.war)(&lt;)" replace="\1.war\2"/>
+            </sequential>
+        </for>
+	</target>
+
+    <target name= ".clear_dll.by.config" if=".config.name">
+        <propertyregex property="application.name"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false" />
+
+        <propertyregex property="ear.suffix"
+                     input="${.config.name}"
+                     regexp="[^\.]*\.[^\.]*\.([^\.]*)\..*"
+                     select="\1"
+                     casesensitive="false"/>
+
+        <antcall target=".clear_dll">
+            <param name="application.name" value="${application.name}"/>
+            <param name="ear.suffix" value="${ear.suffix}"/>
+        </antcall>
+    </target>
+
+	<target name="clear_dll" depends="init.configuration">
+        <path id=".aplications.configs.path">
+              <fileset dir="${project.builds.root}/configs">
+                  <include name="${current.config.name}.*.properties"/>
+                  <exclude name="${current.config.name}*.local.properties"/>
+              </fileset>
+         </path>
+        <!--получаем список конфигурационных файлов приложений.-->
+        <pathconvert pathsep="|" dirsep="/" property=".aplications.configs.list" refid=".aplications.configs.path">
+            <map from="${project.builds.root}/configs/" to=""/>
+         </pathconvert>
+
+        <foreach list="${.aplications.configs.list}" delimiter="|" target=".clear_dll.by.config" param=".config.name" inheritall="true"/>
+	</target>
+
+	<target name=".clear_dll" depends=".init.application.configuration" if="application.name">
+       <echo message="delete dll for application  ${application.name} in ${application.explode.dir}"/>
+   	   <delete failonerror="no" dir="${application.explode.dir}/lib">
+		<include name="jsr*.jar"/>
+		<include name="serializer.jar"/>
+		<include name="xalan.jar"/>
+		<include name="xml-apis.jar"/>
+	   </delete>
+	</target>
+
+    <!--параметры передаются из командной строки-->
+     <target name=".switch_to_stendDB">
+        <path id="current.classpath">
+            <fileset dir="${project.root}\Libraries" includes="*/*.jar"/>
+            <dirset  dir="${project.root}"           includes="*/bin"/>
+        </path>
+
+        <taskdef name="switch-to-stendDB" classpathref="current.classpath"
+				 classname="com.rssl.phizic.business.ant.SwitchToStendDB"/>
+		<switch-to-stendDB root="${root}" config="${current.config.name}"
+                           dbUsername="${dbUsername}"
+                           dbPassword="${dbPassword}"
+                           isShadow="${isShadow}"
+                	       dbServerName="${dbServerName}"
+	                       dbServerPort="${dbServerPort}"
+	                       dbServerDatabase="${dbServerDatabase}"/>
+    </target>
+
+    <!-- Генерация JAXB-классов по build-config.xsd -->
+    <target name="modulus.generate-build-config-classes" depends="init.configuration">
+        <xjc schema="${project.root}/Settings/schemas/build-config.xsd"
+             destdir="${project.root}/Configuration/src"
+             package="com.rssl.phizic.config.build.generated"/>
+    </target>
+
+    <!--Для редеплоя модулей-->
+    <target  name="modulus.updatePFP">
+        <antcall target="modulus.update-module">
+            <param  name="app.name" value="PhizIC"/>
+            <param  name="module.name" value="WebPFP"/>
+        </antcall>
+    </target>
+
+    <target name="RedeployErmbEjbListeners">
+        <description>Передеплой EJB-листенеров ЕРМБ</description>
+        <antcall target="modulus.update-module">
+            <param  name="app.name" value="PhizMB"/>
+            <param  name="module.name" value="ErmbEjbListener"/>
+        </antcall>
+    </target>
+
+    <target  name="modulus.update-module" if="module.name" depends="init.configuration">
+        <taskdef name="RedeployModule"
+                 classname="com.rssl.phizic.config.ant.RedeployModuleTask"
+                 classpathref="project.tasks.classpath"/>
+        <RedeployModule
+            confDir="${settings.dir}/configs/${current.config.name}"
+            appName="${app.name}"
+            tempDir="${temp.module.explode.dir}/lib/phizic"
+            moduleName="${module.name}"/>
+    </target>
+
+    <target name="generate-bankroll-registry-xsd" depends="init.configuration">
+        <schemagen destdir="${project.root}/Settings/schemas">
+            <src path="${project.root}/Business/src"/>
+            <include name="com/rssl/phizic/business/bankroll/BankrollRegistryBean.java"/>
+            <schema namespace="" file="bankroll-registry.xsd"/>
+            <classpath refid="project.tasks.classpath"/>
+        </schemagen>
+    </target>
+
+    <target name="ermb.sms.generate-config-xsd" depends="init.configuration">
+        <schemagen destdir="${project.root}/Settings/schemas">
+            <src path="${project.root}/BusinessERMB/src"/>
+            <include name="com/rssl/phizic/business/ermb/sms/config/SmsConfigBean.java"/>
+            <schema namespace="" file="ermb-sms-config.xsd"/>
+            <classpath refid="project.tasks.classpath"/>
+        </schemagen>
+    </target>
+
+    <target name="ermb.bankroll.generate-rules-config-xsd" depends="init.configuration">
+        <schemagen destdir="${project.root}/Settings/schemas">
+            <src path="${project.root}/BusinessERMB/src"/>
+            <include name="com/rssl/phizic/business/ermb/bankroll/config/BankrollProductRulesConfigBean.java"/>
+            <schema namespace="" file="bankroll-product-rules-config.xsd"/>
+            <classpath refid="project.tasks.classpath"/>
+        </schemagen>
+    </target>
+
+    <target name="ermb.sms.generate-fpp-migration-config-xsd" depends="init.configuration">
+        <schemagen destdir="${project.root}/Settings/schemas">
+            <src path="${project.root}/BusinessERMB/src"/>
+            <include name="com/rssl/phizic/business/ermb/migration/onthefly/fpp/FPPMigrationConfigBean.java"/>
+            <schema namespace="" file="ermb-fpp-migration-config.xsd"/>
+            <classpath refid="project.tasks.classpath"/>
+        </schemagen>
+    </target>
+
+    <target name="ermb.generate-oss-config-xsd" depends="init.configuration">
+        <schemagen destdir="${project.root}/Settings/schemas">
+            <src path="${project.root}/BusinessERMB/src"/>
+            <include name="com/rssl/phizic/business/ermb/disconnector/OSSConfigBean.java"/>
+            <schema namespace="" file="ermb-oss-config.xsd"/>
+            <classpath refid="project.tasks.classpath"/>
+        </schemagen>
+    </target>
+
+    <target name="loanclaim.generate-loan-claim-config-xsd" depends="init.configuration">
+        <schemagen destdir="${project.root}/Settings/schemas">
+            <src path="${project.root}/Configuration/src"/>
+            <include name="com/rssl/phizic/config/loanclaim/LoanClaimConfigBean.java"/>
+            <schema namespace="" file="loan-claim-config.xsd"/>
+            <classpath refid="project.tasks.classpath"/>
+        </schemagen>
+    </target>
+
+    <!--
+        Генерация JAXB-классов для интеграции с ЕТСМ в функционале Расширенная заявка на кредит (xsd версии релиз 13)
+    -->
+    <target name="loanclaim.generate-etsm-jaxb-classes-release-13" depends="init.configuration">
+        <xjc destdir="${project.root}/ESBERIBGate/src"
+             package="com.rssl.phizicgate.esberibgate.loanclaim.etsm.generated.release_13">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <!-- не генерировать заголовок со временем генерации (убираем лишние правки) -->
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/ESBERIBGate/src/com/rssl/phizicgate/esberibgate/loanclaim/etsm/xsd"
+                    includes="LoanApplicationRelease13.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <!--
+        Генерация JAXB-классов для интеграции с ЕТСМ в функционале Расширенная заявка на кредит (xsd версии релиз 16)
+    -->
+    <target name="loanclaim.generate-etsm-jaxb-classes-release-16" depends="init.configuration">
+        <xjc destdir="${project.root}/ESBERIBGate/src"
+             package="com.rssl.phizicgate.esberibgate.loanclaim.etsm.generated.release_16">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <!-- не генерировать заголовок со временем генерации (убираем лишние правки) -->
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/ESBERIBGate/src/com/rssl/phizicgate/esberibgate/loanclaim/etsm/xsd"
+                    includes="LoanApplicationRelease16.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.crm.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <!--
+        Генерация JAXB-классов для интеграции с ЕТСМ в функционале Расширенная заявка на кредит (xsd версии релиз 19)
+    -->
+    <target name="loanclaim.generate-etsm-jaxb-classes-release-19" depends="init.configuration">
+        <xjc destdir="${project.root}/ESBERIBGate/src"
+             package="com.rssl.phizicgate.esberibgate.loanclaim.etsm.generated.release_19">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <!-- не генерировать заголовок со временем генерации (убираем лишние правки) -->
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/ESBERIBGate/src/com/rssl/phizicgate/esberibgate/loanclaim/etsm/xsd"
+                    includes="LoanApplicationRelease19.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.crm.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов для обработки сообщенйи от АС "AutoPay" в рамках корзины платежей -->
+    <target name="basket.generate-basket-jaxb-classes" depends="init.configuration">
+        <xjc destdir="${project.root}/GateCommon/src"
+             package="com.rssl.phizgate.basket.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/GateCommon/src/com/rssl/phizgate/basket"
+                    includes="basketPayments.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <target name="jms-transport.generate-esb-mdm-jaxb-classes" depends="init.configuration">
+        <xjc destdir="${project.root}/MDMGate/src"
+             package="com.rssl.phizicgate.mdm.integration.mdm.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <!-- не генерировать заголовок со временем генерации (убираем лишние правки) -->
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/MDMGate/src/com/rssl/phizicgate/mdm/integration/mdm"
+                    includes="MDMAdapter.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <target name="jms-transport.generate-esb-federal-jaxb-classes" depends="init.configuration">
+        <xjc destdir="${project.root}/ESBERIBGate/src"
+             package="com.rssl.phizicgate.esberibgate.ws.jms.segment.federal.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <!-- не генерировать заголовок со временем генерации (убираем лишние правки) -->
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/ESBERIBGate/src/com/rssl/phizicgate/esberibgate/ws"
+                    includes="ERIBAdapter.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <target name="jms-transport.generate-esb-light-jaxb-classes" depends="init.configuration">
+        <xjc destdir="${project.root}/ESBERIBGate/src"
+             package="com.rssl.phizicgate.esberibgate.ws.jms.segment.light.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <!-- не генерировать заголовок со временем генерации (убираем лишние правки) -->
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/ESBERIBGate/src/com/rssl/phizicgate/esberibgate/ws/jms/segment/light"
+                    includes="adapter.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов для интеграции с COD в функционале ЕРМБ -->
+    <target name="ermb.generate-ermb-cod-jaxb-classes" depends="init.configuration">
+        <xjc destdir="${project.root}/BusinessERMB/src"
+             package="com.rssl.phizic.business.ermb.auxiliary.cod.message.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <!-- не генерировать заголовок со временем генерации (убираем лишние правки) -->
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/BusinessERMB/src/com/rssl/phizic/business/ermb/auxiliary/cod/message"
+                    includes="erib-cod-ermb.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <!--Генерация JAXB-классов для взаимодействия с внешней системой "Стоп-лист"-->
+     <target name="stop-list-jaxb-classes" depends="init.configuration">
+        <xjc destdir="${project.root}/StopListGate/src"
+             package="com.rssl.phizicgate.stoplist.generated.jaxb">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <!-- не генерировать заголовок со временем генерации (убираем лишние правки) -->
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/StopListGate/src/com/rssl/phizicgate/stoplist/generated"
+                    includes="stoplist.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <target name="ermb.generate-list-migration-config-xsd" depends="init.configuration">
+        <schemagen destdir="${project.root}/Settings/schemas">
+            <src path="${project.root}/BusinessERMB/src"/>
+            <include name="com/rssl/phizic/business/ermb/migration/list/config/ErmbListMigrationConfigBean.java"/>
+            <schema namespace="" file="ermb-list-migration-config.xsd"/>
+            <classpath refid="project.tasks.classpath"/>
+        </schemagen>
+    </target>
+
+    <target name="ermb.generate-instruction-migration-config-xsd" depends="init.configuration">
+        <schemagen destdir="${project.root}/Settings/schemas">
+            <src path="${project.root}/BusinessERMB/src"/>
+            <include name="com/rssl/phizic/business/ermb/migration/list/config/ErmbInstructionMigrationConfigBean.java"/>
+            <schema namespace="" file="ermb-instruction-migration-config.xsd"/>
+            <classpath refid="project.tasks.classpath"/>
+        </schemagen>
+    </target>
+
+    <target name="testDojoBuild" depends="init.configuration">
+        <taskdef name="buildDojo" classname="com.rssl.phizic.config.ant.BuildDojoTask">
+            <classpath refid="project.tasks.classpath"/>
+        </taskdef>
+
+        <!-- todir переопределить при необходимости -->
+        <buildDojo todir="c:/mydojo"/>
+    </target>
+
+    <!-- Генерация JAXB-классов для обработки сообщенйи от АС ФМ -->
+    <target name="rsa.generate-async-jaxb-classes-WebTest" depends="init.configuration">
+        <xjc destdir="${project.root}/WebTest/src"
+             package="com.rssl.phizic.test.webgate.rsa.jaxb.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/FraudMonitoringBackGate/src/com/rssl/phizic/gate/monitoring/fraud/ws/xml"
+                    includes="AsyncInteraction.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов для обработки сообщенйи от АС ФМ (шлюз)-->
+    <target name="rsa.generate-async-jaxb-classes-FraudMonitoringBackGate" depends="init.configuration">
+        <xjc destdir="${project.root}/FraudMonitoringBackGate/src"
+             package="com.rssl.phizic.gate.monitoring.fraud.jaxb.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/FraudMonitoringBackGate/src/com/rssl/phizic/gate/monitoring/fraud/ws/xml"
+                    includes="AsyncInteraction.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов для обработки сообщенйи от АС ФМ (листенер)-->
+    <target name="rsa.generate-async-jaxb-classes-FraudMonitoringBackListener" depends="init.configuration">
+        <xjc destdir="${project.root}/FraudMonitoringBackListener/src"
+             package="com.rssl.phizic.monitoring.fraud.messages.jaxb.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/FraudMonitoringBackGate/src/com/rssl/phizic/gate/monitoring/fraud/ws/xml"
+                    includes="AsyncInteraction.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов для обработки сообщенйи от АС ФМ -->
+    <target name="rsa.generate-async-jaxb-classes-PhizIC" depends="init.configuration">
+        <xjc destdir="${project.root}/FraudMonitoringGate/src"
+             package="com.rssl.phizic.rsa.integration.jaxb.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/FraudMonitoringBackGate/src/com/rssl/phizic/gate/monitoring/fraud/ws/xml"
+                    includes="AsyncInteraction.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+     <!--
+        Сохраняет в "переменной" list.of.ejbConfigPath.names список путей, содержащих файлы ejb-jar.xml.
+    -->
+    <target name="get.list.of.all.ejbConfigPaths">
+        <var name="ejbConfigPath.names" value=""/>
+
+        <dirset id="ejbConfigPaths" dir="${project.root}/">
+            <include name="*\META-INF"/>
+            <exclude name="*.ear"/>
+        </dirset>
+
+        <pathconvert property="ejbConfigPaths" refid="ejbConfigPaths" pathsep=","/>
+
+        <for list="${ejbConfigPaths}" param="item" delimiter=",">
+            <sequential>
+
+                <if>
+                    <available file="@{item}\ejb-jar.xml"/>
+
+                    <then>
+                        <var name="ejbConfigPath.names" value="@{item},${ejbConfigPath.names}"/>
+                    </then>
+                </if>
+
+            </sequential>
+          </for>
+
+         <property name="list.of.ejbConfigPath.names" value="${ejbConfigPath.names}"/>
+    </target>
+
+    <target name="ermb.generate-asfilial-ws-classes"
+            description="Генерирует ws-классы для интеграции ЕРИБ - АС Филиал">
+
+        <axis-wsdl2java
+          output="${project.root}/ASFilialListener/src"
+          serverside="true"
+          typemappingversion="1.2"
+          all="false"
+          url="${project.root}/ASFilialListener/src/com/rssl/phizic/asfilial/listener/asfilial.wsdl">
+            <!--<mapping namespace="http://axis.apache.org/ns/interop" package="interop" />-->
+          </axis-wsdl2java>
+
+        <axis-wsdl2java
+          output="${project.root}/WebTest/src"
+          serverside="false"
+          typemappingversion="1.2"
+          all="false"
+          url="${project.root}/WebTest/src/com/rssl/phizic/test/wsgateclient/asfilial/asfilial.wsdl">
+            <mapping namespace="http://generated.listener.asfilial.phizic.rssl.com"
+                     package="com.rssl.phizic.test.wsgateclient.asfilial.generated" />
+          </axis-wsdl2java>
+
+    </target>
+
+    <target name="etsm.generate-credit-proxy-ws-classes"
+            description="Генерирует ws-классы для взаимодйествия c PhizCreditProxy">
+
+        <axis-wsdl2java
+                output="${project.root}/PhizProxyCreditWebListener/src"
+                serverside="true"
+                typemappingversion="1.2"
+                all="false"
+                url="${project.root}/PhizProxyCreditWebListener/src/com/rssl/phizic/etsm/listener/phizCreditEtsm.wsdl">
+            <!--<mapping namespace="http://axis.apache.org/ns/interop" package="interop" />-->
+          </axis-wsdl2java>
+
+             <axis-wsdl2java
+                     output="${project.root}/Business/src"
+                     serverside="false"
+                     typemappingversion="1.2"
+                     all="false"
+                     url="${project.root}/Business/src/com/rssl/phizic/business/etsm/offer/service/phizCreditEtsm.wsdl">
+            <mapping namespace="http://generated.listener.etsm.phizic.rssl.com"
+                     package="com.rssl.phizic.business.etsm.offer.service.generated" />
+          </axis-wsdl2java>
+
+        
+    </target>
+
+    <target name="ermb.generate-mfm-ws-classes"
+            description="Генерирует ws-классы для интеграции ЕРИБ - MFM, сервис OutMessageConsumer">
+
+        <axis-wsdl2java
+                output="${project.root}/WebTest/src"
+                serverside="true"
+                typemappingversion="1.2"
+                all="false"
+                url="${project.root}/WebTest/src/com/rssl/phizic/test/wsgateclient/mfm/outmessageconsumer/OutMessageConsumer.wsdl">
+            <mapping namespace="http://www.mfms.ru/sb/ifm/sms/sb0/out-message-consumer"
+                     package="com.rssl.phizic.test.wsgateclient.mfm.outmessageconsumer.generated" />
+          </axis-wsdl2java>
+
+        <axis-wsdl2java
+                output="${project.root}/PhizGateMFM/src"
+                serverside="false"
+                typemappingversion="1.2"
+                all="false"
+                url="${project.root}/PhizGateMFM/src/com/rssl/phizicgate/mfm/ws/outmessageconsumer/OutMessageConsumer.wsdl">
+            <mapping namespace="http://www.mfms.ru/sb/ifm/sms/sb0/out-message-consumer"
+                     package="com.rssl.phizicgate.mfm.ws.outmessageconsumer.generated" />
+          </axis-wsdl2java>
+
+    </target>
+
+    <target name="ermb.generate-dictionaries-ws-classes"
+            description="Генерирует ws-классы для ProvidersDictionary">
+
+        <axis-wsdl2java
+          output="${project.root}/ErmbDictionaryListener/src"
+          serverside="true"
+          typemappingversion="1.2"
+          all="false"
+          url="${project.root}/ErmbDictionaryListener/src/com/rssl/phizic/mbproviders/listener/ermb-dictionaries.wsdl">
+            <mapping namespace="http://sbrf.ru/ermb/auxiliary/providers-dictionary/"
+                     package="com.rssl.phizic.mbproviders.listener.generated" />
+        </axis-wsdl2java>
+
+        <axis-wsdl2java
+          output="${project.root}/WebTest/src"
+          serverside="false"
+          typemappingversion="1.2"
+          all="false"
+          url="${project.root}/WebTest/src/com/rssl/phizic/test/mbproviders/dictionary/ermb-dictionaries.wsdl">
+            <mapping namespace="http://sbrf.ru/ermb/auxiliary/providers-dictionary/"
+                     package="com.rssl.phizic.test.mbproviders.dictionary.generated" />
+          </axis-wsdl2java>
+
+    </target>
+
+    <target name="ermb.generate-sms-log-ws-classes"
+            description="Генерирует ws-классы для получения журнала СМС ЕРМБ">
+
+        <axis-wsdl2java
+          output="${project.root}/WebTest/src"
+          serverside="true"
+          typemappingversion="1.2"
+          all="false"
+          url="${project.root}/WebTest/src/com/rssl/phizic/test/ermb/smslog/ermb-smslog.wsdl">
+            <mapping namespace="http://sbrf.ru/ermb/auxiliary/sms-log"
+                     package="com.rssl.phizic.test.ermb.smslog.generated" />
+          </axis-wsdl2java>
+
+        <axis-wsdl2java
+          output="${project.root}/BusinessERMB/src"
+          serverside="false"
+          typemappingversion="1.2"
+          all="false"
+          url="${project.root}/BusinessERMB/src/com/rssl/phizic/business/ermb/auxiliary/smslog/ermb-smslog.wsdl">
+            <mapping namespace="http://sbrf.ru/ermb/auxiliary/sms-log"
+                     package="com.rssl.phizic.business.ermb.auxiliary.smslog.generated" />
+          </axis-wsdl2java>
+
+    </target>
+
+    <target name="ermb.generate-payment-sms-ws-classes"
+             description="Генерирует ws-классы для отправки платежных смс">
+
+         <axis-wsdl2java
+           output="${project.root}/WebTest/src"
+           serverside="true"
+           typemappingversion="1.2"
+           all="false"
+           url="${project.root}/WebTest/src/com/rssl/phizic/test/ermb/messaging/paymentSms/payment-sms.wsdl">
+             <mapping namespace="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"
+                      package="com.rssl.phizic.test.ermb.messaging.paymentSms.generated" />
+           </axis-wsdl2java>
+
+         <axis-wsdl2java
+           output="${project.root}/BusinessERMB/src"
+           serverside="false"
+           typemappingversion="1.2"
+           all="false"
+           url="${project.root}/BusinessERMB/src/com/rssl/phizic/business/ermb/auxiliary/messaging/paymentSms/payment-sms.wsdl">
+             <mapping namespace="http://sbrf.ru/ermb/auxiliary/messaging/payment-sms"
+                      package="com.rssl.phizic.business.ermb.auxiliary.messaging.paymentSms.generated" />
+           </axis-wsdl2java>
+
+    </target>
+
+    <target name="ermb.generate-cod-action-classes"
+             description="Генерирует ws-классы для отправки признака подключения ермб в цод">
+        <axis-wsdl2java
+            output="${project.root}/WebTest/src"
+            serverside="true"
+            typemappingversion="1.2"
+            all="false"
+            url="${project.root}/WebTest/src/com/rssl/phizic/test/ermb/cod/MBVEnableService.wsdl">
+            <mapping namespace="http://service.cod.sbrf.ru"
+                package="com.rssl.phizic.test.ermb.cod.generated"/>
+        </axis-wsdl2java>
+
+        <axis-wsdl2java
+            output="${project.root}/BusinessErmb/src"
+            serverside="false"
+            typemappingversion="1.2"
+            all="false"
+            url="${project.root}/BusinessERMB/src/com/rssl/phizic/business/ermb/auxiliary/cod/MBVEnableService.wsdl">
+            <mapping namespace="http://service.cod.sbrf.ru"
+                package="com.rssl.phizic.business.ermb.auxiliary.cod.generated"/>
+        </axis-wsdl2java>
+    </target>
+
+
+    <target name="uec.generate-ws-classes"
+            description="Генерирует ws-классы для веб-сервиса УЭК">
+
+        <axis-wsdl2java
+          output="${project.root}/WebTest/src"
+          serverside="true"
+          typemappingversion="1.2"
+          verbose="true"
+          all="false" nowrapped="true"
+          url="${project.root}/WebTest/src/com/rssl/phizic/test/webgate/uec/uec.wsdl">
+            <mapping namespace="http://sbrf.ru/e-invoicing/uec/1"
+                     package="com.rssl.phizic.test.webgate.uec.generated"/>
+          </axis-wsdl2java>
+
+        <axis-wsdl2java
+          output="${project.root}/ShopClient/src"
+          serverside="false"
+          typemappingversion="1.2"
+          verbose="true"
+          all="false" nowrapped="true"
+          url="${project.root}/ShopClient/src/com/rssl/phizicgate/uec/uec.wsdl">
+            <mapping namespace="http://sbrf.ru/e-invoicing/uec/1"
+                     package="com.rssl.phizicgate.uec.generated"/>
+          </axis-wsdl2java>
+
+    </target>
+        <target name="mbv.generate-ws-classes"
+                description="Генерирует ws-классы для веб-сервиса МБВ">
+        <axis-wsdl2java
+                output="${project.root}/WebTest/src"
+                serverside="true"
+                typemappingversion="1.2"
+                verbose="true"
+                all="false" nowrapped="true"
+                url="${project.root}/WebTest/src/com/rssl/phizic/test/webgate/depomobilebank/MBVMigrator.wsdl">
+            <mapping namespace="http://service.mbv.sbrf.ru"
+                     package="com.rssl.phizic.test.webgate.depomobilebank.generated"/>
+        </axis-wsdl2java>
+
+        <axis-wsdl2java
+                output="${project.root}/DepoMobileBankGate/src"
+                serverside="false"
+                typemappingversion="1.2"
+                verbose="true"
+                all="false" nowrapped="true"
+                url="${project.root}/DepoMobileBankGate/src/com/rssl/phizic/gate/depomobilebank/ws/MBVMigrator.wsdl">
+            <mapping namespace="http://service.mbv.sbrf.ru"
+                     package="com.rssl.phizic.gate.depomobilebank.ws.generated"/>
+        </axis-wsdl2java>
+    </target>
+
+    <target name="task-service.generate-ws-classes"
+                description="Генерирует ws-классы для менеджера задач мигратора">
+        <axis-wsdl2java
+                output="${project.root}/ERMBListMigrator/src"
+                serverside="true"
+                typemappingversion="1.2"
+                verbose="true"
+                all="false" nowrapped="true"
+                url="${project.root}/ERMBListMigrator/src/com/rssl/phizic/ermb/migration/list/service/taskService.wsdl">
+            <mapping namespace="http://service.task.sbrf.ru"
+                     package="com.rssl.phizic.ermb.migration.list.service.generated"/>
+        </axis-wsdl2java>
+
+        <axis-wsdl2java
+                output="${project.root}/BusinessERMB/src"
+                serverside="false"
+                typemappingversion="1.2"
+                verbose="true"
+                all="false" nowrapped="true"
+                url="${project.root}/BusinessERMB/src/com/rssl/phizic/business/ermb/migration/list/task/service/taskService.wsdl">
+            <mapping namespace="http://service.task.sbrf.ru"
+                     package="com.rssl.phizic.business.ermb.migration.list.task.service.generated"/>
+        </axis-wsdl2java>
+    </target>
+
+    <!-- Генерация JAXB-классов по mobile5.xsd -->
+    <target name="mapi-5-generate-jaxb-test-classes" depends="init.configuration">
+        <xjc schema="${project.root}/Operations/src/com/rssl/phizic/operations/test/mobile/mobile5.xsd"
+             destdir="${project.root}/Business/src"
+             package="com.rssl.phizic.business.test.mobile5.generated">
+            <arg value="-enableIntrospection"/> <!--Генерирует для Boolean полей геттер вида getFoo() вместо isFoo().
+                Нужно для PropertyEditor-а, т.к. для примитивного boolean он ищет метод isFoo(), а для boxed Boolean - getFoo()-->
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов по mobile6.xsd -->
+    <target name="mapi-6-generate-jaxb-test-classes" depends="init.configuration">
+        <xjc schema="${project.root}/Operations/src/com/rssl/phizic/operations/test/mobile/mobile6.xsd"
+             destdir="${project.root}/Business/src"
+             package="com.rssl.phizic.business.test.mobile6.generated">
+            <arg value="-enableIntrospection"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов по mobile7.xsd -->
+    <target name="mapi-7-generate-jaxb-test-classes" depends="init.configuration">
+        <xjc schema="${project.root}/Operations/src/com/rssl/phizic/operations/test/mobile/mobile7.xsd"
+             destdir="${project.root}/Business/src"
+             package="com.rssl.phizic.business.test.mobile7.generated">
+            <arg value="-enableIntrospection"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов по mobile8.xsd -->
+    <target name="mapi-8-generate-jaxb-test-classes" depends="init.configuration">
+        <xjc schema="${project.root}/Operations/src/com/rssl/phizic/operations/test/mobile/mobile8.xsd"
+             destdir="${project.root}/Business/src"
+             package="com.rssl.phizic.business.test.mobile8.generated">
+            <arg value="-enableIntrospection"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов по mobile9.xsd -->
+    <target name="mapi-9-generate-jaxb-test-classes" depends="init.configuration">
+        <xjc schema="${project.root}/Operations/src/com/rssl/phizic/operations/test/mobile/mobile9.xsd"
+             destdir="${project.root}/Business/src"
+             package="com.rssl.phizic.business.test.mobile9.generated">
+            <arg value="-enableIntrospection"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов по atm.xsd -->
+    <target name="atmapi-generate-jaxb-test-classes" depends="init.configuration">
+        <xjc schema="${project.root}/Settings/schemas/atm.xsd"
+             destdir="${project.root}/Business/src"
+             package="com.rssl.phizic.business.test.atm.generated">
+            <arg value="-enableIntrospection"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов по depositDictionary.xsd -->
+    <target name="deposit-dictionary-generate-jaxb-classes" depends="init.configuration">
+        <xjc schema="${project.root}/Business/src/com/rssl/phizic/business/deposits/depositDictionary.xsd"
+             destdir="${project.root}/Business/src"
+             package="com.rssl.phizic.business.deposits.generated">
+            <arg value="-enableIntrospection"/>
+        </xjc>
+    </target>
+
+    <target name="stop-list-generate-jaxb-classes" depends="init.configuration">
+        <xjc schema="${project.root}/SBRFCODGate/src/com/rssl/phizicgate/sbrf/ws/stoplist/messagebeans/stoplist.xsd"
+             destdir="${project.root}/SBRFCODGate/src"
+             package="com.rssl.phizicgate.sbrf.ws.stoplist.messagebeans.generated">
+            <arg value="-enableIntrospection"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов по erib-mbv-migrator.xsd -->
+    <target name="mbv-generate-jaxb-classes" depends="init.configuration">
+        <xjc schema="${project.root}/Business/src/com/rssl/phizic/business/mbv/erib-mbv-migrator.xsd"
+             destdir="${project.root}/Business/src"
+             package="com.rssl.phizic.business.mbv.generated">
+            <arg value="-enableIntrospection"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация mss.xsd по JAXB-классам -->
+    <target name="mss-generate-xsd" depends="init.configuration">
+        <schemagen destdir="${project.root}/ErmbCommon/src/com/rssl/phizic/synchronization">
+            <src path="${project.root}/ErmbCommon/src"/>
+            <include name="com/rssl/phizic/synchronization/types/SMSRq.java"/>
+            <include name="com/rssl/phizic/synchronization/types/UpdateClientRq.java"/>
+            <include name="com/rssl/phizic/synchronization/types/UpdateResourceRq.java"/>
+            <include name="com/rssl/phizic/synchronization/types/ConfirmProfilesRq.java"/>
+            <include name="com/rssl/phizic/synchronization/types/ServiceFeeResultRq.java"/>
+            <include name="com/rssl/phizic/synchronization/types/CheckImsiResponse.java"/>
+            <schema namespace="" file="mss.xsd"/>
+            <classpath refid="project.tasks.classpath"/>
+        </schemagen>
+    </target>
+
+    <!-- Генерация JAXB-классов по sos.xsd -->
+    <target name="sos-generate-jaxb-classes" depends="init.configuration">
+        <xjc schema="${project.root}/ErmbCommon/src/com/rssl/phizic/synchronization/sos.xsd"
+             destdir="${project.root}/ErmbCommon/src"
+             package="com.rssl.phizic.synchronization.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-extension"/>
+            <arg value="-no-header"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="mss.xjb.xml"/>
+        </xjc>
+    </target>
+
+    <!-- Генерация JAXB-классов по ERIB.BKI.Schema.xsd -->
+    <target name="loanreport.generate-bki-jaxb-classes" depends="init.configuration">
+        <xjc destdir="${project.root}/ESBERIBGate/src"
+             package="com.rssl.phizicgate.esberibgate.bki.generated">
+            <arg value="-enableIntrospection"/>
+            <arg value="-XautoNameResolution"/>
+            <arg value="-extension"/>
+            <!-- не генерировать заголовок со временем генерации (убираем лишние правки) -->
+            <arg value="-no-header"/>
+            <schema dir="${project.root}/ESBERIBGate/src/com/rssl/phizicgate/esberibgate/bki/xsd"
+                    includes="ERIB.BKI.Schema.xsd"/>
+            <binding dir="${project.root}/Settings/jaxb-bindings" includes="common.xjb.xml"/>
+        </xjc>
+    </target>
+
+</project>

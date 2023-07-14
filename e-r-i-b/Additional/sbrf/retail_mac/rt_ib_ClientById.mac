@@ -1,0 +1,385 @@
+import "rt_ib_xml.mac";
+class(cBaseDeposit) 
+    cClientService( inXml, outXml ) 
+
+  // ------------------------------------------------------------
+  // Вычитать параметры из входного документа
+  // ------------------------------------------------------------
+   var clientid;
+   var nodeClient;
+   var nodeAddresses;
+   var nodeDocuments;
+   private macro readParameters( nodeElement )
+
+    var nodeComPay;
+
+    nodeComPay = nodeElement;
+
+    while( nodeComPay )
+      if   ( nodeComPay.NodeName == "id" )
+        clientId = int( nodeComPay.text );
+      end;
+      nodeComPay = nodeComPay.nextSibling();
+    end;// while( nodeComPay )
+   
+   end;//private macro readParameters( nodeElement )
+   
+   private macro createClientXml(rs, OutXml)
+      nodeClient = nodeAnswer.appendChild( outXML.createNode(1, "client", "") );
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "displayId", "") );
+      node.text = rs.value("displayId");
+
+      node = nodeClient.appendChild( outXML.createNode(1, "longId", "") );
+      node.text = rs.value("longId");
+
+      node = nodeClient.appendChild( outXML.createNode(1, "shortName", "") );
+      node.text = rs.value("shortName");
+
+      node = nodeClient.appendChild( outXML.createNode(1, "fullName", "") );
+      node.text = rs.value("fullName");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "surName", "") );
+      node.text = rs.value("surName");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "firstName", "") );
+      node.text = rs.value("firstName");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "patrName", "") );
+      node.text = rs.value("patrName");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "birthDay", "") );
+      node.text = String(rs.value("birthDay"));
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "birthPlace", "") );
+      node.text = StrSubst(rs.value("birthPlace"), strfor(1), "");
+            
+      node = nodeClient.appendChild( outXML.createNode(1, "gender", "") );
+      node.text = StrSubst(rs.value("gender"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "email", "") );
+      node.text = StrSubst(rs.value("email"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "homePhone", "") );
+      node.text = StrSubst(rs.value("homephone"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "jobPhone", "") );
+      node.text = StrSubst(rs.value("jobphone"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "mobilePhone", "") );
+      node.text = StrSubst(rs.value("mobilephone"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "inn", "") );
+      node.text = StrSubst(rs.value("inn"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "citizenship", "") );
+      node.text = StrSubst(rs.value("citizenship"), strfor(1), "");
+      
+      node = nodeClient.appendChild( outXML.createNode(1, "resident", "") );
+      node.text = StrSubst(rs.value("resident"), strfor(1), "");
+
+      nodeDocuments = nodeClient.appendChild( outXML.createNode(1, "documents", "") );
+      SetParm( 1, outXml );
+   end;//private macro createClientXml(rs, outXml)
+
+   private macro createAddrXml(rs, outXml, addrType, parentNode)
+      var nodeAddress;
+
+      if(addrType == 1)
+         nodeAddress = parentNode.appendChild( outXML.createNode(1, "regAddress", "") );
+      elif(addrType ==2)
+         nodeAddress = parentNode.appendChild( outXML.createNode(1, "factAddress", "") );
+      end;
+      node = nodeAddress.appendChild( outXML.createNode(1, "id", "") );
+      node.text = rs.value("id");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "postalCode", "") );
+      node.text = StrSubst(rs.value("postalcode"), strfor(1), "");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "province", "") );
+      node.text = StrSubst(rs.value("province"), strfor(1), "");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "district", "") );
+      node.text = StrSubst(rs.value("district"), strfor(1), "");
+   
+      node = nodeAddress.appendChild( outXML.createNode(1, "city", "") );
+      node.text = StrSubst(rs.value("city"), strfor(1), "");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "street", "") );
+      node.text = StrSubst(rs.value("street"), strfor(1), "");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "house", "") );
+      node.text = StrSubst(rs.value("house"), strfor(1), "");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "building", "") );
+      node.text = StrSubst(rs.value("building"), strfor(1), "");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "flat", "") );
+      node.text = StrSubst(rs.value("flat"), strfor(1), "");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "homePhone", "") );
+      node.text = StrSubst(rs.value("homephone"), strfor(1), "");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "workPhone", "") );
+      node.text = StrSubst(rs.value("workphone"), strfor(1), "");
+
+      node = nodeAddress.appendChild( outXML.createNode(1, "mobilePhone", "") );
+      node.text = StrSubst(rs.value("mobilephone"), strfor(1), "");
+
+      SetParm( 1, outXml );
+   end;//private macro createRegAddrXml(rs, outXml, addrType)
+
+   private macro createDocs(rs, outXml, parentNode)
+      
+      var nodeDoc;
+      while( (rs.moveNext) )
+         nodeDoc = parentNode.appendChild( outXML.createNode(1, "document", "") );
+         
+         node = nodeDoc.appendChild( outXML.createNode(1, "kPersonId", "") );
+         node.text = rs.value("kPersonId");
+
+         node = nodeDoc.appendChild( outXML.createNode(1, "kPaperKind", "") );
+         node.text = rs.value("kPaperKind");
+
+         node = nodeDoc.appendChild( outXML.createNode(1, "docNumber", "") );
+         node.text = StrSubst(rs.value("docNumber"), strfor(1), "");
+
+         node = nodeDoc.appendChild( outXML.createNode(1, "docSeries", "") );
+         node.text = StrSubst(rs.value("docSeries"), strfor(1), "");
+
+         node = nodeDoc.appendChild( outXML.createNode(1, "docIssueDate", "") );
+         node.text = String(rs.value("docIssueDate"));
+
+         node = nodeDoc.appendChild( outXML.createNode(1, "docIssueBy", "") );
+         node.text = StrSubst(rs.value("docIssueBy"), strfor(1), "");
+
+         node = nodeDoc.appendChild( outXML.createNode(1, "docType", "") );
+         node.text = StrSubst(rs.value("docType"), strfor(1), "");
+
+         node = nodeDoc.appendChild( outXML.createNode(1, "docName", "") );
+         node.text = StrSubst(rs.value("docName"), strfor(1), "");
+
+         node = nodeDoc.appendChild( outXML.createNode(1, "docIssueByCode", "") );
+         node.text = StrSubst(rs.value("docIssueByCode"), strfor(1), "");
+
+         node = nodeDoc.appendChild( outXML.createNode(1, "docIdentify", "") );
+         node.text = rs.value("docIdentify");
+
+      end;//while
+      SetParm( 1, outXml );
+   end;//private macro createDocs(rs, outXml)
+   
+   private macro fillDocs(id, inXml, outXml, parentNode)
+      var cmd, rs;
+      cmd = RsdCommand("SELECT "+
+            "idc.t_PersonID                         AS kPersonId, "+
+            "idc.t_PaperKind                        AS kPaperKind, "+
+            "REPLACE(idc.t_papernumber, CHR(1),'')  AS docNumber, "+
+            "idc.t_paperseries                      AS docSeries, "+
+            "idc.t_paperissueddate                  AS docIssueDate, "+
+            "REPLACE(idc.t_paperissuer, CHR(1),'')  AS docIssueBy, "+
+            "pkind.t_name                           AS docType, "+
+            "pkind.t_definition                     AS docName, "+
+            "REPLACE(idc.t_paperissuercode, CHR(1),'')AS docIssueByCode, "+
+            "case when (pkind.t_codedocum  = 11 OR pkind.t_codedocum = 13) "+
+            "      then 0 "+
+            "      else 1 "+
+            "  end "+
+            "AS docIdentify "+
+            "FROM "+
+            "dpersn_dbt person "+
+            "INNER JOIN dparty_dbt party ON person.t_PersonID = party.t_PartyID AND party.t_LegalForm = 2 "+
+            ",dpersnidc_dbt idc "+
+            ",dpaprkind_dbt pkind "+
+            "WHERE "+
+            "person.t_PersonID = ? "+
+            "AND person.t_personid = idc.t_personid "+
+            "AND idc.t_paperkind = pkind.t_paperkind ");
+
+      cmd.addParam( "clientId", RSDBP_IN, V_STRING);
+      cmd.value("clientId") = id;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+
+      createDocs(rs, outXml, parentNode);
+
+      cmd = RsdCommand("SELECT "+
+            "person.t_PersonID                            AS kPersonId, "+
+            "99                                           AS kPaperKind, "+
+            "REPLACE(person.t_penscardnumber, CHR(1),'')  AS docNumber, "+
+            "''                                           AS docSeries, "+
+            "''                                           AS docIssueDate, "+
+            "''                                           AS docIssueBy, "+
+            "'Пенсионное удостоверение'                   AS docType, "+
+            "''                                           AS docName, "+
+            "''                                           AS docIssueByCode, "+
+            "0                                            AS docIdentify "+
+            "FROM "+
+            "dpersn_dbt person "+
+            "WHERE "+
+            "person.t_PersonID = ?"); 
+
+      cmd.addParam( "clientId", RSDBP_IN, V_STRING);
+      cmd.value("clientId") = id;
+
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+
+      createDocs(rs, outXml, parentNode);
+      SetParm( 2, outXml );
+   end;//private macro fillDocs(id, inXml, outXml)
+
+   private macro fillAddresses(inXml, outXml, id, parentNode)
+      var cmd, rs;
+      cmd = RsdCommand("SELECT "+
+            "addressInt.T_PARTYID + addressInt.T_TYPE AS id "+
+            ",REPLACE(addressInt.t_postindex, CHR(1), '')    AS postalCode "+
+            ",REPLACE(addressInt.t_province, CHR(1), '')     AS province "+
+            ",REPLACE(addressInt.t_district, CHR(1), '')     AS district "+
+            ",REPLACE(addressInt.t_place, CHR(1), '')        AS city "+
+            ",REPLACE(addressInt.t_street, CHR(1), '')       AS street "+
+            ",REPLACE(addressInt.t_house, CHR(1), '')        AS house "+
+            ",REPLACE(addressInt.t_numcorps, CHR(1), '')     AS building "+
+            ",REPLACE(addressInt.t_flat, CHR(1), '')         AS flat "+
+            ",REPLACE(addressInt.t_phonenumber, CHR(1), '')  AS homePhone "+
+            ",REPLACE(addressInt.t_phonenumber2, CHR(1), '') AS workPhone "+
+            ",REPLACE(addressInt.t_mobilePhone, CHR(1), '')          AS mobilePhone "+
+            "FROM dadress_dbt addressInt "+
+            "where addressInt.T_PARTYID = ? "+
+               "and addressInt.T_TYPE = ? ");
+
+      cmd.addParam( "clientId", RSDBP_IN, V_STRING);
+      cmd.value("clientId") = id;
+      cmd.addParam("addrType", RSDBP_IN, V_STRING);
+      cmd.value("addrType") = "1";
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+      if ( (rs.moveNext))
+         createAddrXml(rs, outXml,1,parentNode);
+      end;   
+
+      cmd = RsdCommand("SELECT "+
+            "addressInt.T_PARTYID + addressInt.T_TYPE AS id "+
+            ",REPLACE(addressInt.t_postindex, CHR(1), '')    AS postalCode "+
+            ",REPLACE(addressInt.t_province, CHR(1), '')     AS province "+
+            ",REPLACE(addressInt.t_district, CHR(1), '')     AS district "+
+            ",REPLACE(addressInt.t_place, CHR(1), '')        AS city "+
+            ",REPLACE(addressInt.t_street, CHR(1), '')       AS street "+
+            ",REPLACE(addressInt.t_house, CHR(1), '')        AS house "+
+            ",REPLACE(addressInt.t_numcorps, CHR(1), '')     AS building "+
+            ",REPLACE(addressInt.t_flat, CHR(1), '')         AS flat "+
+            ",REPLACE(addressInt.t_phonenumber, CHR(1), '')  AS homePhone "+
+            ",REPLACE(addressInt.t_phonenumber2, CHR(1), '') AS workPhone "+
+            ",REPLACE(addressInt.t_mobilePhone, CHR(1), '')          AS mobilePhone "+
+            "FROM dadress_dbt addressInt "+
+            "where addressInt.T_PARTYID = ? "+
+               "and addressInt.T_TYPE = ? ");
+
+      cmd.addParam( "clientId", RSDBP_IN, V_STRING);
+      cmd.value("clientId") = id;
+      cmd.addParam("addrType", RSDBP_IN, V_STRING);
+      cmd.value("addrType") = "2";
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+      if ( (rs.moveNext))
+         createAddrXml(rs, outXml,2, parentNode);
+      end;   
+      SetParm( 1, outXml );
+   end;//private macro fillAddresses(inXml, outXml, id, parentNode)
+
+   private macro getClientById(inXml, outXml)
+      var cmd, rs;
+      cmd = RsdCommand("SELECT "+
+            "party.t_PartyID                          AS displayId "+
+            ",party.t_PartyID                          AS longId "+
+            ",REPLACE(party.t_shortname, CHR(1), '')   AS shortName "+
+            ",REPLACE(party.t_name, CHR(1), '')        AS fullName "+
+            ",REPLACE(person.t_Name1, CHR(1), '')      AS surName "+
+            ",REPLACE(person.t_Name2, CHR(1), '')      AS firstName "+
+            ",REPLACE(person.t_Name3, CHR(1), '')      AS patrName "+
+            ",person.t_Born                            AS birthDay "+
+            ",REPLACE(utl_raw.cast_to_varchar2(notetext.t_text), '')  AS birthPlace "+
+            ",REPLACE(person.t_ismale, CHR(1), '')     AS gender "+
+            " ,REPLACE(addr.t_e_mail, CHR(1), '')       AS email "+
+            ",REPLACE(addr.t_phonenumber, CHR(1), '')  AS homePhone "+
+            ",REPLACE(addr.t_phonenumber2, CHR(1), '') AS jobPhone "+
+            ",REPLACE(addr.t_mobilePhone, CHR(1), '')  AS mobilePhone "+
+            ",REPLACE(codes.t_code, CHR(1), '')        AS inn "+
+            ",REPLACE(country.t_fullname, CHR(1), '')  AS citizenship "+
+            ",REPLACE(party.t_notresident, CHR(1), '')  AS resident  "+
+            " FROM "+
+            "   dpersn_dbt person "+
+            "left join dnotetext_dbt notetext on lpad(person.t_personid, 10, '0') = lpad(notetext.t_documentid,10,'0') "+
+            "  and notetext.t_objecttype = 8 "+
+            "  and notetext.t_notekind = 1 "+
+            
+            ",dparty_dbt party "+
+            "left join dadress_dbt addr on addr.t_type = 1 and addr.t_partyid    = party.t_partyid "+
+            ",dpaprkind_dbt kind "+
+            ",dcountry_dbt country "+
+            "left join dpartcode_dbt codes on codes.t_codekind = 16 and codes.t_partyid  = ? "+
+            "WHERE "+
+            "  person.t_personid = ? "+
+            "  and person.t_personid = party.t_partyid "+
+            "  and party.t_legalform = 2 "+
+            "  and (country.t_codelat3 = party.t_nrcountry or country.t_codelat2 = party.t_nrcountry)"+
+            "  ORDER BY notetext.t_date DESC"
+            );                                                                                                                   
+      cmd.addParam( "clientId", RSDBP_IN, V_STRING);
+      cmd.value("clientId") = clientId;
+      cmd.addParam( "clientId2", RSDBP_IN, V_STRING);
+      cmd.value("clientId2") = clientId;
+      cmd.execute;
+      rs = RsdRecordSet( cmd );
+      if ( (rs.moveNext))
+        createClientXml(rs, outXml);
+      else
+        return outXml;
+      end;
+
+      fillAddresses(inXml, outXml, clientId, nodeClient);
+
+      fillDocs(clientId, inXml, outXml, nodeDocuments);
+
+      return outXml;
+   end;//private macro getClientById(inXml, outXml)
+   
+   macro start(inXml, outXml)
+       var nodeParentElement;
+    var stat = 0;
+
+    if(not outXml )
+      outXml = CreateXMLObject();
+      if(not outXml) return; end;
+
+      CreateBeginTag( outXml );
+
+      nodeParentElement = inXml.documentElement.selectSingleNode( "//getClientById_q" );
+      nodeElement = nodeParentElement.firstChild();
+
+
+      if( nodeElement )
+
+        readParameters( nodeElement );
+
+        outXML = getClientById( inXml, outXML );
+
+      end;
+
+    end;//if(not outXml )
+
+    return outXml;
+      
+   end; //macro start(inXml, outXml)
+
+end;  //class(cBaseDeposit) 
+
+macro GetClientById( inXml, outXml )
+
+  var t = cClientService;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;
+

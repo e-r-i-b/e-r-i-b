@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+
+<struts-config>
+	<form-beans>
+		<!-- выбор способа аутентификации -->
+		<form-bean name="IndexForm"
+		           type="com.rssl.phizic.web.client.security.IndexForm"/>
+		<!-- выписка по счету -->
+		<form-bean name="ShowAccountAbstractForm"
+		           type="com.rssl.phizic.web.client.ext.sevb.accounts.ShowAccountAbstractExtendedForm"/>
+		<!-- печать по счету -->
+		<form-bean name="PrintAccountAbstractForm"
+		           type="com.rssl.phizic.web.client.ext.sevb.accounts.PrintAccountAbstractExtendedForm"/>
+
+		<form-bean name="LoginForm"
+		           type="com.rssl.phizic.web.client.ext.sevb.security.LoginClosePasswordStageForm"/>
+
+		<form-bean name="ConfirmPasswordLoginForm"
+		           type="com.rssl.phizic.web.client.ext.sevb.security.LoginClosePasswordStageForm"/>
+	</form-beans>
+
+	<action-mappings>
+		<!-- печать выписки по картам -->
+		<action path="/private/accounts/abstract" type="com.rssl.phizic.web.client.ext.sevb.accounts.ShowAccountAbstractExtendedAction" name="ShowAccountAbstractForm" scope="request" validate="false">
+			<forward name="ShowAbstract" path="/WEB-INF/jsp-sevb/abstr/abstractFilter.jsp"/>
+			<forward name="ShowInformation" path="/WEB-INF/jsp-sevb/abstr/abstractFilter.jsp"/>
+		</action>
+		<!-- печать выписки по счетам и картам -->
+		<action path="/private/accounts/print" type="com.rssl.phizic.web.client.ext.sevb.accounts.PrintAccountAbstractExtendedAction" name="PrintAccountAbstractForm" scope="request" validate="false">
+			<forward name="PrintAbstract" path="/WEB-INF/jsp-sevb/abstr/abstractPrint.jsp"/>
+			<forward name="PrintInformation" path="/WEB-INF/jsp-sevb/abstr/abstractPrint.jsp"/>
+		</action>
+		<!-- список видов платежей -->
+		<action path="/private/payments" scope="request" validate="false"
+		        forward="/WEB-INF/jsp-sevb/index.jsp"/>
+
+		<!-- платеж на базе формы -->
+		<action path="/private/payments/payment"
+		        type="com.rssl.phizic.web.actions.payments.forms.EditPaymentAction"
+		        name="CreatePaymentForm" scope="request"
+		        validate="false">
+			<forward name="ShowForm" path="/WEB-INF/jsp-sevb/payments/forms/edit-payment.jsp"/>
+			<forward name="Confirm" path="/private/payments/confirm.do" redirect="true"/>
+			<forward name="ShowList" path="/private/payments/payments.do" redirect="true"/>
+		</action>
+
+		<!-- подтверждение платежа на базе формы -->
+		<action path="/private/payments/confirm"
+		        type="com.rssl.phizic.web.actions.payments.forms.ConfirmDocumentAction"
+		        name="ConfirmPaymentByFormForm" scope="request"
+		        validate="false">
+			<forward name="ShowForm"
+			         path="/WEB-INF/jsp-sevb/payments/forms/confirm-payment.jsp"/>
+			<forward name="View" path="/private/payments/view.do" redirect="true"/>
+			<forward name="Edit" path="/private/payments/payment.do" redirect="true"/>
+		</action>
+
+		<!-- показ подтвержденных платежей-->
+		<action path="/private/payments/view"
+		        type="com.rssl.phizic.web.actions.payments.forms.ViewDocumentAction"
+		        name="ViewDocumentForm" scope="request"
+		        validate="false">
+			<forward name="ShowForm" path="/WEB-INF/jsp-sevb/payments/forms/view-payment.jsp"/>
+			<forward name="ShowList" path="/private/payments/payments.do" redirect="true"/>
+			<forward name="Confirm" path="/private/payments/confirm.do" redirect="true"/>
+		</action>
+
+		<!-- форма логина -->
+		<action path="/login" type="com.rssl.phizic.web.client.ext.sevb.security.LoginClosePasswordStageAction"
+		        name="LoginForm" scope="request" validate="false">
+			<forward name="Show" path="/WEB-INF/jsp-sevb/login.jsp"/>
+		</action>
+		<!-- журнал операций -->
+		  <action path="/private/payments/common"
+				  type="com.rssl.phizic.web.client.payments.ShowCommonPaymentListAction"
+				  name="ShowCommonPaymentListForm" scope="request" validate="false"
+				 parameter="Start">
+			 <forward name="Show" path="/WEB-INF/jsp-sevb/list-payments.jsp"/>
+			 <forward name="Create" path="/private/payments/payment.do" redirect="true"/>
+		  </action>
+
+		<action path="/private/receivers/list"
+		        type="com.rssl.phizic.web.client.dictionaries.ShowPaymentReceiverListClientAction"
+		        name="ShowPaymentReceiverListForm"
+		        scope="request"
+		        validate="false"
+				parameter="PaymentReceiver">
+			<forward name="Statr" path="/WEB-INF/jsp-sevb/receivers/list.jsp"/>
+		</action>
+
+		<action path="/private/receivers/edit"
+		        type="com.rssl.phizic.web.client.dictionaries.EditPaymentReceiverClientAction"
+		        name="EditPaymentReceiverForm" scope="request"
+		        validate="false">
+			<forward name="StartP" path="/WEB-INF/jsp-sevb/receivers/edit.jsp"/>
+			<forward name="StartJ" path="/WEB-INF/jsp-sevb/receivers/edit.jsp"/>
+			<forward name="Start" path="/WEB-INF/jsp-sevb/receivers/edit.jsp"/>
+			<forward name="Success" path="/private/receivers/confirm.do" redirect="true"/>
+		</action>
+
+		<action path="/private/receivers/confirm"
+		        type="com.rssl.phizic.web.client.dictionaries.ConfirmPaymentReceiverAction"
+		        name="ConfirmPaymentReceiverForm" scope="request"
+		        validate="false">
+			<forward name="Start" path="/WEB-INF/jsp-sevb/receivers/confirm.jsp"/>
+			<forward name="Success" path="/private/receivers/list.do" redirect="true"/>
+		</action>
+
+		<!-- печать ПД-4-->
+		<action path="/private/PD4" type="com.rssl.phizic.web.PD4Action" name="PD4Form" scope="request" validate="false">
+			<forward name="Start" path="/WEB-INF/jsp-sevb/common/PD4Form.jsp"/>
+			<forward name="Print" path="/WEB-INF/jsp/common/PD4PrintTemplate.jsp"/>
+			<forward name="PrintNalog" path="/WEB-INF/jsp/common/PD4PrintTemplateNalog.jsp"/>
+			<forward name="PrintLetterOffer" path="/WEB-INF/jsp/common/offerTemplate.jsp"/>
+			<forward name="PrintPayOffer" path="/WEB-INF/jsp/common/offerTemplate.jsp"/>
+			<!-- заполнение полей -->
+			<forward name="StatusFill" path="/WEB-INF/jsp/common/PD4StatusFill.jsp"/>
+			<forward name="TypeFill" path="/WEB-INF/jsp/common/PD4TypeFill.jsp"/>
+			<forward name="FundFill" path="/WEB-INF/jsp/common/PD4FundFill.jsp"/>
+			<forward name="PeriodFill" path="/WEB-INF/jsp/common/PD4PeriodFill.jsp"/>
+		</action>
+
+		<action path="/private/payments/print" type="com.rssl.phizic.web.client.payments.forms.PrintDocumentAction"
+				name="ViewDocumentForm" scope="request" validate="false">
+			<forward name="ShowForm" path="/WEB-INF/jsp/private/documents/print-document.jsp"/>
+		</action>
+
+        <!-- Контекстная справка -->
+        <action path="/help" type="com.rssl.phizic.web.client.help.HelpActionC" name="HelpForm" scope="request" validate="false">
+            <forward name="Show" path="/WEB-INF/jsp-sevb/common/helpPage.jsp"/>
+        </action>
+
+	</action-mappings>
+
+
+	<plug-in className="org.apache.struts.tiles.TilesPlugin">
+		<set-property property="definitions-config"
+		              value="
+		                /WEB-INF/tiles/tiles-components.xml,
+		                /WEB-INF/tiles/tiles-global-templates.xml,
+		                /WEB-INF/tiles-definitions.xml"/>
+	</plug-in>
+</struts-config>

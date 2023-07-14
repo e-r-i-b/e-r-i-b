@@ -1,0 +1,796 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.rssl.phizicgate.rsretailV6r20.bankroll">
+    <class name="com.rssl.phizicgate.rsretailV6r20.bankroll.CardOperationImpl">
+	    <id name="operationId"/>
+
+	    <property name="date"/>
+	    <property name="operationDate"/>
+	    <property name="creditSum" type="com.rssl.phizicgate.rsretailV6r20.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalCreditSum"/>
+		    <column name="currencyId"/>
+	    </property>
+	    <property name="debitSum" type="com.rssl.phizicgate.rsretailV6r20.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalDebitSum"/>
+		    <column name="currencyId"/>
+	    </property>
+	    <property name="accountCreditSum" type="com.rssl.phizicgate.rsretailV6r20.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalAccountCreditSum"/>
+		    <column name="operationCurrencyId"/>
+	    </property>
+	    <property name="accountDebitSum" type="com.rssl.phizicgate.rsretailV6r20.hibernate.RSRetailMoneyType" insert="false"
+	              update="false">
+		    <column name="decimalAccountDebitSum"/>
+		    <column name="operationCurrencyId"/>
+	    </property>
+	    <property name="description"/>
+
+    </class>
+
+	<sql-query name="GetOperations">
+		<return alias="trans" class="com.rssl.phizicgate.rsretailV6r20.bankroll.CardOperationImpl">
+			<return-property name="operationId"                    column="operationId"/>
+			<return-property name="date"                           column="transsactionDate"/>
+			<return-property name="operationDate"                  column="operationDate"/>
+			<return-property name="creditSum">
+				<return-column name="doubleCreditSum"/>
+				<return-column name="currencyId"/>
+			</return-property>
+			<return-property name="debitSum">
+				<return-column name="doubleDebitSum"/>
+				<return-column name="currencyId"/>
+			</return-property>
+			<return-property name="accountCreditSum">
+				<return-column name="doubleAccountCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountDebitSum">
+				<return-column name="doubleAccountDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="description"                    column="description"/>
+			<return-property name="operationCardId"                column="operationCardId"/>
+		</return>
+<!--
+			select
+				opers.t_Date_Document  || opers.t_NumDayDoc     AS operationId
+				,opers.t_date_document 	                        AS operationDate
+				,transs.t_authdate                              AS transsactionDate
+				,opers.t_code_currency 	                        AS operationCurrencyId
+				,transs.t_authcurrcode 	                        AS currencyId
+        	    ,case
+					when transs.t_authkindop=2
+  			            then transs.t_authsum
+					when transs.t_authkindop is null
+	  		            then null
+					else 0 end   AS doubleDebitSum
+				,case
+					when transs.t_authkindop=1
+  			            then transs.t_authsum
+					when transs.t_authkindop is null
+	  		            then null
+					else 0 end   AS doubleCreditSum
+				,opers.t_insum         	                        AS doubleAccountCreditSum
+				,opers.t_outsum        	                        AS doubleAccountDebitSum
+				,concat(opers.t_ground,transs.t_authnotes)      AS description
+				,links2.t_cardref AS operationCardId
+			from
+				dsccard_dbt  cards,
+				dsclink_dbt   links,
+				dsbdepdoc_dbt opers
+				left join dsctran_dbt  transs on transs.t_authref = opers.t_listtransfer
+				left join dpcestim_dbt pcestim on opers.t_applicationkey = pcestim.t_docapplicationkey and pcestim.t_Action not IN (2, 11)
+				left join dsclink_dbt   links2 on links2.t_acccardlinkref=transs.t_acccardlinkref
+			where
+				cards.t_cardref = :cardId
+				and links.t_cardref = cards.t_cardref
+				and links.t_cardaccref = opers.t_referenc
+			/-	and opers.t_typecomplexoper = 84
+				and opers.t_kindop not in (8, 9, 14, 15, 16 )
+				and opers.t_action not in (2, 11)
+				and opers.t_typeoper not in (38, 39, 94)
+				and opers.t_mode <> 2
+				and bitand (opers.t_flags,131072 ) = 0
+				and bitand (opers.t_flags,17 ) = 0
+				and opers.t_flagstorn = chr(0)
+				and ( opers.t_InSum <> 0 OR opers.t_OutSum <> 0 )
+				and not (
+					(opers.t_insum > 0 and opers.t_typecomplexoper = 84 and opers.t_typeoper = 93)
+					or (opers.t_typecomplexoper = 51 and opers.t_typeoper = 51 and opers.t_insum = 0 and opers.t_outsum = 0)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop = 5 and opers.t_outsum > 0)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 93 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 73 and opers.t_typeoper = 73 and opers.t_appltype = 52 and opers.t_kindop = 15 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 84 and opers.t_typeoper = 84 and opers.t_outsum > 0 and opers.t_appltype = 90 and opers.t_kindop = 15)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 500)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_ground like '%задолженности%')
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 777)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop <> 5)
+					or (opers.t_ground like 'Погашение овердрафта-кредитная%')
+					or (opers.t_ground like 'Списание в счет погашения по КК.%')
+					or (opers.t_ground like 'Кредитование счета%')
+					or (opers.t_ground like 'кредитование счета%')
+					or (opers.t_ground = 'оплата транзакции.(п/в)')
+					or (opers.t_kindop = 15)
+ 					)
+                and opers.t_date_document >= :fromDate
+                and opers.t_date_document <= :toDate
+            order by opers.t_date_document, opers.t_numdaydoc
+-->
+		<![CDATA[
+			select
+				to_char(to_date(opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS')  || opers.t_NumDayDoc     AS operationId
+				,to_char(to_date(opers.t_date_document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS operationDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				,case
+					when transs.t_authdate IS NOT NULL
+						then
+						    to_char(to_date(transs.t_authdate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+                    else 
+					    to_char(to_date(opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+					end AS transsactionDate
+				,opers.t_code_currency 	                        AS operationCurrencyId
+                ,case
+                    when transs.t_authcurrcode IS NULL
+                          then opers.t_code_currency
+                    else transs.t_authcurrcode end   AS currencyId
+                ,case
+                    when transs.t_authkindop=2
+                          then transs.t_authsum
+                    when transs.t_authkindop is null
+                            --and opers.t_outsum>0
+                          then opers.t_outsum
+                    else 0 end   AS doubleDebitSum
+                ,case
+                    when transs.t_authkindop=1
+                          then transs.t_authsum
+                    when transs.t_authkindop is null
+                            --and opers.t_insum>0
+                          then opers.t_insum
+                    else 0 end   AS doubleCreditSum
+                ,opers.t_insum                                     AS doubleAccountCreditSum
+                ,opers.t_outsum                                    AS doubleAccountDebitSum
+                ,concat(opers.t_ground,transs.t_authnotes)      AS description
+                ,links2.t_cardref AS operationCardId
+				,opers.t_insum         	                        AS doubleAccountCreditSum
+				,opers.t_outsum        	                        AS doubleAccountDebitSum
+				,concat(opers.t_ground,transs.t_authnotes)      AS description
+				,links2.t_cardref AS operationCardId
+			from
+				dsccard_dbt  cards,
+				dsclink_dbt   links,
+				dsbdepdoc_dbt opers
+				left join dsctran_dbt  transs on transs.t_authref = opers.t_listtransfer
+				left join dpcestim_dbt pcestim on opers.t_applicationkey = pcestim.t_docapplicationkey and pcestim.t_Action not IN (2, 11)
+				left join dsclink_dbt   links2 on links2.t_acccardlinkref=transs.t_acccardlinkref
+				and links2.t_fncash = transs.t_fncash
+			where
+				cards.t_cardref = :cardId
+				and cards.t_fncash = :fnCash
+				and links.t_cardref = cards.t_cardref
+				and links.t_cardaccref = opers.t_referenc
+			--	and opers.t_typecomplexoper = 84
+				and opers.t_kindop not in (8, 9, 14, 15, 16 )
+				and opers.t_action not in (2, 11)
+				and opers.t_typeoper not in (38, 39, 94)
+				and opers.t_mode <> 2
+				and bitand (opers.t_flags,131072 ) = 0
+				and bitand (opers.t_flags,17 ) = 0
+				and opers.t_flagstorn = chr(0)
+				and ( opers.t_InSum <> 0 OR opers.t_OutSum <> 0 )
+				and not (
+					(opers.t_insum > 0 and opers.t_typecomplexoper = 84 and opers.t_typeoper = 93)
+					or (opers.t_typecomplexoper = 51 and opers.t_typeoper = 51 and opers.t_insum = 0 and opers.t_outsum = 0)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop = 5 and opers.t_outsum > 0)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 93 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 73 and opers.t_typeoper = 73 and opers.t_appltype = 52 and opers.t_kindop = 15 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 84 and opers.t_typeoper = 84 and opers.t_outsum > 0 and opers.t_appltype = 90 and opers.t_kindop = 15)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 500)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_ground like '%задолженности%')
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 777)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop <> 5)
+					or (opers.t_ground like 'Погашение овердрафта-кредитная%')
+					or (opers.t_ground like 'Списание в счет погашения по КК.%')
+					or (opers.t_ground like 'Кредитование счета%')
+					or (opers.t_ground like 'кредитование счета%')
+					or (opers.t_ground = 'оплата транзакции.(п/в)')
+					or (opers.t_kindop = 15)
+ 					)
+                and opers.t_date_document >= :fromDate
+                and opers.t_date_document <= :toDate
+            order by opers.t_date_document, opers.t_numdaydoc
+		]]>
+	</sql-query>
+	
+		<sql-query name="GetOperationsByNumber">
+		<return alias="trans" class="com.rssl.phizicgate.rsretailV6r20.bankroll.CardOperationImpl">
+			<return-property name="operationId"                    column="operationId"/>
+			<return-property name="date"                           column="transsactionDate"/>
+			<return-property name="operationDate"                  column="operationDate"/>
+			<return-property name="creditSum">
+				<return-column name="doubleCreditSum"/>
+				<return-column name="currencyId"/>
+			</return-property>
+			<return-property name="debitSum">
+				<return-column name="doubleDebitSum"/>
+				<return-column name="currencyId"/>
+			</return-property>
+			<return-property name="accountCreditSum">
+				<return-column name="doubleAccountCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountDebitSum">
+				<return-column name="doubleAccountDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="description"                    column="description"/>
+			<return-property name="operationCardId"                column="operationCardId"/>
+		</return>
+<!--
+			select
+				opers.t_Date_Document  || opers.t_NumDayDoc     AS operationId
+				,opers.t_date_document 	                        AS operationDate
+				,transs.t_authdate                              AS transsactionDate
+				,opers.t_code_currency 	                        AS operationCurrencyId
+				,transs.t_authcurrcode 	                        AS currencyId
+        	    ,case
+					when transs.t_authkindop=2
+  			            then transs.t_authsum
+					when transs.t_authkindop is null
+	  		            then null
+					else 0 end   AS doubleDebitSum
+				,case
+					when transs.t_authkindop=1
+  			            then transs.t_authsum
+					when transs.t_authkindop is null
+	  		            then null
+					else 0 end   AS doubleCreditSum
+				,opers.t_insum         	                        AS doubleAccountCreditSum
+				,opers.t_outsum        	                        AS doubleAccountDebitSum
+				,concat(opers.t_ground,transs.t_authnotes)      AS description
+				,links2.t_cardref AS operationCardId
+			from
+				dsccard_dbt  cards,
+				dsclink_dbt   links,
+				dsbdepdoc_dbt opers
+				left join dsctran_dbt  transs on transs.t_authref = opers.t_listtransfer
+				left join dpcestim_dbt pcestim on opers.t_applicationkey = pcestim.t_docapplicationkey and pcestim.t_Action not IN (2, 11)
+				left join dsclink_dbt   links2 on links2.t_acccardlinkref=transs.t_acccardlinkref
+			where
+				cards.t_cardref = :cardId
+				and links.t_cardref = cards.t_cardref
+				and links.t_cardaccref = opers.t_referenc
+			/-	and opers.t_typecomplexoper = 84
+				and opers.t_kindop not in (8, 9, 14, 15, 16 )
+				and opers.t_action not in (2, 11)
+				and opers.t_typeoper not in (38, 39, 94)
+				and opers.t_mode <> 2
+				and bitand (opers.t_flags,131072 ) = 0
+				and bitand (opers.t_flags,17 ) = 0
+				and opers.t_flagstorn = chr(0)
+				and ( opers.t_InSum <> 0 OR opers.t_OutSum <> 0 )
+				and not (
+					(opers.t_insum > 0 and opers.t_typecomplexoper = 84 and opers.t_typeoper = 93)
+					or (opers.t_typecomplexoper = 51 and opers.t_typeoper = 51 and opers.t_insum = 0 and opers.t_outsum = 0)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop = 5 and opers.t_outsum > 0)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 93 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 73 and opers.t_typeoper = 73 and opers.t_appltype = 52 and opers.t_kindop = 15 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 84 and opers.t_typeoper = 84 and opers.t_outsum > 0 and opers.t_appltype = 90 and opers.t_kindop = 15)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 500)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_ground like '%задолженности%')
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 777)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop <> 5)
+					or (opers.t_ground like 'Погашение овердрафта-кредитная%')
+					or (opers.t_ground like 'Списание в счет погашения по КК.%')
+					or (opers.t_ground like 'Кредитование счета%')
+					or (opers.t_ground like 'кредитование счета%')
+					or (opers.t_ground = 'оплата транзакции.(п/в)')
+					or (opers.t_kindop = 15)
+ 					)
+                and rownum <= :number
+            order by opers.t_date_document desc, opers.t_numdaydoc
+-->            
+		<![CDATA[
+			select
+				to_char(to_date(opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS')  || opers.t_NumDayDoc     AS operationId
+				,to_char(to_date(opers.t_date_document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS operationDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				,case
+					when transs.t_authdate IS NOT NULL
+						then
+						    to_char(to_date(transs.t_authdate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+					else
+					    to_char(to_date( opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+					end AS transsactionDate
+				,opers.t_code_currency 	                        AS operationCurrencyId
+                ,case
+                    when transs.t_authcurrcode IS NULL
+                          then opers.t_code_currency
+                    else transs.t_authcurrcode end   AS currencyId
+                ,case
+                    when transs.t_authkindop=2
+                          then transs.t_authsum
+                    when transs.t_authkindop is null
+                            --and opers.t_outsum>0
+                          then opers.t_outsum
+                    else 0 end   AS doubleDebitSum
+                ,case
+                    when transs.t_authkindop=1
+                          then transs.t_authsum
+                    when transs.t_authkindop is null
+                            --and opers.t_insum>0
+                          then opers.t_insum
+                    else 0 end   AS doubleCreditSum
+				,opers.t_insum         	                        AS doubleAccountCreditSum
+				,opers.t_outsum        	                        AS doubleAccountDebitSum
+				,concat(opers.t_ground,transs.t_authnotes)      AS description
+				,links2.t_cardref AS operationCardId
+			from
+				dsccard_dbt  cards,
+				dsclink_dbt   links,
+				dsbdepdoc_dbt opers
+				left join dsctran_dbt  transs on <></>ranss.t_authref = opers.t_listtransfer
+				left join dpcestim_dbt pcestim on opers.t_applicationkey = pcestim.t_docapplicationkey and pcestim.t_Action not IN (2, 11)
+				left join dsclink_dbt   links2 on links2.t_acccardlinkref=transs.t_acccardlinkref
+			where
+				cards.t_cardref = :cardId
+		        and cards.t_fncash = :fnCash
+			    and cards.t_fncash = links.t_fncash
+				and links.t_cardref = cards.t_cardref
+				and links.t_cardaccref = opers.t_referenc
+			--	and opers.t_typecomplexoper = 84
+				and opers.t_kindop not in (8, 9, 14, 15, 16 )
+				and opers.t_action not in (2, 11)
+				and opers.t_typeoper not in (38, 39, 94)
+				and opers.t_mode <> 2
+				and bitand (opers.t_flags,131072 ) = 0
+				and bitand (opers.t_flags,17 ) = 0
+				and opers.t_flagstorn = chr(0)
+				and ( opers.t_InSum <> 0 OR opers.t_OutSum <> 0 )
+				and not (
+					(opers.t_insum > 0 and opers.t_typecomplexoper = 84 and opers.t_typeoper = 93)
+					or (opers.t_typecomplexoper = 51 and opers.t_typeoper = 51 and opers.t_insum = 0 and opers.t_outsum = 0)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop = 5 and opers.t_outsum > 0)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 93 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 73 and opers.t_typeoper = 73 and opers.t_appltype = 52 and opers.t_kindop = 15 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 84 and opers.t_typeoper = 84 and opers.t_outsum > 0 and opers.t_appltype = 90 and opers.t_kindop = 15)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 500)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_ground like '%задолженности%')
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 777)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop <> 5)
+					or (opers.t_ground like 'Погашение овердрафта-кредитная%')
+					or (opers.t_ground like 'Списание в счет погашения по КК.%')
+					or (opers.t_ground like 'Кредитование счета%')
+					or (opers.t_ground like 'кредитование счета%')
+					or (opers.t_ground = 'оплата транзакции.(п/в)')
+					or (opers.t_kindop = 15)
+ 					)
+                and rownum <= :number
+            order by opers.t_date_document desc, opers.t_numdaydoc
+		]]>
+	</sql-query>
+
+	<sql-query name="GetAdditionalCardOperations">
+		<return alias="trans" class="com.rssl.phizicgate.rsretailV6r20.bankroll.CardOperationImpl">
+			<return-property name="operationId"                    column="operationId"/>
+			<return-property name="date"                           column="transsactionDate"/>
+			<return-property name="operationDate"                  column="operationDate"/>
+			<return-property name="creditSum">
+				<return-column name="doubleCreditSum"/>
+				<return-column name="currencyId"/>
+			</return-property>
+			<return-property name="debitSum">
+				<return-column name="doubleDebitSum"/>
+				<return-column name="currencyId"/>
+			</return-property>
+			<return-property name="accountCreditSum">
+				<return-column name="doubleAccountCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountDebitSum">
+				<return-column name="doubleAccountDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="description"                    column="description"/>
+			<return-property name="operationCardId"                column="operationCardId"/>
+		</return>
+<!--
+			select
+				opers.t_Date_Document  || opers.t_NumDayDoc     AS operationId
+				,opers.t_date_document 	                        AS operationDate
+				,transs.t_authdate                              AS transsactionDate
+				,opers.t_code_currency 	                        AS operationCurrencyId
+				,transs.t_authcurrcode 	                        AS currencyId
+        	    ,case
+					when transs.t_authkindop=2
+  			            then transs.t_authsum
+					when transs.t_authkindop is null
+	  		            then null
+					else 0 end   AS doubleDebitSum
+				,case
+					when transs.t_authkindop=1
+  			            then transs.t_authsum
+					when transs.t_authkindop is null
+	  		            then null
+					else 0 end   AS doubleCreditSum
+				,opers.t_insum         	                        AS doubleAccountCreditSum
+				,opers.t_outsum        	                        AS doubleAccountDebitSum
+				,concat(opers.t_ground,transs.t_authnotes)      AS description
+				,cards.t_cardref AS operationCardId
+			from
+				dsccard_dbt  cards,
+				dsclink_dbt   links,
+				dsctran_dbt  transs,
+				dsbdepdoc_dbt opers
+				left join dpcestim_dbt pcestim on opers.t_applicationkey = pcestim.t_docapplicationkey and pcestim.t_Action not IN (2, 11)
+			where
+				cards.t_cardref = :cardId
+				and links.t_cardref = cards.t_cardref
+				and links.t_cardaccref = opers.t_referenc
+				and opers.t_typecomplexoper = 84
+				and transs.t_authref = opers.t_listtransfer
+				and transs.t_acccardlinkref = links.t_acccardlinkref
+				and opers.t_kindop not in (8, 9, 14, 15, 16 )
+				and opers.t_action not in (2, 11)
+				and opers.t_typeoper not in (38, 39, 94)
+				and opers.t_mode <> 2
+				and bitand (opers.t_flags,131072 ) = 0
+				and bitand (opers.t_flags,17 ) = 0
+				and opers.t_flagstorn = chr(0)
+				and ( opers.t_InSum <> 0 OR opers.t_OutSum <> 0 )
+				and not (
+					(opers.t_insum > 0 and opers.t_typecomplexoper = 84 and opers.t_typeoper = 93)
+					or (opers.t_typecomplexoper = 51 and opers.t_typeoper = 51 and opers.t_insum = 0 and opers.t_outsum = 0)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop = 5 and opers.t_outsum > 0)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 93 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 73 and opers.t_typeoper = 73 and opers.t_appltype = 52 and opers.t_kindop = 15 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 84 and opers.t_typeoper = 84 and opers.t_outsum > 0 and opers.t_appltype = 90 and opers.t_kindop = 15)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 500)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_ground like '%задолженности%')
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 777)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop <> 5)
+					or (opers.t_ground like 'Погашение овердрафта-кредитная%')
+					or (opers.t_ground like 'Списание в счет погашения по КК.%')
+					or (opers.t_ground like 'Кредитование счета%')
+					or (opers.t_ground like 'кредитование счета%')
+					or (opers.t_ground = 'оплата транзакции.(п/в)')
+					or (opers.t_kindop = 15)
+ 					)
+                and opers.t_date_document >= :fromDate
+                and opers.t_date_document <= :toDate
+            order by opers.t_date_document, opers.t_numdaydoc
+-->
+		<![CDATA[
+			select
+				to_char(to_date(opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS')  || opers.t_NumDayDoc     AS operationId
+				,to_char(to_date(opers.t_date_document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS operationDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				,case
+					when transs.t_authdate IS NOT NULL
+						then to_char(to_date(transs.t_authdate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+					else
+					    to_char(to_date( opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+					end AS transsactionDate
+				,opers.t_code_currency 	                        AS operationCurrencyId
+                ,case
+                    when transs.t_authcurrcode IS NULL
+                          then opers.t_code_currency
+                    else transs.t_authcurrcode end   AS currencyId
+                ,case
+                    when transs.t_authkindop=2
+                          then transs.t_authsum
+                    when transs.t_authkindop is null
+                            --and opers.t_outsum>0
+                          then opers.t_outsum
+                    else 0 end   AS doubleDebitSum
+                ,case
+                    when transs.t_authkindop=1
+                          then transs.t_authsum
+                    when transs.t_authkindop is null
+                            --and opers.t_insum>0
+                          then opers.t_insum
+                    else 0 end   AS doubleCreditSum
+				,opers.t_insum         	                        AS doubleAccountCreditSum
+				,opers.t_outsum        	                        AS doubleAccountDebitSum
+				,concat(opers.t_ground,transs.t_authnotes)      AS description
+				,cards.t_cardref AS operationCardId
+			from
+				dsccard_dbt  cards,
+				dsclink_dbt   links,
+				dsctran_dbt  transs,
+				dsbdepdoc_dbt opers
+				left join dpcestim_dbt pcestim on opers.t_applicationkey = pcestim.t_docapplicationkey and pcestim.t_Action not IN (2, 11)
+			where
+				cards.t_cardref = :cardId
+		        and cards.t_fncash = :fnCash
+		        and cards.t_fncash = links.t_fncash
+				and links.t_cardref = cards.t_cardref
+				and links.t_cardaccref = opers.t_referenc
+				and opers.t_typecomplexoper = 84
+				and transs.t_authref = opers.t_listtransfer
+				and transs.t_acccardlinkref = links.t_acccardlinkref
+				and opers.t_kindop not in (8, 9, 14, 15, 16 )
+				and opers.t_action not in (2, 11)
+				and opers.t_typeoper not in (38, 39, 94)
+				and opers.t_mode <> 2
+				and bitand (opers.t_flags,131072 ) = 0
+				and bitand (opers.t_flags,17 ) = 0
+				and opers.t_flagstorn = chr(0)
+				and ( opers.t_InSum <> 0 OR opers.t_OutSum <> 0 )
+				and not (
+					(opers.t_insum > 0 and opers.t_typecomplexoper = 84 and opers.t_typeoper = 93)
+					or (opers.t_typecomplexoper = 51 and opers.t_typeoper = 51 and opers.t_insum = 0 and opers.t_outsum = 0)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop = 5 and opers.t_outsum > 0)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 93 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 73 and opers.t_typeoper = 73 and opers.t_appltype = 52 and opers.t_kindop = 15 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 84 and opers.t_typeoper = 84 and opers.t_outsum > 0 and opers.t_appltype = 90 and opers.t_kindop = 15)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 500)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_ground like '%задолженности%')
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 777)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop <> 5)
+					or (opers.t_ground like 'Погашение овердрафта-кредитная%')
+					or (opers.t_ground like 'Списание в счет погашения по КК.%')
+					or (opers.t_ground like 'Кредитование счета%')
+					or (opers.t_ground like 'кредитование счета%')
+					or (opers.t_ground = 'оплата транзакции.(п/в)')
+					or (opers.t_kindop = 15)
+ 					)
+                and opers.t_date_document >= :fromDate
+                and opers.t_date_document <= :toDate
+            order by opers.t_date_document, opers.t_numdaydoc
+		]]>
+	</sql-query>
+
+	<sql-query name="GetAdditionalCardOperationsByNumber">
+		<return alias="trans" class="com.rssl.phizicgate.rsretailV6r20.bankroll.CardOperationImpl">
+			<return-property name="operationId"                    column="operationId"/>
+			<return-property name="date"                           column="transsactionDate"/>
+			<return-property name="operationDate"                  column="operationDate"/>
+			<return-property name="creditSum">
+				<return-column name="doubleCreditSum"/>
+				<return-column name="currencyId"/>
+			</return-property>
+			<return-property name="debitSum">
+				<return-column name="doubleDebitSum"/>
+				<return-column name="currencyId"/>
+			</return-property>
+			<return-property name="accountCreditSum">
+				<return-column name="doubleAccountCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountDebitSum">
+				<return-column name="doubleAccountDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="description"                    column="description"/>
+			<return-property name="operationCardId"                column="operationCardId"/>
+		</return>
+<!--
+
+			select
+				opers.t_Date_Document  || opers.t_NumDayDoc     AS operationId
+				,opers.t_date_document 	                        AS operationDate
+				,transs.t_authdate                              AS transsactionDate
+				,opers.t_code_currency 	                        AS operationCurrencyId
+				,transs.t_authcurrcode 	                        AS currencyId
+        	    ,case
+					when transs.t_authkindop=2
+  			            then transs.t_authsum
+					when transs.t_authkindop is null
+	  		            then null
+					else 0 end   AS doubleDebitSum
+				,case
+					when transs.t_authkindop=1
+  			            then transs.t_authsum
+					when transs.t_authkindop is null
+	  		            then null
+					else 0 end   AS doubleCreditSum
+				,opers.t_insum         	                        AS doubleAccountCreditSum
+				,opers.t_outsum        	                        AS doubleAccountDebitSum
+				,concat(opers.t_ground,transs.t_authnotes)      AS description
+				,cards.t_cardref AS operationCardId
+			from
+				dsccard_dbt  cards,
+				dsclink_dbt   links,
+				dsctran_dbt  transs,
+				dsbdepdoc_dbt opers
+				left join dpcestim_dbt pcestim on opers.t_applicationkey = pcestim.t_docapplicationkey and pcestim.t_Action not IN (2, 11)
+			where
+				cards.t_cardref = :cardId
+				and links.t_cardref = cards.t_cardref
+				and links.t_cardaccref = opers.t_referenc
+				and opers.t_typecomplexoper = 84
+				and transs.t_authref = opers.t_listtransfer
+				and transs.t_acccardlinkref = links.t_acccardlinkref
+				and opers.t_kindop not in (8, 9, 14, 15, 16 )
+				and opers.t_action not in (2, 11)
+				and opers.t_typeoper not in (38, 39, 94)
+				and opers.t_mode <> 2
+				and bitand (opers.t_flags,131072 ) = 0
+				and bitand (opers.t_flags,17 ) = 0
+				and opers.t_flagstorn = chr(0)
+				and ( opers.t_InSum <> 0 OR opers.t_OutSum <> 0 )
+				and not (
+					(opers.t_insum > 0 and opers.t_typecomplexoper = 84 and opers.t_typeoper = 93)
+					or (opers.t_typecomplexoper = 51 and opers.t_typeoper = 51 and opers.t_insum = 0 and opers.t_outsum = 0)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop = 5 and opers.t_outsum > 0)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 93 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 73 and opers.t_typeoper = 73 and opers.t_appltype = 52 and opers.t_kindop = 15 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 84 and opers.t_typeoper = 84 and opers.t_outsum > 0 and opers.t_appltype = 90 and opers.t_kindop = 15)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 500)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_ground like '%задолженности%')
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 777)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop <> 5)
+					or (opers.t_ground like 'Погашение овердрафта-кредитная%')
+					or (opers.t_ground like 'Списание в счет погашения по КК.%')
+					or (opers.t_ground like 'Кредитование счета%')
+					or (opers.t_ground like 'кредитование счета%')
+					or (opers.t_ground = 'оплата транзакции.(п/в)')
+					or (opers.t_kindop = 15)
+ 					)
+                and rownum <= :number
+            order by opers.t_date_document desc, opers.t_numdaydoc
+-->
+		<![CDATA[
+			select
+				to_char(to_date(opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') || opers.t_NumDayDoc     AS operationId
+				,to_char(to_date(opers.t_date_document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS operationDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				,case
+					when transs.t_authdate IS NOT NULL
+						then to_char(to_date(transs.t_authdate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+					else
+					    to_char(to_date( opers.t_Date_Document, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+					end AS transsactionDate
+				,opers.t_code_currency 	                        AS operationCurrencyId
+                ,case
+                    when transs.t_authcurrcode IS NULL
+                          then opers.t_code_currency
+                    else transs.t_authcurrcode end   AS currencyId
+                ,case
+                    when transs.t_authkindop=2
+                          then transs.t_authsum
+                    when transs.t_authkindop is null
+                            --and opers.t_outsum>0
+                          then opers.t_outsum
+                    else 0 end   AS doubleDebitSum
+                ,case
+                    when transs.t_authkindop=1
+                          then transs.t_authsum
+                    when transs.t_authkindop is null
+                            --and opers.t_insum>0
+                          then opers.t_insum
+                    else 0 end   AS doubleCreditSum
+				,opers.t_insum         	                        AS doubleAccountCreditSum
+				,opers.t_outsum        	                        AS doubleAccountDebitSum
+				,concat(opers.t_ground,transs.t_authnotes)      AS description
+				,cards.t_cardref AS operationCardId
+			from
+				dsccard_dbt  cards,
+				dsclink_dbt   links,
+				dsctran_dbt  transs,
+				dsbdepdoc_dbt opers
+				left join dpcestim_dbt pcestim on opers.t_applicationkey = pcestim.t_docapplicationkey and pcestim.t_Action not IN (2, 11)
+			where
+				cards.t_cardref = :cardId
+		        and cards.t_fncash = :fnCash
+		        and cards.t_fncash = links.cards.t_fncash
+				and links.t_cardref = cards.t_cardref
+				and links.t_cardaccref = opers.t_referenc
+				and opers.t_typecomplexoper = 84
+				and transs.t_authref = opers.t_listtransfer
+				and transs.t_acccardlinkref = links.t_acccardlinkref
+				and opers.t_kindop not in (8, 9, 14, 15, 16 )
+				and opers.t_action not in (2, 11)
+				and opers.t_typeoper not in (38, 39, 94)
+				and opers.t_mode <> 2
+				and bitand (opers.t_flags,131072 ) = 0
+				and bitand (opers.t_flags,17 ) = 0
+				and opers.t_flagstorn = chr(0)
+				and ( opers.t_InSum <> 0 OR opers.t_OutSum <> 0 )
+				and not (
+					(opers.t_insum > 0 and opers.t_typecomplexoper = 84 and opers.t_typeoper = 93)
+					or (opers.t_typecomplexoper = 51 and opers.t_typeoper = 51 and opers.t_insum = 0 and opers.t_outsum = 0)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop = 5 and opers.t_outsum > 0)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 93 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 73 and opers.t_typeoper = 73 and opers.t_appltype = 52 and opers.t_kindop = 15 and opers.t_insum > 0)
+					or (opers.t_typecomplexoper = 84 and opers.t_typeoper = 84 and opers.t_outsum > 0 and opers.t_appltype = 90 and opers.t_kindop = 15)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 500)
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_ground like '%задолженности%')
+					or (opers.t_typecomplexoper = 62 and opers.t_typeoper = 62 and opers.t_outsum > 0 and opers.t_appltype = 777)
+					or (opers.t_typecomplexoper = 71 and opers.t_typeoper = 71 and opers.t_kindop <> 5)
+					or (opers.t_ground like 'Погашение овердрафта-кредитная%')
+					or (opers.t_ground like 'Списание в счет погашения по КК.%')
+					or (opers.t_ground like 'Кредитование счета%')
+					or (opers.t_ground like 'кредитование счета%')
+					or (opers.t_ground = 'оплата транзакции.(п/в)')
+					or (opers.t_kindop = 15)
+ 					)
+                and rownum <= :number
+            order by opers.t_date_document desc, opers.t_numdaydoc
+		]]>
+	</sql-query>
+
+	<sql-query name="GetUnsettledOperations">
+		<return alias="trans" class="com.rssl.phizicgate.rsretailV6r20.bankroll.CardOperationImpl">
+			<return-property name="operationId"                    column="operationId"/>
+			<return-property name="operationDate"                  column="operationDate"/>
+			<return-property name="creditSum">
+				<return-column name="doubleCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="debitSum">
+				<return-column name="doubleDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountCreditSum">
+				<return-column name="doubleAccountCreditSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="accountDebitSum">
+				<return-column name="doubleAccountDebitSum"/>
+				<return-column name="operationCurrencyId"/>
+			</return-property>
+			<return-property name="transactionFlag"                column="transactionFlag"/>
+			<return-property name="transactionKind"                column="transactionKind"/>
+			<return-property name="date"                           column="chargeDate"/>
+			<return-property name="description"                    column="description"/>
+		</return>
+		<![CDATA[
+			SELECT   to_char(to_date(trans.t_authDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				    || trans.t_authCode                   AS operationId
+			  ,to_char(to_date(trans.t_authDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS operationDate /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+			  ,trans.t_authCurrCode  	                  AS operationCurrencyId
+			  ,trans.t_authSum       		              AS doubleCreditSum
+			  ,0                                          AS doubleDebitSum
+			  ,trans.t_authSum       		              AS doubleAccountCreditSum
+			  ,0                                          AS doubleAccountDebitSum
+			  ,1                                          AS transactionFlag
+			  ,trans.t_authKindOp 		                  AS transactionKind
+			  ,descr.t_codName       	                  AS description
+			FROM dscTran_dbt   trans
+				,dscLink_dbt   links
+				,dscCodif_dbt  descr
+			WHERE trans.t_FNCash = 1
+			  AND trans.t_accCardLinkRef = links.t_accCardLinkRef
+			  AND trans.t_authTypeCode = descr.t_codCode
+			  AND links.t_cardAccRef = :accountId
+			  AND trans.t_authDate >= :fromDate
+			  AND trans.t_authDate <= :toDate
+			  AND links.t_cardRef = :cardId
+			  AND descr.t_codType = 20
+			  AND trans.t_authKindOp = 1
+			  AND trans.t_authStateCode <> 'PAY__'
+			  AND ( descr.t_psRef = 0 OR descr.t_psRef = trans.t_psRef )
+
+			UNION
+
+			SELECT to_char(to_date(trans.t_authDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+				    || trans.t_authCode
+			  ,to_char(to_date(trans.t_authDate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') /* перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   */
+			  ,trans.t_authCurrCode
+			  ,0
+			  ,trans.t_authSum
+			  ,0
+			  ,1
+			  ,trans.t_authSum
+			  ,trans.t_authKindOp
+			  ,descr.t_codName
+			FROM dscTran_dbt   trans
+				,dscLink_dbt   links
+				,dscCodif_dbt  descr
+			WHERE trans.t_FNCash = 1
+			  AND trans.t_accCardLinkRef = links.t_accCardLinkRef
+			  AND trans.t_authTypeCode = descr.t_codCode
+			  AND links.t_cardAccRef = :accountId
+			  AND trans.t_authDate >= :fromDate
+			  AND trans.t_authDate <= :toDate
+			  AND links.t_cardRef = :cardId
+			  AND descr.t_codType = 20
+			  AND trans.t_authKindOp = 2
+			  AND trans.t_authStateCode <> 'PAY__'
+			  AND ( descr.t_psRef = 0 OR descr.t_psRef = trans.t_psRef )
+            ORDER BY operationDate
+		]]>
+	</sql-query>
+</hibernate-mapping>

@@ -1,0 +1,2945 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<ermb-sms-texts>
+
+    <message>
+        <text>
+            Операция не доступна.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.accessError</key>
+        <description>SMS об ошибке доступа к операции</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Ваш запрос не выполнен, так как к данному номеру телефона не подключен Мобильный банк. Подключите услугу самостоятельно через банкомат или устройство самообслуживания, или обратитесь в ближайшее отделение Сбербанка. Вся информация и адреса на сайте www.sberbank.ru и по телефону 8-800-555-5550.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.profileNotFound</key>
+        <description>SMS о том, что к номеру телефона не подключена услуга мобильный банк</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Вы направили запрос с номера телефона, который зарегистрирован в Мобильном банке как неактивный. Повторите Ваш запрос с номера телефона, который зарегистрирован в Мобильном банке как активный. Для изменения активного номера телефона обратитесь в контактный центр банка.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.notActiveErmbPhone</key>
+        <description>SMS о том, что отправлено сообщение с неактивного номера</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Ваши продукты, доступные в Мобильном банке:
+                <#if cardLinks?size != 0>
+                    Карты:
+                    <#list cardLinks as cardLink>
+                        ${cardLink.smsResponseAlias};
+                    </#list>
+                </#if>
+                <#if accountLinks?size != 0>
+                    Счета:
+                    <#list accountLinks as accountLink>
+                        ${accountLink.smsResponseAlias};
+                    </#list>
+                </#if>
+                <#if loanLinks?size != 0>
+                    Кредиты:
+                    <#list loanLinks as loanLink>
+                        ${loanLink.smsResponseAlias};
+                    </#list>
+                </#if>
+                 Отправьте на номер 900: 200 для оплаты своего мобильного телефона на сумму 200 руб. 9XХХХХХХХХ 200 для оплаты любого номера мобильного телефона на сумму 200 руб.
+				 ПЕРЕВОД 9XXXXXXXXX 500 для перевода 500 руб. на карту клиента Сбербанка – владельца этого телефона. БАЛАНС – узнать баланс по карте.
+				 ПЕРЕВОД N..N K..K 100 – перевод между вашими картами N..N и K..K на 100 (в валюте карты N..N).
+				<#if quickServiceStatus>
+				 Вам подключена бесплатная опция «быстрый платеж». Отключить опцию можно, отправив команду «ноль». Подробнее об услуге на www.sberbank.ru.
+				</#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.productsInfo</key>
+        <variables>cardLinks, cardLink.smsResponseAlias, accountLinks, accountLink.smsResponseAlias, loanLinks, loanLink.smsResponseAlias, quickServiceStatus</variables>
+        <description>SMS с информацией о продуктах клиента</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#switch card.cardType>
+                <#case "debit">
+                    Карта ${smsResponseAlias}
+                    <#if card.cardState == 'blocked'>
+                        Заблокирована
+                    <#else>
+                        Действительна до: ${card.expireDate.time?string("MM/yy")}
+                    </#if>
+                    <#break>
+                <#case "overdraft">
+                    Карта ${smsResponseAlias}
+                    <#if card.cardState == 'blocked'>
+                        Заблокирована
+                    <#else>
+                        Действительна до: ${card.expireDate.time?string("MM/yy")}
+                    </#if>
+                    <#if card.overdraftTotalDebtSum??>
+                        Задолженность: ${formatMoney(card.overdraftTotalDebtSum)}
+                    </#if>
+                    <#if card.overdraftMinimalPaymentDate??>
+                        Дата платежа: ${card.overdraftMinimalPaymentDate.time?string("dd.MM.yyyy")}
+                    </#if>
+                    <#if card.overdraftLimit??>
+                        Лимит кредита: ${formatMoney(card.overdraftLimit)}
+                    </#if>
+                    <#break>
+                <#case "credit">
+                    Кредитная карта ${smsResponseAlias}
+                    <#if card.cardState == 'blocked'>
+                        Заблокирована
+                    <#else>
+                        Действительна до: ${card.expireDate.time?string("MM/yy")}
+                    </#if>
+                    <#if card.overdraftMinimalPayment??>
+                        Очередной платеж: ${formatMoney(card.overdraftMinimalPayment)}
+                    </#if>
+                    <#if card.overdraftMinimalPaymentDate??>
+                        ${card.overdraftMinimalPaymentDate.time?string("dd.MM.yyyy")}
+                    </#if>
+                    <#if card.overdraftTotalDebtSum??>
+                        Общая задолженность: ${formatMoney(card.overdraftTotalDebtSum)}
+                    </#if>
+                    <#if card.overdraftLimit??>
+                        Лимит кредита: ${formatMoney(card.overdraftLimit)}
+                    </#if>
+                     <#break>
+                <#default>
+                    <#break>
+                </#switch>
+                 Доступно: ${formatMoney(card.availableLimit)}
+                 <#if card.purchaseLimit??>
+                     для покупок: ${formatMoney(card.purchaseLimit)}
+                  </#if>
+                 <#if card.availableCashLimit??>
+                   для наличных: ${formatMoney(card.availableCashLimit)}
+                 </#if>
+
+            </@compress>
+            ]]>
+        </text>
+            <key>com.rssl.iccs.ermb.sms.cardInfo</key>
+            <variables>card,smsResponseAlias</variables>
+            <description>SMS с информацией о карте</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#if isDeposit??>
+                    Вклад
+                <#elseif isAccount??>
+                    Счет
+                </#if>
+                ${smsResponseAlias}
+                 Вид вклада:
+                ${account.description}
+                <#if account.interestRate??>
+                 Процентная ставка: ${account.interestRate} % годовых.
+                </#if>
+                 Дата открытия/пролонгации: ${account.openDate.time?string("dd.MM.yyyy")}
+                <#if account.closeDate??>
+                    Дата окончания: ${account.closeDate.time?string("dd.MM.yyyy")}
+                </#if>
+                Остаток: ${formatMoney(account.balance)}
+                 <#if account.minimumBalance??>
+                      Неснижаемый остаток: ${formatMoney(account.minimumBalance)}
+                 </#if>
+                 Максимальная сумма снятия без нарушения условий договора:  ${formatMoney(account.maxSumWrite)}
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.accountInfo</key>
+        <variables>account,isDeposit,isAccount,smsResponseAlias</variables>
+        <description>SMS, содержащее расширенную информацию по счету</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+       <text>
+           <![CDATA[
+           <@compress single_line=true>
+                <#assign loan=loanLink.value>
+                Кредит  ${loanLink.smsResponseAlias}
+                <#if loan.rate??>
+                  Ставка %: ${loan.rate}
+                </#if>
+                Остаток кредита: ${formatMoney(loan.balanceAmount)}
+                , остаток процентов:
+                Очередной платеж  ${formatMoney(loan.nextPaymentAmount)}
+                Дата очередного платежа: ${loan.nextPaymentDate.time?string("dd.MM.yyyy")}
+
+                <#if loan.pastDueAmount??>
+                    <#assign pastDueAmount=loan.pastDueAmount>
+                    Сумма просрочки:  ${formatMoney(pastDueAmount)}
+                </#if>
+           </@compress>
+           ]]>
+       </text>
+       <key>com.rssl.iccs.ermb.sms.loanInfo</key>
+       <description>SMS, содержащее расширенную информацию по кредиту</description>
+        <priority>3</priority>
+   </message>
+
+   <message>
+        <text>
+            <![CDATA[
+           <@compress single_line=true>
+               Ваш запрос по
+               <#if account??>
+                   счету/вкладу
+               <#elseif card??>
+                   карте
+                <#elseif loan??>
+                   кредиту
+               </#if>
+                ${productLink.smsResponseAlias}
+                 принят.
+           </@compress>
+           ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.productInfoNotAvailable</key>
+        <variables>loan, card, account, productLink</variables>
+        <description>SMS для команды "информация", если не доступна внешняя система</description>
+       <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Для получения информации по карте или счету укажите в запросе  последние 4 цифры номера карты/счета.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.productInfoNotFound</key>
+        <description>SMS для смс-команды "информация", когда нет продукта с алиасом, который прислал клиент</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Для получения информации об остатке укажите в запросе другую карту или счет.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.productBalanceNotFound</key>
+        <description>SMS для смс-команды "баланс", когда нет продукта с алиасом, который прислал клиент</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Ваш запрос по продукту ${productAlias} принят.
+        </text>
+        <key>BalanceNotAvailableSystem</key>
+        <description>SMS для смс-команды "баланс", когда недоступна внешняя система</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Для совершения операции корректно укажите в запросе  последние 4 цифры номера карты.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.payment.notFoundCard</key>
+        <description>SMS для смс-команд оплат "мобильного телефона;по шаблонам;услуг организаций;Погашение кредита;Подключение автоплатежа": Неуспешное выполнение. В запросе был указан некорректный номер карты.</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Оплата услуг на ${formatMoney(amount)} в адрес ${serviceProviderName} не выполнена. У Вас не достаточно средств для совершения операции.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.payment.notFoundCardAmount</key>
+        <variables>amount,serviceProviderName</variables>
+        <description>SMS для смс-команд оплат "мобильного телефона;по шаблонам;услуг организаций;Погашение кредита;Подключение автоплатежа": Неуспешное выполнение. В запросе не указана карта. Ни на одной потенциальной карте нет достаточной суммы.</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Для совершения операции укажите в запросе другую карту для списания.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.payment.wrongCard</key>
+        <description>SMS для смс-команд оплат "мобильного телефона;по шаблонам;услуг организаций;Погашение кредита;Подключение автоплатежа": Неуспешное выполнение. Неуспешная проверка карты списания </description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=false>
+            <#if card.cardState == 'blocked'>
+                ${smsResponseAlias} заблокирована. Остаток на счете карты ${formatMoney(card.availableLimit)}
+            <#else>
+                 По карте ${smsResponseAlias} доступно ${formatMoney(card.availableLimit)}
+                 <#assign purchaseLimit=card.purchaseLimit/>
+                 <#if purchaseLimit??>
+                    для покупок:  ${formatMoney(purchaseLimit)}
+                 </#if>
+                 <#assign availableCashLimit=card.availableCashLimit/>
+                 <#if availableCashLimit??>
+                    для наличных:  ${formatMoney(availableCashLimit)}
+                 </#if>
+                 СПРАВКА – подробнее об услуге Мобильный банк
+            </#if>
+            </@compress>
+           ]]>
+        </text>
+        <key>CardBalance</key>
+        <variables>card,smsResponseAlias</variables>
+        <description>SMS для смс-команды "баланс" с информацией о балансе карты</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=false>
+                ${smsResponseAlias} остаток на счете: ${formatMoney(account.balance)}
+                <#if account.maxSumWrite?? && account.maxSumWrite.decimal != 0>
+                    Сумма доступная для снятия: ${formatMoney(account.maxSumWrite)}
+                </#if>
+                Отправьте на 900: ТЕЛ 903ХХХХХХХ 100 – оплата любого мобильного на 100 руб.,
+                СПРАВКА – подробнее об услуге Мобильный банк
+            </@compress>
+           ]]>
+        </text>
+        <key>AccountBalance</key>
+        <variables>account,smsResponseAlias</variables>
+        <description>SMS для смс-команды "баланс" с информацией о балансе счета</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена. Для получения минивыписки укажите в запросе последние
+                ${aliasLength?c} ${numeralDeclension(aliasLength,"цифр","у","ы","")}
+                номера карты.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.productHistoryNotFound</key>
+        <variables>aliasLength</variables>
+        <description>SMS для смс-команды "история", когда нет продукта с алиасом, который прислал клиент</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Не выполнено. Для получения мини-выписки по
+                <#if account??>
+                    счету/вкладу
+                <#elseif card??>
+                    карте
+                </#if>
+                 ${productLink.smsResponseAlias}
+                 повторите запрос позже.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.historyError</key>
+        <variables>productLink, card, account</variables>
+        <description>SMS, если возникла неизвестная ошибка для команды "история"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Карта:  ${cardLink.smsResponseAlias}
+                Действительна до: ${card.expireDate.time?string("MM/yy")}
+                <#if card.cardState == 'blocked'>
+                     заблокирована
+                </#if>
+                Доступно: ${formatMoney(card.availableLimit)}
+                 <#if card.purchaseLimit??>
+                     для покупок: ${formatMoney(card.purchaseLimit)}
+                  </#if>
+                 <#if card.availableCashLimit??>
+                   для наличных: ${formatMoney(card.availableCashLimit)}
+                 </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.historyCardError</key>
+        <variables>cardLink,card</variables>
+        <description>SMS, если возникла ошибка для команды "история", при доступной информации по карте</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Данная операция не разрешена для Вашего тарифного плана. Изменить тарифный план можно с помощью команды ТАРИФ, в Сбербанк Онлайн или в контактном центре банка
+        </text>
+        <key>ProductHistoryNotProvided</key>
+        <description>SMS для смс-команды "история", когда тарифный план не предоставляет выписку</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Пожалуйста, проверьте текст своего сообщения:
+            БАЛАНС – узнать баланс по вашей карте,
+            ПЕРЕВОД 9ХХХХХХХХХ 3000 -  перевести 3000 р. на КАРТУ Сбербанка, зная только телефон получателя,
+            СПРАВКА - подробнее об услуге Мобильный банк.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.unknownCommand</key>
+        <description>SMS для нераспознанной смс-команды</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            По счету ${accountLink.smsResponseAlias} приостановлены операции в подразделениях Сбербанка. Для закрытия счета или получения дубликата сберкнижки, пожалуйста, обратитесь в течение трех рабочих дней в то подразделение, где был открыт счет.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.accountBlocked</key>
+        <variables>accountLink.smsResponseAlias</variables>
+        <description>SMS об успешной блокировке счета(если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Ваша карта ${cardLink.smsResponseAlias} заблокирована.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.cardBlocked</key>
+        <variables>cardLink.smsResponseAlias</variables>
+        <description>SMS об успешной блокировке карты</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Повторите запрос на блокировку или обратитесь в контактный центр Сбербанка: +7(495)500-55-50/+7(800)555-55-50.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.accountNotBlocked</key>
+        <variables>accountLink.smsResponseAlias</variables>
+        <description>SMS, отправляемое клиенту в случае неизвестной ошибки при блокировке счета (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Ваша карта ${cardLink.smsResponseAlias} не заблокирована. Повторите запрос на блокировку.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.cardNotBlocked</key>
+        <variables>cardLink.smsResponseAlias</variables>
+        <description>SMS, отправляемое клиенту в случае неизвестной ошибки при блокировке карты</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Неверный номер карты или счета. Укажите в запросе другую карту/счет для блокировки.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.blockingProductNotFound</key>
+        <description>SMS, отправляемое, когда пользователь прислал неверный алиас продукта для блокировки</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#if account??>
+                   Счет не заблокирован.
+               <#elseif card??>
+                   Карта не заблокирована.
+               </#if>
+               Для блокировки карты обратитесь в контактный центр Сбербанка: +7(495)544-45-45 / 500-00-05.
+           </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.productBlockInactiveSystemError</key>
+        <variables>account,card</variables>
+        <description>SMS об ошибке, которая возникает в команде БЛОКИРОВКА, когда АБС не доступна</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Указано неверное название тарифного плана услуги «Мобильный банк».
+        </text>
+        <key>com.rssl.iccs.ermb.sms.incorrectTariff</key>
+        <description>SMS о неверном названии тарифа</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Недостаточно средств для оплаты подключения к тарифу ${tariff}.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.notEnoughMoney</key>
+        <variables>tariff</variables>
+        <description>Недостаток средств при списании платы за подключение тарифа</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Указанный тарифный план услуги «Мобильный банк» недоступен для подключения.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.notActiveTariff</key>
+        <description>SMS, если клиент прислал название не активного тарифа</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Тарифный план услуги «Мобильный банк» успешно изменен на ${tariff.name}.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.changeTariffSuccess</key>
+        <variables>tariff,tariff.name</variables>
+        <description>SMS об успешном изменении тарифного плана</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Переход с платного тарифного плана на бесплатный через SMS невозможен. Данную операцию можно совершить в подразделениях банка, терминалах или в Сбербанк Онлайн.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.notAllowedChangeTariff</key>
+        <description>SMS, если клиент пытается поменять платный тариф на бесплатный</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Данный тариф уже подключен.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.alreadyConnectedTariff</key>
+        <description>SMS, если клиент прислал название тарифа, который у него уже подключен</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Текущий тариф: ${activeTariff.name}. Доступные тарифы: ${tariffsString}.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.tariffs</key>
+        <variables>activeTariff.name,tariffs,tariff.name,tariffsString</variables>
+        <description>SMS с информацией о тарифах</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+           <@compress single_line=true>
+               <#if quickServiceStatus>
+                     Вам подключена бесплатная опция Мобильного банка «быстрый платеж»!
+                     Вы можете мгновенного и без комиссии оплатить любой мобильный телефон, а также перевести деньги на любую карту Сбербанка, зная только номер мобильного телефона получателя.
+   				  Отправьте сообщение на номер 900: ТЕЛ 9XХХХХХХХХ 200 – для оплаты любого номера мобильного телефона на сумму 200 руб. ПЕРЕВОД 9XXXXXXXXX 500 – для перевода 500 руб. на карту клиента Сбербанка – владельца этого телефона.
+               <#else>
+                   Бесплатная опция  «быстрый платеж» отключена. Подключить опцию можно в Сбербанк Онлайн www.sberbank.ru.
+               </#if>
+           </@compress>
+           ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.quickServices</key>
+        <variables>quickServiceStatus</variables>
+        <description>SMS о подключении быстрых сервисов</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Поручений (шаблонов) на перевод средств не зарегистрировано.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.templateNotFound</key>
+        <description>SMS для смс-команды "ШАБЛОНЫ", когда не найдено ни одного шаблона</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Шаблонов для получателя ${receiverAlias} не зарегистрировано. Создать шаблон Вы можете в системе Сбербанк Онлайн  www.sbrf.ru.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.aliasTemplateNotFound</key>
+        <variables>receiverAlias</variables>
+        <description>SMS для смс-команды "ШАБЛОНЫ", когда не найдено ни одного шаблона по алиасу получателя, который прислал клиент</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Не выполнено. Не определен оператор сотовой связи. Для проведения платежа направьте запрос в формате: ОПЕРАТОР ТЕЛЕФОН СУММА КАРТА. Например: МТС 9120000000 100 1234
+                </@compress>
+            ]]>
+        </text>
+        <key>NotFoundRechargePhoneProvider</key>
+        <variables>phone</variables>
+        <description>сообщение для смс-команды "ОПЛАТА ТЕЛЕФОНА", если не определен поставщик по номеру телефона</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${document.mobileOperatorName} (${document.rechargePhoneNumber}) с карты ${document.chargeOffResourceLink.smsResponseAlias} выполнена успешно.
+            </@compress>
+            ]]>
+        </text>
+        <key>RechargePhoneSuccess</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" при успешном выполнении оплаты (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${document.mobileOperatorName} (${document.rechargePhoneNumber}) с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+             <#if document.refusingReason?has_content>
+                ${document.refusingReason}
+            </#if>
+            <#if isRecharge>
+                Попробуйте указать оператора связи в формате ОПЕРАТОР ТЕЛЕФОН СУММА или ОПЕРАТОР ТЕЛЕФОН СУММА КАРТА.
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>RechargePhoneRefuse</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" в случае отказа платежа (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${mobileOperatorName} (${phoneNumber}) с карты ${smsAlias} не выполнена – не достаточно средств на карте.
+            Укажите в запросе другую карту для списания.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.rechargePhoneNotEnoughMoney</key>
+        <variables>amount,phoneNumber,smsAlias,mobileOperatorName</variables>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" в случае ошибки "Недостаточно средств на карте"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <#assign amount=document.exactAmount>
+            <#assign rest=document.chargeOffResourceLink.rest>
+            <@compress single_line=true>
+                Операция не выполнена. Оплата услуг на ${formatMoney(amount)} в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+                Не достаточно средств на карте, укажите в запросе другую карту для списания.
+                ${document.chargeOffResourceLink.smsResponseAlias} доступно: ${formatMoney(rest)}
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.servicePaymentNotEnoughMoney</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА УСЛУГ" в случае ошибки "Недостаточно средств на карте"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата по шаблону ${document.templateName} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена – не достаточно средств на карте.
+            Укажите в запросе другую карту для списания.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.templatePaymentNotEnoughMoney</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ПО ШАБЛОНУ" в случае ошибки "Недостаточно средств на карте"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция не выполнена. Оплата услуг на ${formatMoney(amount)} в адрес ${document.mobileOperatorName} (${document.rechargePhoneNumber}) с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+            Карта заблокирована, укажите в запросе другую карту для списания
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.rechargePhoneCardBlocked</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" в случае ошибки "Карта заблокирована"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция не выполнена. Оплата услуг на ${formatMoney(amount)} в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+            Карта заблокирована, укажите в запросе другую карту для списания
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.servicePaymentCardBlocked</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА УСЛУГ" в случае ошибки "Карта заблокирована"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция не выполнена. Оплата услуг на ${formatMoney(amount)} в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+            Карта заблокирована, укажите в запросе другую карту для списания.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.templatePaymentCardBlocked</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ПО ШАБЛОНУ" в случае ошибки "Карта заблокирована"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+             Операция не выполнена. Оплата услуг на ${formatMoney(amount)} в адрес  ${document.mobileOperatorName} (${document.rechargePhoneNumber}) с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+             Истек срок действия карты, укажите в запросе другую карту для списания
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.rechargePhoneCardExpired</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" в случае ошибки "Истек срок действия карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция не выполнена. Оплата услуг на ${formatMoney(amount)} в адрес ${document.serviceProvider.name}  с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+            Истек срок действия карты, укажите в запросе другую карту для списания
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.servicePaymentCardExpired</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА УСЛУГ" в случае ошибки "Истек срок действия карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция не выполнена. Оплата услуг на ${formatMoney(amount)} в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+            Истек срок действия карты, укажите в запросе другую карту для списания.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.templatePaymentCardExpired</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ПО ШАБЛОНУ" в случае ошибки "Истек срок действия карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${document.mobileOperatorName} (${document.rechargePhoneNumber}) с карты ${document.chargeOffResourceLink.smsResponseAlias} временно не доступна. Повторите, пожалуйста, запрос позже.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.rechargePhoneInactiveSystemError</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" в случае ошибки внешней системы</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            Оплата услуг
+            <#if document.exactAmount??>
+                на ${formatMoney(document.exactAmount)}
+            </#if>
+            в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} временно не доступна. Повторите, пожалуйста, запрос позже.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.servicePaymentInactiveSystemError</key>
+        <variables>document</variables>
+        <description>SMS для смс-команды "ОПЛАТА УСЛУГ" в случае ошибки внешней системы</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+             <#assign amount=document.exactAmount>
+            Документ на оплату услуг  на ${formatMoney(amount)} в адрес ${document.mobileOperatorName} (${document.rechargePhoneNumber}) с карты ${document.chargeOffResourceLink.smsResponseAlias} принят к обработке. Документ ожидает исполнения. Плановое время исполнения ${admissionDate}
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.rechargePhoneNonOperatingTime</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" в случае оплаты во внеоперационное время</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            Документ на оплату услуг
+            <#if document.exactAmount??>
+                на ${formatMoney(document.exactAmount)}
+            </#if>
+            в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} принят к обработке. Документ ожидает исполнения. Плановое время исполнения ${admissionDate}
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.servicePaymentNonOperatingTime</key>
+        <variables>document,admissionDate</variables>
+        <description>SMS для смс-команды "ОПЛАТА УСЛУГ" в случае оплаты во внеоперационное время</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+             Документ на оплату по шаблону ${document.templateName} на ${formatMoney(amount)}
+             <#if document.chargeOffResourceType == 'CARD'>
+                с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                <#else>
+               со счета ${document.chargeOffResourceLink.smsResponseAlias}
+             </#if>
+             принят к обработке. Документ ожидает исполнения. Плановое время исполнения ${admissionDate}
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.templatePaymentNonOperatingTime</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ПО ШАБЛОНУ" в случае оплаты во внеоперационное время</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Перевод на сумму ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} на карту получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)} принят к обработке. Документ ожидает исполнения. Плановое время исполнения ${admissionDate}.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.phoneTransferNonOperatingTime</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ПЕРЕВОД ПО НОМЕРУ ТЕЛЕФОНА" в случае оплаты во внеоперационное время</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Перевод на сумму ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} на карту получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)} не выполнен.
+            Недостаточно средств.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.phoneTransferNotEnoughMoney</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ПЕРЕВОД ПО НОМЕРУ ТЕЛЕФОНА" для ошибки "Не достаточно средств на карте списания"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                Перевод на сумму ${formatMoney(amount)}
+                <#if isChargeOffCard>
+                    с карты
+                <#elseif isChargeOffAccount>
+                    со счета
+                </#if>
+                ${chargeOffAlias} на
+                <#if isDestinationCard>
+                    карту
+                <#elseif isDestinationAccount>
+                    счет
+                </#if>
+                ${destinationAlias}
+                принят к обработке.
+                Ждите, пожалуйста, ответа
+                </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.internal.transfer.not.operating.time</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "Перевод между своими счетами" в случае оплаты во внеоперационное время</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                <#assign amount=document.exactAmount>
+                Перевод на сумму ${formatMoney(amount)}
+                <#if document.chargeOffResourceType == 'CARD'>
+                    с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                <#else>
+                   со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                </#if>
+                <#if document.destinationResourceType == 'CARD'>
+                    на карту
+                <#else>
+                    на счет
+                </#if>
+                ${document.destinationResourceLink.smsResponseAlias}
+                выполнен успешно.
+                </@compress>
+            ]]>
+        </text>
+        <key>InternalTransferSuccess</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "Перевод между своими счетами" в случае успешного выполнения (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена. Для проведения операции корректно укажите последние ${aliasLength?c} ${numeralDeclension(aliasLength,"цифр","у","ы","")}
+                номера карты.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.paymentCommandIncorrectAlias</key>
+        <description>SMS для платежной смс-команды в случае неверно указанного алиаса</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Для оплаты укажите в запросе сумму операции в рублях без копеек, пробелов, точек, запятых и тире.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.paymentCommandIncorrectAmount</key>
+        <description>SMS для платежных команд в случае неверно указанной суммы</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Сумма платежа совпадает с последними цифрами номера карты. Для проведения операции измените сумму и направьте запрос повторно.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.rechargePhoneAliasEqualsAmount</key>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" в случае если последние 4 цифры какой-либо карты клиента совпадают с суммой платежа</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Опция Мобильного банка «быстрый платеж» отключена. Подключить бесплатную опцию «Быстрый платеж» можно в Сбербанк Онлайн  www.sberbank.ru.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.rechargePhoneQuickServiceDisabled</key>
+        <description>SMS для смс-команды "ОПЛАТА ТЕЛЕФОНА" если опция "быстрый платеж" отключена</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} выполнена успешно.
+            <#if requisites?length != 0>
+                Параметры платежа:
+                ${requisites}
+            </#if>
+            <#if commission??>
+                Комиссия: ${formatMoney(commission)}
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>ServicePaymentSuccess</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА УСЛУГ" при успешном выполнении оплаты (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата по шаблону ${document.templateName} на ${formatMoney(amount)}
+            <#if document.chargeOffResourceType == 'CARD'>
+                с карты ${document.chargeOffResourceLink.smsResponseAlias}
+            <#else>
+               со счета ${document.chargeOffResourceLink.smsResponseAlias}
+            </#if>
+            выполнена успешно.
+            </@compress>
+            ]]>
+        </text>
+        <key>TemplatePaymentSuccess</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА по шаблону" при успешном выполнении оплаты (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата услуг на ${formatMoney(amount)} в адрес ${document.serviceProvider.name} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+            <#if document.refusingReason?has_content>
+                ${document.refusingReason}
+            </#if>
+            <#if isRecharge>
+                Попробуйте указать оператора связи в формате ОПЕРАТОР ТЕЛЕФОН СУММА или ОПЕРАТОР ТЕЛЕФОН СУММА КАРТА.s
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>ServicePaymentRefuse</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА УСЛУГ" в случае отказа платежа (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата по шаблону ${document.templateName} на ${formatMoney(amount)}
+            <#if document.chargeOffResourceType == 'CARD'>
+                с карты ${document.chargeOffResourceLink.smsResponseAlias}
+            <#else>
+               со счета ${document.chargeOffResourceLink.smsResponseAlias}
+            </#if>
+            не выполнена.
+            <#if document.refusingReason?has_content>
+                ${document.refusingReason}
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>TemplatePaymentRefuse</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "ОПЛАТА ПО ШАБЛОНУ" в случае отказа платежа(если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#assign amount=document.exactAmount>
+                Перевод на сумму ${formatMoney(amount)}
+                <#if document.chargeOffResourceType == 'CARD'>
+                    с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                <#else>
+                    со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                </#if>
+                <#if document.destinationResourceType == 'CARD'>
+                    на карту
+                <#else>
+                    на счет
+                </#if>
+                ${document.destinationResourceLink.smsResponseAlias}
+                не выполнен. Отказано банком.
+            </@compress>
+            ]]>
+        </text>
+        <key>InternalTransferExternalSystemError</key>
+        <variables>document</variables>
+        <description> Для перевода между своими счетами: Ошибка обработки операции в АБС</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#assign amount=document.exactAmount>
+
+                <#if document.ourBank>
+                    Перевод на сумму ${formatMoney(amount)}
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                        со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    <#if document.receiverCardExternal>
+                        на карту
+                    <#else>
+                        на счет
+                    </#if>
+                    получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)}
+                <#else>
+                    Перевод на сумму ${formatMoney(amount)}
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                        со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    на карту ${getCutCardNumber(document.receiverCard)}
+                </#if>
+                не выполнен. Отказано банком.
+            </@compress>
+            ]]>
+        </text>
+        <key>CardTransferExternalSystemError</key>
+        <variables>document</variables>
+        <description> В случае перевода на карту другого банка: Ошибка обработки операции в АБС</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#assign amount=document.exactAmount>
+                Перевод на сумму ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} на карту получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)}
+                не выполнен. Отказано банком.
+            </@compress>
+            ]]>
+        </text>
+        <key>PhoneTransferExternalSystemError</key>
+        <variables>document</variables>
+        <description> Перевод по номеру телефона Ошибка обработки операции в АБС</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=false>
+            Для оплаты в адрес ${receiverSmsAlias} необходимо указать дополнительные реквизиты платежа.
+            Отправьте запрос ${receiverSmsAlias}
+            <#list requisites as requisite>
+                "${requisite}"
+            </#list>
+            <#if readyRequisites?length != 0>
+                Уже заполненные параметры платежа:
+                ${readyRequisites}
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.notSufficientBillingPaymentRequisites</key>
+        <variables>requisites, receiverName</variables>
+        <description>SMS, если при оплате поставщику не хватает реквизитов</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            Оплата по шаблону  ${document.templateName} через SMS не доступна. Воспользуйтесь системой Сбербанк Онлайн или терминалами банка.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.notSufficientBillingPaymentByTemplateRequisites</key>
+        <variables>requisites, receiverName</variables>
+        <description>SMS, если при оплате поставщику по шаблону не хватает реквизитов</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Для проведения операции корректно укажите 4 последние цифры номера кредитного договора или его псевдоним в запросе.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.incorrectLoanAlias</key>
+        <description>SMS команды "оплата кредита" в случае неверного алиаса кредита</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Операция погашения возможна только для кредитов с дифференцированным способом погашения.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.annuityLoanPayment</key>
+        <description>SMS команды "оплата кредита", если клиент хочет оплатить аннуитетный платеж</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Сумма оплаты не может быть меньше рекомендуемой суммы погашения кредита. Чтобы узнать рекомендуемую сумму оплаты отправьте запрос ИНФОРМАЦИЯ NNNN, где NNNN – последние цифры номера договора.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.amountLessThanNextAmount</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита", если сумма платежа меньше рекомендуемой</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция погашения кредита ${document.agreementNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} выполнена успешно.
+            </@compress>
+            ]]>
+        </text>
+        <key>LoanPaymentSuccess</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита" при успешном выполнении оплаты(если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция погашения кредита ${document.agreementNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена.
+            <#if document.refusingReason?has_content>
+                ${document.refusingReason}
+            </#if>
+            <#if isRecharge>
+                Попробуйте указать оператора связи в формате ОПЕРАТОР ТЕЛЕФОН СУММА или ОПЕРАТОР ТЕЛЕФОН СУММА КАРТА.
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>LoanPaymentRefuse</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита" в случае отказа платежа (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Документ на погашение кредита ${document.agreementNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} принят к обработке. Документ ожидает исполнения. Плановое время исполнения ${admissionDate}
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loanPaymentNonOperatingTime</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита" в случае оплаты во внеоперационное время</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция погашения кредита ${document.agreementNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена – не достаточно средств на карте.
+            Укажите в запросе другую карту для списания.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loanPaymentNotEnoughMoney</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита" в случае ошибки "Недостаточно средств на карте"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция погашения кредита ${document.agreementNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена – карта заблокирована.
+            Укажите в запросе другую карту для списания.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loanPaymentCardBlocked</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита" в случае ошибки "Карта заблокирована"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Операция погашения кредита ${document.agreementNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} не выполнена – истек срок действия карты.
+            Укажите в запросе другую карту для списания.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loanPaymentCardExpired</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита" в случае ошибки "Истек срок действия карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            Операция погашения кредита ${document.agreementNumber} на ${formatMoney(amount)}  с карты ${document.chargeOffResourceLink.smsResponseAlias} временно не доступна. Повторите, пожалуйста, запрос позже.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loanPaymentInactiveSystemError</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды "оплата кредита" в случае ошибки внешней системы</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Не указан номер кредитного договора. Укажите последние 4 цифры номера договора или его псевдоним.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.unknownLoanProduct</key>
+        <description>SMS для смс-команды "оплата кредита", когда пользователь не указал номер кредитного договора</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            Отправьте код: «#${confirmCode}» или это сообщение в неизменном виде на номер 900 для изменения тарифного плана услуги «Мобильный банк» на тарифный план ${confirmableTask.name}.
+            <#if connectionCost??>
+                Оплата за подключение данного тарифа ${formatMoney(connectionCost)}
+            </#if>
+            <#if cost??>
+                Предусмотрена абонентская плата в размере ${formatMoney(cost)} в месяц.
+            <#else>
+                Абонентская плата не предусмотрена.
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.changeTariffConfirm</key>
+        <variables>confirmCode,confirmableTask</variables>
+        <description>SMS с кодом подтверждения для смс-команды "смена тарифа"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                После блокировки использование карты будет невозможно! Отправьте код: «#${confirmCode}» на номер 900 для блокировки карты ${document.blockingCardLink.smsResponseAlias}.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.blockingCardConfirm</key>
+        <variables>confirmCode,confirmableTask,account,card</variables>
+        <description>SMS с кодом подтверждения для смс-команды "блокировка карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                По счету ${smsResponseAlias} будут приостановлены операции в подразделениях Сбербанка. Операции через Сбербанк Онлайн будут доступны.
+                Отправьте код: «#${confirmCode}» на номер 900 для блокировки.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.lossPassbookConfirm</key>
+        <variables>confirmCode,confirmableTask,smsResponseAlias</variables>
+        <description>SMS с кодом подтверждения для смс-команды "блокировка счета"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+           <#assign amount=document.exactAmount>
+           <#assign firstName="">
+           <#if document.receiverFirstName??>
+                <#assign firstName=document.receiverFirstName>
+           </#if>
+           <#assign surName="">
+           <#if document.receiverSurName??>
+                <#assign surName=document.receiverSurName>
+           </#if>
+           <#assign patrName="">
+           <#if document.receiverPatrName??>
+                <#assign patrName=document.receiverPatrName>
+           </#if>
+           Отправьте код: «#${confirmCode}» на номер 900 для перевода ${formatMoney(amount)}
+           с карты ${document.chargeOffResourceLink.smsResponseAlias} на карту получателя
+           ${formatPersonName(firstName, surName, patrName)}
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.phoneTransferConfirm</key>
+        <variables>confirmCode,confirmableTask</variables>
+        <description>SMS с кодом подтверждения для смс-команды "Перевод по номеру телефона"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+           <#assign amount=document.exactAmount>
+           Перевод на сумму ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias} на карту получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)} выполнен успешно.
+            </@compress>
+            ]]>
+        </text>
+        <key>PhoneTransferSuccess</key>
+        <variables>document</variables>
+        <description>SMS для смс-команды "Перевод по номеру телефона" в случае успешного перевода (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+           Отправьте код: «#${confirmCode}» или это сообщение в неизменном виде на номер 900 для оплаты телефона ${document.mobileOperatorName} ${document.rechargePhoneNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias}.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.rechargePhoneConfirm</key>
+        <variables>confirmCode,confirmableTask</variables>
+        <description>SMS с кодом подтверждения для смс-команды "Оплата телефона"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=false>
+                Отправьте код: «#${confirmCode}» или это сообщение в неизменном виде на номер 900 для оплаты в адрес ${document.serviceProvider.name}
+                <#if document.exactAmount??>
+                    на ${formatMoney(document.exactAmount)}
+                </#if>
+                с карты ${document.chargeOffResourceLink.smsResponseAlias}.
+                Параметры платежа:
+                ${requisites}
+                <#if commission??>
+                    Комиссия по операции составит: ${formatMoney(commission)}
+                </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.servicePaymentConfirm</key>
+        <variables>confirmCode,confirmableTask</variables>
+        <description>SMS с кодом подтверждения для смс-команды "оплата услуг"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+                Отправьте код: «#${confirmCode}» или это сообщение в неизменном виде на номер 900 для оплаты по шаблону ${document.templateName} на ${formatMoney(amount)}
+                <#if document.chargeOffResourceType == 'CARD'>
+                    с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                <#else>
+                   со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                </#if>
+                .
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.templatePaymentConfirm</key>
+        <variables>confirmCode,confirmableTask</variables>
+        <description>SMS с кодом подтверждения для смс-команды "оплата по шаблону"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            Оплата по шаблону ${document.templateName} на ${formatMoney(amount)}
+            <#if document.chargeOffResourceType == 'CARD'>
+                с карты ${document.chargeOffResourceLink.smsResponseAlias}
+            <#else>
+               со счета ${document.chargeOffResourceLink.smsResponseAlias}
+            </#if>
+             временно не доступна. Повторите, пожалуйста, запрос позже.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.templatePaymentInactiveSystemError</key>
+        <variables>document</variables>
+        <description>SMS для смс-команды "оплата по шаблону" в случае ошибки внешней системы</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+             <#assign amount=document.exactAmount>
+             <#assign loanBalanceAmount=document.loanLink.loan.balanceAmount>
+            Отправьте код: «#${confirmCode}» или это сообщение в неизменном виде на номер 900 для погашения кредита ${document.agreementNumber} на ${formatMoney(amount)} с карты ${document.chargeOffResourceLink.smsResponseAlias}. Текущие параметры договора: Основной долг: ${formatMoney(loanBalanceAmount)}
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loanPaymentConfirm</key>
+        <variables>confirmCode,confirmableTask</variables>
+        <description>SMS с кодом подтверждения для смс-команды "Оплата кредита"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign amount=document.exactAmount>
+            <#assign destinationResourceLink=document.destinationResourceLink>
+            <#assign chargeOffResourceLink=document.chargeOffResourceLink>
+            <#if confirmableTask.cardToAccountTransfer>
+                Внимание!
+                <#if confirmableTask.currencyRatesChanged>
+                    Курс конверсии изменился.
+                <#else>
+                    При переводе будет выполнена конверсия.
+                </#if>
+                Сумма в валюте счета получателя составит ${formatMoney(amount)}
+                Отправьте код: «#${confirmCode}» на номер 900 для подтверждения перевода на сумму ${formatMoney(amount)} с карты ${chargeOffResourceLink.smsResponseAlias} на счет ${destinationResourceLink.smsResponseAlias}.
+            <#else>
+                Внимание! При переводе будет выполнена конверсия по курсу Банка. Отправьте код: «#${confirmCode}» на номер 900 для подтверждения перевода на сумму ${formatMoney(amount)}
+                <#if document.chargeOffResourceType == 'CARD'>
+                    с карты ${chargeOffResourceLink.smsResponseAlias}
+                <#else>
+                   со счета ${chargeOffResourceLink.smsResponseAlias}
+                </#if>
+                <#if document.destinationResourceType == 'CARD'>
+                    на карту ${destinationResourceLink.smsResponseAlias}
+                <#else>
+                   на счет ${destinationResourceLink.smsResponseAlias}
+                </#if>
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>InternalTransferConfirm</key>
+        <variables>confirmCode,confirmableTask</variables>
+        <description>SMS с кодом подтверждения для смс-команды "Перевод между своими счетами"</description>
+        <priority>3</priority>
+    </message>
+
+
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            Код подтверждения «#${confirmCode}».
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.defaultConfirm</key>
+        <variables>confirmCode</variables>
+        <description>Дефолтное SMS с кодом подтверждения</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            Уважаемый клиент, на бонусном счёте владельца карты ${balance} Спасибо
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loyaltyBalance</key>
+        <variables>balance</variables>
+        <description>SMS для смс-команды "Спасибо от Сбербанка": Проверка регистрации в программе лояльности</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            Пожалуйста, подтвердите, что вы ознакомлены и согласны с правилами бонусной программы «Спасибо от Сбербанка». Информация на сайте: www.sberbank.ru, Для подтверждения направьте код #${confirmCode} на номер 900.
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loyaltyConfirm</key>
+        <variables>confirmCode</variables>
+        <description>SMS для смс-команды "Спасибо от Сбербанка": Отправка подтверждения</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            К сожалению, нам не удалось выполнить регистрацию в бонусной программе «Спасибо от Сбербанка» для карты  ${document.chargeOffResourceLink.smsResponseAlias}. Попробуйте отправить запрос повторно.
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loyaltyRegistrationInactiveSystemError</key>
+        <variables>document</variables>
+        <description>SMS для смс-команды "Спасибо от Сбербанка": Ошибка внешней системы</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            Вы зарегистрированы в программе «Спасибо от сбербанка»!
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.loyaltySuccessRegistration</key>
+        <description>SMS для смс-команды "Спасибо от Сбербанка": Успешное выполнение</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign limitAmount = limit.amount>
+                Операция не выполнена. Сумма перевода не может быть меньше ${formatMoney(limitAmount)}
+            </@compress>
+            ]]>
+        </text>
+        <key>Limit.GroupRisk.MinAmount</key>
+        <variables>limit</variables>
+        <description>SMS при проверке лимитов: операция на сумму меньше минимальной</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign operationType = limit.operationType>
+            <#if isPreliminaryCheck>
+                При выполнении этой операции Вы превысите суточный лимит для переводов и оплаты услуг.
+                Данная операция будет исполнена банком после того, как Вы подтвердите ее через Контактный центр банка.
+            <#else>
+                Операция не выполнена. Превышен суточный лимит.
+            </#if>
+            Максимально возможная сумма операции: ${formatMoney(availableAmount)}
+            </@compress>
+            ]]>
+        </text>
+        <key>Limit.GroupRisk.AmountInDay.NeedAdditionalConfirm</key>
+        <variables>limit</variables>
+        <description>SMS при проверке лимитов: Превышен суточный кумулятивный лимит по группе риска, если операцию нужно подтверждать в КЦ</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign operationType = limit.operationType>
+            <#if isPreliminaryCheck>
+                При выполнении этой операции Вы превысите суточный лимит для переводов и оплаты услуг.
+            <#else>
+                Операция не выполнена. Превышен суточный лимит.
+            </#if>
+            Максимально возможная сумма операции: ${formatMoney(availableAmount)}
+            </@compress>
+            ]]>
+        </text>
+        <key>Limit.GroupRisk.AmountInDay</key>
+        <variables>limit</variables>
+        <description>SMS при проверке лимитов: Превышен суточный кумулятивный лимит по группе риска</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign operationType = limit.operationType>
+            <#if isPreliminaryCheck>
+                При выполнении этой операции Вы превысите количество операций за сутки для переводов и оплаты услуг.
+            <#else>
+                Вы превысили количество операций за сутки для переводов и оплаты услуг.
+            </#if>
+            Данная операция будет исполнена банком после того, как Вы подтвердите ее через Контактный центр банка.
+            </@compress>
+            ]]>
+        </text>
+        <key>Limit.GroupRisk.OperationCountInDay.NeedAdditionalConfirm</key>
+        <variables>limit</variables>
+        <description>SMS при проверке лимитов: Количество операций в сутки, если операцию нужно подтверждать в КЦ</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign operationType = limit.operationType>
+            <#if isPreliminaryCheck>
+                При выполнении этой операции Вы превысите количество операций за сутки для переводов и оплаты услуг.
+            <#else>
+                Операция не выполнена. Превышено допустимое количество операций за сутки для переводов и оплаты услуг. Пожалуйста, повторите операцию позже.
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>Limit.GroupRisk.OperationCountInDay</key>
+        <variables>limit</variables>
+        <description>SMS при проверке лимитов: Количество операций в сутки</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign operationType = limit.operationType>
+            <#if isPreliminaryCheck>
+                При выполнении этой операции Вы превысите количество операций за час для переводов и оплаты услуг.
+            <#else>
+                Вы превысили количество операций за час для переводов и оплаты услуг.
+            </#if>
+            Данная операция будет исполнена банком после того, как Вы подтвердите ее через Контактный центр банка.
+            </@compress>
+            ]]>
+        </text>
+        <key>Limit.GroupRisk.OperationCountInHour.NeedAdditionalConfirm</key>
+        <variables>limit</variables>
+        <description>SMS при проверке лимитов: Количество операций в час, если операцию нужно подтверждать в КЦ</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign operationType = limit.operationType>
+            <#if isPreliminaryCheck>
+                При выполнении этой операции Вы превысите количество операций за час для переводов и оплаты услуг.
+            <#else>
+                Операция не выполнена. Вы превысили количество операций за час для переводов и оплаты услуг. Пожалуйста, повторите операцию позже.
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>Limit.GroupRisk.OperationCountInHour</key>
+        <variables>limit</variables>
+        <description>SMS при проверке лимитов: Количество операций в час</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#if isPreliminaryCheck>
+                При выполнении этой операции Вы превысите суточный лимит денежных средств по операциям.
+            <#else>
+                Операция не выполнена. Превышен суточный лимит.
+            </#if>
+            Максимально возможная сумма операции: ${formatMoney(availableAmount)}
+            </@compress>
+            ]]>
+        </text>
+        <key>Limit.ObstructionForAmountOperations</key>
+        <variables>limit</variables>
+        <description>SMS при проверке лимитов: Превышен заградительный лимит</description>
+        <priority>3</priority>
+    </message>
+
+   <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Превышен лимит получателю. Операцию выполнить невозможно
+            </@compress>
+            ]]>
+        </text>
+        <key>Limit.ExternalReceiver</key>
+        <variables>limit</variables>
+        <description>SMS при проверке лимитов: превышен лимит получателю</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+         <text>
+             <![CDATA[
+             <@compress single_line=true>
+                 Уважаемый клиент! Зафиксирована замена Вашей SIM-карты. В целях безопасности Ваших средств операции в Сбербанк Онлайн приостановлены.
+                 Для разблокировки обратитесь в Контактный центр. Вам потребуется чек любой Вашей операции по карте, полученный в банкомате или платежном терминале Банка
+             </@compress>
+             ]]>
+         </text>
+         <key>Limit.IMSI</key>
+         <variables>limit</variables>
+         <description>SMS при проверке лимитов: превышен лимит IMSI</description>
+         <priority>3</priority>
+     </message>
+
+    <message>
+         <text>
+             <![CDATA[
+             <@compress single_line=true>
+                 Превышен лимит.
+             </@compress>
+             ]]>
+         </text>
+         <key>Limit.Message</key>
+         <variables>limit</variables>
+         <description>SMS при проверке лимитов: текстовки для лимитов, которых нет в РО. limit.amount - сумма лимита, limit.type - тип лимита (по группе риска, заградительный и т д), limit.operationType - тип действия при превышении лимита, limit.restrictionType - тип ограничения (на сумму операций в сутки, На минимальную сумму операции и т п)</description>
+         <priority>3</priority>
+     </message>
+
+
+    <!--
+     **********************************************************************
+       Текстовки для команды Перевод по номеру карты
+     **********************************************************************
+    -->
+
+    <message>
+       <text>
+           <![CDATA[
+           <@compress single_line=true>
+               Операция не выполнена. Для перевода направьте запрос в формате:
+               ПЕРЕВОД ПРОДУКТ1 ПРОДУКТ2  СУММА
+               (ПРОДУКТ1 – последние ${aliasLength?c} ${numeralDeclension(aliasLength,"цифр","у","ы","")} номера карты или счета списания,
+               ПРОДУКТ2 – последние ${aliasLength?c} ${numeralDeclension(aliasLength,"цифр","у","ы","")} номера карты или счета зачисления или полный номер карты другого клиента – получателя средств,
+               СУММА – сумма в валюте ПРОДУКТА1. В случае перевода на карту другого банка сумма должна быть указана только в рублях.
+           </@compress>
+           ]]>
+       </text>
+       <key>InternalCardTransferBadArgsError</key>
+       <variables>aliasLength</variables>
+       <description>SMS "Недопустимое число параметров в команде Перевод между своими счетами"</description>
+       <priority>3</priority>
+   </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#if isOurBank>
+                Операция не выполнена. Для перевода направьте запрос в формате:
+                ПЕРЕВОД КАРТА1 КАРТА2 СУММА
+                (КАРТА1 – последние ${aliasLength?c} ${numeralDeclension(aliasLength,"цифр","у","ы","")} номера карты списания,
+                КАРТА2 – полный номер карты зачисления,
+                СУММА – сумма в валюте КАРТЫ1)
+            <#else>
+                Операция не выполнена. Для перевода направьте запрос в формате:
+                ПЕРЕВОД КАРТА1 КАРТА2 СУММА
+                (КАРТА1 – последние ${aliasLength?c} ${numeralDeclension(aliasLength,"цифр","у","ы","")} номера карты списания,
+                КАРТА2 – полный номер карты зачисления,
+                СУММА – сумма в рублях)
+            </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>CardTransferBadArgsError</key>
+        <variables>aliasLength</variables>
+        <description>SMS "Недопустимое число параметров в команде Перевод по номеру чужой карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена. Проверьте номер счета списания и направьте запрос повторно.
+            </@compress>
+            ]]>
+        </text>
+        <key>CardTransferBadSenderError</key>
+        <description>SMS "Неправильно указана карта/счет отправителя в команде Перевод по номеру карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена. Проверьте номер счета получателя и направьте запрос повторно.
+            </@compress>
+            ]]>
+        </text>
+        <key>CardTransferBadReceiverError</key>
+        <description>SMS "Неправильно указана карта/счет получателя в команде Перевод по номеру карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена.
+                Для перевода укажите в запросе сумму операции в рублях без копеек, пробелов, точек, запятых и тире:
+                ПЕРЕВОД ПРОДУКТ1 ПРОДУКТ2 СУММА.
+            </@compress>
+            ]]>
+        </text>
+        <key>CardTransferBadAmountError</key>
+        <description>SMS "Неправильно указана сумма в команде Перевод по номеру карты"</description>
+        <priority>3</priority>
+    </message>
+
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#assign amount=document.exactAmount>
+                <#assign rest=document.chargeOffResourceLink.rest>
+                <#if document.ourBank>
+                     Операция не выполнена.
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        На карте ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                        На счете ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    недостаточно средств для проведения операции перевод на сумму ${formatMoney(amount)}
+                    <#if document.receiverCardExternal>
+                        на карту
+                    <#else>
+                        на счет
+                    </#if>
+                    получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)}
+                <#else>
+                    Операция не выполнена.
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        На карте ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                       На счете ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    недостаточно средств для проведения операции перевод на сумму ${formatMoney(amount)}
+                </#if>
+                <#if document.chargeOffResourceType == 'CARD'>
+                    По карте ${document.chargeOffResourceLink.smsResponseAlias}
+                <#else>
+                    По счету ${document.chargeOffResourceLink.smsResponseAlias}
+                </#if>
+                 доступно: ${formatMoney(rest)}
+            </@compress>
+            ]]>
+        </text>
+        <key>CardTransferNotEnoughMoneyError</key>
+        <variables>document</variables>
+        <description>SMS "Недостаточно средств в команде Перевод по номеру карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#assign amount=document.exactAmount>
+
+                <#if document.ourBank>
+                    Отправьте код: «#${confirmCode}» или это сообщение в неизменном виде на номер 900
+                    для перевода ${formatMoney(amount)}
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                        со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    <#if document.receiverCardExternal>
+                        на карту
+                    <#else>
+                        на счет
+                    </#if>
+                    получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)}.
+                <#else>
+                    Отправьте код: «#${confirmCode}» или это сообщение в неизменном виде на номер 900
+                    для перевода ${formatMoney(amount)}
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                        со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    на карту ${getCutCardNumber(document.receiverCard)}.
+                    <#if commission??>
+                        Комиссия за перевод составит ${formatMoney(commission)}
+                    </#if>
+                </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>CardTransferConfirmMessage</key>
+        <variables>confirmCode,document</variables>
+        <description>SMS с кодом подтверждения для команды "Перевод по номеру карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                <#assign amount=document.exactAmount>
+
+                <#if document.ourBank>
+                    Перевод на сумму ${formatMoney(amount)}
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                       со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    <#if document.receiverCardExternal>
+                        на карту
+                    <#else>
+                        на счет
+                    </#if>
+                    получателя ${formatPersonName(document.receiverFirstName, document.receiverSurName, document.receiverPatrName)} выполнен успешно.
+                <#else>
+                    Перевод на сумму ${formatMoney(amount)}
+                    <#if document.chargeOffResourceType == 'CARD'>
+                        с карты ${document.chargeOffResourceLink.smsResponseAlias}
+                    <#else>
+                       со счета ${document.chargeOffResourceLink.smsResponseAlias}
+                    </#if>
+                    на карту ${getCutCardNumber(document.receiverCard)} выполнен успешно.
+                </#if>
+            </@compress>
+            ]]>
+        </text>
+        <key>CardTransferSuccess</key>
+        <variables>document</variables>
+        <description>SMS "Успешное выполнение операции перевода по номеру карты/счета" (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <!--
+     **********************************************************************
+       Текстовки для команды Перевод по номеру телефона
+     **********************************************************************
+    -->
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Для перевода направьте запрос в формате:
+                ПЕРЕВОД КККК ТЕЛЕФОН СУММА.
+            </@compress>
+            ]]>
+        </text>
+        <key>PhoneTransferBadArgsError</key>
+        <description>SMS "Недопустимое число параметров в команде Перевод по номеру телефона"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена.
+                Для перевода укажите в запросе 4 последние цифры КККК номера карты отправителя:
+                ПЕРЕВОД КККК ТЕЛЕФОН СУММА.
+            </@compress>
+            ]]>
+        </text>
+        <key>PhoneTransferBadSenderError</key>
+        <description>SMS "Неправильно указана карта/счет отправителя в команде Перевод по номеру телефона"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена.
+                Для перевода укажите в запросе корректный номер карты или десятизначный номер телефона получателя, подключенный к услуге Мобильный банк:
+                ПЕРЕВОД КККК ТЕЛЕФОН СУММА или ПЕРЕВОД КККК КАРТА СУММА
+            </@compress>
+            ]]>
+        </text>
+        <key>CardOrPhoneTransferBadReceiverError</key>
+        <description>SMS "Неправильно указан телефон получателя в команде Перевод по номеру телефона или карта получателя в команде Перевод по номеру карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена. Для перевода укажите в запросе сумму операции в рублях без копеек, пробелов, точек, запятых и тире. Например, ПЕРЕВОД 903ХХХХХХХ 2000.
+            </@compress>
+            ]]>
+        </text>
+        <key>PhoneTransferBadAmountError</key>
+        <description>SMS "Неправильно указана сумма в команде Перевод по номеру телефона"</description>
+        <priority>3</priority>
+    </message>
+
+
+    <!--
+     **********************************************************************
+       Текстовки для команды Оплата услуг
+     **********************************************************************
+    -->
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена. Пожалуйста, проверьте текст своего сообщения:
+                БАЛАНС – узнать баланс по вашей карте,
+                ПЕРЕВОД 9ХХХХХХХХХ 3000 -  перевести 3000 р. На КАРТУ Сбербанка, зная только телефон получателя,
+                СПРАВКА – подробнее об услуге Мобильный банк
+            </@compress>
+            ]]>
+        </text>
+        <key>CommandFormatError</key>
+        <description>SMS "Недопустимое число параметров в командах: оплата мобильного телефона, оплата по шаблону, запрос баланса, запрос выписки, блокировка карты, любая команда, отличная от стандартной"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена.
+                Для проведения операции корректно укажите 4 последние цифры номера карты.
+            </@compress>
+            ]]>
+        </text>
+        <key>ServicePaymentBadCardError</key>
+        <description>SMS "Неправильно указана карта списания в команде Оплата услуг"</description>
+        <priority>3</priority>
+    </message>
+
+    <!--
+     **********************************************************************
+       Текстовки для команды Оплата мобильного телефона (свой номер, чужой номер)
+     **********************************************************************
+    -->
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена.
+                Для проведения операции корректно укажите 4 последние цифры номера карты.
+            </@compress>
+            ]]>
+        </text>
+        <key>RechargePhoneBadCardError</key>
+        <description>SMS "Неправильно указана карта списания в команде Оплата мобильного телефона"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена.
+            Не определен номер телефона.
+            Для проведения платежа направьте запрос в формате:
+            ОПЕРАТОР ТЕЛЕФОН СУММА КАРТА.
+            Например: МТС 9120000000 100 1234.
+        </text>
+        <key>RechargePhoneBadPhoneError</key>
+        <description>SMS "Неправильно указан телефон в команде Оплата мобильного телефона"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена.
+            Для оплаты укажите в запросе сумму операции в рублях без копеек, пробелов, точек, запятых и тире:
+            ОПЕРАТОР ТЕЛЕФОН СУММА.
+        </text>
+        <key>RechargePhoneBadAmountError</key>
+        <description>SMS "Неправильно указана сумма в команде Оплата мобильного телефона"</description>
+        <priority>3</priority>
+    </message>
+
+    <!--
+     **********************************************************************
+       Текстовки для команды Блокировка карты
+     **********************************************************************
+    -->
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена.
+                Неверный номер карты или счета. Укажите в запросе другую карту/счет для блокировки.
+            </@compress>
+            ]]>
+        </text>
+        <key>ProductBlockBadProductError</key>
+        <description>SMS "Неправильно указана карта/счёт в команде Блокировка карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <!--
+     **********************************************************************
+       Текстовки для команды Баланс
+     **********************************************************************
+    -->
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Для получения информации об остатке по
+                <#if account??>
+                    счету
+                <#elseif card??>
+                    карте
+                <#elseif loan??>
+                    кредиту
+                </#if>
+                 ${productLink.smsResponseAlias}
+                 повторите запрос позже.
+            </@compress>
+            ]]>
+        </text>
+        <key>BalanceUnexpectedError</key>
+        <variables>productLink,  card, account, loan</variables>
+        <description>SMS "Неизвестная ошибка в команде Баланс"</description>
+        <priority>3</priority>
+    </message>
+
+    <!--
+     **********************************************************************
+       Текстовки для команды Перевыпуск
+     **********************************************************************
+    -->
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Неверный код блокировки карты.
+                Возможные значения кода:
+                0 – карта потеряна;
+                1 – карта украдена;
+                2 – карта оставлена в банкомате;
+                3 – иное
+            </@compress>
+            ]]>
+        </text>
+        <key>CardIssueBadArgsError</key>
+        <description>SMS "Недопустимое число параметров в команде Перевыпуск"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Неверный номер карты. Укажите в запросе другую карту для блокировки.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.cardIssueNotFound</key>
+        <description>SMS, отправляемое, когда пользователь прислал неверный алиас продукта для перевыпуска</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                После блокировки использование карты будет невозможно! Отправьте код: «#${confirmCode}» на номер 900 для блокировки карты ${productAlias}.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.cardIssueConfirm</key>
+        <variables>confirmCode,confirmableTask,account,card</variables>
+        <description>SMS с кодом подтверждения для смс-команды "блокировка карты"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Ваша карта ${cardLink.smsResponseAlias} заблокирована.
+            После выпуска новой карты Вы сможете получить ее в том же подразделении, где получали заблокированную карту.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.cardIssued</key>
+        <variables>cardLink.smsResponseAlias</variables>
+        <description>SMS об успешной блокировке карты</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Ваша карта ${cardLink.smsResponseAlias} не заблокирована. Повторите запрос на блокировку.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.cardNotIssued</key>
+        <variables>cardLink.smsResponseAlias</variables>
+        <description>SMS, отправляемое клиенту в случае неизвестной ошибки при блокировке карты</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Неверный запрос: неверный код причины перевыпуска карты
+            Возможные значения кода:
+            0 – карта украдена;
+            1 – карта утеряна;
+            2 – компрометация;
+            3 – утрата ПИН-кода;
+            4 – изъята банком/Порча или тех. неисправность.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.unknown.issue.code</key>
+        <variables>cardLink.smsResponseAlias</variables>
+        <description>SMS, отправляемое клиенту в случае неизвестного кода причины перевыпуска карты</description>
+        <priority>3</priority>
+    </message>
+
+    <!--
+     **********************************************************************
+       Текстовки для команды Оплата по шаблону
+     **********************************************************************
+    -->
+
+    <message>
+        <text>
+            Операция не выполнена.Для оплаты укажите в запросе сумму операции в рублях без копеек, пробелов, точек, запятых и тире: ШАБЛОН СУММА или ШАБЛОН СУММА КАРТА
+        </text>
+        <key>TemplatePaymentBadSum</key>
+        <description>SMS для команды оплата по шаблону, отправляемое, если в шаблоне не заполнена сумма</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Операция не выполнена. Доступ к операции запрещен.
+        </text>
+        <key>com.rssl.iccs.ermb.sms.operation.not.available</key>
+        <description>Операция не доступна</description>
+        <priority>3</priority>
+    </message>
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Услуга Мобильный банк отключена по вашей заявке в Контактном центре.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.ermbDeletePhone.afterConfirm</key>
+        <description>SMS c уведомлением об успешном завершении для смс-команды "удаление номера телефона" (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+    <!--
+     **********************************************************************
+       Текстовки для команды подключение автоплатежей
+     **********************************************************************
+    -->
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                  Подключение услуги Автоплатеж не выполнено. Недопустимый номер телефона ${phone}. Укажите телефон, подключенный к услуге Мобильный банк.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayIncorrectPhone</key>
+        <variables>phone</variables>
+        <description>Некорректный номер телефона для команды подключения автоплатежа</description>
+        <priority>3</priority>
+    </message>
+
+     <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Укажите свой номер телефона, подключенный к услуге Мобильный банк.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayIncorrectNotYourPhone</key>
+        <variables>phone</variables>
+        <description>Некорректный номер телефона(принадлежащий другому пользователю) для команды подключения автоплатежа</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Недопустимый номер карты. Проверьте номер карты и направьте запрос повторно.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayIncorrectCard</key>
+        <variables>phone</variables>
+        <description>Некорректный номер карты для команды подключения автоплатежа</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Подключение услуги Автоплатеж не выполнено. Сумма пополнения должна находиться в диапазоне от ${minAmount} до ${maxAmount} рублей.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayIncorrectAmount</key>
+        <variables>minAmount, maxAmount</variables>
+        <description>Недопустимая сумма пополнения для команды подключения автоплатежа</description>
+        <priority>3</priority>
+    </message>
+
+   <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Подключение услуги Автоплатеж не выполнено.
+                    <#if thresholdValues??>
+                        Пороговый лимит автоплатежа не определен. Доступные значения:
+                        <#list thresholdValues as thresholdValue>
+                            ${thresholdValue}<#if thresholdValue_has_next>,</#if>
+                        </#list>
+                        руб
+                    <#elseif thresholdValue??>
+                        Сумма порогового лимита должна быть равна ${thresholdValue} руб.
+                    <#else>
+                       Пороговый лимит должен находиться в диапазоне от ${minThreshold} до ${maxThreshold} руб.
+                    </#if>
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayIncorrectThreshold</key>
+        <variables>phone, minThreshold, maxThreshold,thresholdValues </variables>
+        <description>Недопустимое значение порогового лимита</description>
+        <priority>3</priority>
+   </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign phone=command.phoneNumber>
+            Запрос на подключение услуги Автоплатеж для ${formatPhone(phone)} принят к обработке. Подключение услуги будет выполнено в ближайшее время
+            </@compress>
+            ]]>
+        </text>
+        <key>AutoPaymentInactiveSystemError</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды подключения автоплатежа в случае ошибки внешней системы</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Услуга Автоплатеж на оплату телефона ${formatPhone(phone)} успешно подключена.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayCreateSuccess</key>
+        <variables>phone</variables>
+        <description>Успешное подключение автоплатежа(если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Для создания автоплатежа воспользуйтесь системой Сбербанк Онлайн
+                </@compress>
+            ]]>
+        </text>
+        <key>CreateAutoPaymentRefuse</key>
+        <variables>phone</variables>
+        <description>подключение автоплатежа не выполнено (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Услуга автоплатеж на оплату телефона ${formatPhone(phone)} подключена ранее.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayAlreadyExist</key>
+        <variables>phone</variables>
+        <description>Автоплатеж на оплату телефона уже подключен ранее (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                   Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Измените сумму пополнения и направьте запрос повторно.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayBadAmount</key>
+        <variables>phone</variables>
+        <description>сообщение для команды подключения автоплатежа, если не удалось разобрать сумму пополнения</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                   Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Пороговый лимит автоплатежа не определен.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayBadThreshold</key>
+        <variables>phone</variables>
+        <description>сообщение для команды подключения автоплатежа, если не удалось разобрать порог</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                   Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Лимит автоплатежа не определен.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayBadLimit</key>
+        <variables>phone</variables>
+        <description>сообщение для команды подключения автоплатежа, если не удалось разобрать лимит</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Подключение услуги Автоплатеж не выполнено. Недопустимый номер телефона ${formatPhone(phone)}. Укажате телефон, подключенный к услуге Мобильный банк.
+                </@compress>
+            ]]>
+        </text>
+        <key>NotFoundCreateAutoPayProvider</key>
+        <variables>phone</variables>
+        <description>сообщение для команды подключения автоплатежа, если не определен поставщик по номеру телефона</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги Автоплатеж не выполнено. Недопустимый номер телефона ${formatPhone(phone)}. Укажате телефон, подключенный к услуге Мобильный банк.
+                </@compress>
+            ]]>
+        </text>
+        <key>NotFoundRefuseAutoPayProvider</key>
+        <variables>phone</variables>
+        <description>сообщение для команды отключения автоплатежа, если не определен поставщик по номеру телефона</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                   Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Повторите запрос на подключение услуги позже.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayCreateError</key>
+        <variables>phone</variables>
+        <description>сообщение для команды подключения автоплатежа при неизвестной ошибке</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                   Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Оператор не поддерживает автоплатеж по счету.
+                </@compress>
+            ]]>
+        </text>
+        <key>NotProvideInvoiceAutoPayScheme</key>
+        <variables>phone</variables>
+        <description>сообщение для команды подключения автоплатежа "провайдер не поддерживает автоплатеж по счету"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                   Подключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Оператор не поддерживает пороговый автоплатеж.
+                </@compress>
+            ]]>
+        </text>
+        <key>NotProvideThresholdAutoPayScheme</key>
+        <variables>phone</variables>
+        <description>сообщение для команды подключения автоплатежа "провайдер не поддерживает пороговый автоплатеж"</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                   Отключение услуги Автоплатеж не выполнено. Некорректные параметры команды.
+                </@compress>
+            ]]>
+        </text>
+        <key>RefuseAutoPayBadArgs</key>
+        <description>сообщение для команды откключения автоплатежа, если клиент прислал некорректные параметры</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги Автоплатеж на оплату телефона ${formatPhone(phone)} не выполнено. Недопустимый номер телефона.
+                </@compress>
+            ]]>
+        </text>
+        <key>RefuseAutoPayIncorrectPhone</key>
+        <variables>phone</variables>
+        <description>Некорректный номер телефона для команды откключения автоплатежа</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги Автоплатеж не выполнено. Некорректный номер карты. Укажите в запросе последние ${aliasLength?c} ${numeralDeclension(aliasLength,"цифр","у","ы","")}
+                     карты, по которой подключен Автоплатеж.
+                </@compress>
+            ]]>
+        </text>
+        <key>RefuseAutoPayIncorrectCard</key>
+        <variables>phone</variables>
+        <description>Некорректный номер карты для команды откключения автоплатежа</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги Автоплатеж не выполнено. Для номера телефона ${formatPhone(phone)} услуга Автоплатеж не зарегистрирована. Проверьте номер  телефона и повторите запрос.
+                </@compress>
+            ]]>
+        </text>
+        <key>RefuseAutoPayNotExists</key>
+        <variables>phone</variables>
+        <description>Автоплатеж не существует для команды откключения автоплатежа</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги Автоплатеж на оплату телефона ${formatPhone(document.requisite)} не выполнено. Получатель платежа не подключён для оплаты по таким телефону и карте.
+                </@compress>
+            ]]>
+        </text>
+        <key>RefuseAutoPayNotExistsIQWResponse</key>
+        <variables>phone</variables>
+        <description>Автоплатеж не существует для команды откключения автоплатежа (пришел ответ от IQWave)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги Автоплатеж на оплату телефона  ${formatPhone(phone)} выполнено успешно. Услуга прекратит действовать в ближайшее время.
+                </@compress>
+            ]]>
+        </text>
+        <key>AutoPayRefuseSuccess</key>
+        <variables>phone</variables>
+        <description>Успешное Отключение автоплатежа(если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги услуги Автоплатеж на оплату телефона  ${formatPhone(phone)} не выполнено. Повторите запрос на проведение операции позже.
+                </@compress>
+            ]]>
+        </text>
+        <key>RefuseAutoPaymentRefuse</key>
+        <variables>phone</variables>
+        <description>Отключение автоплатежа не выполнено (если меняете здесь, необходимо поменять соответствующую текстовку для интернет-канала)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+                <@compress single_line=true>
+                    Отключение услуги услуги Автоплатеж на оплату телефона  ${formatPhone(phone)} не выполнено. Повторите запрос на проведение операции позже.
+                </@compress>
+            ]]>
+        </text>
+        <key>RefuseAutoPaymentExtSystemError</key>
+        <variables>phone</variables>
+        <description>Отключение автоплатежа не выполнено</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+            <#assign phone=command.phoneNumber>
+            Запрос на отключение услуги Автоплатеж для ${formatPhone(phone)} принят к обработке. Отключение услуги будет выполнено в ближайшее время
+            </@compress>
+            ]]>
+        </text>
+        <key>RefuseAutoPaymentInactiveSystemError</key>
+        <variables>command</variables>
+        <description>SMS для смс-команды отключения автоплатежа в случае ошибки внешней системы</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Изменены параметры услуги Мобильный банк: ${changedFields}. Если Вы не совершали данную операцию, обратитесь в Сбербанк по телефонам, указанным на обратной стороне Вашей карты.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.changedFields</key>
+        <variables>changedFields</variables>
+        <description>SMS при изменении профиля</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Уважаемый клиент, номер телефона ${phoneNumber}
+                <#if main>
+                    зарегистрирован
+                <#else>
+                    отключен от использования
+                </#if>
+                в Мобильном банке в качестве активного. Если Вы не инициировали эту операцию, обратитесь в Сбербанк по телефонам, указанным на обратной стороне Вашей карты.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.changeMain</key>
+        <variables>phoneNumber, main</variables>
+        <description>SMS при изменении активного телефона</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Вам доступен обновленный Мобильный банк.  Узнайте больше на сайте Сбербанка или по телефонам Контактного центра.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.welcome.udbo</key>
+        <description>SMS при подключении услуги мобильный банк (ДБО)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Вам доступен обновленный Мобильный банк.  Узнайте больше на сайте Сбербанка или по телефонам Контактного центра.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.iccs.ermb.sms.welcome.notUdbo</key>
+        <description>SMS при подключении услуги мобильный банк (не ДБО)</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Операция не выполнена. Заявка на проведение операции не найдена или была обработана ранее. Для проведения операции повторите запрос.
+            </@compress>
+            ]]>
+        </text>
+        <key>IncorrectConfirmMessage</key>
+        <description>Некорректный код подтверждения</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Карта не заблокирована.Неверный запрос. Недопустимая операция или подтверждение блокировки после 5 минут.
+           </@compress>
+            ]]>
+        </text>
+        <key>IncorrectCardBlockConfirmMessage</key>
+        <description>Превышено время ожидания по карте</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Оплата по шаблону ${templateName} на ${formatMoney(amount)} с карты ${cardAlias} не выполнена – истек срок действия карты.
+                Укажите в запросе другую карту для списания - <${templateName} СУММА КАРТА>".
+           </@compress>
+            ]]>
+        </text>
+        <key>TemplateCardExpired</key>
+        <variables>templateName, cardAlias, amount</variables>
+        <description>Оплата по шаблону при просроченной карте в шаблоне</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Уважаемый клиент. От услуги Мобильный банка отключен номер телефона ${disconnectedPhone} из-за прекращения договора с оператором сотовой связи.
+                Установлен новый активный номер: ${activePhone}
+            </@compress>
+            ]]>
+        </text>
+        <key>DisconnectPhone.CHANGE_MSISDN</key>
+        <variables>disconnectedPhone, activePhone</variables>
+        <description>Отключение телефона, причина:  смена абонентом номера MSISDN</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Уважаемый клиент. От услуги Мобильный банка отключен номер телефона ${disconnectedPhone} из-за прекращения договора с оператором сотовой связи.
+                Установлен новый активный номер: ${activePhone}
+            </@compress>
+            ]]>
+        </text>
+        <key>DisconnectPhone.OSS_DISCONNECT</key>
+        <variables>disconnectedPhone, activePhone</variables>
+        <description>Отключение телефона, причина:  закрытие абонена по инициативе ОСС</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Уважаемый клиент. От услуги Мобильный банка отключен номер телефона ${disconnectedPhone} из-за прекращения договора с оператором сотовой связи.
+                Установлен новый активный номер: ${activePhone}
+            </@compress>
+            ]]>
+        </text>
+        <key>DisconnectPhone.ABONENT_DISCONNECT</key>
+        <variables>disconnectedPhone, activePhone</variables>
+        <description>Отключение телефона, причина:  расторжение абонентом договора с ОСС</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Уважаемый клиент. От услуги Мобильный банка отключен номер телефона ${disconnectedPhone} из-за прекращения договора с оператором сотовой связи.
+                Установлен новый активный номер: ${activePhone}
+            </@compress>
+            ]]>
+        </text>
+        <key>DisconnectPhone.PHIZ_TRANSFER_MSISDN</key>
+        <variables>disconnectedPhone, activePhone</variables>
+        <description>Отключение телефона, причина:  смена владельца MSISDN c физ.лица на физ.лицо</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Уважаемый клиент. От услуги Мобильный банка отключен номер телефона ${disconnectedPhone} из-за прекращения договора с оператором сотовой связи.
+                Установлен новый активный номер: ${activePhone}
+            </@compress>
+            ]]>
+        </text>
+        <key>DisconnectPhone.JUR_TRANSFER_MSISDN</key>
+        <variables>disconnectedPhone, activePhone</variables>
+        <description>Отключение телефона, причина:  смена владельца MSISDN с физ. Лица на юр.лицо</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            <![CDATA[
+            <@compress single_line=true>
+                Услуга Мобильный банк предоставляется в ограниченном режиме (приостановлена отправка уведомлений по операциям по счетам и картам).
+                Для возобновления услуги в полном объёме, пожалуйста, пополните счёт Вашей карты.
+            </@compress>
+            ]]>
+        </text>
+        <key>com.rssl.phizic.business.ermb.writedown.NonPayedBlockInfo</key>
+        <variables></variables>
+        <description>SMS при блокировке Мобильного банка по неоплате</description>
+        <priority>3</priority>
+    </message>
+
+    <message>
+        <text>
+            Предоставление услуги Мобильный банк в полном объеме возобновлено.
+        </text>
+        <key>com.rssl.phizic.business.ermb.writedown.NonPayedUnblockInfo</key>
+        <variables></variables>
+        <description>SMS при разблокировке Мобильного банка по неоплате</description>
+        <priority>3</priority>
+    </message>
+
+</ermb-sms-texts>

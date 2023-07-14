@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="PurchaseCurrencyPayment" description="Покупка иностранной валюты"
+              detailedDescription="Покупка иностранной валюты за рубли"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.InternalTransfer"/>
+    <statemachine name="PaymentStateMachine"/>
+
+	<withdraw-options>
+	   <form name="RecallPayment"/>
+	   <check class="com.rssl.phizic.business.documents.metadata.checkers.DocumentStateChecker">
+		   <parameter name="state">dispatched</parameter>
+	   </check>
+	</withdraw-options>
+
+	<fields>
+    <field
+		    name="payerAccountSelect"
+		    description="Счет списания"
+		    type="account"
+		    source="payer-account"
+		    signable="true">
+      <validators>
+        <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+      </validators>
+    </field>
+
+    <field
+		    name="receiverAccountSelect"
+		    description="Счет зачисления"
+		    type="account"
+		    source="receiver-account"
+		    signable="true">
+      <validators>
+        <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+      </validators>
+    </field>
+
+    <field
+		    name="rurAmount"
+		    description="Сумма в рублях"
+		    source="amount"
+		    type="money"
+		    signable="true">
+      <validators>
+        <validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+          <message text="Значение суммы в рублях должно быть в диапазоне 0,01 - 999999999,99"/>
+          <parameter name="minValue">0.01</parameter>
+          <parameter name="maxValue">999999999.99</parameter>
+        </validator>
+      </validators>
+    </field>
+
+    <field
+		    name="foreignCurrencyAmount"
+		    description="Сумма в иностранной валюте"
+		    source="extra-parameters/parameter[@name='buy-amount']/@value"
+		    type="money"
+		    signable="true">
+
+      <validators>
+        <validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+          <message text="Значение суммы в иностранной валюте должно быть в диапазоне 0,01 - 999999999,99"/>
+          <parameter name="minValue">0.01</parameter>
+          <parameter name="maxValue">999999999.99</parameter>
+        </validator>
+      </validators>
+    </field>
+
+	<field
+			name="foreignCurrency"
+			description="Иностранная валюта"
+			source="extra-parameters/parameter[@name='buy-amount-currency']/@value"
+			type="string"
+			signable="true"/>
+
+	<field
+			name="rurCurrency"
+			description="RUB"
+			source="amount"
+			type="string"
+			signable="true"/>
+
+	<field
+			name="operationCode"
+			description="Код валютной операции"
+			source="extra-parameters/parameter[@name='operation-code']/@value"
+			type="string"
+			signable="true">
+		<validators>
+			<validator mode="document"
+			           enabled="(form.payerAccountSelect.toString().substring(0, 5) == '40807' || form.payerAccountSelect.toString().substring(0, 5) == '40820' || form.payerAccountSelect.toString().substring(0, 3) == '426' || form.receiverAccountSelect.toString().substring(0, 5) == '40807' || form.receiverAccountSelect.toString().substring(0, 5) == '40820' || form.receiverAccountSelect.toString().substring(0, 3) == '426') &amp;&amp; (((form.receiverAccountSelect.toString().substring(0, 5) == '40817' || form.receiverAccountSelect.toString().substring(0, 5) == '40819' || form.receiverAccountSelect.toString().substring(0, 5) == '40820' || form.receiverAccountSelect.toString().substring(0, 5) == '40813' || form.receiverAccountSelect.toString().substring(0, 5) == '40814' || form.receiverAccountSelect.toString().substring(0, 5) == '40815' || form.receiverAccountSelect.toString().substring(0, 3) == '426' || (form.receiverAccountSelect.toString().substring(0, 5) == '40818' &amp;&amp; (form.receiverAccountSelect.toString().substring(13, 15) == '14' || form.receiverAccountSelect.toString().substring(13, 15) == '15' || form.receiverAccountSelect.toString().substring(13, 15) == '16' || form.receiverAccountSelect.toString().substring(13, 15) == '17' || form.receiverAccountSelect.toString().substring(13, 15) == '18'))) &amp;&amp;  form.payerAccountSelect.toString().substring(0, 5) != '40817' &amp;&amp; form.payerAccountSelect.toString().substring(0, 3) != '423')) || ((form.payerAccountSelect.toString().substring(0,5) == '40820' || form.payerAccountSelect.toString().substring(0,3) == '426'))"
+			           class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+		</validators>
+	  </field>	  
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+		       type="string"/>
+
+  </fields>
+
+  <form-validators>
+	<form-validator
+			mode="document"
+			class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+	    <parameter name="amountMayBeNull">true</parameter>
+	    <field-ref name="account">payerAccountSelect</field-ref>
+	    <field-ref name="amount">rurAmount</field-ref>
+	</form-validator>
+
+    <form-validator
+		    mode="document"
+		    class="com.rssl.phizic.business.payments.forms.validators.OnlyOneAmountFieldRequiredValidator">
+		<message text="Не установлено значение суммы ни в одном из полей"/>
+    	<field-ref name="field_1">rurAmount</field-ref>
+    	<field-ref name="field_2">foreignCurrencyAmount</field-ref>
+    </form-validator>
+
+	<form-validator
+			mode="document"
+			class="com.rssl.phizic.business.payments.forms.validators.AccountsFromOneBranchValidator">
+		<message text="Счет зачисления должен быть открыт в том же филиале, что и счет списания"/>
+	    <field-ref name="fromAccount">payerAccountSelect</field-ref>
+	    <field-ref name="toAccount">receiverAccountSelect</field-ref>
+	</form-validator>
+  </form-validators>
+</payment-form>

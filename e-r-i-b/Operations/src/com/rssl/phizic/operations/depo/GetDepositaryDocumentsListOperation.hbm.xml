@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<sql-query name="com.rssl.phizic.operations.depo.GetDepositaryDocumentsListOperation.list">
+		<return alias="document"        class="com.rssl.phizic.business.documents.BusinessDocumentBase"/>
+	<![CDATA[
+			SELECT
+				{document.*}
+            FROM
+		        BUSINESS_DOCUMENTS  document
+                JOIN PAYMENTFORMS form ON form.ID = document.FORM_ID
+                JOIN DOCUMENT_EXTENDED_FIELDS fields ON
+                fields.PAYMENT_ID = document.ID
+                AND fields.NAME = 'depo-account'
+                AND fields.VALUE = (:depoAccount)
+            WHERE
+				document.LOGIN_ID = :loginId
+				AND document.CREATION_DATE >= :extra_fromDate
+				AND document.CREATION_DATE < :extra_toDate
+
+				AND (:extra_number IS NULL    OR :extra_number =''  OR document.DOC_NUMBER LIKE :extra_like_number)
+				AND (:extra_formName IS NULL  OR :extra_formName =''  OR upper(form.NAME) = upper(:extra_formName))
+				AND (:extra_state IS NULL     OR :extra_state = ''   OR  document.STATE_CODE in (:extra_state)
+				 OR  (document.STATE_CODE = 'INITIAL' AND :extra_state = 'SAVED' ) )
+                AND document.KIND IN ('W','U','V','X')
+                AND document.STATE_CODE NOT IN ('TEMPLATE', 'SAVED_TEMPLATE', 'DELETED')
+			ORDER BY document.CREATION_DATE DESC, document.CHANGED DESC
+    ]]>
+	</sql-query>
+
+</hibernate-mapping>

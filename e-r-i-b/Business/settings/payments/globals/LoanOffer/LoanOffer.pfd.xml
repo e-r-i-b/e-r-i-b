@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="LoanOffer" description="Заявка на предодобренный кредит"
+              detailedDescription="Заполните форму и нажмите на кнопку «Отправить заявку». После подтверждения заявки с Вами свяжется сотрудник банка."
+              confirmDescription="Заявка успешно отправлена в банк! В ближайшее время с Вами свяжется сотрудник банка. Спасибо, что Вы воспользовались «Сбербанк Онлайн»."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.LoanOfferClaim"/>
+	<statemachine name="LoanOfferMachine"/>
+
+    <fields>
+         <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true">
+		</field>
+
+		<field name="documentDate"
+               description="Дата документа"
+               type="date"
+               source="document-date"
+               signable="true"/>
+
+		<field name="state"
+               source="state"
+               description="Статус заявки"
+               type="string"/>
+
+		<field name="creditType"
+               description="Наименование кредита"
+               type="string"
+               source="extra-parameters/parameter[@name='type-of-credit']/@value"
+               signable="true">
+
+               <validators>
+                    <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+               </validators>
+        </field>
+
+        <field  name="passport-number"
+                source="extra-parameters/parameter[@name='passport-number']/@value"
+                description="номер паспорта"
+                type="string"/>
+
+        <field  name="passport-series"
+                source="extra-parameters/parameter[@name='passport-series']/@value"
+                description="серия паспорта"
+                type="string" />
+
+        <field name="tb"
+               description="ТБ"
+               source="extra-parameters/parameter[@name='tb']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='tbCode']"
+               signable="true"/>
+
+        <field
+                name="amount"
+                source="destination-amount"
+                description="Сумма"
+                type="money"
+                signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение должно быть указано без копеек в диапазоне от 1 до 99999999."/>
+					<parameter name="minValue">1</parameter>
+					<parameter name="maxValue">99999999</parameter>
+				</validator>
+                <validator class="com.rssl.common.forms.validators.RegexpMoneyFieldValidator">
+					<message text="Значение должно быть указано без копеек в диапазоне от 1 до 99999999."/>
+					<parameter name="regexp">^\d{1,8}$</parameter>
+				</validator>
+			</validators>
+        </field>
+
+        <field
+                name="exactAmount"
+                description="Сумма списания (зачисления)"
+                source="exact-amount"
+                type="string"
+                value="'destination-field-exact'">
+        </field>
+
+         <field name="loan"
+               description="Идентифкатор заявки"
+               type="string"
+               source="extra-parameters/parameter[@name='loan']/@value">
+             <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+         </field>
+
+        <field
+                name="currency"
+                source="destination-amount-currency"
+                description="Валюта"
+                type="string"
+                signable="true">
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field name="duration"
+               description="Срок"
+               type="long"
+               source="extra-parameters/parameter[@name='duration']/@value"
+               signable="true">
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="document" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message text="Укажите количество месяцев"/>
+                    <parameter name="regexp">^\d{1,3}$</parameter>
+                </validator>
+            </validators>
+        </field>
+
+		<field name="surName"
+               description="Фамилия"
+               type="string"
+               source="extra-parameters/parameter[@name='surName']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='surName']"
+               signable="true"/>
+
+		<field name="firstName"
+               description="Имя"
+               type="string"
+               source="extra-parameters/parameter[@name='firstName']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='firstName']"
+               signable="true"/>
+
+        <field name="patrName"
+               description="Отчество"
+               source="extra-parameters/parameter[@name='patrName']/@value"
+               value="xpath:phiz:document('currentPersonData.xml')//field[@name='patrName']"
+               signable="true"/>
+
+        <field name="homePhone"
+               description="Домашний телефон"
+               type="string"
+               source="extra-parameters/parameter[@name='homePhone']/@value"
+               toApi="4.0"
+               signable="true">
+               <validators>
+				    <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					    <message text="Укажите номер телефона – ровно 10 цифр. Например, 9115108989."/>
+					    <parameter name="regexp">^\d{10}$</parameter>
+				    </validator>
+               </validators>
+        </field>
+
+        <field name="workPhone"
+               description="Рабочий телефон"
+               type="string"
+               source="extra-parameters/parameter[@name='workPhone']/@value"
+               toApi="4.0"
+               signable="true">
+               <validators>
+				    <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					    <message text="Укажите номер телефона – ровно 10 цифр. Например, 9115108989."/>
+					    <parameter name="regexp">^\d{10}$</parameter>
+				    </validator>
+               </validators>
+        </field>
+
+        <field name="mobilePhone"
+               description="Мобильный телефон"
+               type="string"
+               source="extra-parameters/parameter[@name='mobilePhone']/@value"
+               fromApi="5.0"
+               signable="true"
+               category="phone"
+               inital="xpath:phiz:document('currentPersonData.xml')//field[(@name = 'mobilePhone' or @name = 'additionalPhone1') and text() != '']">
+               <validators>
+                    <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				    <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					    <message text="Укажите номер телефона – ровно 10 цифр. Например, 9115108989."/>
+					    <parameter name="regexp">^\d{10}$</parameter>
+				    </validator>
+               </validators>
+        </field>
+
+        <field name="mobilePhone"
+               description="Мобильный телефон"
+               type="string"
+               source="extra-parameters/parameter[@name='mobilePhone']/@value"
+               toApi="4.0"
+               signable="true">
+               <validators>
+				    <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					    <message text="Укажите номер телефона – ровно 10 цифр. Например, 9115108989."/>
+					    <parameter name="regexp">^\d{3}(\*|\d){3}\d{4}$</parameter>
+				    </validator>
+               </validators>
+        </field>
+
+        <field name="mobilePhone"
+               description="Мобильный телефон"
+               type="string"
+               source="extra-parameters/parameter[@name='mobilePhone']/@value"
+               fromApi="5.0"
+               signable="true"
+               category="phone"
+               inital="xpath:phiz:document('currentPersonData.xml')//field[@name = 'mobilePhone']">
+               <validators>
+                    <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				    <validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					    <message text="Укажите номер телефона – ровно 10 цифр. Например, 9115108989."/>
+					    <parameter name="regexp">^\d{3}(\*|\d){3}\d{4}$</parameter>
+				    </validator>
+               </validators>
+        </field>
+
+        <field name="email"
+               description="Адрес электронной почты"
+               type="string"
+               source="extra-parameters/parameter[@name='email']/@value"
+               toApi="4.0"
+               signable="true"/>
+
+        <field name="freeTime"
+               description="Желательная дата и время звонка от сотрудника банка"
+               type="string"
+               source="extra-parameters/parameter[@name='freeTime']/@value"
+               toApi="4.0"
+               signable="true">
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field name="hirer"
+               description="Работодатель"
+               type="string"
+               source="extra-parameters/parameter[@name='hirer']/@value"
+               fromApi="5.0"
+               signable="true">
+            <validators>
+                   <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field name="averageIncomePerMonth"
+               description="Средний доход в месяц"
+               type="money"
+               source="extra-parameters/parameter[@name='averageIncomePerMonth']/@value"
+               fromApi="5.0"
+               signable="true">
+            <validators>
+                   <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field name="getPaidOnAccount"
+               description="получаю зарплату на карту/счет в Сбербанке"
+               type="boolean"
+               source="extra-parameters/parameter[@name='getPaidOnAccount']/@value"
+               fromApi="5.0"
+               signable="true"/>
+    </fields>
+
+    <form-validators>
+    	<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.RequiredMultiFieldValidator">
+			    <message text="Необходимо указать хотя бы один телефон для связи с Вами"/>
+			    <field-ref name="ptr1">homePhone</field-ref>
+			    <field-ref name="ptr2">workPhone</field-ref>
+			    <field-ref name="ptr3">mobilePhone</field-ref>
+		</form-validator>
+    </form-validators>
+
+</payment-form>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<typedef name="DefaultSchemeType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.client.DefaultSchemeType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.schemes.DefaultAccessScheme" table="DEFAULT_ACCESS_SCHEMES">
+        
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEFAULT_ACCESS_SCHEMES</param>
+            </generator>
+		</id>
+
+        <property name="creationType"   type="DefaultSchemeType"  column="CREATION_TYPE"/>
+        <property name="departmentTb"   type="string" column="DEPARTMENT_TB" lazy="false"/>
+        <property name="accessSchemeId" type="long" column="SCHEME_ID" lazy="false"/>
+    </class>
+
+    <!--
+    Опорный объект: I_DEFAULT_ACCESS_SCHEMES
+    Предикат доступа: access("CREATION_TYPE"=:CREATIONTYPE AND NVL("DEPARTMENT_TB",'NULL')=:DEPARTMENTTB)
+    Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.schemes.DefaultAccessSchemeService.findSchemeByTypeAndDepartment">
+        <return alias="scheme" class="com.rssl.phizic.business.schemes.SharedAccessScheme"/>
+        SELECT {scheme.*}
+        FROM ACCESSSCHEMES scheme
+            JOIN DEFAULT_ACCESS_SCHEMES defaultSchemes ON scheme.ID = defaultSchemes.SCHEME_ID
+        WHERE defaultSchemes.CREATION_TYPE = :creationType AND NVL(defaultSchemes.DEPARTMENT_TB, 'NULL') = :departmentTb
+    </sql-query>
+
+</hibernate-mapping>

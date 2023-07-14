@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="OperationStateType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.auth.csa.back.servises.OperationState</param>
+	</typedef>
+    <typedef name="ConfirmType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.common.types.ConfirmStrategyType</param>
+	</typedef>
+
+    <class name="com.rssl.auth.csa.back.servises.GuestOperation" table="GUEST_OPERATIONS" abstract="true">
+        <id name="ouid" type="string" column="OUID">
+            <generator class="com.rssl.phizic.dataaccess.hibernate.GUIDGenerator"/>
+        </id>
+
+        <discriminator column="TYPE" type="string"/>
+        <property name="creationDate"   type="calendar"             formula="CREATION_DATE" not-null="true" generated="insert"/>
+        <property name="state"          type="OperationStateType"   column="STATE"          not-null="true"/>
+        <property name="info"           type="text"                 column="INFO"           not-null="false"/>
+        <property name="ipAddress"      type="string"               column="IP_ADDRESS"     not-null="false"/>
+        <property name="phone"          type="string"               column="PHONE"          not-null="false"/>
+        <property name="parameters"     type="text"                 column="PARAMS"         not-null="false"/>
+    </class>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.guest.GuestPhoneAuthenticationOperation"
+              extends="com.rssl.auth.csa.back.servises.GuestOperation"
+              discriminator-value="GuestPhoneAuthenticationOperation">
+        <property name="authErrors"     type="long"     column="AUTH_ERRORS"            not-null="false"/>
+        <property name="password"       type="string"   column="AUTH_CODE"              not-null="false"/>
+    </subclass>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.guest.GuestLogonOperation" abstract="true"
+              extends="com.rssl.auth.csa.back.servises.GuestOperation">
+    </subclass>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.guest.PhoneGuestLogonOperation"
+              extends="com.rssl.auth.csa.back.servises.operations.guest.GuestLogonOperation"
+              discriminator-value="PhoneGuestLogonOperation">
+    </subclass>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.guest.LoginGuestLogonOperation"
+              extends="com.rssl.auth.csa.back.servises.operations.guest.GuestLogonOperation"
+              discriminator-value="LoginGuestLogonOperation">
+    </subclass>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.guest.GuestRegistrationOperation"
+              extends="com.rssl.auth.csa.back.servises.GuestOperation"
+              discriminator-value="GuestRegistrationOperation">
+    </subclass>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.guest.GuestLoginAuthenticationOperation"
+              extends="com.rssl.auth.csa.back.servises.GuestOperation"
+              discriminator-value="GuestLoginAuthenticationOperation">
+    </subclass>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.guest.GuestConfirmableOperation" abstract="true"
+              extends="com.rssl.auth.csa.back.servises.GuestOperation">
+        <property name="authErrors"     type="long"     column="AUTH_ERRORS"            not-null="false"/>
+        <property name="password"       type="string"   column="AUTH_CODE"              not-null="false"/>
+    </subclass>
+
+    <subclass name="com.rssl.auth.csa.back.servises.operations.guest.GuestRestorePasswordOperation"
+              extends="com.rssl.auth.csa.back.servises.operations.guest.GuestConfirmableOperation"
+              discriminator-value="GuestRestorePasswordOperation">
+    </subclass>
+
+</hibernate-mapping>

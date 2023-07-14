@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.resources.external.IMAccountLink" table="IMACCOUNT_LINKS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_IMACCOUNT_LINKS</param>
+            </generator>
+        </id>
+
+        <property    name="externalId"   column="EXTERNAL_ID"/>
+        <property name="loginId" type="long" not-null="true" column="LOGIN_ID" />
+        <property name="currency" type="currency" column="CURRENCY" not-null="false"/>
+        <property    name="number"       column="IMACCOUNT_NUMBER" type="string"  not-null="true"/>
+        <property    name="name"         column="IMACCOUNT_NAME"   type="string"  not-null="false"/>
+        <property    name="showInMain"   column="SHOW_IN_MAIN"     type="boolean"  not-null="true"/>
+        <property    name="showInSystem" column="SHOW_IN_SYSTEM"   type="boolean"  not-null="true"/>
+        <property    name="showInMobile" column="SHOW_IN_MOBILE"   type="boolean"  not-null="true"/>
+        <property name="showInSocial"   type="boolean"  not-null="true"  column="SHOW_IN_SOCIAL"/>
+        <property name="showOperations"  column="SHOW_OPERATIONS"  type="boolean"  not-null="true"/>
+        <property name="showInATM"       column="SHOW_IN_ATM"      type="boolean"  not-null="true"  />
+        <property name="positionNumber"  column="POSITION_NUMBER"  type="integer"  not-null="false" />
+    </class>
+    
+    <query name="com.rssl.phizic.business.resources.external.IMAccountLink.list">
+        select link
+        from   com.rssl.phizic.business.resources.external.IMAccountLink link
+        where  link.loginId = :login
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.IMAccountLink.list.inSystem">
+        select link
+        from   com.rssl.phizic.business.resources.external.IMAccountLink link
+        where  link.loginId = :login  and link.showInSystem = true
+        order by positionNumber
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.IMAccountLink.list.inMobile">
+        select link
+        from   com.rssl.phizic.business.resources.external.IMAccountLink link
+        where  link.loginId = :login  and link.showInMobile = true
+    </query>
+
+    <!--
+        Опорный объект: DXREFERENCE_6
+        Предикаты доступа: INDEX RANGE SCAN
+        Кардинальность: Количество линков клиента
+    -->
+    <query name="com.rssl.phizic.business.resources.external.IMAccountLink.list.inSocial">
+        select link
+        from   com.rssl.phizic.business.resources.external.IMAccountLink link
+        where  link.loginId = :login  and link.showInSocial = true
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.IMAccountLink.list.inATM">
+        select link
+        from   com.rssl.phizic.business.resources.external.IMAccountLink link
+        where  link.loginId = :login and link.showInATM = true
+    </query>
+
+    <query name="com.rssl.phizic.business.resources.external.IMAccountLink.findIMAccountLinkByLoginAndNumber">
+        select link
+        from   com.rssl.phizic.business.resources.external.IMAccountLink link
+        where  link.number = :number
+        and    link.loginId = :login
+    </query>
+
+ </hibernate-mapping>

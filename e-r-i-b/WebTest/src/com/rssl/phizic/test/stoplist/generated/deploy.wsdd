@@ -1,0 +1,45 @@
+<!-- Use this file to deploy some handlers/chains and services      -->
+<!-- Two ways to do this:                                           -->
+<!--   java org.apache.axis.client.AdminClient deploy.wsdd          -->
+<!--      after the axis server is running                          -->
+<!-- or                                                             -->
+<!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   -->
+<!--      from the same directory that the Axis engine runs         -->
+
+<deployment
+    xmlns="http://xml.apache.org/axis/wsdd/"
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from FLSearchService WSDL service -->
+
+  <service name="FLSearchServiceSoap" provider="java:RPC" style="document" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://tempuri.org/"/>
+      <parameter name="wsdlServiceElement" value="FLSearchService"/>
+      <parameter name="schemaQualified" value="http://search.sbrf.ru"/>
+      <parameter name="wsdlServicePort" value="FLSearchServiceSoap"/>
+      <parameter name="className" value="com.rssl.phizic.test.stoplist.generated.FLSearchServiceSoap_BindingImpl"/>
+      <parameter name="wsdlPortType" value="FLSearchServiceSoap"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="searchFL" qname="searchFL" returnQName="retNS:searchFLResponse" xmlns:retNS="http://search.sbrf.ru" returnType="rtns:>searchFLResponse" xmlns:rtns="http://search.sbrf.ru" soapAction="" >
+        <parameter qname="pns:searchFL" xmlns:pns="http://search.sbrf.ru" type="tns:>searchFL" xmlns:tns="http://search.sbrf.ru"/>
+      </operation>
+      <parameter name="allowedMethods" value="searchFL"/>
+
+      <typeMapping
+        xmlns:ns="http://search.sbrf.ru"
+        qname="ns:>searchFLResponse"
+        type="java:com.rssl.phizic.test.stoplist.generated.SearchFLResponse"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+      <typeMapping
+        xmlns:ns="http://search.sbrf.ru"
+        qname="ns:>searchFL"
+        type="java:com.rssl.phizic.test.stoplist.generated.SearchFL"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle=""
+      />
+  </service>
+</deployment>

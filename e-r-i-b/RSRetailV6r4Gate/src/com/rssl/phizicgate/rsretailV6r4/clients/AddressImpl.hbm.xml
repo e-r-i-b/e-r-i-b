@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.rssl.phizicgate.rsretailV6r4.clients" catalog="RSBankV50">
+	<class name="com.rssl.phizicgate.rsretailV6r4.clients.AddressImpl">
+		<id name="id"/>
+
+		<property name="postalCode"/>
+		<property name="province"/>
+		<property name="district"/>
+		<property name="city"/>
+		<property name="street"/>
+		<property name="house"/>
+		<property name="building"/>
+		<property name="flat"/>
+		<property name="homePhone"/>
+		<property name="workPhone"/>
+		<property name="mobilePhone"/>
+	</class>
+
+	<sql-query name="GetClientAddress">
+		<return alias="address" class="com.rssl.phizicgate.rsretailV6r4.clients.AddressImpl">
+			<return-property name="id"         column="id"/>
+			<return-property name="postalCode" column="postalCode"/>
+			<return-property name="province"   column="province"/>
+			<return-property name="district"   column="district"/>
+			<return-property name="city"       column="city"/>
+			<return-property name="street"     column="street"/>
+			<return-property name="house"      column="house"/>
+			<return-property name="building"   column="building"/>
+			<return-property name="flat"       column="flat"/>
+			<return-property name="homePhone"  column="homePhone"/>
+			<return-property name="workPhone"  column="workPhone"/>
+			<return-property name="mobilePhone" column="mobilePhone"/>
+		</return>
+		SELECT
+            addressInt.T_PARTYID + addressInt.T_TYPE AS id
+            ,REPLACE(addressInt.t_postindex, CHR(1), '')    AS postalCode
+            ,REPLACE(addressInt.t_province, CHR(1), '')     AS province
+            ,REPLACE(addressInt.t_district, CHR(1), '')     AS district
+            ,REPLACE(addressInt.t_place, CHR(1), '')        AS city
+            ,REPLACE(addressInt.t_street, CHR(1), '')       AS street
+            ,REPLACE(addressInt.t_house, CHR(1), '')        AS house
+            ,REPLACE(addressInt.t_numcorps, CHR(1), '')     AS building
+            ,REPLACE(addressInt.t_flat, CHR(1), '')         AS flat
+            ,REPLACE(addressInt.t_phonenumber, CHR(1), '')  AS homePhone
+            ,REPLACE(addressInt.t_phonenumber2, CHR(1), '') AS workPhone
+            ,REPLACE(addressInt.T_fax, CHR(1), '')          AS mobilePhone
+		FROM dadress_dbt addressInt
+		where addressInt.T_PARTYID = :personId
+			and addressInt.T_TYPE = :addrType
+	</sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.email.EmailResource" table="EMAIL_RESOURCES" abstract="true">
+        <id name="id" column="ID">
+            <generator class="native">
+                <param name="sequence">S_EMAIL_RESOURCES</param>
+            </generator>
+        </id>
+
+        <property name="key"               column="KEY"                 type="string" not-null="true"/>
+        <property name="description"       column="DESCRIPTION"         type="string"/>
+        <property name="theme"             column="THEME"               type="string"/>
+        <property name="plainText"         column="PLAIN_TEXT"          type="string"/>
+        <property name="htmlText"          column="HTML_TEXT"           type="string"/>
+        <property name="lastModified"      column="LAST_MODIFIED"       type="calendar"/>
+        <property name="variables"         column="VARIABLES"           type="string"/>
+        <property name="previousPlainText" column="PREVIOUS_PLAIN_TEXT" type="string"/>
+        <property name="previousHtmlText"  column="PREVIOUS_HTML_TEXT" type="string"/>
+        <property name="employeeLoginId"   column="EMPLOYEE_LOGIN_ID"   type="long"/>
+    </class>
+
+     <query name="com.rssl.phizic.business.email.getMessage">
+        select emailResource.htmlText from com.rssl.phizic.business.email.EmailResource emailResource
+        where emailResource.key = :externalKey
+    </query>
+
+</hibernate-mapping>

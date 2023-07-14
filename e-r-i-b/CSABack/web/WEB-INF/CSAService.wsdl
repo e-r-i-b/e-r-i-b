@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="AuthService"
+                  targetNamespace="http://tempuri.org/"
+                  xmlns:tns="http://tempuri.org/"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/">
+        <xsd:element name="XmlInputString" type="xsd:string"/>
+        <xsd:element name="XmlOutputString" type="xsd:string"/>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="processIn">
+     <wsdl:part element="tns:XmlInputString" name="request"/>
+  </wsdl:message>
+  <wsdl:message name="processOut">
+     <wsdl:part element="tns:XmlOutputString" name="response"/>
+  </wsdl:message>
+  <wsdl:portType name="AuthServicePortType">
+    <wsdl:operation name="process">
+      <wsdl:input message="tns:processIn"/>
+      <wsdl:output message="tns:processOut"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="AuthServiceSoapBinding" type="tns:AuthServicePortType">
+   <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="process">
+      <soap:operation soapAction="http://tempuri.org/AuthService/process"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="AuthService">
+    <wsdl:port name="AuthServicePort" binding="tns:AuthServiceSoapBinding">
+      <soap:address location="http://tempuri.org/AuthService/AuthServicePort"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

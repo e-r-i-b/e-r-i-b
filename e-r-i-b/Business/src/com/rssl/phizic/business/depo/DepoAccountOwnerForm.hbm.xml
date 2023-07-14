@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+   <class name="com.rssl.phizic.business.depo.DepoAccountOwnerFormImpl"  table="DEPO_ACCOUNT_OWNER_FORM" >
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPO_ACCOUNT_OWNER_FORM </param>
+            </generator>
+        </id>
+        <property name="depoAccountNumber"     type="string" column="DEPO_ACC_NUMBER" not-null="true"/>
+        <property name="loginId"               type="long"   column="LOGIN_ID"        not-null="true"/>
+
+       <property name="INN"            type="string"     not-null="false"   column="INN"/>
+        <property name="surName"        type="string"     not-null="true"   column="SUR_NAME"/>
+        <property name="firstName"      type="string"     not-null="true"   column="FIRST_NAME"/>
+        <property name="partName"       type="string"     not-null="false"  column="PATR_NAME "/>
+        <property name="birthday"       type="calendar"   not-null="true"   column="BIRTHDAY"/>
+        <property name="birthPlace"     type="string"     not-null="true"   column="BIRTH_PLACE"/>
+        <property name="idType"         type="string"     not-null="true"   column="ID_TYPE"/>
+        <property name="idSeries"       type="string"     not-null="false"  column="ID_SERIES"/>
+        <property name="idNum"          type="string"     not-null="true"   column="ID_NUM"/>
+        <property name="idIssueDate"    type="calendar"   not-null="false"  column="ISSUE_DATE"/>
+        <property name="idExpDate"      type="calendar"   not-null="false"  column="EXP_DATE"/>
+        <property name="idIssuedBy"     type="string"     not-null="false"  column="ISSUED_BY"/>
+        <property name="idIssuedCode"   type="string"     not-null="false"  column="ISSUED_CODE"/>
+        <property name="citizenship"    type="string"     not-null="true"   column="CITIZENSHIP"/>
+        <property name="additionalInfo" type="string"     not-null="false"  column="ADDITIONAL_INF"/>
+       
+        <many-to-one name="registrationAddress"     class="com.rssl.phizic.person.Address" column="REGISTRATION_ADDRESS"  cascade="all" lazy="false" not-null="false"/>
+        <many-to-one name="residenceAddress"        class="com.rssl.phizic.person.Address" column="RESIDENCE_ADDRESS"     cascade="all" lazy="false" not-null="false"/>
+        <many-to-one name="forPensionAddress"       class="com.rssl.phizic.person.Address" column="FOR_PENSION_ADDRESS"   cascade="all" lazy="false" not-null="false"/>
+        <many-to-one name="mailAddress"             class="com.rssl.phizic.person.Address" column="MAIL_ADDRESS"          cascade="all" lazy="false" not-null="false"/>
+        <many-to-one name="workAddress"             class="com.rssl.phizic.person.Address" column="WORK_ADDRESS"          cascade="all" lazy="false" not-null="false"/>
+
+       <property name="regAddressCountry"        type="string"     not-null="false"  column="REG_ADDR_COUNTRY"/>
+       <property name="resAddressCountry"        type="string"     not-null="false"  column="RES_ADDR_COUNTRY"/>
+       <property name="forPensionAddressCountry" type="string"     not-null="false"  column="FOR_PENSION_ADDR_COUNTRY"/>
+       <property name="mailAddressCountry"       type="string"     not-null="false"  column="MAIL_ADDR_COUNTRY"/>
+       <property name="workAddressCountry"       type="string"     not-null="false"  column="WORK_ADDR_COUNTRY"/>
+
+        <property name="homeTel"        type="string"     not-null="false"  column="HOME_TEL"/>
+        <property name="workTel"        type="string"     not-null="false"  column="WORK_TEL"/>
+        <property name="mobileTel"      type="string"     not-null="false"  column="MOBILE_TEL"/>
+        <property name="workEmail"      type="string"     not-null="false"  column="WORK_EMAIL"/>
+        <property name="privateEmail"   type="string"     not-null="false"  column="PRIVATE_EMAIL"/>
+        <property name="fax"            type="string"     not-null="false"  column="FAX"/>
+        <property name="phoneOperator"  type="string"     not-null="false"  column="PHONE_OPERATOR"/>
+
+        <property name="recIncomeMethod"        type="string"       column="REC_INCOME_METHOD"/>
+        <property name="recInstryctionMethod"   type="string"       column="REC_INSTRUCTION_METHOD"/>
+        <property name="recInfoMethod"          type="string"       column="REC_INFO_METHOD"/>
+        <property name="startDate"              type="calendar"     not-null="false" column="START_DATE"/>
+        <property name="lastUpdateDate"         type="calendar"     not-null="true"  column="LAST_UPDATE_DATE"/>
+
+        <set name="depositorAccounts" table="DEPOSITOR_ACCOUNT" lazy="false" cascade="all-delete-orphan">
+			<key column="DEPOSITOR_ID" not-null="true"/>
+			<one-to-many class="com.rssl.phizic.business.depo.DepositorAccountImpl"/>
+		</set>
+
+    </class>
+
+    <query name="com.rssl.phizic.business.depo.DepoAccountOwnerFormService.findByAccNumberAndLoginId">
+        select form
+        from DepoAccountOwnerFormImpl form
+        where form.depoAccountNumber = :accountNumber and form.loginId = :loginId
+    </query>
+
+    <query name="com.rssl.phizic.business.depo.DepoAccountOwnerFormService.deleteByAccNumberAndLoginId">
+        delete from DepoAccountOwnerFormImpl form
+        where form.depoAccountNumber = :accountNumber and form.loginId = :loginId
+    </query>
+
+</hibernate-mapping>

@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="AccountClosingPayment" description="Закрытие вклада"
+              detailedDescription="Для того чтобы закрыть вклад, выберите из выпадающего списка вклад и нажмите на кнопку «Закрыть»."
+              confirmDescription=" Ваш вклад закрыт!"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.AccountClosingPayment"/>
+	<statemachine name="OnLinePaymentStateMachine"/>
+    <extended-metadata-loader class="com.rssl.phizic.business.documents.metadata.SimpleExtendedMetadataLoader"/>
+
+	<fields>
+        <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true">
+		</field>
+        
+        <field name="documentDate"
+			   description="Дата документа"
+			   type="date"
+			   source="document-date"
+			   signable="true">
+        </field>
+
+        <field
+				name="closingDate"
+				description="Дата закрытия вклада"
+				type="string"
+				source="extra-parameters/parameter[@name='closing-date']/@value"
+				signable="true">
+        </field>
+
+        <field name="operationDate"
+               source="operation-date"
+               description="Дата операции"
+               type="string"/>
+
+        <field name="operationTime"
+               source="operation-time"
+               description="Время отправки платежа"
+               type="string"/>
+
+        <field name="course"
+               description="Курс конверсии"
+               source="extra-parameters/parameter[@name='convertion-rate']/@value"
+               type="string"/>
+
+        <field name="premierShowMsg"
+               description="Отображаеть сообщение о тарифе Сбербанк Премьер"
+               type="string"
+               source="extra-parameters/parameter[@name='premier-show-msg']/@value"/>
+
+        <field name="standartCourse"
+                description="Обычный курс коверсии"
+                type="string"
+                source="extra-parameters/parameter[@name='standart-convertion-rate']/@value">
+        </field>
+
+        <field name="courseChanged"
+               description="изменился ли курс конверсии"
+               source="extra-parameters/parameter[@name='recalculated-amount-changed']/@value"
+               type="string"/>
+        
+        <field name="recalculatedAmountChanged"
+               source="extra-parameters/parameter[@name='recalculated-amount-changed']/@value"
+               description="Изменилась ли пересчитываемая сумма"
+               type="string"/>
+
+        <field name="fromResource"
+               source="extra-parameters/parameter[@name='from-resource']/@value"
+               description="Источник списания средств: вклад"
+               type="resource">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator">
+                    <message text="Выберите вклад, который хотите закрыть"/>
+                </validator>
+            </validators>
+        </field>
+
+        <field
+                name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: вклад"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+        <field name="fromResourceCode"
+               source="extra-parameters/parameter[@name='from-resource-code']/@value"
+               description="Код источника списания средств"
+               type="string">
+        </field>
+
+        <field name="amount"
+               source="amount"
+               description="Сумма списания"
+               type="string"
+               signable="true">
+        </field>
+
+        <field name="fromResourceCurrency"
+               source="amount-currency"
+               description="Валюта вклада списания"
+               type="string"
+               signable="true"
+               value="form.fromResource==null?null:form.fromResource.getCurrency().getCode()">
+        </field>
+
+        <field name="fromAccountSelect"
+               description="Счет списания"
+               type="string"
+               source="payer-account"
+               signable="true"
+               value="form.fromResource==null?null:form.fromResource.getNumber()">
+		</field>
+
+        <field name="fromAccountName"
+               source="payer-name"
+               description="Название вклада"
+               type="string"
+               signable="true"
+               value="form.fromResource==null?null:form.fromResource.getName()">
+        </field>
+        
+        <field name="toResource"
+               source="extra-parameters/parameter[@name='to-resource']/@value"
+               description="Источник списания средств: вклад"
+               type="resource">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.amount != 0.00">
+                    <message text="Выберите Ваш вклад или карту, на которую Вы хотите перевести остаток средств"/>
+                </validator>
+            </validators>
+        </field>
+
+        <field name="toResourceType"
+               source="extra-parameters/parameter[@name='to-resource-type']/@value"
+               description="Тип источника зачисления средств: счет, карта"
+               type="string"
+               value="form.toResource==null?null:form.toResource.getClass().getName()">
+        </field>
+
+        <field  name="toResourceLink"
+                description="Ссылка на ресурс зачисления"
+                type="string"
+                source="extra-parameters/parameter[@name='to-resource-link']/@value"
+                value="form.toResource==null?null:form.toResource.getCode()">
+        </field>
+
+        <field name="toAccountSelect"
+               description="Счет зачисления"
+               type="string"
+               source="receiver-account"
+               signable="true"
+               value="form.toResource==null?null:form.toResource.getNumber()">
+		</field>
+
+        <field name="toAccountName"
+               description="Название счёта зачисления"
+               type="string"
+               source="receiver-name"
+               signable="true"
+               value="form.toResource==null?null:form.toResource.getName()">
+		</field>
+        
+        <field name="destinationAmount"
+               type="string"
+               source="destination-amount"
+               description="Сумма зачисления">
+        </field>
+        
+        <field name="toResourceCurrency"
+               type="string"
+               source="destination-amount-currency"
+               description="Сумма зачисления"
+               value="form.toResource==null?null:form.toResource.getCurrency().getCode()">
+        </field>
+
+        <field
+                name="operationCode"
+                source="extra-parameters/parameter[@name='operation-code']/@value"
+                description="Код валютной операции"
+                value="((form.toAccountSelect != null &amp;&amp; (form.toAccountSelect.substring(0,5) == '40820' || form.toAccountSelect.substring(0,3) == '426')) || (form.fromAccountSelect != null &amp;&amp; (form.fromAccountSelect.substring(0,5) == '40820' || form.fromAccountSelect.substring(0,3) == '426'))) ? '{VO99090}' : ''"/>
+
+        <field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+        <field
+                name="ground"
+                description="Назначение платежа"
+                source="ground"
+                type="string"
+                signable="true"
+                value="(form.operationCode!=null &amp;&amp; form.operationCode!='') ? form.operationCode : 'Закрытие вклада путем перевода'"/>
+
+        <field name="tarifPlanCodeType"
+               description="Тарифный план валюты"
+               source="extra-parameters/parameter[@name='tarif-plan-code-type']/@value"
+               type="string"
+               value="xpath:phiz:document('currentPerson.xml')//field[@name='tarifPlanCodeType']"/>
+
+        <field name="clientTargetName"
+               type="string"
+               source="extra-parameters/parameter[@name='client-target-name']/@value"
+               description="Название цели клиента"/>
+
+        <field name="clientTargetNameComment"
+               type="string"
+               source="extra-parameters/parameter[@name='client-target-comment']/@value"
+               description="Комментарий к цели клиента"/>
+
+        <field name="clientTargetDate"
+               type="string"
+               source="extra-parameters/parameter[@name='client-target-date']/@value"
+               description="Дата достижения цели клиента"/>
+
+        <field name="clientTargetAmount"
+               type="string"
+               source="extra-parameters/parameter[@name='client-target-amount']/@value"
+               description="Сумма цели клиента"/>
+
+        <field
+                name="fromPersonalFinance"
+                description="Идентификатор портфеля из ПФП"
+                source="extra-parameters/parameter[@name='from-personal-finance']/@value"
+                type="boolean"/>
+
+    </fields>
+
+    <form-validators>
+        <form-validator mode="document" class="com.rssl.phizic.business.payments.forms.validators.AccountsNotEqualValidator">
+            <message text="Вы указали один и тот же номер счета для списания и зачисления средств. Пожалуйста, проверьте номер счета списания и номер счета зачисления. Они должны быть различны."/>
+			<field-ref name="fromAccount">fromAccountSelect</field-ref>
+			<field-ref name="toAccount">toAccountSelect</field-ref>
+		</form-validator>
+
+    </form-validators>
+</payment-form>

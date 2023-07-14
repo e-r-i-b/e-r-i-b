@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="AccountOpeningClaimWithClose" description="Открытие вклада (закрыть счет списания)"
+              detailedDescription="Заполните форму и нажмите на кнопку «Открыть»."
+              confirmDescription="Вы открыли вклад в Сбербанке России! Для того чтобы получить экземпляр «Условий по размещению денежных средств», обратитесь в ближайшее отделение банка."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+
+	<implementation class="com.rssl.phizic.business.documents.AccountOpeningClaim"/>
+	<statemachine name="PaymentStateMachine"/>
+    <extended-metadata-loader class="com.rssl.phizic.business.documents.metadata.SimpleExtendedMetadataLoader"/>
+
+	<fields>
+        <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true">
+		</field>
+
+        <field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+        </field>
+
+        <field
+				name="openDate"
+				description="Дата документа"
+				type="string"
+				source="extra-parameters/parameter[@name='open-date']/@value"
+				signable="true">
+        </field>
+
+		<field name="operationDate"
+               source="operation-date-short-year"
+               description="Дата отправки платежа"
+               type="string"/>
+
+        <field name="operationTime"
+			source="operation-time"
+			description="Время отправки платежа"
+			type="string"/>
+
+        <field
+                name="needInitialFee"
+                description="Признак, определяющий требуется ли первоначальный взнос для вклада"
+                source="extra-parameters/parameter[@name='need-initial-fee']/@value"
+                type="boolean"/>
+
+        <field
+                name="withMinimumBalance"
+                description="Признак, определяющий есть ли неснижаемый остаток у данного вида вклада"
+                source="extra-parameters/parameter[@name='with-minimum-balance']/@value"
+                type="boolean"/>
+
+        <field
+                name="isPension"
+                description="Признак, определяющий, является ли пенсионером текущий пользователь"
+                source="extra-parameters/parameter[@name='pension']/@value"
+                type="boolean"/>
+
+		<field
+                name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Источник списания средств: счет, карта"
+                type="resource">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                        enabled="form.needInitialFee == true">
+                    <message text="Выберите из списка вклад, который хотите закрыть."/>
+                </validator>
+            </validators>
+        </field>
+
+		<field
+                name="fromAccountSelect"
+                description="Счет/карта списания"
+                type="string"
+                source="payer-account"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getNumber()">
+		</field>
+
+        <field
+                name="percentTransferSourceRadio"
+                description="Порядок уплаты процентов"
+                source="extra-parameters/parameter[@name='percentTransfer-source']/@value"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="percentTransferCardSource"
+                description="Карта для зачисления процентов по вкладу"
+                type="string"
+                source="extra-parameters/parameter[@name='percentCard-source']/@value"
+                signable="true">
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                        enabled="form.percentTransferSourceRadio == 'card'">
+                    <message text="Укажите, пожалуйста, карту для перечисления процентов."/>
+                </validator>
+                <validator class="com.rssl.phizic.business.payments.forms.validators.UserResourceValidator"
+                        enabled="form.percentTransferSourceRadio == 'card'">
+                    <message text="Укажите, пожалуйста, свою карту для перечисления процентов."/>
+                </validator>
+            </validators>
+        </field>
+
+        <field
+                name="percentTransferCardNumber"
+                description="Карта для зачисления процентов по вкладу"
+                type="string"
+                source="extra-parameters/parameter[@name='percentCard-number']/@value"
+                signable="true">
+        </field>
+
+        <field
+                name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+   		<field
+				name="receiverAccountSelect"
+				description="Счет получателя"
+				type="string"
+				source="receiver-account"
+				signable="true">
+		</field>
+
+        <field
+                name="fromResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                type="string"
+                value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+                signable="true"/>
+
+        <field
+                name="fromAccountName"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                description="Наименование источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getName()">
+        </field>
+
+         <field
+                name="depositAccount"
+                description="Номер открытого счета"
+                source="extra-parameters/parameter[@name='deposit-account']/@value"
+                type="string"
+                signable="true"/>
+
+        <field
+                name="toResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='to-resource-currency']/@value"
+                type="string"
+                signable="true"/>
+
+        <field
+                name="minDepositBalance"
+                description="Минимальная сумма остатка"
+                source="extra-parameters/parameter[@name='min-deposit-balance']/@value"
+                type="money"
+                signable="true"/>
+
+        <field
+                name="closingDate"
+                description="Дата окончания срока вклада"
+                source="extra-parameters/parameter[@name='closing-date']/@value"
+                type="string">
+
+                <validators>
+                    <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                            enabled="form.needInitialFee == true">
+                        <message text="Укажите, пожалуйста, дату окончания срока вклада."/>
+                    </validator>
+                </validators>
+        </field>
+
+        <field
+                name="periodDays"
+                description="Срок вклада в днях"
+                source="extra-parameters/parameter[@name='period-days']/@value"
+                type="string"
+                signable="true">
+
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                        enabled="form.needInitialFee == true">
+                    <message text="Укажите, пожалуйста, срок вклада."/>
+                </validator>
+            </validators>
+        </field>
+
+        <field
+                name="periodMonths"
+                description="Срок вклада в месяцах"
+                source="extra-parameters/parameter[@name='period-months']/@value"
+                type="string"
+                signable="true">
+
+                <validators>
+                    <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                            enabled="form.needInitialFee == true">
+                        <message text="Укажите, пожалуйста, дату окончания срока вклада."/>
+                    </validator>
+                </validators>
+        </field>
+
+        <field
+                name="periodYears"
+                description="Срок вклада в годах"
+                source="extra-parameters/parameter[@name='period-years']/@value"
+                type="string"
+                signable="true">
+
+                <validators>
+                    <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                            enabled="form.needInitialFee == true">
+                        <message text="Укажите, пожалуйста, дату окончания срока вклада."/>
+                    </validator>
+                </validators>
+        </field>
+
+        <field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+        <field
+                name="interestRate"
+                description="Процентная ставка"
+                source="extra-parameters/parameter[@name='interest-rate']/@value"
+                type="string">
+
+                <validators>
+                    <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                            enabled="form.needInitialFee == true &amp;&amp; (form.state == 'SAVED' || form.withMinimumBalance == true)">
+                        <message text="Невозможно рассчитать процентную ставку вклада. Введенные условия вклада некорректны."/>
+                    </validator>
+                </validators>
+
+        </field>
+        <field
+                name="authorizeCode"
+                description="Код авторизации"
+                type="string"
+                source="extra-parameters/parameter[@name='AUTHORIZE_CODE']/@value">
+        </field>
+
+        <field
+                name="exactAmount"
+                description="«Сумма» («Сумма зачисления»)"
+                source="exact-amount"
+                type="string"
+                value="'charge-off-field-exact'">
+
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                        enabled="form.needInitialFee == true"/>
+            </validators>
+        </field>
+
+         <field
+                name="course"
+                description="Курс конверсии"
+                source="extra-parameters/parameter[@name='convertion-rate']/@value"
+                type="string"/>
+
+        <field name="premierShowMsg"
+               description="Отображаеть сообщение о тарифе Сбербанк Премьер"
+               type="string"
+               source="extra-parameters/parameter[@name='premier-show-msg']/@value"/>
+
+        <field name="standartCourse"
+                description="Обычный курс конверсии"
+                type="string"
+                source="extra-parameters/parameter[@name='standart-convertion-rate']/@value"/>
+
+        <field
+                name="courseChanged"
+                description="изменился ли курс конверсии"
+                source="extra-parameters/parameter[@name='recalculated-amount-changed']/@value"
+                type="string"/>
+
+        <field
+                name="depositId"
+                description="Название вида вклада"
+                source="extra-parameters/parameter[@name='deposit-id']/@value"
+                type="string"
+                signable="true"/>
+
+         <field
+                name="depositName"
+                description="Название вклада"
+                source="extra-parameters/parameter[@name='deposit-name']/@value"
+                type="string"
+                signable="true"/>
+
+        <field
+                name="depositType"
+                description="Вид вклада"
+                source="extra-parameters/parameter[@name='deposit-type']/@value"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="depositGroup"
+                description="Группа вклада"
+                source="extra-parameters/parameter[@name='deposit-group']/@value"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="loginCardHash"
+                description="Хешированный номер карты входа"
+                source="extra-parameters/parameter[@name='login-card-hash']/@value"
+                type="string"
+                signable="true"/>
+
+        <field
+                name="depositSubType"
+                description="Подвид вклада"
+                source="extra-parameters/parameter[@name='deposit-sub-type']/@value"
+                type="string"
+                signable="true">
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RequiredFieldValidator"
+                        enabled="form.needInitialFee == true">
+                    <message text="Невозможно рассчитать процентную ставку вклада. Введенные условия вклада некорректны."/>
+                </validator>
+            </validators>
+        </field>
+
+        <field
+                name="minAdditionalFee"
+                description="Минимальный доп. взнос"
+                source="extra-parameters/parameter[@name='min-additional-fee']/@value"
+                type="string"
+                signable="true"/>
+
+        <field
+                name="templateId"
+                description="Номер шаблона договора"
+                source="extra-parameters/parameter[@name='template-id']/@value"
+                type="string"/>
+
+        <field
+                name="closingDateRadio"
+                description="Выбранный способ указания периода срока вклада"
+                source="extra-parameters/parameter[@name='periodButton']/@value"
+                type="string"/>
+
+        <field
+                name="operationCode"
+                source="extra-parameters/parameter[@name='operation-code']/@value"
+                description="Код валютной операции"
+                value="((form.receiverAccountSelect != null &amp;&amp; (form.receiverAccountSelect.substring(0,5) == '40820' || form.receiverAccountSelect.substring(0,3) == '426')) || (form.fromAccountSelect != null &amp;&amp; (form.fromAccountSelect.substring(0,5) == '40820' || form.fromAccountSelect.substring(0,3) == '426'))) ? '{VO99090}' : ''"/>
+
+		<field
+                name="ground"
+                description="Назначение платежа"
+                source="ground"
+                type="string"
+                signable="true"
+                value="(form.operationCode!=null &amp;&amp; form.operationCode!='') ? form.operationCode : 'Открытие вклада путем перевода'"/>
+
+
+        <field
+                name="admissionDate"
+                description="Плановая дата исполнения платежа"
+                source="admission-date"
+                type="date"
+                signable="false"/>
+
+        <field
+                name="sellAmount"
+                description="Сумма"
+                source="amount"
+                type="money"
+                signable="true">
+
+			<validators >
+                <validator enabled="(form.course != '' &amp;&amp; form.course != null &amp;&amp; form.state == 'SAVED')" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator class="com.rssl.common.forms.validators.MoneyFieldValidator"
+                        enabled="form.needInitialFee == true &amp;&amp; form.state == 'SAVED'">
+                    <message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+		</field>
+
+<!--валюта суммы списания - всегда валюта продукта списания-->
+        <field
+                name="sellAmountCurrency"
+                description="Валюта"
+                source="amount-currency"
+                type="string"
+                signable="true"
+                value="form.sellAmount==null?null:form.fromResourceCurrency"/>
+
+        <field
+                name="buyAmount"
+                description="«Сумма» («Сумма зачисления»)"
+                source="destination-amount"
+                type="money"
+                signable="true">
+
+            <validators>
+                <validator class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.state == 'SAVED'"/>
+                <validator class="com.rssl.common.forms.validators.MoneyFieldValidator"
+                        enabled="form.needInitialFee == true  &amp;&amp; form.state == 'SAVED'">
+                    <message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <!--валюта суммы зачисления - всегда валюта продукта зачисления-->
+        <field
+                name="buyAmountCurrency"
+                description="Валюта"
+                source="destination-amount-currency"
+                type="string"
+                signable="true"
+                value="form.buyAmount==null?null:form.toResourceCurrency"/>
+
+        <field name="tarifPlanCodeType"
+               description="Тарифный план валюты"
+               source="extra-parameters/parameter[@name='tarif-plan-code-type']/@value"
+               type="string"
+               value="xpath:phiz:document('currentPerson.xml')//field[@name='tarifPlanCodeType']"/>
+
+        <field
+                name="depositTariffPlanCode"
+                description="Код используемого тарифного плана для вида вклада"
+                source="extra-parameters/parameter[@name='deposit-tariff-plan-code']/@value"
+                type="long"/>
+
+        <field
+                name="segment"
+                description="Сегмент открываемого промо-вклада"
+                source="extra-parameters/parameter[@name='segment']/@value"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="promoCodeName"
+                description="Название промо-кода, использованного при открытии вклада"
+                source="extra-parameters/parameter[@name='promo-code-name']/@value"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="usePromoRate"
+                description="Признак использования промоставки"
+                source="extra-parameters/parameter[@name='use-promo-rate']/@value"
+                type="boolean"
+                signable="true">
+        </field>
+
+    </fields>
+
+	<form-validators>
+
+        <form-validator mode="document|mobile" class="com.rssl.common.forms.validators.CompareValidator"
+                enabled="form.needInitialFee == true  &amp;&amp; form.state == 'SAVED'">
+            <message text="Сумма зачисления не может быть меньше минимального остатка по вкладу. Пожалуйста, отредактируйте заявку."/>
+			<field-ref name="obj1">minDepositBalance</field-ref>
+			<field-ref name="obj2">buyAmount</field-ref>
+			<parameter name="operator">le</parameter>
+        </form-validator>
+
+    </form-validators>
+</payment-form>

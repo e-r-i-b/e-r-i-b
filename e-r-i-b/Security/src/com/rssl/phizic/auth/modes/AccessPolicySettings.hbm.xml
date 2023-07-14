@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.auth.modes.AccessPolicySettings" table="AUTHENTICATION_MODES">
+
+       <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_AUTHENTICATION_MODES</param>
+            </generator>
+        </id>
+
+	    <property name="loginId" type="long" column="LOGIN_ID" not-null="false"/>
+	    <property name="accessType" type="string" column="ACCESS_TYPE" not-null="true"/>
+	    <property name="properties" type="com.rssl.phizic.dataaccess.hibernate.BlobType" column="PROPERTIES"  not-null="false"/>
+    </class>
+
+    <!--
+      Опорный объект: AK_LOGIN_AT_AUTHENTI
+      Предикаты доступа: "APS"."LOGIN_ID"=TO_NUMBER(:LOGINID) AND "APS"."ACCESS_TYPE"=:ACCESSTYPE
+      Кардинальность: 1
+    -->
+	<query name="com.rssl.phizic.auth.modes.findUserSettings">
+		select aps from com.rssl.phizic.auth.modes.AccessPolicySettings aps
+		where aps.loginId = :loginId and aps.accessType = :accessType
+	</query>
+
+    <!--
+      Опорный объект: AK_LOGIN_AT_AUTHENTI
+      Предикаты доступа: "APS"."LOGIN_ID" IS NULL AND "APS"."ACCESS_TYPE"=:ACCESSTYPE
+      Кардинальность: 1
+     -->
+	<query name="com.rssl.phizic.auth.modes.findTemplateSettings">
+		select aps from com.rssl.phizic.auth.modes.AccessPolicySettings aps
+		where aps.loginId is null and aps.accessType = :accessType
+	</query>
+
+</hibernate-mapping>

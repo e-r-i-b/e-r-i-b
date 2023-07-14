@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment name="defaultClientConfig"
+            xmlns="http://xml.apache.org/axis/wsdd/"
+            xmlns:java="http://xml.apache.org/axis/wsdd/providers/java"
+            xmlns:handler="http://xml.apache.org/axis/wsdd/providers/handler">
+
+ <globalConfiguration>
+   <parameter name="disablePrettyXML" value="true"/>
+   <parameter name="dotNetSoapEncFix" value="true"/>
+   <parameter name="enableNamespacePrefixOptimization" value="false"/>
+   <requestFlow>
+     <handler type="java:org.apache.axis.handlers.JWSHandler">
+        <parameter name="scope" value="session"/>
+     </handler>
+     <handler type="java:org.apache.axis.handlers.JWSHandler">
+        <parameter name="scope" value="request"/>
+        <parameter name="extension" value=".jwr"/>
+     </handler>
+     <!-- uncomment this if you want the SOAP monitor -->
+     <!--
+     <handler type="java:org.apache.axis.handlers.SOAPMonitorHandler"/>
+     -->
+   </requestFlow>
+   <!-- uncomment this if you want the SOAP monitor -->
+   <!--
+   <responseFlow>
+     <handler type="java:org.apache.axis.handlers.SOAPMonitorHandler"/>
+   </responseFlow>
+   -->
+ </globalConfiguration>
+
+ <handler type="java:org.apache.axis.handlers.http.URLMapper" name="URLMapper"/>
+ <handler type="java:org.apache.axis.transport.local.LocalResponder" name="LocalResponder"/>
+ <handler type="java:org.apache.axis.handlers.SimpleAuthenticationHandler" name="Authenticate"/>
+
+ <service name="AdminService" provider="java:MSG">
+  <namespace>http://xml.apache.org/axis/wsdd/</namespace>
+  <parameter name="allowedMethods" value="AdminService"/>
+  <parameter name="enableRemoteAdmin" value="false"/>
+  <parameter name="className" value="org.apache.axis.utils.Admin"/>
+ </service>
+
+ <service name="Version" provider="java:RPC">
+  <parameter name="allowedMethods" value="getVersion"/>
+  <parameter name="className" value="org.apache.axis.Version"/>
+ </service>
+
+<service name="eribRates" provider="java:RPC" style="rpc" use="encoded">
+    <parameter name="wsdlTargetNamespace" value="http://sbrf.srb.ru/erib/rates"/>
+    <parameter name="wsdlServiceElement" value="eribRates"/>
+    <parameter name="schemaQualified" value="http://sbrf.srb.ru/erib/rates"/>
+    <parameter name="wsdlServicePort" value="eribRates"/>
+    <parameter name="className" value="com.rssl.phizic.ws.currency.sbrf.EribRatesImpl"/>
+    <parameter name="wsdlPortType" value="eribRates"/>
+    <parameter name="typeMappingVersion" value="1.2"/>
+    <operation name="doIFX" qname="DoIFX" returnQName="resp" returnType="rtns:string"
+             xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="http://sbrf.srb.ru/erib/rates/DoIFX" >
+        <parameter qname="req" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+    </operation>
+    <parameter name="allowedMethods" value="doIFX"/>
+
+    <requestFlow>
+        <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.RatesMessageLogger"/>
+    </requestFlow>
+
+    <responseFlow>
+        <handler type="java:com.rssl.phizicgate.esberibgate.messaging.axis.RatesMessageLogger"/>
+    </responseFlow>
+</service>
+
+ <transport name="http">
+  <parameter name="qs:list" 
+               value="org.apache.axis.transport.http.QSListHandler"/>
+  <parameter name="qs:method" 
+               value="org.apache.axis.transport.http.QSMethodHandler"/>
+  <parameter name="qs:wsdl" 
+               value="org.apache.axis.transport.http.QSWSDLHandler"/>
+  <requestFlow>
+   <handler type="URLMapper"/>
+   <handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+  </requestFlow>
+ </transport>
+
+ <transport name="local">
+  <responseFlow>
+   <handler type="LocalResponder"/>
+  </responseFlow>
+ </transport>
+
+</deployment>

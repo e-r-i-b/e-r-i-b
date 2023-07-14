@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE orion-ejb-jar
+        PUBLIC "-//Evermind//DTD Enterprise JavaBeans 1.1 runtime//EN"
+        "http://xmlns.oracle.com/ias/dtds/orion-ejb-jar.dtd">
+
+<orion-ejb-jar>
+    <enterprise-beans>
+        <message-driven-deployment
+                name="FraudMonitoringBackListener"
+                connection-factory-location="jms/monitoring/fraud/BlockingClientRequestQCF"
+                destination-location="jms/monitoring/fraud/BlockingClientRequestQueue"
+                cache-timeout="0">
+
+            <resource-ref-mapping name="jms/monitoring/fraud/BlockingClientRequestQCF"/>
+            <resource-env-ref-mapping name="jms/monitoring/fraud/BlockingClientRequestQueue"/>
+        </message-driven-deployment>
+
+        <message-driven-deployment
+                name="FraudMonitoringNotificationTransportListener"
+                connection-factory-location="jms/monitoring/fraud/CSABackTransportQueueQCF"
+                destination-location="jms/monitoring/fraud/CSABackTransportQueue"
+                cache-timeout="0">
+
+            <resource-ref-mapping name="jms/monitoring/fraud/CSABackTransportQueueQCF"/>
+            <resource-env-ref-mapping name="jms/monitoring/fraud/CSABackTransportQueue"/>
+        </message-driven-deployment>
+    </enterprise-beans>
+
+    <assembly-descriptor>
+        <default-method-access>
+            <security-role-mapping name="&lt;default-ejb-caller-role&gt;" impliesAll="true"/>
+        </default-method-access>
+    </assembly-descriptor>
+</orion-ejb-jar>

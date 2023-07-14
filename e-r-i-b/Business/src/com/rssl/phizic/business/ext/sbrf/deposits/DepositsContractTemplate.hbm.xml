@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsContractTemplate" table="DEPOSITS_CONTRACT_TEMPLATE">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_CONTRACT_TEMPLATE</param>
+            </generator>
+        </id>
+
+        <property name="templateId"     type="long"         column="TEMPLATEID"     not-null="false"/>
+        <property name="dateBegin"      type="calendar"     column="D_START"        not-null="false"/>
+        <property name="dateEnd"        type="calendar"     column="D_STOP"         not-null="false"/>
+        <property name="type"           type="long"         column="TYPE"           not-null="false"/>
+        <property name="name"           type="string"       column="LABEL"          not-null="false"/>
+        <property name="text"           type="text"         column="TEXT"           not-null="false"/>
+        <property name="code"           type="string"       column="CODE"           not-null="false"/>
+    </class>
+
+    <!--
+        Очистка таблицы DEPOSITS_CONTRACT_TEMPLATE
+        Опорный объект: DEPOSITS_CONTRACT_TEMPLATE
+        Предикаты доступа: fullscan
+        Кардинальность: ~100
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsContractTemplate.deleteAll">
+        delete from com.rssl.phizic.business.ext.sbrf.deposits.DepositsContractTemplate
+    </query>
+
+    <!--
+        Получение текста шаблона договора по идентификатору шаблона.
+        Опорный объект: DEPOSITS_CT_TEMPLATEID_IDX
+        Предикаты доступа: "DCT"."TEMPLATEID"=TO_NUMBER(:TEMPLATEID)
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsContractTemplate.findTemplateByTemplateId">
+        <return-scalar column="TEXT" type="string"/>
+        <![CDATA[
+            SELECT DCT.TEXT AS TEXT
+            FROM DEPOSITS_CONTRACT_TEMPLATE DCT
+            WHERE DCT.TEMPLATEID = :templateId
+        ]]>
+    </sql-query>
+
+    <!--
+        Поиск идентификатора шаблона договора по виду и подвиду вклада и типу договора.
+        Опорный объект: DEPOSITS_CONTRACT_IDX
+        Предикаты доступа: ("DC"."QDTN1"=TO_NUMBER(:TYPE) AND "DC"."QDTSUB"=TO_NUMBER(:SUBTYPE))
+        Кардинальность: 19
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsContractTemplate.findTemplateIdByType">
+        <return-scalar column="TEMPLATE" type="long"/>
+        <![CDATA[
+            SELECT DCT.TEMPLATEID AS TEMPLATE
+            FROM DEPOSITS_CONTRACT_TEMPLATE DCT
+            JOIN DEPOSITS_CONTRACT DC ON DC.CONTRACTTEMPLATE = DCT.TEMPLATEID
+            WHERE DC.QDTN1 = :type
+            AND DC.QDTSUB = :subtype
+            AND DCT.D_START < :currentDate
+            AND DCT.TYPE = :templateType
+        ]]>
+    </sql-query>
+
+    <!--
+        Поиск идентификатора шаблона договора по типу и коду договора.
+        Опорный объект: DEPOSITS_CT_TYPE_IDX
+        Предикаты доступа: "DCT"."TYPE"=TO_NUMBER(:TEMPLATETYPE)
+        Кардинальность: ~30
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsContractTemplate.findTemplateIdByTypeAndCode">
+        <return-scalar column="TEMPLATE" type="long"/>
+        <![CDATA[
+            SELECT DCT.TEMPLATEID AS TEMPLATE
+            FROM DEPOSITS_CONTRACT_TEMPLATE DCT
+            WHERE DCT.TYPE = :templateType
+            AND DCT.CODE = :templateCode
+            AND DCT.D_START < :currentDate
+        ]]>
+    </sql-query>
+
+    <!--
+        Получение текста шаблона договора по типу и коду шаблона.
+        Опорный объект: DEPOSITS_CT_TYPE_IDX
+        Предикаты доступа: "DCT"."TYPE"=TO_NUMBER(:TEMPLATETYPE)
+        Кардинальность: ~30
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.DepositsContractTemplate.findTemplateTextByTypeAndCode">
+        <return-scalar column="TEXT" type="string"/>
+        <![CDATA[
+            SELECT DCT.TEXT AS TEXT
+            FROM DEPOSITS_CONTRACT_TEMPLATE DCT
+            WHERE DCT.TYPE = :templateType
+            AND DCT.CODE = :templateCode
+            AND DCT.D_START < :currentDate
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

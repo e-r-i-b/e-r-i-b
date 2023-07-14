@@ -1,0 +1,533 @@
+/**************************************************************************\
+*  ---------------                                                         *
+*  R-Style Softlab                                                         *
+*  ---------------                                                         *
+*  RS-Retail                                                               *
+*                                                                          *
+*  Определение курса валюты за число                                       *
+*                                                                          *
+*  Пахомова Ю.В                                                            *
+\**************************************************************************/
+
+/**
+        В макросе используются две функции из cur_rate.mac.
+        Они продублированы тут без изменений с той только разницей,
+        что мы используем не базовые курсы, а 
+
+
+передается:
+        └─getCurrencyRate_q
+          ├─date - дата 
+          ├─buyCurrency - ISO код валюты, в которую переводить
+          ├─saleCurrency - ISO код валюты, откуда переводить
+          ├─buySum - покупаемая сумма
+          ├─saleSum - продаваемая сумма
+
+        Пользователь передает валюту продажи и валюту покупки
+        и одну из указанных сумм. 
+
+        Макрос вычисляет курс продажи и курс покупки валюты 
+        и возвращает :
+
+        ├─sum - сумма в требуемой валюте.
+
+      sum = количество денег в валюте saleCurrency, которое банк отдаст, 
+            покупая buySum в валюте buyCurrency, - если указана buySum
+      sum = количество денег в валюте buyCurrency, которое банк получит, 
+            продавая saleSum, если указана saleSum.
+**/
+
+import office, DeprIntr, BankInter;
+
+private file RateChange ( ratechng, "exchange.def" ) key 4;
+private file CurrRate   ( cur_rate, "exchange.def" ) key 0;
+private file RtlCurr    ( currency )                 key 1;
+
+private const SET_CHAR = "X";
+private const INTERNET_BANK_RATES = 1;
+
+private var rtexchComplexRate = false;
+
+
+
+/**********************************************/
+/* вычислим номер филиала                     */
+/*********************************************/
+private macro getBranch( branchForRate, branchRes )
+
+  var SQL, rsmkurs, cmdkurs;
+  var res;
+  
+  /*вычислим номер филиала заранее, чтобы не дублировать в запросе селект*/
+  SQL = "SELECT /*+ index(DL DLISFDEP_DBT_IDX0)*/ decode(dl.t_owncurrrate,'X',dl.t_fncash,0) decode_sym  " + 
+        "FROM dlistfdep_dbt dl   " + 
+        "        WHERE dl.t_fncash = ? ";
+  cmdkurs = RsdCommand (SQL);
+  cmdkurs.addParam( "fn",  RSDBP_IN, Office.BranchForRate);
+
+  cmdkurs.execute;
+
+  rsmkurs = RsdRecordset(cmdkurs);
+  if( rsmkurs.moveNext )
+     res = rsmkurs.value("decode_sym");           
+  end;
+  
+  setParm( 1, res);
+
+end;
+
+/**************************************************************************\
+|                      Получить курс валюты за число                       |
+\**************************************************************************/
+macro GetAllCurrencyRateNoScaling ( DateRate, CodeCurr, Scale, CBRate, BuyRate, SellRate, RateTime, MinSum )
+
+  var stat      = true;
+  var flag;
+  var CBRate_ = 0.0, BuyRate_ = 0.0, SellRate_ = 0.0, Scale_ = 1, ChangeNom_ = 0.0;
+  var tm = RateTime;
+  var SQL, rsmkurs, cmdkurs;
+  var branch;
+
+  if ( RateTime == null ) 
+    tm = Time( 23, 59, 59 ); 
+  end;
+
+  if ( MinSum == null )
+    MinSum = $0L;
+  end;
+
+  if ( not rtexchComplexRate )
+    MinSum = $0L;
+  end;
+
+  if ( stat )
+    KeyNum( RtlCurr, 0 );
+    RtlCurr.Code_Currency = CodeCurr;
+    stat = GetEQ( RtlCurr );
+  end;
+
+  getBranch(Office.BranchForRate, branch);
+
+  stat = False;
+
+  SQL = " SELECT /*+ index(DCR DCUR_RATE_DBT_IDX0)*/  dcr.T_CBRATE, dcr.T_SellRATE, dcr.T_BUYRATE, T_CHANGENOM  FROM  dcur_rate_dbt dcr " +
+        " WHERE dcr.t_curr_ref = ? " +  
+        " AND dcr.t_change_ref = (" +
+        " SELECT * FROM (" +
+        " SELECT  /*+ index(R1 DRATECHNG_DBT_IDX5)*/ " +
+        " r1.t_id " +                               
+        " FROM dratechng_dbt r1, " +
+        "       (SELECT /*+ index(R1 DRATECHNG_DBT_IDX4)*/ NVL (MAX (r1.t_startdate), " +
+        "                     TO_DATE ('01.01.2000', 'DD.MM.YYYY') " +
+        "                     ) mdate " +
+        "         FROM dratechng_dbt r1 " +
+        "             WHERE r1.t_kind_ref = 1 " +
+        "                  AND r1.t_startdate <= ? " + 
+        "                              AND r1.t_branch = ? " +
+                "                               order by r1.t_starttime desc ) b " +
+        "                   WHERE r1.t_branch = ? " +
+        "                       AND r1.t_kind_ref = 1 " +
+        "                       AND  r1.t_startdate = b.mdate " + 
+        "                      order by r1.T_ID desc )  " +
+        "                    WHERE rownum = 1 ) ";                             
+
+
+    cmdkurs = RsdCommand (SQL);
+    cmdkurs.addParam( "cr",  RSDBP_IN, CodeCurr);
+    cmdkurs.addParam( "sd",  RSDBP_IN, DateRate);
+    cmdkurs.addParam( "fn1", RSDBP_IN, branch);
+    cmdkurs.addParam( "fn2", RSDBP_IN, branch);
+
+    cmdkurs.execute;
+
+    rsmkurs = RsdRecordset(cmdkurs);
+
+    if( rsmkurs.moveNext )
+
+       stat      = true;
+
+       CBRate_   = rsmkurs.value("T_CBRate");
+       BuyRate_  = rsmkurs.value("T_BuyRate");
+       SellRate_ = rsmkurs.value("T_SellRate");
+	   ChangeNom_ = rsmkurs.value("T_CHANGENOM");
+	   
+	   if (ChangeNom_ != 0)
+			CBRate_ = CBRate_ / ChangeNom_;
+       end;	
+
+    end;
+
+  SetParm( 2, Scale_ );
+  SetParm( 3, CBRate_   );
+  SetParm( 4, BuyRate_  );
+  SetParm( 5, SellRate_ );
+
+  return stat;
+      
+end;
+/**************************************************************************/
+
+macro GetAllCurrencyRate( DateRate, CodeCurr, CBRate, BuyRate, SellRate, RateTime, MinSum )
+
+  var Scale, stat;
+
+  stat = GetAllCurrencyRateNoScaling ( DateRate, CodeCurr, Scale, CBRate, BuyRate, SellRate, RateTime, MinSum );
+
+  if ( stat and ( Scale != 1 ) and ( Scale != 0 ) and ( Scale != null ) )
+    CBRate = CBRate / Scale;
+    BuyRate = BuyRate / Scale;
+    SellRate = SellRate / Scale;
+  end;
+
+
+
+  SetParm( 2, CBRate );
+  SetParm( 3, BuyRate  );
+  SetParm( 4, SellRate );
+
+  return stat;
+end;
+
+
+/* в этой функции вычисляется курс операции, когда банк покупает*/
+macro GetRatesWhenBankBuys( currDate, toCurrency, fromCurrency, resultRate)
+                                                                                      
+   var rate = 0;
+   var errorText = "";
+   var result, result1; //результат, возвращаемый GetAllCurrRate - если неверная валюта передана, например
+   var sCBRate=0.00, sBuyRate_buy=0.0, sSellRate_buy=0.0; //курсы покупки и продажи покупаемой валюты
+   var sCBRate1=0.00, sBuyRate_sale=0.0, sSellRate_sale=0.0; //курсы покупки и продажи продаваемой валюты
+
+   var ruCurrency1 = ISO2CodeCurrency("RUR");
+   var ruCurrency2 = ISO2CodeCurrency("RUB");
+
+   var ruCurrency = ruCurrency1;
+   if (ruCurrency == null) ruCurrency = ruCurrency2; end;
+
+   var curDate = String(currDate);
+   /*если обе валюты - рубли - возвращаем единицу.*/
+   if ( (toCurrency == ruCurrency) and (fromCurrency == ruCurrency) )
+      rate = 1;  
+      SetParm( 5, rate);
+      return;
+   end;
+
+   /*если одна из валют является рублем - просто вызываем GetAllCurrRate */
+   if  ( (toCurrency == ruCurrency) or (fromCurrency == ruCurrency) )
+      if (toCurrency == ruCurrency)
+         result = GetAllCurrencyRate( currDate, fromCurrency, sCBRate, sBuyRate_buy, sSellRate_buy);
+      elif (fromCurrency == ruCurrency)
+         result = GetAllCurrencyRate( currDate, toCurrency, sCBRate, sBuyRate_buy, sSellRate_buy);
+      end;
+
+      /*считаем, что пользователь задал правильный код валюты (и result==true)*/
+      /*покупаем*/
+         if (toCurrency != ruCurrency)
+            rate = sBuyRate_buy;
+         else
+            rate = sSellRate_buy; 
+         end;
+ 
+   elif ( (toCurrency != ruCurrency) and (fromCurrency != ruCurrency) ) //если обе не рубль    
+
+      result = GetAllCurrencyRate( currDate, toCurrency, sCBRate, sBuyRate_buy, sSellRate_buy); 
+      result1 = GetAllCurrencyRate( currDate, fromCurrency, sCBRate1, sBuyRate_sale, sSellRate_sale);
+ 
+     if ( (result != false) and (result1 != false) )
+    
+         //вообще говоря, это кривая заглушка: по-хорошему, надо зло ругаться на отсутствие курсов покупки-продажи в базе!
+         if (sSellRate_sale == 0.00)
+             sSellRate_sale = 1;
+         end;
+         rate = sBuyRate_buy/sSellRate_sale;
+         //rate = moneyl(10000*doublel(sBuyRate_buy))/moneyl(10000*doublel(sSellRate_sale));
+     end; 
+        
+   end;
+
+   //rate = moneyl(10000*rate);
+  // rate = Round(rate,0);
+
+   SetParm( 3, rate);   
+  
+end;
+
+
+/********************************************************************/
+/* вычисляет курс покупки-продажи для указанной валюты. возвращает сумму, которую
+   хочет купить (продать) 
+      resultSum = количество денег в валюте fromCurrency, которое банк отдаст, 
+            покупая buySum в валюте toCurrency, - если указана buySum
+      resultSum = количество денег в валюте buyCurrency, которое банк получит, 
+            продавая sellSum, если указана sellSum.
+      rateBuy, rateSale - курс покупки/продажи соответственно
+ */
+/* возвращает в качестве resultSum -1 в случае ошибки и сообщение об ошибке.*/
+/********************************************************************/
+macro GetResultSum( currDate, toCurrency, fromCurrency, buySum, sellSum, resultSum, errorMessage)
+                                                                                      
+   var sum = 0;
+   var errorText = "";
+   var result, result1; //результат, возвращаемый GetAllCurrRate - если неверная валюта передана, например
+   var sCBRate=0.00, sBuyRate_buy=0.0, sSellRate_buy=0.0; //курсы покупки и продажи покупаемой валюты
+   var sCBRate1=0.00, sBuyRate_sale=0.0, sSellRate_sale=0.0; //курсы покупки и продажи продаваемой валюты
+
+   var ruCurrency = ISO2CodeCurrency("RUR");
+
+   if ( (buySum == null) and (sellSum == null))
+        errorText = "Не заданы сумма покупки и сумма продажи";
+        sum = -1;
+        SetParm( 5, sum);
+        SetParm( 6, errorText);
+        return;
+   end;
+   
+   /*если обе валюты - рубли - возвращаем единицу.*/
+   if ( (toCurrency == ruCurrency) and (fromCurrency == ruCurrency) )
+      sum = 1;  
+      SetParm( 5, sum);
+      return;
+   end;
+
+   /*если одна из валют является рублем - просто вызываем GetAllCurrRate */
+   if  ( (toCurrency == ruCurrency) or (fromCurrency == ruCurrency) )
+      if (toCurrency == ruCurrency)
+         result = GetAllCurrencyRate( currDate, fromCurrency, sCBRate, sBuyRate_buy, sSellRate_buy);
+      elif (fromCurrency == ruCurrency)
+         result = GetAllCurrencyRate( currDate, toCurrency, sCBRate, sBuyRate_buy, sSellRate_buy);
+      end;
+
+      /*считаем, что пользователь задал правильный код валюты (и result==true)*/
+      if (buySum != null)   /*покупаем*/
+         if (toCurrency != ruCurrency)
+            sum = buySum*sBuyRate_buy;
+         else
+            sum = buySum / sSellRate_buy; 
+         end;
+      else 
+         if (toCurrency != ruCurrency)                 /*банк продает рубли, покупает валюту*/
+            sum = sellSum / sBuyRate_buy; 
+         else
+            sum = sellSum * sSellRate_buy; 
+         end;
+      end;
+ 
+   elif ( (toCurrency != ruCurrency) and (fromCurrency != ruCurrency) ) //если обе не рубль    
+
+      result = GetAllCurrencyRate( currDate, toCurrency, sCBRate, sBuyRate_buy, sSellRate_buy); 
+      result1 = GetAllCurrencyRate( currDate, fromCurrency, sCBRate1, sBuyRate_sale, sSellRate_sale);
+ 
+     if ( (result != false) and (result1 != false) )
+    
+      if (buySum != null)   /*покупаем buySum валюты buyCurrency - сколько необходимо денег в saleCurrency*/
+         //вообще говоря, это кривая заглушка: по-хорошему, надо зло ругаться на отсутствие курсов покупки-продажи в базе!
+         if (sSellRate_sale == 0.00)
+             sSellRate_sale = 1;
+         end;
+         sum = buySum * sBuyRate_buy/sSellRate_sale;
+      else /*продаем*/
+         
+         if (sBuyRate_buy == 0.00)
+             sBuyRate_buy = 1;
+         end;
+         sum = sellSum * sSellRate_sale/sBuyRate_buy; 
+      end;
+     end; 
+        
+   end;
+   SetParm( 5, sum);   
+
+end;
+
+macro GetResultSumCB( currDate, toCurrency, fromCurrency, amount, resultSum, errorMessage)
+                                                                                      
+   var sum = 0.0;
+   var errorText = "";
+   var result, result1; //результат, возвращаемый GetAllCurrRate - если неверная валюта передана, например
+   var sCBRate=0.00, sBuyRate_buy=0.0, sSellRate_buy=0.0; //курсы покупки и продажи покупаемой валюты
+   var sCBRate1=0.00, sBuyRate_sale=0.0, sSellRate_sale=0.0; //курсы покупки и продажи продаваемой валюты
+
+   var ruCurrency = ISO2CodeCurrency("RUR");
+   
+   if ( (toCurrency == ruCurrency) and (fromCurrency == ruCurrency) )
+      sum = 1;  
+      SetParm( 4, sum);
+      return;
+   end;
+
+   if  ( (toCurrency == ruCurrency) or (fromCurrency == ruCurrency) )
+      if (toCurrency == ruCurrency)
+         result = GetAllCurrencyRate( currDate, fromCurrency, sCBRate, sBuyRate_buy, sSellRate_buy);
+      elif (fromCurrency == ruCurrency)
+         result = GetAllCurrencyRate( currDate, toCurrency, sCBRate, sBuyRate_buy, sSellRate_buy);
+      end;
+
+	  if (sCBRate == 0.00)
+         sCBRate = 1;
+      end;
+	  
+	  if (toCurrency != ruCurrency)
+         sum = amount / sCBRate;
+      else
+         sum = amount * sCBRate;
+      end;
+		 
+   elif ( (toCurrency != ruCurrency) and (fromCurrency != ruCurrency) ) //если обе не рубль    
+
+      result = GetAllCurrencyRate( currDate, toCurrency, sCBRate, sBuyRate_buy, sSellRate_buy); 
+      result1 = GetAllCurrencyRate( currDate, fromCurrency, sCBRate1, sBuyRate_sale, sSellRate_sale);
+
+	  if ( (result != false) and (result1 != false) )
+         if (sCBRate == 0.00)
+             sCBRate = 1;
+         end;
+         sum = amount * sCBRate1 / sCBRate;
+	  end;
+	  
+   end;
+   SetParm( 4, sum);   
+
+end;
+
+/*--------------------------------------------------------------------*/
+/*-------------------основная функция--------------------------------*/
+/********************************************************************/
+
+macro GetCurrencyRate(inXml, outXml)
+
+   var dateXml = inXml.documentElement.selectSingleNode("//date"); 
+   var toCurrencyXml = inXml.documentElement.selectSingleNode("//buyCurrency" ).text;
+   var fromCurrencyXml   = inXml.documentElement.selectSingleNode("//saleCurrency").text;
+   var buySumXml   = inXml.documentElement.selectSingleNode("//buySum");
+   var sellSumXml   = inXml.documentElement.selectSingleNode("//saleSum");
+
+   var rateBuy=0.00, rateSale = 0.00;
+
+   var currDate;
+    
+   var node, nodeAnswer;
+
+   var sum=-1.0;
+
+   var toCurrency, fromCurrency;
+
+   var buySum=null, sellSum=null;
+
+   var errorText = "";
+
+   if (dateXml)
+       currDate = Date(dateXml.text);
+   end;
+
+   if (toCurrencyXml)
+        toCurrency = ISO2CodeCurrency(toCurrencyXml);
+   end;
+   if (fromCurrencyXml)
+        fromCurrency = ISO2CodeCurrency(fromCurrencyXml);
+   end;
+
+   if (buySumXml)
+        buySum = double(buySumXml.text);
+   end;
+
+   if (sellSumXml)
+        sellSum = double(sellSumXml.text);
+   end;
+
+
+   if (not outXml)
+       outXml = CreateXMLObject();
+       if (not outXml)
+          return;
+       end;
+       outXml.documentElement = outXml.createNode(1, "response", "");
+       node = outXml.documentElement.appendChild( outXml.createNode(1, "parentId", "") ); 
+       node.text = ParentId;
+       node = outXml.documentElement.appendChild(outXml.createNode(1, "id", ""));
+       node.text = FormApplicationKey(1);
+       nodeAnswer = outXml.documentElement.appendChild(outXml.createNode(1, "getCurrencyRate_a", ""));
+  
+       /*вычислим сумму по текущему курсу*/
+       GetResultSum(currDate, toCurrency, fromCurrency, buySum, sellSum, sum, errorText);
+
+       if ( sum == -1)
+         outXML = AddError2OutXml_(outXML, errorText);
+       else
+         node = outXML.createNode(1, "sum",  "");
+         node.text = string(sum);
+         nodeAnswer.appendChild(node);  
+       end;
+   end;
+
+
+   SetParm(1, outXml);
+
+end;
+
+/*--------------------------------------------------------------------*/
+/*-------------------основная функция--------------------------------*/
+/********************************************************************/
+
+macro GetRateCB(inXml, outXml)
+
+   var dateXml = inXml.documentElement.selectSingleNode("//date"); 
+   var toCurrencyXml = inXml.documentElement.selectSingleNode("//buyCurrency" ).text;
+   var fromCurrencyXml   = inXml.documentElement.selectSingleNode("//saleCurrency").text;
+   var amount   = inXml.documentElement.selectSingleNode("//buySum");
+
+   var rateBuy=0.00, rateSale = 0.00;
+
+   var currDate;
+    
+   var node, nodeAnswer;
+
+   var sum=-1.0;
+
+   var toCurrency, fromCurrency;
+
+   var amountSum=0.00;
+
+   var errorText = "";
+
+   if (dateXml)
+       currDate = Date(dateXml.text);
+   end;
+
+   if (toCurrencyXml)
+        toCurrency = ISO2CodeCurrency(toCurrencyXml);
+   end;
+   if (fromCurrencyXml)
+        fromCurrency = ISO2CodeCurrency(fromCurrencyXml);
+   end;
+
+   if (amount)
+        amountSum = double(amount.text);
+   end;
+
+   if (not outXml)
+       outXml = CreateXMLObject();
+       if (not outXml)
+          return;
+       end;
+       outXml.documentElement = outXml.createNode(1, "response", "");
+       node = outXml.documentElement.appendChild( outXml.createNode(1, "parentId", "") ); 
+       node.text = ParentId;
+       node = outXml.documentElement.appendChild(outXml.createNode(1, "id", ""));
+       node.text = FormApplicationKey(1);
+       nodeAnswer = outXml.documentElement.appendChild(outXml.createNode(1, "getRateCB_a", ""));
+  
+       GetResultSumCB(currDate, toCurrency, fromCurrency, amountSum, sum, errorText);
+
+       if ( sum == -1)
+         outXML = AddError2OutXml_(outXML, errorText);
+       else
+         node = outXML.createNode(1, "sum",  "");
+         node.text = string(sum);
+         nodeAnswer.appendChild(node);  
+       end;
+   end;
+   
+   SetParm(1, outXml);
+
+end;
+

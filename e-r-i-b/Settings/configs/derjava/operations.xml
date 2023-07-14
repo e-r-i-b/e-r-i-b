@@ -1,0 +1,2685 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<operations-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../schemas/operations.xsd">
+
+	<resources>
+		<resource key="ActivePerson" name="Пользователь"
+		          class="com.rssl.phizic.business.persons.ActivePerson"/>
+		<resource key="AccessScheme" name="Схема доступа"
+		          class="com.rssl.phizic.business.schemes.SharedAccessScheme"/>
+		<resource key="AccountLink" name="Счет"
+		          class="com.rssl.phizic.business.resources.external.AccountLink"/>
+		<resource key="CardLink" name="Карта" class="com.rssl.phizic.business.resources.external.CardLink"/>
+	</resources>
+
+	<operations>
+
+		<!-- !!! Для пользователя !!! -->
+		<!--Активирование карт ключей-->
+	   <operation key="LastPasswordOnCardOperation"
+	              name="Активирование новой карты"
+	              class="com.rssl.phizic.operations.passwordcards.LastPasswordOnCardOperation"
+		          tag="client">
+		</operation>
+
+		<!-- Печать мемориального ордера -->
+		<operation key="PrintMemOperation"
+		           name="Печать платежного поручения"
+		           class="com.rssl.phizic.operations.payment.PrintMemOperation"
+		           tag="client">
+		</operation>
+
+		<!-- Общие -->
+		<!-- Сокрытие курса валют -->
+		<operation key="ShowCurrenciesRateOperation"
+		           name="Доступ к курсам валют"
+		           class="com.rssl.phizic.operations.currency.ShowCurrenciesRateOperation"
+		           tag="client">
+		</operation>
+
+		<!-- Операции со счетами -->
+		<operation key="GetAccountsOperation"
+		           name="Доступ к списку счетов"
+		           class="com.rssl.phizic.operations.account.GetAccountsOperation"
+		           tag="client">
+			<restriction interface="com.rssl.phizic.business.resources.external.AccountFilter"
+			             default="com.rssl.phizic.business.resources.external.NullAccountFilter"/>
+		</operation>
+
+		<operation key="GetAccountAbstractOperation"
+		           name="Получение выписки по счету"
+		           class="com.rssl.phizic.operations.account.GetAccountAbstractOperation"
+		           tag="client">
+			<restriction interface="com.rssl.phizic.business.resources.external.AccountFilter"
+			             default="com.rssl.phizic.business.resources.external.NullAccountFilter"/>
+		</operation>
+
+		<operation key="GetAccountInfoOperation"
+		           name="Получение информации по счёту"
+		           class="com.rssl.phizic.operations.account.GetAccountInfoOperation"
+		           tag="client">
+		</operation>
+
+		<operation key="AccountInfoPrintOperation"
+		           name="Печать информации о счете"
+		           class="com.rssl.phizic.operations.print.AccountInfoPrintOperation"
+		           tag="client"/>
+
+		<!-- Операции с картами -->
+		<operation key="GetCardsOperation"
+		           name="Доступ к списку карт"
+		           class="com.rssl.phizic.operations.card.GetCardsOperation"
+		           tag="client">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.CardRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.defaults.NullCardRestriction"/>
+		</operation>
+
+		<operation key="GetCardAbstractOperation"
+		           name="Получение выписки по карте"
+		           class="com.rssl.phizic.operations.card.GetCardAbstractOperation"
+		           tag="client">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.CardRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.defaults.NullCardRestriction"/>
+		</operation>
+
+		<operation key="GetCardInfoOperation"
+		           name="Получение информации по картам"
+		           class="com.rssl.phizic.operations.card.GetCardInfoOperation"
+		           tag="client">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.CardRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.defaults.NullCardRestriction"/>
+		</operation>
+
+		<operation key="CardInfoPrintOperation"
+		           name="Печать информации по карте"
+		           class="com.rssl.phizic.operations.card.GetCardInfoOperation"
+		           tag="client">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.CardRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.defaults.NullCardRestriction"/>
+		</operation>
+
+		<!-- Операции с формами платежей -->
+		<operation key="CreateFormPaymentOperation"
+		           name="Создание платежа"
+		           class="com.rssl.phizic.operations.payment.CreateFormPaymentOperation"
+		           tag="client"/>
+
+		<operation key="CreateFormPaymentGuidOperation"
+		           name="Создание платежа (guid for anonymous)"
+		           class="com.rssl.phizic.operations.payment.CreateFormPaymentGuidOperation"
+		           tag="client"/>
+
+		<operation key="ConfirmFormPaymentOperation"
+		           name="Подтверждение платежа"
+		           class="com.rssl.phizic.operations.payment.ConfirmFormPaymentOperation"
+		           tag="client"/>
+
+		<operation key="ViewDocumentOperation"
+		           name="Просмотр/печать документа"
+		           class="com.rssl.phizic.operations.forms.ViewDocumentOperation"
+		           tag="client"/>
+
+		<operation key="GetMetaPaymentListOperation"
+		           name="Список платежей на основе формы"
+		           class="com.rssl.phizic.operations.payment.GetMetaPaymentListOperation"
+		           tag="client"/>
+
+		<!-- Операции c депозитами -->
+		<operation key="GetDepositProductsListOperation"
+		           name="Список депозитных продуктов"
+		           class="com.rssl.phizic.operations.deposits.GetDepositProductsListOperation"
+		           tag="client">
+			<restriction
+					interface="com.rssl.phizic.business.operations.restrictions.DepositProductRestriction"
+					default="com.rssl.phizic.business.operations.restrictions.defaults.PersonDepartmentDepositProductRestriction"/>
+		</operation>
+
+		<operation key="GetDepositListOperation"
+		           name="Список депозитов (вкладов) клиента"
+		           class="com.rssl.phizic.operations.deposits.GetDepositListOperation"
+		           tag="client"/>
+
+		<operation key="DepositDetailsOperation"
+		           name="Полная информация о депозитном продукте"
+		           class="com.rssl.phizic.operations.deposits.DepositDetailsOperation"
+		           tag="general">
+			<restriction
+					interface="com.rssl.phizic.business.operations.restrictions.DepositProductRestriction"
+					default="com.rssl.phizic.business.operations.restrictions.defaults.PersonDepartmentDepositProductRestriction"/>
+		</operation>
+
+		<operation key="DepositCalculatorOperation"
+		           name="Калькулятор депозитных продуктов"
+		           class="com.rssl.phizic.operations.deposits.DepositCalculatorOperation"
+		           tag="client">
+			<restriction
+					interface="com.rssl.phizic.business.operations.restrictions.DepositProductRestriction"
+					default="com.rssl.phizic.business.operations.restrictions.defaults.PersonDepartmentDepositProductRestriction"/>
+		</operation>
+
+		<operation key="GetDepositInfoOperation"
+		           name="Получение информации по вкладу"
+		           class="com.rssl.phizic.operations.deposits.GetDepositInfoOperation"
+		           tag="client">
+		</operation>
+
+		<operation key="DepositInfoPrintOperation"
+		           name="Печать информации о депозите"
+		           class="com.rssl.phizic.operations.print.DepositInfoPrintOperation"
+		           tag="client"/>
+
+		<!--Операции с кредитами -->
+		<operation key="GetLoanProductListOperation"
+				   name="Список кредитных продуктов банка"
+				   class="com.rssl.phizic.operations.loans.products.GetLoanProductListOperation"
+				   tag="client">
+			<restriction
+					interface="com.rssl.phizic.business.operations.restrictions.LoanProductRestriction"
+					default="com.rssl.phizic.business.operations.restrictions.defaults.NullLoanProductRestriction"/>
+		</operation>
+
+		<operation key="LoanProductDetailsOperation"
+		           name="Полная информация о кредитном продукте"
+		           class="com.rssl.phizic.operations.loans.products.LoanProductDetailsOperation"
+		           tag="client">
+			<restriction
+					interface="com.rssl.phizic.business.operations.restrictions.LoanProductRestriction"
+					default="com.rssl.phizic.business.operations.restrictions.defaults.NullLoanProductRestriction"/>
+		</operation>
+
+		<operation key="LoanCalculatorOperation"
+		           name="Калькулятор кредитных продуктов"
+		           class="com.rssl.phizic.operations.loans.LoanCalculatorOperation"
+		           tag="client">
+			<restriction
+					interface="com.rssl.phizic.business.operations.restrictions.LoanProductRestriction"
+					default="com.rssl.phizic.business.operations.restrictions.defaults.NullLoanProductRestriction"/>
+		</operation>
+
+		<operation key="GetLoanListOperation"
+				   name="Список кредитов клиента"
+				   class="com.rssl.phizic.operations.loans.loan.GetLoanListOperation"
+				   tag="client"/>
+
+		<operation key="GetLoanInfoOperation"
+		           name="Получение информации по кредиту"
+		           class="com.rssl.phizic.operations.loans.loan.GetLoanInfoOperation"
+		           tag="client">
+			<restriction
+					interface="com.rssl.phizic.business.operations.restrictions.LoanRestriction"
+					default="com.rssl.phizic.business.operations.restrictions.defaults.NullLoanRestriction"/>
+		</operation>
+
+		<operation key="PrintLoanInfoOperation"
+		           name="Печать информации по кредиту"
+		           class="com.rssl.phizic.operations.loans.loan.PrintLoanInfoOperation"
+		           tag="client">
+			<restriction
+					interface="com.rssl.phizic.business.operations.restrictions.LoanRestriction"
+					default="com.rssl.phizic.business.operations.restrictions.defaults.NullLoanRestriction"/>
+		</operation>
+
+		<operation key="LoanClaimOperation"
+		           name="Получение информации по кредитным заявкам"
+		           class="com.rssl.phizic.operations.loans.claims.LoanClaimOperation"
+		           tag="client">
+		</operation>
+
+		<!-- Сервисные операции -->
+		<operation key="ChangePersonPasswordOperation"
+		           name="Изменение пароля пользователя"
+		           class="com.rssl.phizic.operations.passwords.ChangePersonPasswordOperation"
+		           tag="client"/>
+
+		<operation key="ListCalendarOperation"
+		           name="Просмотр списка календарей"
+		           class="com.rssl.phizic.operations.calendar.ListCalendarOperation"
+				   tag="admin"/>
+
+		<operation key="EditCalendarOperation"
+		           name="Редактирование календаря"
+		           class="com.rssl.phizic.operations.calendar.EditCalendarOperation"
+				   tag="admin"/>
+
+        <operation key="RemoveCalendarOperation"
+                   name="Удаление календаря"
+                   class="com.rssl.phizic.operations.calendar.RemoveCalendarOperation"
+                   tag="admin"/>
+
+
+		<!-- Операции с шаблонами пользователя -->
+		<operation key="GetTemplatesOperation"
+		           name="Список шаблонов платежей пользователя"
+		           class="com.rssl.phizic.operations.payment.GetTemplatesOperation"
+		           tag="client"/>
+
+		<operation key="EditTemplateOperation"
+		           name="Редактирование шаблона пользователя"
+		           class="com.rssl.phizic.operations.payment.EditTemplateOperation"
+		           tag="client"/>
+
+		<operation key="RemoveClientTemplateOperation"
+		           name="Удаление шаблона пользователя"
+		           class="com.rssl.phizic.operations.payment.RemoveClientTemplateOperation"
+		           tag="client"/>
+
+		<operation key="EditTemplateNameOperation"
+		           name="Редактирование имени шаблона"
+		           class="com.rssl.phizic.operations.payment.EditTemplateNameOperation"
+		           tag="client"/>
+
+		<!-- Операции со справочником получателей -->
+		<operation key="GetPaymentReceiverListOperationClient"
+		           name="Список получателей"
+		           class="com.rssl.phizic.operations.dictionaries.receivers.GetPaymentReceiverListOperationClient"
+		           tag="client">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.defaults.NullUserRestriction"/>
+		</operation>
+
+		<operation key="EditPaymentReceiverOperationClient"
+		           name="Редактирование получателя в справочнике"
+		           class="com.rssl.phizic.operations.dictionaries.receivers.EditPaymentReceiverOperationClient"
+		           tag="client">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.defaults.NullUserRestriction"/>
+		</operation>
+
+		<operation key="RemovePaymentReceiverOperation"
+		           name="Удаление получателей из справочника"
+		           class="com.rssl.phizic.operations.dictionaries.RemovePaymentReceiverOperation"
+		           tag="client">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.defaults.NullUserRestriction"/>
+		</operation>
+
+		<operation key="EditPseudonymsListOperation"
+		           name="Редактирование списка псевдонимов"
+		           class="com.rssl.phizic.operations.pseudonyms.EditPseudonymsListOperation"
+		           tag="client"/>
+
+		<!-- Операции со справочником банков -->
+		<operation key="GetBankListOperation"
+		           name="Справочник банков"
+		           class="com.rssl.phizic.operations.dictionaries.GetBankListOperation"
+		           tag="general,readonly"/>
+
+		<operation key="EditBankOperation"
+		           name="Редактирование банка"
+		           class="com.rssl.phizic.operations.dictionaries.EditBankOperation"
+		           tag="employee"/>
+
+		<operation key="ViewBankOperation"
+		           name="Просмотр банка"
+		           class="com.rssl.phizic.operations.dictionaries.EditBankOperation"
+		           tag="employee,readonly">
+			<methods>
+				<remove name="save"/>
+			</methods>
+        </operation>
+
+		<operation key="RemoveBankOperation"
+		           name="Удаление банка"
+		           class="com.rssl.phizic.operations.dictionaries.RemoveBankOperation"
+		           tag="employee"/>
+
+		<!-- Операции со справочником счетов пользователя-->
+		<operation key="GetAccountsListOperation"
+		           name="Справочник счетов пользователя"
+		           class="com.rssl.phizic.operations.dictionaries.GetAccountsListOperation"
+		           tag="general"/>
+
+		<!-- Операции со справочником стран -->
+		<operation key="GetCountryListOperation"
+		           name="Справочник стран"
+		           class="com.rssl.phizic.operations.dictionaries.GetCountryListOperation"
+		           tag="general"/>
+
+		<!-- Операции со справочником точек -->
+		<operation key="GetMemberListOperation"
+		           name="Справочник точек"
+		           class="com.rssl.phizic.operations.dictionaries.contact.GetMemberListOperation"
+		           tag="general"/>
+
+		<operation key="GetCommonPaymentListOperation"
+		           name="Журнал операций"
+		           class="com.rssl.phizic.operations.payment.GetCommonPaymentListOperation"
+		           tag="client"/>
+
+		<!-- Операции со справочником КБК -->
+		<operation key="GetKBKListOperation"
+		           name="Справочник КБК"
+		           class="com.rssl.phizic.operations.dictionaries.GetKBKListOperation"
+		           tag="general"/>
+
+		<operation key="ListClientMailOperation"
+		           name="Список писем клиента"
+		           class="com.rssl.phizic.operations.mail.ListClientMailOperation"
+		           tag="client"/>
+
+		<operation key="EditClientMailOperation"
+		           name="Редактирование писем банку"
+		           class="com.rssl.phizic.operations.mail.EditClientMailOperation"
+		           tag="client"/>
+		<!-- !!! Для сотрудника банка !!! -->
+
+		<!-- Операции с группами -->
+		<operation key="ListGroupsOperationC"
+		           name="Список групп пользователей"
+		           class="com.rssl.phizic.operations.groups.ListGroupsOperationC"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="EditGroupOperationC"
+		           name="Редактирование группы пользователей"
+		           class="com.rssl.phizic.operations.groups.EditGroupOperationC"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ListGroupPersonsOperation"
+		           name="Получение списка пользователей группы"
+		           class="com.rssl.phizic.operations.groups.ListGroupPersonsOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="GetPersonListDictionaryOperation"
+		           name="Справочник пользователей"
+		           class="com.rssl.phizic.operations.groups.GetPersonListDictionaryOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ModifyPersonGroupsOperation"
+		           name="Изменение состава групп"
+		           class="com.rssl.phizic.operations.groups.ModifyPersonGroupsOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="EditPersonGroupsOperation"
+		           name="Изменение списка групп пользователя"
+		           class="com.rssl.phizic.operations.groups.EditPersonGroupsOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ListPersonGroupsOperation"
+		           name="Получение списка групп пользователя"
+		           class="com.rssl.phizic.operations.groups.ListPersonGroupsOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="EditGroupOperationA"
+		           name="Изменение списка групп сотрудников"
+		           class="com.rssl.phizic.operations.groups.EditGroupOperationA"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ListGroupsOperationA"
+		           name="Получение списка групп сотрудников"
+		           class="com.rssl.phizic.operations.groups.ListGroupsOperationA"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ListGroupEmployersOperation"
+		           name="Получение списка сотрудников группы"
+		           class="com.rssl.phizic.operations.groups.ListGroupEmployersOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ModifyEmployeeGroupsOperation"
+		           name="Редактирование списка сотрудников группы"
+		           class="com.rssl.phizic.operations.groups.ModifyEmployeeGroupsOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="GetEmployeeListDictionaryOperation"
+		           name="Справочник сотрудников"
+		           class="com.rssl.phizic.operations.groups.GetEmployeeListDictionaryOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="EditEmployeeGroupsOperation"
+		           name="Изменение списка групп сотрудника"
+		           class="com.rssl.phizic.operations.groups.EditEmployeeGroupsOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ListEmployeeGroupsOperation"
+		           name="Получение списка групп сотрудника"
+		           class="com.rssl.phizic.operations.groups.ListEmployeeGroupsOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<!--Управление скинами-->
+		<operation key="ViewSkinsList"
+		           name="Получение списка доступных скинов"
+		           class="com.rssl.phizic.operations.skins.ListSkinsOperation"
+					tag="admin">
+			<methods>
+				<remove name="changeCurrentSkin"/>
+				<remove name="changeGlobalUrl"/>
+			</methods>
+		</operation>
+
+		<operation key="ChangeCurrentSkins"
+		           name="Смена активных скинов"
+		           class="com.rssl.phizic.operations.skins.ChangeSkinOperation"
+					tag="admin"/>
+
+		<operation key="EditSkins"
+		           name="Редактирования скинов"
+		           class="com.rssl.phizic.operations.skins.EditSkinsOperation"
+					tag="admin">
+			<methods>
+				<remove name="remove"/>
+			</methods>
+		</operation>
+
+		<operation key="DeleteSkins"
+		           name="Удаление скинов"
+		           class="com.rssl.phizic.operations.skins.RemoveSkinOperation"
+					tag="admin">
+			<methods>
+				<remove name="save"/>
+			</methods>
+		</operation>
+
+		<!-- Операции с пользователями -->
+
+		<operation key="LinkPINOperation"
+		           name="Привязка ПИН-конверта клиенту"
+		           class="com.rssl.phizic.operations.security.LinkPINOperation"
+		           tag="employee">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ViewLinkPINOperation"
+		           name="Просмотр привязки ПИН-конверта клиенту"
+		           class="com.rssl.phizic.operations.security.LinkPINOperation"
+		           tag="employee,readonly">
+			<methods>
+				<remove name="link"/>
+			</methods>
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="GetPersonsListOperation"
+		           name="Получение списка клиентов"
+		           class="com.rssl.phizic.operations.person.GetPersonsListOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="AddPersonOperation"
+		           name="Заведение клиента"
+		           class="com.rssl.phizic.operations.person.AddPersonOperation"
+		           tag="admin"/>
+
+		<operation key="EditPersonOperation"
+		           name="Редактирование анкеты клиента"
+		           class="com.rssl.phizic.operations.person.EditPersonOperation"
+		           tag="employee">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ViewPersonOperation"
+		           name="Просмотр анкеты клиента"
+		           class="com.rssl.phizic.operations.person.EditPersonOperation"
+		           tag="employee,readonly">
+			<methods>
+				<remove name="save"/>
+			</methods>
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="PrintPersonOperation"
+		           name="Печать анкеты и договора о предоставлении услуг"
+		           class="com.rssl.phizic.operations.person.PrintPersonOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+
+
+		<operation key="PrintRecessionOperation"
+		           name="Печать заявления о расторжении договора"
+		           class="com.rssl.phizic.operations.person.PrintRecessionOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="RemovePersonOperation"
+		           name="Удаление клиента"
+		           class="com.rssl.phizic.operations.person.RemovePersonOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ChangeLockPersonOperation"
+		           name="Блокировка доступа клиента"
+		           class="com.rssl.phizic.operations.access.ChangeLockPersonOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="GetResourcesOperation"
+		           name="Получение списка счетов и карт клиента"
+		           class="com.rssl.phizic.operations.person.GetResourcesOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="RemoveResourceOwnOperation"
+		           name="Удаление счетов и карт"
+		           class="com.rssl.phizic.operations.person.RemoveResourceOwnOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ListBankrollsOperation"
+		           name="Список счетов и карт из ретейла"
+		           class="com.rssl.phizic.operations.person.ListBankrollsOperation"
+		           tag="admin"/>
+
+		<operation key="AddAccountOperation"
+		           name="Добавление счетов"
+		           class="com.rssl.phizic.operations.person.AddAccountOperation"
+		           tag="employee">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="AddCardOperation"
+		           name="Добавление карт"
+		           class="com.rssl.phizic.operations.person.AddCardOperation"
+		           tag="employee">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="EditBankrollsOperation"
+		           name="Редактирование счетов и карт"
+		           class="com.rssl.phizic.operations.person.EditBankrollsOperation"
+		           tag="admin">
+		   <restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+		                default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="GetClientsOperation"
+		           name="Просмотр списка клиентов"
+		           class="com.rssl.phizic.operations.person.GetClientsOperation"
+		           tag="admin"/>
+
+		<operation key="ImportClientOperation"
+		           name="Импорт клиента банка"
+		           class="com.rssl.phizic.operations.person.ImportClientOperation"
+		           tag="admin"/>
+
+		<operation key="EditEmpoweredPersonOperation"
+		           name="Добавление/редактирование представителя клиента"
+		           class="com.rssl.phizic.operations.person.EditEmpoweredPersonOperation"
+		           tag="employee">
+		   <restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+		                default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ViewEmpoweredPersonOperation"
+		           name="Просмотр представителя клиента"
+		           class="com.rssl.phizic.operations.person.EditEmpoweredPersonOperation"
+		           tag="employee,readonly">
+		   <methods>
+		      <remove name="initializeNew"/>
+		      <remove name="save"/>
+		   </methods>
+		   <restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+		                default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="EditEmpoweredAccessOperation"
+		           name="Изменение прав доступа представителя клиента"
+		           class="com.rssl.phizic.operations.access.EditEmpoweredAccessOperation"
+		           tag="employee">
+		   <restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+		                default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ViewEmpoweredAccessOperation"
+		           name="Просмотр прав доступа представителя клиента"
+		           class="com.rssl.phizic.operations.access.EditEmpoweredAccessOperation"
+		           tag="employee,readonly">
+		   <methods>
+		      <remove name="save"/>
+		   </methods>
+		   <restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+		                default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="EditEmpoweredResourcesOperation"
+		           name="Редактирование списка счетов представителя клиента"
+		           class="com.rssl.phizic.operations.person.EditEmpoweredResourcesOperation"
+		           tag="employee">
+		   <restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+		                default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ViewEmpoweredResourcesOperation"
+		           name="Просмотр списка счетов представителя клиента"
+		           class="com.rssl.phizic.operations.person.EditEmpoweredResourcesOperation"
+		           tag="employee,readonly">
+		   <methods>
+		      <remove name="save"/>
+		   </methods>
+		   <restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+		                default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="GetEmpoweredPersonsListOperation"
+		           name="Просмотр списка представителей клиента"
+		           class="com.rssl.phizic.operations.person.GetEmpoweredPersonsListOperation"
+		           tag="admin">
+		   <restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+		                default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="DeleteEmpoweredPersonOperation"
+		           name="Удаление представителей клиента"
+		           class="com.rssl.phizic.operations.person.DeleteEmpoweredPersonOperation"
+		           tag="admin">
+		   <restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+		                default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<!-- Операции с правами пользователей -->
+		<operation key="AssignPersonAccessOperation"
+		           name="Назначение/удаление прав доступа клиента"
+		           class="com.rssl.phizic.operations.access.AssignPersonAccessOperation"
+		           tag="employee">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ViewPersonAccessOperation"
+		           name="Просмотр прав доступа клиента"
+		           class="com.rssl.phizic.operations.access.AssignPersonAccessOperation"
+		           tag="employee,readonly">
+			<methods>
+				<remove name="assign"/>
+				<remove name="setNewCategory"/>
+				<remove name="setPersonalScheme"/>
+				<remove name="setNewAccessSchemeId"/>
+			</methods>
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<!-- Операции со схемами -->
+		<operation key="GetSchemesListOperation"
+		           name="Получение списка схем доступа"
+		           class="com.rssl.phizic.operations.scheme.GetSchemesListOperation"
+		           tag="admin"/>
+
+		<operation key="AddSchemeOperation"
+		           name="Создание схемы доступа"
+		           class="com.rssl.phizic.operations.scheme.EditSchemeOperation"
+		           tag="admin">
+			<methods>
+				<remove name="initialize"/>
+			</methods>
+		</operation>
+
+		<operation key="EditSchemeOperation"
+		           name="Редактирование схемы доступа"
+		           class="com.rssl.phizic.operations.scheme.EditSchemeOperation"
+		           tag="admin"/>
+
+		<operation key="ViewSchemeOperation"
+		           name="Просмотр схемы доступа"
+		           class="com.rssl.phizic.operations.scheme.EditSchemeOperation"
+		           tag="admin,readonly">
+			<methods>
+				<remove name="initializeNew"/>
+				<remove name="save"/>
+				<remove name="setNewCategory"/>
+				<remove name="setNewServices"/>
+				<remove name="setNewName"/>
+			</methods>
+		</operation>
+
+		<operation key="RemoveSchemeOperation"
+		           name="Удаление схемы доступа"
+		           class="com.rssl.phizic.operations.scheme.RemoveSchemeOperation"
+		           tag="admin"/>
+
+		<operation key="AccountListRestrictionOperation"
+		           name="Редактирование ограничений: карты"
+		           class="com.rssl.phizic.operations.access.restrictions.AccountListRestrictionOperation"
+		           tag="admin"/>
+
+		<operation key="CardListRestrictionOperation"
+		           name="Редактирование ограничений: счета"
+		           class="com.rssl.phizic.operations.access.restrictions.CardListRestrictionOperation"
+		           tag="admin"/>
+
+		<operation key="DepositProductListRestrictionOperation"
+		           name="Редактирование ограничений: депозитные продукты"
+		           class="com.rssl.phizic.operations.access.restrictions.DepositProductListRestrictionOperation"
+		           tag="admin"/>
+
+		<!-- Создание запроса на печать пин конвертов -->
+		<operation key="CreatePINRequestOperation"
+		           name="Формирование заявки на печать ПИН-конвертов"
+		           class="com.rssl.phizic.operations.security.CreatePINRequestOperation"
+		           tag="admin">
+		</operation>
+
+		<operation key="CreateCardsPrintingRequestOperation"
+		           name="Создание запроса на печать пин конвертов"
+		           class="com.rssl.phizic.operations.passwordcards.CreateCardsPrintingRequestOperation"
+		           tag="admin"/>
+
+		<operation key="UploadCardsAnswerOperation"
+		           name="Загрузка ответа на запрос карт ключей"
+		           class="com.rssl.phizic.operations.security.UploadCardsAnswerOperation"
+		           tag="admin"/>
+
+		<!-- Закрузка хэшей-->
+		<operation key="UploadPINAnswerOperation"
+		           name="Загрузка паролей клиентов по заявке на печать ПИН-конвертов"
+		           class="com.rssl.phizic.operations.security.UploadPINAnswerOperation"
+		           tag="admin">
+		</operation>
+
+		<!-- Карты ключей -->
+		<operation key="GetUserPasswordCardsOperation"
+		           name="Список карт пользователя"
+		           class="com.rssl.phizic.operations.passwordcards.GetUserPasswordCardsOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="AssignUserPasswordCardOperation"
+		           name="Назначение карты пользователю"
+		           class="com.rssl.phizic.operations.passwordcards.AssignUserPasswordCardOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ActivateUserPasswordCardOperation"
+		           name="Блокировка/разблокировка карт ключей пользователей"
+		           class="com.rssl.phizic.operations.passwordcards.ActivateUserPasswordCardOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ChangeUserPasswordCardLockingOperation"
+		           name="Изменение пароля карты пользователея"
+		           class="com.rssl.phizic.operations.passwordcards.ChangeUserPasswordCardLockingOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="AddPasswordCardsOperation"
+		           name="Создание карт паролей"
+		           class="com.rssl.phizic.operations.passwordcards.AddPasswordCardsOperation"
+		           tag="admin"/>
+
+		<operation key="RemovePasswordCardsOperation"
+		           name="Удаление неназначенных карт паролей"
+		           class="com.rssl.phizic.operations.passwordcards.RemovePasswordCardsOperation"
+		           tag="admin"/>
+
+		<operation key="GetPasswordCardsOperation"
+		           name="Получение списка неназначенных карт паролей"
+		           class="com.rssl.phizic.operations.passwordcards.GetPasswordCardsOperation"
+		           tag="admin"/>
+
+		<operation key="PrintUnassignedPasswordCardOperation"
+		           name="Печать неактивной карты ключей"
+		           class="com.rssl.phizic.operations.passwordcards.PrintUnassignedPasswordCardOperation"
+		           tag="admin"/>
+
+		<operation key="RequestPasswordCardsOperation"
+		           name="Создание запроса на карты ключей"
+		           class="com.rssl.phizic.operations.passwordcards.RequestPasswordCardsOperation"
+		           tag="admin"/>
+
+		<operation key="AddPasswordCardHashesOperation"
+		           name="Добавление карт ключей"
+		           class="com.rssl.phizic.operations.passwordcards.AddPasswordCardHashesOperation"
+		           tag="admin"/>
+
+		<!-- Операции с сотрудниками банка -->
+		<operation key="GetEmployeeListOperation"
+		           name="Список сотрудников банка"
+		           class="com.rssl.phizic.operations.employees.GetEmployeeListOperation"
+		           tag="admin"/>
+
+		<operation key="EditEmployeeOperation"
+		           name="Редактирование сотрудников банка"
+		           class="com.rssl.phizic.operations.employees.EditEmployeeOperation"
+		           tag="admin"/>
+
+		<operation key="ViewEmployeeOperation"
+		           name="Просмотр сотрудников банка"
+		           class="com.rssl.phizic.operations.employees.EditEmployeeOperation"
+		           tag="admin,readonly">
+			<methods>
+				<remove name="save"/>
+			</methods>
+		</operation>
+
+		<operation key="ForceChangeEmployeePasswordOperation"
+		           name="Принудительная смена пароля сотрудникам банка"
+		           class="com.rssl.phizic.operations.employees.ForceChangeEmployeePasswordOperation"
+		           tag="admin"/>
+
+		<operation key="RemoveEmployeeOperation"
+		           name="Удаление сотрудников банка"
+		           class="com.rssl.phizic.operations.employees.RemoveEmployeeOperation"
+		           tag="admin"/>
+
+		<operation key="PrintEmployeeInfoOperation"
+		           name="Печать информации о сотруднике банка"
+		           class="com.rssl.phizic.operations.employees.PrintEmployeeInfoOperation"
+		           tag="admin"/>
+
+		<operation key="ChangeLockEmployeeOperation"
+		           name="Блокировка доступа сотрудника банка"
+		           class="com.rssl.phizic.operations.access.ChangeLockEmployeeOperation"
+		           tag="admin"/>
+
+		<!-- Операции с правами сотрудников банка -->
+		<operation key="AssignEmployeeAccessOperation"
+		           name="Назначение/удаление прав доступа сотрудника банка"
+		           class="com.rssl.phizic.operations.access.AssignEmployeeAccessOperation"
+		           tag="admin"/>
+
+		<operation key="ViewEmployeeAccessOperation"
+		           name="Просмотр прав доступа сотрудника банка"
+		           class="com.rssl.phizic.operations.access.AssignEmployeeAccessOperation"
+		           tag="admin,readonly">
+			<methods>
+				<remove name="assign"/>
+				<remove name="setNewCategory"/>
+				<remove name="setPersonalScheme"/>
+				<remove name="setNewAccessSchemeId"/>
+			</methods>
+		</operation>
+
+		<!-- Операции с формами платежей -->
+		<operation key="GetPaymentFormListOperation"
+		           name="Список форм платежей"
+		           class="com.rssl.phizic.operations.forms.GetPaymentFormListOperation"
+		           tag="admin"/>
+
+		<operation key="UploadFormOperation"
+		           name="Загрузка формы платежа"
+		           class="com.rssl.phizic.operations.forms.UploadFormOperation"
+		           tag="admin"/>
+
+		<operation key="DownloadFormsOperation"
+		           name="Выгрузка формы платежа"
+		           class="com.rssl.phizic.operations.forms.DownloadFormsOperation"
+		           tag="admin"/>
+
+		<operation key="UpdateFormOperation"
+		           name="Обновление формы платежа"
+		           class="com.rssl.phizic.operations.forms.UpdateFormOperation"
+		           tag="admin"/>
+
+		<!-- Сервисные операции -->
+		<operation key="ChangeEmployeePasswordOperation"
+		           name="Изменение пароля сотрудника банка"
+		           class="com.rssl.phizic.operations.passwords.ChangeEmployeePasswordOperation"
+		           tag="admin"/>
+
+		<!-- Логи -->
+		<operation key="DownloadSystemLogOperation"
+		           name="Системный протокол"
+		           class="com.rssl.phizic.operations.log.DownloadSystemLogOperation"
+		           tag="admin"/>
+
+		<operation key="DownloadUserLogOperation"
+		           name="Протокол действий пользователей"
+		           class="com.rssl.phizic.operations.log.DownloadUserLogOperation"
+		           tag="admin"/>
+
+		<operation key="MessageLogOperation"
+			       name="Протокол обмена сообщениями"
+		           class="com.rssl.phizic.operations.log.MessageLogOperation"
+		           tag="admin,readonly"/>
+
+		<operation key="ArchiveSystemLogOperation"
+			       name="Архивация протокола системных действий"
+		           class="com.rssl.phizic.operations.log.ArchiveSystemLogOperation"
+		           tag="admin"/>
+
+		<operation key="ArchiveMessagesLogOperation"
+			       name="Архивация протокола сообщений"
+		           class="com.rssl.phizic.operations.log.ArchiveMessagesLogOperation"
+		           tag="admin"/>
+
+		<operation key="ArchiveOperationsLogOperation"
+			       name="Архивация протокола действий клиента"
+		           class="com.rssl.phizic.operations.log.ArchiveOperationsLogOperation"
+		           tag="admin"/>
+
+		<!-- Настройки системы -->
+		<operation key="SetCardSettingsOperation"
+		           name="Изменение настроек процедуры генерации карт"
+		           class="com.rssl.phizic.operations.card.SetCardSettingsOperation"
+		           tag="admin"/>
+
+		<operation key="ViewCardSettingsOperation"
+		           name="Просмотр настроек процедуры генерации карт"
+		           class="com.rssl.phizic.operations.card.SetCardSettingsOperation"
+		           tag="admin,readonly">
+			<methods>
+				<remove name="save"/>
+			</methods>
+		</operation>
+
+		<operation key="SetSmsSettingsOperation"
+		           name="Изменение настроек процедуры генерации sms-паролей"
+		           class="com.rssl.phizic.operations.sms.SetSmsSettingsOperation"
+		           tag="admin"/>
+
+		<operation key="ViewSmsSettingsOperation"
+		           name="Просмотр настроек процедуры генерации sms-паролей"
+		           class="com.rssl.phizic.operations.sms.SetSmsSettingsOperation"
+		           tag="admin,readonly">
+			<methods>
+				<remove name="save"/>
+			</methods>
+		</operation>
+
+		<operation key="MarkSchemeAsDefaultOperation"
+		           name="Настройка схем прав доступа по умолчанию"
+		           class="com.rssl.phizic.operations.scheme.MarkSchemeAsDefaultOperation"
+		           tag="admin"/>
+
+		<operation key="ViewSchemeAsDefaultOperation"
+		           name="Просмотр схем прав доступа по умолчанию"
+		           class="com.rssl.phizic.operations.scheme.MarkSchemeAsDefaultOperation"
+		           tag="admin,readonly">
+			<methods>
+				<remove name="markSchemesAsDefault"/>
+				<remove name="setUserDefaultScheme"/>
+				<remove name="setEmployeeDefaultScheme"/>
+			</methods>
+        </operation>
+
+		<operation key="EditPolicyTemplateOperation"
+		           name="Настройка шаблона политики доступа"
+		           class="com.rssl.phizic.operations.scheme.EditPolicyTemplateOperation"
+		           tag="admin"/>
+
+		<operation key="ViewPolicyTemplateOperation"
+		           name="Просмотр шаблона политики доступа"
+		           class="com.rssl.phizic.operations.scheme.EditPolicyTemplateOperation"
+		           tag="admin">
+			<methods>
+				<remove name="setProperty"/>
+				<remove name="setEnabled"/>
+				<remove name="save"/>
+			</methods>
+		</operation>
+
+		<operation key="SetPersonSecuritySettingsOperation"
+		           name="Настройка параметров безопасности клиента"
+		           class="com.rssl.phizic.operations.person.SetPersonSecuritySettingsOperation"
+		           tag="admin"/>
+
+		<operation key="ViewPersonSecuritySettingsOperation"
+		           name="Просмотр параметров безопасности клиента"
+		           class="com.rssl.phizic.operations.person.SetPersonSecuritySettingsOperation"
+		           tag="admin,readonly">
+			<methods>
+				<remove name="save"/>
+				<remove name="setBlockedTimeout"/>
+				<remove name="setLoginAttempts"/>
+				<remove name="setConfirmAttempts"/>
+				<remove name="setNeedConfirm"/>
+				<remove name="setPasswordAllowedChars"/>
+				<remove name="setPasswordLength"/>
+			</methods>
+		</operation>
+
+
+		<operation key="EditSystemSettingsOperation"
+		           name="Настройка параметров системы"
+		           class="com.rssl.phizic.operations.config.SetSystemSettingsOperation"
+		           tag="admin"/>
+
+		<operation key="ViewSystemSettingsOperation"
+		           name="Просмотр параметров системы"
+		           class="com.rssl.phizic.operations.config.SetSystemSettingsOperation"
+		           tag="admin">
+            <methods>
+                <remove name="setDepartmentAllowedLevel"/>
+                <remove name="save"/>
+            </methods>
+		</operation>        
+
+		<operation key="SetContactDictionariesSettingsOperation"
+		           name="Настройка параметров для загрузки справочников CONTACT"
+		           class="com.rssl.phizic.operations.dictionaries.contact.SetContactDictionariesSettingsOperation"
+		           tag="admin"/>
+
+		<!-- Операции с шаблонами банка -->
+		<operation key="GetBankTemplatesOperation"
+		           name="Список шаблонов банка"
+		           class="com.rssl.phizic.operations.payment.bank.GetBankTemplatesOperation"
+		           tag="admin"/>
+
+		<operation key="EditBankTemplateOperation"
+		           name="Редактирование шаблона банка"
+		           class="com.rssl.phizic.operations.payment.bank.EditBankTemplateOperation"
+		           tag="admin"/>
+
+		<operation key="RemoveBankTemplateOperation"
+		           name="Удаление шаблона банка"
+		           class="com.rssl.phizic.operations.payment.bank.RemoveBankTemplateOperation"
+		           tag="client"/>
+
+		<operation key="EditBankTemplateNameOperation"
+		           name="Редактирование имени шаблона банка"
+		           class="com.rssl.phizic.operations.payment.bank.EditBankTemplateNameOperation"
+		           tag="admin"/>
+
+		<!-- -->
+		<operation key="DownloadTemplateOperation"
+		           name="Загрузка шаблонов документов"
+		           class="com.rssl.phizic.operations.templates.DownloadTemplateOperation"
+		           tag="general"/>
+
+		<operation key="AgreementTemplateOperation"
+		           name="Печать пакета документов договора клиента"
+		           class="com.rssl.phizic.operations.templates.AgreementTemplateOperation"
+		           tag="admin"/>
+
+		<operation key="TemplateDocumentsListOperation"
+		           name="Получение списка шаблонов документов"
+		           class="com.rssl.phizic.operations.templates.TemplateDocumentsListOperation"
+		           tag="admin"/>
+
+		<operation key="DownloadBankDocumentOperation"
+		           name="Загрузка документов банка"
+		           class="com.rssl.phizic.operations.templates.DownloadBankDocumentOperation"
+		           tag="general"/>
+
+		<operation key="EditTemplateDocumentOperation"
+		           name="Редактирование шаблонов документов"
+		           class="com.rssl.phizic.operations.templates.EditTemplateDocumentOperation"
+		           tag="admin"/>
+
+		<operation key="RemoveTemplateDocumentOperation"
+		           name="Удаление шаблонов документов"
+		           class="com.rssl.phizic.operations.templates.RemoveTemplateDocumentOperation"
+		           tag="admin"/>
+
+		<operation key="TemplatePackageListOperation"
+		           name="Получение списка пакетов шаблонов документов"
+		           class="com.rssl.phizic.operations.templates.TemplatePackageListOperation"
+		           tag="admin"/>
+
+		<operation key="EditTemplatePackageOperation"
+		           name="Редактирование пакета шаблонов документов"
+		           class="com.rssl.phizic.operations.templates.EditTemplatePackageOperation"
+		           tag="admin"/>
+
+		<operation key="RemoveTemplatePackageOperation"
+		           name="Удаление пакетов шаблонов документов"
+		           class="com.rssl.phizic.operations.templates.RemoveTemplatePackageOperation"
+		           tag="admin"/>
+
+		<operation key="DictionaryPackagesListOperation"
+		           name="Справочник пакетов документов"
+		           class="com.rssl.phizic.operations.templates.DictionaryPackagesListOperation"
+		           tag="admin"/>
+
+		<operation key="BanksDocumentsListOperation"
+		           name="Список документов банка"
+		           class="com.rssl.phizic.operations.templates.BanksDocumentsListOperation"
+		           tag="general"/>
+
+		<operation key="EditBanksDocumentOperation"
+		           name="Редактирование документов банка"
+		           class="com.rssl.phizic.operations.templates.EditBanksDocumentOperation"
+		           tag="admin"/>
+
+		<operation key="RemoveBanksDocumentOperation"
+		           name="Удаление шаблона банка"
+		           class="com.rssl.phizic.operations.templates.RemoveBanksDocumentOperation"
+		           tag="admin"/>
+
+		<!-- Работа со справочником подразделений, подключеных к -->
+		<operation key="EditDepartmentOperation"
+		           name="Создание/редактирование подразделения"
+		           class="com.rssl.phizic.operations.departments.EditDepartmentOperation"
+		           tag="admin">
+            <restriction interface="com.rssl.phizic.business.operations.restrictions.DepartmentRestriction"
+                         default="com.rssl.phizic.business.operations.restrictions.defaults.NullDepartmentRestriction"/>             
+		</operation>
+
+		<operation key="ViewDepartmentOperation"
+		           name="Просмотр подразделения"
+		           class="com.rssl.phizic.operations.departments.EditDepartmentOperation"
+		           tag="admin,readonly">
+			<methods>
+				<remove name="save"/>
+			</methods>
+            <restriction interface="com.rssl.phizic.business.operations.restrictions.DepartmentRestriction"
+                         default="com.rssl.phizic.business.operations.restrictions.defaults.NullDepartmentRestriction"/>
+        </operation>
+
+
+		<operation key="ListDepartmentsOperationBase"
+		           name="Получение списка подразделений"
+		           class="com.rssl.phizic.operations.departments.ListDepartmentsOperation"
+		           tag="admin"/>
+
+		<operation key="RemoveDepartmentOperation"
+		           name="Удаление подразделения"
+		           class="com.rssl.phizic.operations.departments.RemoveDepartmentOperation"
+		           tag="admin"/>
+
+		<!-- Операции с сейфовыми ячейками -->
+		<operation key="ChangeCellsPresenceOperation"
+		           name="Редактирование наличия сейфовых ячеек"
+		           class="com.rssl.phizic.operations.dictionaries.ChangeCellsPresenceOperation"
+		           tag="admin"/>
+
+		<operation key="CellTypeListOperation"
+		           name="Справочник типов сейфовых ячеек"
+		           class="com.rssl.phizic.operations.dictionaries.CellTypeListOperation"
+		           tag="admin"/>
+
+		<operation key="AddCellTypeOperation"
+		           name="Создание типа сейфовой ячейки"
+		           class="com.rssl.phizic.operations.dictionaries.AddCellTypeOperation"
+		           tag="admin"/>
+
+		<operation key="EditCellTypeOperation"
+		           name="Редактирование типа сейфовой ячейки"
+		           class="com.rssl.phizic.operations.dictionaries.EditCellTypeOperation"
+		           tag="admin"/>
+
+		<operation key="RemoveCellTypeOperation"
+		           name="Удаление типа сейфовой ячейки"
+		           class="com.rssl.phizic.operations.dictionaries.RemoveCellTypeOperation"
+		           tag="admin"/>
+
+		<operation key="TermOfLeaseListOperation"
+		           name="Справочник сроков аренды сейфовых ячеек"
+		           class="com.rssl.phizic.operations.dictionaries.cells.TermOfLeaseListOperation"
+		           tag="admin"/>
+
+		<operation key="AddTermOfLeaseOperation"
+		           name="Создание срока аренды сейфовой ячейки"
+		           class="com.rssl.phizic.operations.dictionaries.cells.AddTermOfLeaseOperation"
+		           tag="admin"/>
+
+		<operation key="RemoveTermOfLeaseOperation"
+		           name="Удаление срока аренды сейфовой ячейки"
+		           class="com.rssl.phizic.operations.dictionaries.cells.RemoveTermOfLeaseOperation"
+		           tag="admin"/>
+
+		<operation key="ChangeOfficeCellTypesOperation"
+		           name="Редактирование списка предоставляемых офисами сейфовых ячеек"
+		           class="com.rssl.phizic.operations.dictionaries.ChangeOfficeCellTypesOperation"
+		           tag="admin"/>
+
+		<operation key="ChangeCellTypeTermsOfLeaseOperation"
+		           name="Редактирование списка возможных сроков аренды для сейфовых ячеек"
+		           class="com.rssl.phizic.operations.dictionaries.ChangeCellTypeTermsOfLeaseOperation"
+		           tag="admin"/>
+
+		<!-- Операции с новостями банка -->
+		<operation key="ListNewsOperation"
+		           name="Список новостей банка"
+		           class="com.rssl.phizic.operations.news.ListNewsOperation"
+		           tag="general"/>
+
+		<operation key="EditNewsOperation"
+		           name="Редактирование новостей банка"
+		           class="com.rssl.phizic.operations.news.EditNewsOperation"
+		           tag="admin"/>
+
+		<operation key="RemoveNewsOperation"
+		           name="Удаление новостей банка"
+		           class="com.rssl.phizic.operations.news.RemoveNewsOperation"
+		           tag="admin"/>
+
+		<!-- Операции с письмами клиентов  -->
+		<operation key="ListMailOperation"
+		           name="Список писем клиентов"
+		           class="com.rssl.phizic.operations.mail.ListMailOperation"
+		           tag="admin"/>
+
+		<operation key="EditMailOperation"
+		           name="Редактирование писем"
+		           class="com.rssl.phizic.operations.mail.EditMailOperation"
+		           tag="admin"/>
+
+		<!-- Запросы на сертификаты -->
+		<operation key="GetCertDemandListAdminOperation"
+		           name="Получение списка запросов на сертификаты"
+		           class="com.rssl.phizic.operations.certification.GetCertDemandListAdminOperation"
+		           tag="admin"
+				>
+		</operation>
+
+		<operation key="EditCertDemandAdminOperation"
+		           name="Получение информации о запросе на сертификат"
+		           class="com.rssl.phizic.operations.certification.EditCertDemandAdminOperation"
+		           tag="admin"
+				>
+		</operation>
+
+		<operation key="GetCertDemandListOperation"
+		           name="Получение списка запросов на сертификаты"
+		           class="com.rssl.phizic.operations.certification.GetCertDemandListOperation"
+		           tag="client"/>
+
+		<operation key="ConfirmCertDemandClientOperation"
+		           name="Подтверждение запроса на сертификат"
+		           class="com.rssl.phizic.operations.certification.ConfirmCertDemandClientOperation"
+		           tag="client"/>
+
+		<operation key="ViewCertDemandClientOperation"
+		           name="Просмотр запроса на сертификат"
+		           class="com.rssl.phizic.operations.certification.ViewCertDemandClientOperation"
+		           tag="client"/>
+
+		<operation key="EditCertDemandCertificationOperation"
+		           name="Создание запроса на сертификат"
+		           class="com.rssl.phizic.operations.certification.EditCertDemandCertificationOperation"
+		           tag="client"/>
+
+		<!-- Работа с сертификатами -->
+		<operation key="LoadCertificateOperation"
+		           name="Загрузка сертификата"
+		           class="com.rssl.phizic.operations.certification.LoadCertificateOperation"
+		           tag="admin"
+				>
+		</operation>
+
+		<operation key="GetCertificateListAdminOperation"
+		           name="Получение списка сертификатов"
+		           class="com.rssl.phizic.operations.certification.GetCertificateListAdminOperation"
+		           tag="admin"
+				>
+		</operation>
+
+		<operation key="GetPersonCertificateOperation"
+		           name="Получение списка сертификатов пользователя"
+		           class="com.rssl.phizic.operations.certification.GetPersonCertificateOperation"
+		           tag="admin"
+				>
+		</operation>
+
+		<operation key="EditCertificateOperation"
+		           name="Редактирование сертификата"
+		           class="com.rssl.phizic.operations.certification.EditCertificateOperation"
+		           tag="admin"
+				>
+		</operation>
+
+		<operation key="GetCertificateListOperation"
+		           name="Получение списка сертификатов"
+		           class="com.rssl.phizic.operations.certification.GetCertificateListOperation"
+		           tag="client"
+				>
+		</operation>
+
+		<!-- Системные операции -->
+		<operation key="SynchronizeDictionariesOperation"
+		           name="Репликация справочников"
+		           class="com.rssl.phizic.operations.dictionaries.SynchronizeDictionariesOperation"
+		           tag="system"/>
+
+		<operation key="GetDeletedPersonListOperation"
+		           name="Получение архива клиентов"
+		           class="com.rssl.phizic.operations.person.GetDeletedPersonListOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<!-- Заявки -->
+		<operation key="GetClaimListOperation"
+		           name="Получение списка заявок"
+		           class="com.rssl.phizic.operations.claims.GetClaimListOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<operation key="ProcessDocumentOperation"
+		           name="Выполнение заявки"
+		           class="com.rssl.phizic.operations.payment.ProcessDocumentOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.UserRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.DepartmentUserRestriction"/>
+		</operation>
+
+		<!-- Операции с кредитными заявками -->
+		<operation key="ListLoanClaimOperation"
+		           name="Список кредитных заявок"
+		           class="com.rssl.phizic.operations.loans.claims.ListLoanClaimOperation"
+		           tag="admin">
+		</operation>
+
+		<operation key="PrintLoanDocumentsOperation"
+		           name="Печать документов на кредит"
+		           class="com.rssl.phizic.operations.loans.loan.PrintLoanDocumentsOperation"
+		           tag="admin">
+			<restriction interface="com.rssl.phizic.business.operations.restrictions.LoanRestriction"
+			             default="com.rssl.phizic.business.operations.restrictions.defaults.NullLoanRestriction"/>
+		</operation>
+
+		<operation key="RemoveDocumentOperation"
+				   name="Удаление документа"
+				   class="com.rssl.phizic.operations.payment.RemoveDocumentOperation"
+				   tag="client">
+		</operation>
+
+		<!-- Операции с кредитными продуктами -->
+		<operation key="ListLoanProductOperation"
+		           name="Список кредитных продуктов"
+		           class="com.rssl.phizic.operations.loans.products.ListLoanProductOperation"
+		           tag="admin">
+		</operation>
+
+		<operation key="EditLoanProductOperation"
+				   name="Редактирование видов кредитов"
+				   class="com.rssl.phizic.operations.loans.products.EditLoanProductOperation"
+				   tag="admin">
+		</operation>
+
+		<operation key="RemoveLoanProductOperation"
+				   name="Удаление видов кредитов"
+				   class="com.rssl.phizic.operations.loans.products.RemoveLoanProductOperation"
+				   tag="admin">
+		</operation>
+		<!-- Операции с видами кредитов -->
+		<operation key="ListLoanKindOperation"
+				   name="Список видов кредитов"
+				   class="com.rssl.phizic.operations.loans.kinds.ListLoanKindOperation"
+				   tag="admin">
+		</operation>
+
+		<operation key="EditLoanKindOperation"
+				   name="Редактирование видов кредитов"
+				   class="com.rssl.phizic.operations.loans.kinds.EditLoanKindOperation"
+				   tag="admin">
+		</operation>
+
+		<operation key="RemoveLoanKindOperation"
+				   name="Удаление видов кредитов"
+				   class="com.rssl.phizic.operations.loans.kinds.RemoveLoanKindOperation"
+				   tag="admin">
+		</operation>
+
+		<!-- Сообщения о результате рассмотрения заявки в банке -->
+		<operation key="ListLoanStateMessagesOperations"
+				   name="Список сообщений о результате рассмотрения заявки в банке"
+				   class="com.rssl.phizic.operations.loans.statemessages.ListLoanStateMessagesOperations"
+				   tag="admin">
+		</operation>
+
+		<operation key="EditLoanStateMessagesOperations"
+				   name="Изменение сообщения о результате рассмотрения заявки в банке"
+				   class="com.rssl.phizic.operations.loans.statemessages.EditLoanStateMessagesOperations"
+				   tag="admin">
+		</operation>
+
+		<!-- Операции со справочником офисов -->
+		<operation key="GetOfficesOperation"
+		           name="Список подразделений"
+		           class="com.rssl.phizic.operations.dictionaries.GetOfficesOperation"
+		           tag="general"/>
+
+
+		<operation key="GetDepositAbstractOperation"
+	             name="Получение выписки по вкладу"
+	             class="com.rssl.phizic.operations.deposits.GetDepositAbstractOperation"
+	           tag="client"/>
+
+		<operation key="GetDepositProductsListBankOperation"
+		           name="Список депозитных продуктов"
+		           class="com.rssl.phizic.operations.deposits.GetDepositProductsListBankOperation"
+		           tag="admin">
+		</operation>
+
+		<operation key="EditDepositProductOperation"
+		           name="Редактирование депозитного продукта"
+		           class="com.rssl.phizic.operations.deposits.retail.EditDepositProductOperation"
+		           tag="admin">
+		</operation>
+
+		<operation key="RemoveDepositProductOperation"
+		           name="Удаление депозитного продукта"
+		           class="com.rssl.phizic.operations.deposits.RemoveDepositProductOperation"
+		           tag="admin">
+		</operation>
+
+		<!-- кредитные офисы-->
+		<operation key="ListLoanOfficeOperation"
+		           name="Список кредитных офисов"
+		           class="com.rssl.phizic.operations.loans.offices.ListLoanOfficeOperation"
+		           tag="admin">
+		</operation>
+
+		<operation key="EditLoanOfficeOperation"
+		           name="Редактирование кредитных офисов"
+		           class="com.rssl.phizic.operations.loans.offices.EditLoanOfficeOperation"
+		           tag="admin">
+		</operation>
+
+		<operation key="RemoveLoanOfficeOperation"
+		           name="Удаление кредитных офисов"
+		           class="com.rssl.phizic.operations.loans.offices.RemoveLoanOfficeOperation"
+		           tag="admin">
+		</operation>
+
+		<operation key="SetMainLoanOfficeOperation"
+		           name="Установка головного офиса"
+		           class="com.rssl.phizic.operations.loans.offices.SetMainLoanOfficeOperation"
+		           tag="admin">
+		</operation>
+
+		<!-- Логгирование -->
+		<operation key="EditLoggingLevelOperation"
+		           name="Установка уровня логгирования"
+		           class="com.rssl.phizic.operations.logging.EditLoggingLevelOperation"
+		           tag="admin">
+		</operation>
+	</operations>
+
+
+	<services>
+		<!-- !!! Для пользователя !!! -->
+		<service key="CertificationOperation" name="Работа с сертификатами" category="client">
+			<operation-ref key="GetCertDemandListOperation"/>
+			<operation-ref key="EditCertDemandCertificationOperation"/>
+			<operation-ref key="GetCertificateListOperation"/>
+			<operation-ref key="ConfirmCertDemandClientOperation"/>
+			<operation-ref key="ViewCertDemandClientOperation"/>
+		</service>
+
+	    <service name="Активирование карт ключей"
+	             key="ActivateNewPasswordCard"
+	             category="client">
+			<operation-ref key="LastPasswordOnCardOperation"/>
+	    </service>
+
+		<service name="Работа с письмами" key="ClientMailManagement" category="client">
+			<operation-ref key="ListClientMailOperation"/>
+			<operation-ref key="EditClientMailOperation"/>
+		</service>
+
+		<service key="AccountAndCardInfo" name="Получение информации по счетам/картам" category="client">
+			<operation-ref key="GetAccountsOperation" />
+			<operation-ref key="GetCardsOperation"/>
+			<operation-ref key="GetAccountInfoOperation"/>
+			<operation-ref key="AccountInfoPrintOperation"/>
+			<operation-ref key="GetCardInfoOperation"/>
+			<operation-ref key="CardInfoPrintOperation"/>
+		</service>
+
+		<service key="Abstract" name="Получение выписки по счетам/картам" category="client">
+            <operation-ref key="GetAccountAbstractOperation"/>
+			<operation-ref key="GetCardAbstractOperation"/>
+			<operation-ref key="GetDepositAbstractOperation"/>
+        </service>
+
+		<service key="ChangePersonPassword" name="Смена пароля на доступ в систему" category="client">
+			<operation-ref key="ChangePersonPasswordOperation"/>
+		</service>
+
+		<!-- Получение доступа к курсам валют -->
+		<service key="CurrenciesRateInfo" name="Доступ к курсам валют" category="client">
+			<operation-ref key="ShowCurrenciesRateOperation"/>
+		</service>
+
+		<!-- Платежи -->
+        <service key="RurPayment" name="Рублевый перевод физическому лицу" category="client">
+	        <operation-ref key="EditTemplateOperation" spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation" spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation" spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="GoodsAndServicesPayment" name="Оплата покупок и услуг" category="client">
+			<operation-ref key="EditTemplateOperation"         spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation"     spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"    spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation"   spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation"   spread="false"/>
+			<operation-ref key="ViewDocumentOperation"         spread="false"/>
+			<operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="PurchaseSaleCurrencyPayment" name="Покупка/продажа иностранной валюты" category="client">
+			<operation-ref key="EditTemplateOperation" spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation" spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"      spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="CurrencyPayment" name="Перевод иностранной валюты" category="client">
+			<operation-ref key="EditTemplateOperation" spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation" spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"      spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="ConvertCurrencyPayment" name="Конверсия иностранной валюты" category="client">
+         <operation-ref key="CreateFormPaymentOperation" spread="false"/>
+         <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+         <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+         <operation-ref key="ViewDocumentOperation" spread="false"/>
+      </service>
+
+		<service key="GKHPayment" name="Оплата услуг ЖКХ" category="client">
+			<operation-ref key="EditTemplateOperation" spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation" spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"      spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="ContactPayment" name="Перевод по сети Contact" category="client">
+			<operation-ref key="EditTemplateOperation" spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation" spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"      spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="InternetPayment" name="Оплата Интернет" category="client">
+			<operation-ref key="EditTemplateOperation"         spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation"     spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"    spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation"   spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation"   spread="false"/>
+			<operation-ref key="ViewDocumentOperation"         spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="MGTSPayment" name="Оплата услуг МГТС"    category="client">
+			<operation-ref key="EditTemplateOperation"         spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation"     spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"    spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation"   spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation"   spread="false"/>
+			<operation-ref key="ViewDocumentOperation"         spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="MobilePayment" name="Оплата сотовой связи" category="client">
+			<operation-ref key="EditTemplateOperation"         spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation"     spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"    spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation"   spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation"   spread="false"/>
+			<operation-ref key="ViewDocumentOperation"         spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="TVPayment" name="Оплата услуг телевидения" category="client">
+			<operation-ref key="EditTemplateOperation"         spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation"     spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"    spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation"   spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation"   spread="false"/>
+			<operation-ref key="ViewDocumentOperation"         spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="ElectricPayment" name="Оплата электроэнергии" category="client">
+			<operation-ref key="EditTemplateOperation"         spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation"     spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"    spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation"   spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation"   spread="false"/>
+			<operation-ref key="ViewDocumentOperation"         spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="RecallContactPayment" name="Отзыв перевода по сети Contact" category="client">
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation" spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"      spread="false"/>
+		</service>
+
+		<service key="EditContactPayment" name="Редактирование перевода по сети Contact" category="client">
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation" spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"      spread="false"/>
+		</service>
+
+		<service key="InternalPayment" name="Перевод между счетами" category="client">
+			<operation-ref key="EditTemplateOperation" spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation" spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"      spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="TaxPayment" name="Оплата налогов" category="client">
+			<operation-ref key="EditTemplateOperation" spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateNameOperation" spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"      spread="false"/>
+	        <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="CardReplenishmentPayment" name="Пополнение пластиковой карты" category="client">
+		   <operation-ref key="EditTemplateOperation" spread="false"/>
+		   <operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+		   <operation-ref key="EditTemplateNameOperation" spread="false"/>
+		   <operation-ref key="CreateFormPaymentOperation" spread="false"/>
+		   <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+		   <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+		   <operation-ref key="ViewDocumentOperation" spread="false"/>
+		   <operation-ref key="GetTemplatesOperation" spread="false"/>
+		</service>
+
+		<service key="RecallPayment" name="Отзыв перевода" category="client">
+			<operation-ref key="CreateFormPaymentOperation" spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation" spread="false"/>
+		</service>
+
+		<!-- Заявки -->
+		<service key="BankcellLeasingClaim" name="Заявка на бронирование сейфовой ячейки" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+		<service key="SecuritiesOperationsClaim" name="Заявка на операции с ценными бумагами" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+		<service key="DepositOpeningClaim" name="Заявка на открытие вклада" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+		<service key="AccountOpeningClaim" name="Заявка на открытие счета" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+		<service key="LoanClaim" name="Заявка на кредит" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="CreateFormPaymentGuidOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+			<operation-ref key="LoanClaimOperation"/>
+			<operation-ref key="RemoveDocumentOperation"/>
+			<operation-ref key="ListLoanStateMessagesOperations"/>
+		</service>
+
+		<service key="DepositClosingClaim" name="Заявка на закрытие вклада" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+		<service key="AccountClosingClaim" name="Заявка на закрытие счета" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+		<service key="DepositReplenishmentClaim" name="Заявка на пополнение депозита" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+		<service key="InternalTransferClaim" name="Заявка на списание средств с депозита" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+		<service key="SMSInformationClaim" name="Заявка на SMS-информирования по операциям с пластиковой картой" category="client">
+            <operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+            <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+            <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+            <operation-ref key="ViewDocumentOperation"       spread="false"/>
+         </service>
+
+	    <service key="BlockingCardClaim" name="Заявка на блокирование пластиковой карты" category="client">
+            <operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+            <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+            <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+            <operation-ref key="ViewDocumentOperation"       spread="false"/>
+        </service>
+
+	    <service key="UnblockingCardClaim" name="Заявка на разблокировку пластиковой картой" category="client">
+            <operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+            <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+            <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+            <operation-ref key="ViewDocumentOperation"       spread="false"/>
+        </service>
+
+		<service key="NotReIssueCardClaim" name="Заявка об отказе от перевыпуска пластиковой картой" category="client">
+            <operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+            <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+            <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+            <operation-ref key="ViewDocumentOperation"       spread="false"/>
+        </service>
+
+		<service key="IssueCardClaim" name="Заявление на выпуск пластиковой карты" category="client">
+            <operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+            <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+            <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+            <operation-ref key="ViewDocumentOperation"       spread="false"/>
+        </service>
+
+		<service key="ReIssueCardClaim" name="Заявка на перевыпуск пластиковой картой" category="client">
+            <operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+            <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+            <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+            <operation-ref key="ViewDocumentOperation"       spread="false"/>
+        </service>
+
+		<service key="IssueAdditionalCardClaim" name="Заявление на предоставление дополнительной пластиковой карты" category="client">
+            <operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+            <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+            <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+            <operation-ref key="ViewDocumentOperation"       spread="false"/>
+        </service>
+
+		<service key="StopListCardClaim" name="Заявление на постановку карты в стоп-лист" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+	    <service key="CardMootTransClaim" name="Заявление на расследование спорных транзакций по пластиковой карте" category="client">
+			<operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			<operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			<operation-ref key="ViewDocumentOperation"       spread="false"/>
+		</service>
+
+		<service key="CardChargeLimitClaim" name="Установка лимита расходования средств для дополнительных карт" category="client">
+			 <operation-ref key="CreateFormPaymentOperation"  spread="false"/>
+			 <operation-ref key="ConfirmFormPaymentOperation" spread="false"/>
+			 <operation-ref key="GetMetaPaymentListOperation" spread="false"/>
+			 <operation-ref key="ViewDocumentOperation"       spread="false"/>
+		 </service>
+
+
+		<!-- Справочники -->
+		<service key="BankList" name="Справочник банков" category="client">
+			<operation-ref key="GetBankListOperation"/>
+		</service>
+
+		<service key="BankListViewing" name="Справочник банков" category="admin">
+			<operation-ref key="GetBankListOperation"/>
+		</service>
+
+		<service key="BankListManagement" name="Управление справочником банков" category="admin">
+			<operation-ref key="GetBankListOperation"/>
+			<operation-ref key="EditBankOperation"/>
+			<operation-ref key="RemoveBankOperation"/>
+		</service>
+
+		<service key="CountryList" name="Справочник стран" category="client">
+			<operation-ref key="GetCountryListOperation"/>
+		</service>
+
+		<service key="MemberList" name="Справочник точек" category="client">
+			<operation-ref key="GetMemberListOperation"/>
+		</service>
+
+		<service key="PaymentReceiverList" name="Справочник получателей (юр. и физ. лиц)" category="client">
+			<operation-ref key="GetPaymentReceiverListOperationClient" spread="false"/>
+			<operation-ref key="EditPaymentReceiverOperationClient" spread="false"/>
+			<operation-ref key="RemovePaymentReceiverOperation" spread="false"/>
+		</service>
+
+		<service key="ContactReceiverList" name="Справочник получателей CONTACT" category="client">
+			<operation-ref key="GetPaymentReceiverListOperationClient" spread="false"/>
+			<operation-ref key="EditPaymentReceiverOperationClient" spread="false"/>
+			<operation-ref key="RemovePaymentReceiverOperation" spread="false"/>
+		</service>
+
+		<service key="Offices" name="Справочник офисов банка" category="client">
+			<operation-ref key="GetOfficesOperation"/>
+		</service>
+
+		<service key="Accounts" name="Справочник счетов пользователя" category="client">
+			<operation-ref key="GetAccountsListOperation"/>
+		</service>
+
+		<service key="KBKList" name="Справочник КБК" category="client">
+		   <operation-ref key="GetKBKListOperation"/>
+		</service>
+
+        <!-- Депозиты -->
+		<service name="Депозитные заявки" key="DepositClaims" category="client">
+			<operation-ref key="GetDepositProductsListOperation"/>
+            <operation-ref key="DepositCalculatorOperation"/>
+		</service>
+
+		<service name="Информация по вкладам" key="DepositInfo" category="client">
+			<operation-ref key="GetDepositListOperation"/>
+		</service>
+
+		<service name="Подробная информация о депозите" key="DepositDetails" category="client">
+			<operation-ref key="DepositDetailsOperation"/>
+			<operation-ref key="GetDepositInfoOperation"/>
+			<operation-ref key="DepositInfoPrintOperation"/>
+		</service>
+
+		<service key="ViewNewsManagment" name="Работа с новостями" category="client">
+			 <operation-ref key="ListNewsOperation"/>
+		</service>
+
+		<service key="PaymentList" name="Журнал операций" category="client">
+			<operation-ref key="GetCommonPaymentListOperation"/>
+			<operation-ref key="ViewDocumentOperation" spread="false"/>
+		</service>
+
+		<service key="ShowTemplatesDocuments" name="Просмотр шаблонов документов банка" category="client">
+			<operation-ref key="TemplateDocumentsListOperation"/>
+		</service>
+
+		<service key="ShowBankDocuments" name="Просмотр документов банка" category="client">
+			<operation-ref key="BanksDocumentsListOperation"/>
+			<operation-ref key="DownloadBankDocumentOperation"/>
+		</service>
+
+		<service key="ClientTemplatesManagement" name="Управление шаблонами платежей" category="client">
+			<operation-ref key="GetTemplatesOperation"         spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateOperation"         spread="false"/>
+			<operation-ref key="EditTemplateNameOperation"     spread="false"/>
+		</service>
+
+		<!-- Кредиты -->
+		<service key="BankLoanProducts" name="Список кредитных продуктов банка" category="client">
+			<operation-ref key="GetLoanProductListOperation"/>
+		</service>
+
+		<service key="LoanCalculator" name="Кредитный калькулятор" category="client">
+			<operation-ref key="LoanCalculatorOperation"/>
+		</service>
+
+		<service name="Подробная информация по кредитному продукту" key="LoanProductDetails" category="client">
+			<operation-ref key="LoanProductDetailsOperation"/>
+		</service>
+
+		<service name="Информация по кредитам клиента" key="LoansInfo" category="client">
+			<operation-ref key="GetLoanListOperation"/>
+		</service>
+
+		<service name="Подробная информация о кредите" key="LoanDetails" category="client">
+			<operation-ref key="GetLoanInfoOperation"/>
+			<operation-ref key="PrintLoanInfoOperation"/>
+		</service>
+
+		<service name="SMS-банкинг" key="SmsBanking" category="client">
+			<operation-ref key="GetTemplatesOperation"         spread="false"/>
+			<operation-ref key="RemoveClientTemplateOperation" spread="false"/>
+			<operation-ref key="EditTemplateOperation"         spread="false"/>
+			<operation-ref key="EditPseudonymsListOperation"   spread="false"/>
+			<operation-ref key="CreateFormPaymentOperation"    spread="false"/>
+			<operation-ref key="ConfirmFormPaymentOperation"   spread="false"/>
+		</service>
+		
+		<!-- !!! Для сотрудника!!! -->
+		<service key="ImportClientService" name="Импорт клиента" category="admin">
+			<operation-ref key="GetClientsOperation"/>
+			<operation-ref key="ImportClientOperation"/>
+		</service>
+
+		<service key="PersonManagement" name="Управление клиентами банка" category="admin">
+			<operation-ref key="GetAccountsListOperation"/>
+			<operation-ref key="GetDeletedPersonListOperation"/>
+			<operation-ref key="GetPersonsListOperation"/>
+			<operation-ref key="AddPersonOperation"/>
+			<operation-ref key="RemovePersonOperation"/>
+			<operation-ref key="ModifyPersonGroupsOperation"/>
+			<operation-ref key="ListGroupsOperationC"/>
+
+			<operation-ref key="EditPersonOperation"/>
+			<operation-ref key="ViewPersonOperation"/>
+
+			<operation-ref key="LinkPINOperation"/>
+			<operation-ref key="ViewLinkPINOperation"/>
+			<operation-ref key="PrintRecessionOperation"/>
+			<operation-ref key="PrintPersonOperation"/>
+			<operation-ref key="GetKBKListOperation"/>
+			<operation-ref key="GetCountryListOperation"/>
+		</service>
+
+		<service key="EmpoweredPersonManagement" name="Управление представителями клиентами" category="admin">
+			<operation-ref key="ViewEmpoweredPersonOperation"/>
+			<operation-ref key="EditEmpoweredPersonOperation"/>
+
+			<operation-ref key="ViewEmpoweredAccessOperation"/>
+			<operation-ref key="EditEmpoweredAccessOperation"/>
+
+			<operation-ref key="ViewEmpoweredResourcesOperation"/>
+			<operation-ref key="EditEmpoweredResourcesOperation"/>
+
+			<operation-ref key="GetEmpoweredPersonsListOperation"/>
+			<operation-ref key="DeleteEmpoweredPersonOperation"/>
+		</service>
+
+		<service key="PersonGroupManagement" name="Управление группами клиентов банка" category="admin">
+			<operation-ref key="EditGroupOperationC"/>
+			<operation-ref key="ListGroupsOperationC"/>
+			<operation-ref key="ListGroupPersonsOperation"/>
+			<operation-ref key="GetPersonListDictionaryOperation"/>
+			<operation-ref key="ModifyPersonGroupsOperation"/>
+			<operation-ref key="ListPersonGroupsOperation"/>
+			<operation-ref key="EditPersonGroupsOperation"/>
+		</service>
+
+		<service key="PersonPasswordCardManagment" name="Работами с карточками паролей" category="admin">
+			<operation-ref key="SetCardSettingsOperation"/>
+			<operation-ref key="ViewCardSettingsOperation"/>
+			<operation-ref key="GetUserPasswordCardsOperation"/>
+			<operation-ref key="AssignUserPasswordCardOperation"/>
+			<operation-ref key="ActivateUserPasswordCardOperation"/>
+			<operation-ref key="ChangeUserPasswordCardLockingOperation"/>
+			<operation-ref key="AddPasswordCardsOperation"/>
+			<operation-ref key="RemovePasswordCardsOperation"/>
+			<operation-ref key="GetPasswordCardsOperation"/>
+			<operation-ref key="PrintUnassignedPasswordCardOperation"/>
+			<operation-ref key="RequestPasswordCardsOperation"/>
+			<operation-ref key="CreateCardsPrintingRequestOperation"/>
+			<operation-ref key="UploadCardsAnswerOperation"/>
+			<operation-ref key="AddPasswordCardHashesOperation"/>
+		</service>
+
+		<service key="PersonAccess" name="Блокировка/разблокировка доступа клиентов банка" category="admin">
+			<operation-ref key="ChangeLockPersonOperation"/>
+		</service>
+
+		<service key="AccountManagement" name="Управление счетами клиентов"
+		         category="admin">
+			<operation-ref key="ListBankrollsOperation"/>
+			<operation-ref key="GetResourcesOperation"/>
+			<operation-ref key="AddAccountOperation"/>
+			<operation-ref key="RemoveResourceOwnOperation"/>
+            <operation-ref key="EditBankrollsOperation"/>
+		</service>
+
+		<service key="CardsManagement" name="Управление картами клиентов"
+		         category="admin">
+			<operation-ref key="ListBankrollsOperation"/>
+			<operation-ref key="GetResourcesOperation"/>
+			<operation-ref key="AddCardOperation"/>
+			<operation-ref key="RemoveResourceOwnOperation"/>
+            <operation-ref key="EditBankrollsOperation"/>
+		</service>
+
+		<service key="PersonAccessManagement" name="Управление правами доступа клиентов банка" category="admin">
+			<operation-ref key="AssignPersonAccessOperation"/>
+			<operation-ref key="ViewPersonAccessOperation"/>
+		</service>
+
+		<service key="SchemeManagement" name="Управление схемами прав доступа" category="admin">
+			<operation-ref key="GetSchemesListOperation"/>
+			<operation-ref key="AddSchemeOperation"/>
+			<operation-ref key="EditSchemeOperation"/>
+			<operation-ref key="ViewSchemeOperation"/>
+			<operation-ref key="RemoveSchemeOperation"/>
+		</service>
+
+		<service key="EmployeeManagement" name="Управление сотрудниками банка" category="admin">
+			<operation-ref key="GetEmployeeListOperation"/>
+			<operation-ref key="EditEmployeeOperation"/>
+			<operation-ref key="ViewEmployeeOperation"/>
+			<operation-ref key="RemoveEmployeeOperation"/>
+			<operation-ref key="ForceChangeEmployeePasswordOperation"/>
+			<operation-ref key="ListLoanOfficeOperation"/>
+		</service>
+
+		<service key="CertDemandControl" name="Работа с запросами на сертификаты" category="admin">
+			<operation-ref key="GetCertDemandListAdminOperation"/>
+			<operation-ref key="EditCertDemandAdminOperation"/>
+			<operation-ref key="LoadCertificateOperation"/>
+			<operation-ref key="GetCertificateListAdminOperation"/>
+			<operation-ref key="EditCertificateOperation"/>
+			<operation-ref key="GetPersonCertificateOperation"/>
+		</service>
+
+		<service key="EmployeeGroupManagement" name="Управление группами сотрудников банка" category="admin">
+			<operation-ref key="ListGroupsOperationA"/>
+			<operation-ref key="EditGroupOperationA"/>
+			<operation-ref key="ListGroupEmployersOperation"/>
+			<operation-ref key="ModifyEmployeeGroupsOperation"/>
+			<operation-ref key="GetEmployeeListDictionaryOperation"/>
+			<operation-ref key="ListEmployeeGroupsOperation"/>
+			<operation-ref key="EditEmployeeGroupsOperation"/>
+		</service>
+
+		<service key="ChangeLockEmployee" name="Блокировка/разблокировка доступа сотрудников банка" category="admin">
+			<operation-ref key="ChangeLockEmployeeOperation"/>
+		</service>
+
+		<service key="AssignEmployeeAccess" name="Управление правами доступа сотрудников банка" category="admin">
+			<operation-ref key="ViewEmployeeAccessOperation"/>
+			<operation-ref key="AssignEmployeeAccessOperation"/>
+		</service>
+
+		<service key="PaymentFormManagement" name="Управление формами платежей" category="admin">
+			<operation-ref key="GetPaymentFormListOperation"/>
+			<operation-ref key="UploadFormOperation"/>
+			<operation-ref key="DownloadFormsOperation"/>
+			<operation-ref key="UpdateFormOperation"/>
+		</service>
+
+		<service key="ChangeEmployeePassword" name="Смена пароля сотрудника на доступ в систему" category="admin">
+			<operation-ref key="ChangeEmployeePasswordOperation"/>
+		</service>
+
+		<service key="DownloadLog" name="Работа с протоколами" category="admin">
+			<operation-ref key="DownloadSystemLogOperation"/>
+			<operation-ref key="DownloadUserLogOperation"/>
+			<operation-ref key="MessageLogOperation"/>
+			<operation-ref key="ArchiveSystemLogOperation"/>
+			<operation-ref key="ArchiveOperationsLogOperation"/>
+			<operation-ref key="ArchiveMessagesLogOperation"/>
+        </service>
+
+		<service key="CurrentSkins" name="Настройка активных скинов" category="admin">
+			<operation-ref key="ViewSkinsList" spread="false"/>
+			<operation-ref key="ChangeCurrentSkins"/>
+		</service>
+		
+		<service key="SkinsManager" name="Управление скинами" category="admin">
+			<operation-ref key="ViewSkinsList" spread="false"/>
+			<operation-ref key="EditSkins"/>
+			<operation-ref key="DeleteSkins"/>
+		</service>
+
+		<service key="SystemSettingsManagement" name="Управление настройками системы" category="admin">
+			<operation-ref key="MarkSchemeAsDefaultOperation"/>
+			<operation-ref key="ViewSchemeAsDefaultOperation"/>
+			<operation-ref key="SetPersonSecuritySettingsOperation"/>
+			<operation-ref key="ViewPersonSecuritySettingsOperation"/>
+			<operation-ref key="EditPolicyTemplateOperation"/>
+			<operation-ref key="ViewPolicyTemplateOperation"/>
+			<operation-ref key="ListCalendarOperation"/>
+			<operation-ref key="EditCalendarOperation"/>
+			<operation-ref key="RemoveCalendarOperation"/>
+			<operation-ref key="SetSmsSettingsOperation"/>
+			<operation-ref key="ViewSmsSettingsOperation"/>
+			<operation-ref key="EditLoggingLevelOperation"/>
+            <operation-ref key="ViewSystemSettingsOperation"/>
+		</service>
+
+        <service key="AdminSystemSettingsManagement" name="Управление настройками системы по подразделениям" category="system">
+            <operation-ref key="ViewSystemSettingsOperation"/>
+            <operation-ref key="EditSystemSettingsOperation"/>
+        </service>        
+
+		<service key="ContactDictionariesSettingsManagement" name="Настройки для справочников CONTACT" category="admin">
+			<operation-ref key="SetContactDictionariesSettingsOperation"/>
+		</service>
+
+		<service key="SynchronizeDictionaries" name="Репликация справочников" category="admin">
+			<operation-ref key="SynchronizeDictionariesOperation"/>
+		</service>
+
+		<service key="DepartmentsManagement" name="Работа со справочником подразделений" category="admin">
+			<operation-ref key="EditDepartmentOperation"/>
+			<operation-ref key="ViewDepartmentOperation"/>
+			<operation-ref key="ListDepartmentsOperationBase"/>
+			<operation-ref key="RemoveDepartmentOperation"/>
+		</service>
+
+		<service key="PINEnvelopeManagement" name="Работа с ПИН-конвертами" category="admin">
+			<operation-ref key="CreatePINRequestOperation"/>
+			<operation-ref key="UploadPINAnswerOperation"/>
+		</service>
+
+		<service key="OfficesAdmin" name="Справочник подразделений" category="admin">
+			<operation-ref key="GetOfficesOperation"/>
+		</service>
+
+		<service key="Bankcells" name="Управление сейфовыми ячейками" category="admin">
+			<operation-ref key="ChangeCellsPresenceOperation"/>
+			<operation-ref key="CellTypeListOperation"/>
+			<operation-ref key="AddCellTypeOperation"/>
+			<operation-ref key="EditCellTypeOperation"/>
+			<operation-ref key="RemoveCellTypeOperation"/>
+			<operation-ref key="TermOfLeaseListOperation"/>
+			<operation-ref key="AddTermOfLeaseOperation"/>
+			<operation-ref key="RemoveTermOfLeaseOperation"/>
+			<operation-ref key="ChangeOfficeCellTypesOperation"/>
+			<operation-ref key="ChangeCellTypeTermsOfLeaseOperation"/>
+		</service>
+
+		<service key="MemberListAdmin" name="Справочник точек" category="admin">
+			<operation-ref key="GetMemberListOperation"/>
+		</service>
+
+		<service key="BankTemplatesManagement" name="Управление шаблонами платежей банка" category="admin">
+			<operation-ref key="GetBankTemplatesOperation"/>
+			<operation-ref key="RemoveBankTemplateOperation"/>
+			<operation-ref key="EditBankTemplateOperation"/>
+			<operation-ref key="EditBankTemplateNameOperation"/>
+			<operation-ref key="DownloadBankDocumentOperation"/>
+		</service>
+
+		<service key="TemplatesDocumentsManagement" name="Управление шаблонами документов банка" category="admin">
+			<operation-ref key="DownloadTemplateOperation"/>
+			<operation-ref key="AgreementTemplateOperation"/>
+			<operation-ref key="TemplateDocumentsListOperation"/>
+			<operation-ref key="EditTemplateDocumentOperation"/>
+			<operation-ref key="RemoveTemplateDocumentOperation"/>
+			<operation-ref key="BanksDocumentsListOperation"/>
+			<operation-ref key="EditBanksDocumentOperation"/>
+			<operation-ref key="RemoveBanksDocumentOperation"/>
+			<operation-ref key="TemplatePackageListOperation"/>
+			<operation-ref key="EditTemplatePackageOperation"/>
+			<operation-ref key="RemoveTemplatePackageOperation"/>
+			<operation-ref key="DictionaryPackagesListOperation"/>
+		</service>
+
+		<service key="NewsManagment" name="Работа с новостями" category="admin">
+			 <operation-ref key="ListNewsOperation"/>
+			 <operation-ref key="EditNewsOperation"/>
+			 <operation-ref key="RemoveNewsOperation"/>
+		</service>
+
+		<service name="Работа с письмами" key="MailManagment" category="admin">
+			<operation-ref key="ListMailOperation"/>
+			<operation-ref key="EditMailOperation"/>
+		</service>
+
+		<service key="Claims" name="Работа с заявками" category="admin">
+			<operation-ref key="GetClaimListOperation"/>
+			<operation-ref key="ProcessDocumentOperation"/>
+		</service>
+
+		<service key="ViewPaymentList" name="Работа с платежами" category="admin">
+         <operation-ref key="GetCommonPaymentListOperation"/>
+		 <operation-ref key="ViewDocumentOperation" spread="false"/>
+      </service>
+
+		<service key="DepositsManagement" name="Управление депозитными продуктами" category="admin">
+			<operation-ref key="GetDepositProductsListBankOperation"/>
+			<operation-ref key="EditDepositProductOperation"/>
+			<operation-ref key="RemoveDepositProductOperation"/>
+		</service>
+
+		<!--Кредиты-->
+		<service key="LoanProducts" name="Управление кредитными продуктами" category="admin">
+			<operation-ref key="ListLoanProductOperation"/>
+			<operation-ref key="EditLoanProductOperation"/>
+			<operation-ref key="RemoveLoanProductOperation"/>
+		</service>
+
+		<service key="LoanKinds" name="Управление видами кредитов" category="admin">
+			<operation-ref key="ListLoanKindOperation"/>
+			<operation-ref key="EditLoanKindOperation"/>
+			<operation-ref key="RemoveLoanKindOperation"/>
+		</service>
+
+		<service key="LoanOffices" name="Управление кредитными офисами банка" category="admin">
+			<operation-ref key="ListLoanOfficeOperation"/>
+			<operation-ref key="EditLoanOfficeOperation"/>
+			<operation-ref key="RemoveLoanOfficeOperation"/>
+			<operation-ref key="SetMainLoanOfficeOperation"/>
+		</service>
+
+		<service key="LoanClaims" name="Управление кредитными заявками" category="admin">
+			<operation-ref key="ListLoanClaimOperation"/>
+			<operation-ref key="PrintLoanDocumentsOperation"/>
+		</service>
+
+		<service key="LoanStateMessages" name="Управление сообщениями о результате рассмотрения заявки в банке" category="admin">
+			<operation-ref key="ListLoanStateMessagesOperations"/>
+			<operation-ref key="EditLoanStateMessagesOperations"/>
+		</service>
+
+	</services>
+
+	<schemes>
+		<scheme key="default-admin" name="Схема администратора" category="admin">
+			<services>
+				<service-ref key="ImportClientService"/>
+				<service-ref key="CertDemandControl"/>
+				<service-ref key="BankTemplatesManagement"/>
+				<service-ref key="PersonPasswordCardManagment"/>
+				<service-ref key="PersonManagement"/>
+				<service-ref key="EmpoweredPersonManagement"/>
+				<service-ref key="PersonGroupManagement"/>
+				<service-ref key="PersonAccess"/>
+				<service-ref key="AccountManagement"/>
+				<service-ref key="CardsManagement"/>
+				<service-ref key="PersonAccessManagement"/>
+				<service-ref key="SchemeManagement"/>
+				<service-ref key="EmployeeManagement"/>
+				<service-ref key="EmployeeGroupManagement"/>
+				<service-ref key="ChangeLockEmployee"/>
+				<service-ref key="AssignEmployeeAccess"/>
+				<service-ref key="PaymentFormManagement"/>
+				<service-ref key="ChangeEmployeePassword"/>
+				<service-ref key="DownloadLog"/>
+				<service-ref key="SystemSettingsManagement"/>
+				<service-ref key="SynchronizeDictionaries"/>
+				<service-ref key="DepartmentsManagement"/>
+				<service-ref key="OfficesAdmin"/>
+				<service-ref key="Bankcells"/>
+				<service-ref key="MemberListAdmin"/>
+				<service-ref key="NewsManagment"/>
+				<service-ref key="MailManagment"/>
+				<service-ref key="SelfSubscriptions"/>
+				<service-ref key="Claims"/>
+				<service-ref key="LoanProducts"/>
+				<service-ref key="LoanKinds"/>
+				<service-ref key="LoanOffices"/>
+				<service-ref key="LoanClaims"/>
+				<service-ref key="LoanStateMessages"/>
+				<service-ref key="DepositsManagement"/>
+				<service-ref key="ViewPaymentList"/>
+				<service-ref key="SkinsManager"/>
+			</services>
+		</scheme>
+
+		<scheme key="default-user" name="Информационный сервис" category="client">
+			<services>
+				<service-ref key="CertificationOperation"/>
+				<service-ref key="AccountAndCardInfo"/>
+				<service-ref key="CurrenciesRateInfo"/>
+				<service-ref key="Abstract"/>
+				<service-ref key="ChangePersonPassword"/>
+				<service-ref key="ViewNewsManagment"/>
+				<service-ref key="ClientMailManagement"/>
+				<service-ref key="ShowTemplatesDocuments"/>
+			</services>
+		</scheme>
+
+		<scheme key="fullAccess-user" name="Полный доступ" category="client">
+			<services>
+				<service-ref key="AccountAndCardInfo"/>
+				<service-ref key="CurrenciesRateInfo"/>
+				<service-ref key="Abstract"/>
+				<service-ref key="ChangePersonPassword"/>
+				<service-ref key="RurPayment"/>
+                <service-ref key="InternalPayment"/>
+				<service-ref key="BankList"/>
+				<service-ref key="Offices"/>
+				<service-ref key="Accounts"/>
+				<service-ref key="BankcellLeasingClaim"/>
+				<service-ref key="SecuritiesOperationsClaim"/>
+				<service-ref key="DepositOpeningClaim"/>
+				<service-ref key="AccountOpeningClaim"/>
+				<service-ref key="DepositClosingClaim"/>
+				<service-ref key="AccountClosingClaim"/>
+				<service-ref key="DepositReplenishmentClaim"/>
+				<service-ref key="InternalTransferClaim"/>
+				<service-ref key="PurchaseSaleCurrencyPayment"/>
+				<service-ref key="ConvertCurrencyPayment"/>
+				<service-ref key="CardReplenishmentPayment"/>
+				<service-ref key="CurrencyPayment"/>
+				<service-ref key="CountryList"/>
+				<service-ref key="GKHPayment"/>
+				<service-ref key="ElectricPayment"/>
+				<service-ref key="MobilePayment"/>
+				<service-ref key="InternetPayment"/>
+				<service-ref key="MGTSPayment"/>
+				<service-ref key="TVPayment"/>
+				<service-ref key="GoodsAndServicesPayment"/>
+				<service-ref key="ViewNewsManagment"/>
+				<service-ref key="ContactPayment"/>
+				<service-ref key="RecallContactPayment"/>
+				<service-ref key="EditContactPayment"/>
+				<service-ref key="TaxPayment"/>
+				<service-ref key="LoanDetails"/>
+				<service-ref key="LoansInfo"/>
+				<service-ref key="LoanProductDetails"/>
+				<service-ref key="LoanCalculator"/>
+				<service-ref key="BankLoanProducts"/>
+				<service-ref key="SMSInformationClaim"/>
+				<service-ref key="IssueAdditionalCardClaim"/>
+				<service-ref key="BlockingCardClaim"/>
+				<service-ref key="NotReIssueCardClaim"/>
+				<service-ref key="IssueCardClaim"/>
+				<service-ref key="ReIssueCardClaim"/>
+				<service-ref key="UnblockingCardClaim"/>
+
+      </services>
+		</scheme>
+
+	  <scheme key="ClientClaims" name="Список заявок" category="client">
+         <services>
+            <service-ref key="AccountOpeningClaim"/>
+            <service-ref key="DepositOpeningClaim"/>
+            <service-ref key="AccountClosingClaim"/>
+            <service-ref key="DepositClosingClaim"/>
+            <service-ref key="DepositReplenishmentClaim"/>
+            <service-ref key="SecuritiesOperationsClaim"/>
+            <service-ref key="InternalTransferClaim"/>
+            <service-ref key="UnblockingCardClaim"/>
+            <service-ref key="SMSInformationClaim"/>
+            <service-ref key="NotReIssueCardClaim"/>
+            <service-ref key="ReIssueCardClaim"/>
+            <service-ref key="CardChargeLimitClaim"/>
+            <service-ref key="IssueCardClaim"/>
+            <service-ref key="BlockingCardClaim"/>
+            <service-ref key="IssueAdditionalCardClaim"/>
+            <service-ref key="StopListCardClaim"/>
+            <service-ref key="CardMootTransClaim"/>
+	     </services>
+	  </scheme>
+
+       <scheme key="Deposits" name="Депозиты" category="system">
+	        <services>
+                <service-ref key="DepositClaims"/>
+				<service-ref key="DepositInfo"/>
+            </services>
+       </scheme>
+
+		<!-- UI Client -->
+		<scheme key="Payments" name="Платежный сервис" category="system">
+			<services>
+				<service-ref key="RurPayment"/>
+				<service-ref key="InternalPayment"/>
+				<service-ref key="PurchaseSaleCurrencyPayment"/>
+				<service-ref key="CurrencyPayment"/>
+				<service-ref key="GKHPayment"/>
+				<service-ref key="ElectricPayment"/>
+				<service-ref key="MobilePayment"/>
+				<service-ref key="InternetPayment"/>
+				<service-ref key="MGTSPayment"/>
+				<service-ref key="TVPayment"/>
+				<service-ref key="ContactPayment"/>
+				<service-ref key="RecallContactPayment"/>
+				<service-ref key="GoodsAndServicesPayment"/>
+				<service-ref key="CardReplenishmentPayment"/>
+				<service-ref key="EditContactPayment"/>
+				<service-ref key="TaxPayment"/>
+			</services>
+		</scheme>
+
+        <scheme key="Info" name="Информационный сервис" category="system">
+			<services>
+				<service-ref key="AccountAndCardInfo"/>
+				<service-ref key="CurrenciesRateInfo"/>
+				<service-ref key="Abstract"/>
+				<service-ref key="ViewNewsManagment"/>
+			</services>
+		</scheme>
+
+        <scheme key="ServicesClient" name="Сервисные операции" category="system">
+			<services>
+				<service-ref key="ChangePersonPassword"/>
+			</services>
+		</scheme>
+
+		<scheme key="LoansManagement" name="Кредиты" category="admin">
+			<services>
+				<service-ref key="LoanProducts"/>
+				<service-ref key="LoanKinds"/>
+				<service-ref key="LoanOffices"/>
+				<service-ref key="LoanClaims"/>
+			</services>
+	   </scheme>
+
+		<scheme key="Loans" name="Кредиты" category="client">
+			<services>
+				<service-ref key="BankLoanProducts"/>
+				<service-ref key="LoanCalculator"/>
+			</services>
+	   </scheme>
+
+		<scheme key="Handbooks" name="Справочники" category="system">
+			<services>
+				<service-ref key="BankList"/>
+				<service-ref key="Offices"/>
+				<service-ref key="CountryList"/>
+				<service-ref key="Accounts"/>
+			</services>
+		</scheme>
+
+		<!-- UI Admin -->
+		<scheme key="Users" name="Работа с клиентами" category="system">
+			<services>
+				<service-ref key="PersonManagement"/>
+				<service-ref key="EmpoweredPersonManagement"/>
+				<service-ref key="PersonAccess"/>
+				<service-ref key="AccountManagement"/>
+				<service-ref key="CardsManagement"/>
+			</services>
+		</scheme>
+
+		<scheme key="Schemes" name="Схемы доступа" category="system">
+			<services>
+				<service-ref key="SchemeManagement"/>
+			</services>
+		</scheme>
+
+		<scheme key="Employees" name="Сотрудники банка" category="system">
+			<services>
+				<service-ref key="EmployeeManagement"/>
+				<service-ref key="ChangeLockEmployee"/>
+				<service-ref key="AssignEmployeeAccess"/>
+			</services>
+		</scheme>
+
+		<scheme key="Services" name="Сервисные операции" category="system">
+			<services>
+				<service-ref key="DownloadLog"/>
+				<service-ref key="ChangeEmployeePassword"/>
+			</services>
+		</scheme>
+
+		<scheme key="PINs" name="Работа с PIN-конвертами" category="system">
+			<services>
+				<service-ref key="PaymentFormManagement"/>
+				<service-ref key="PINEnvelopeManagement"/>
+			</services>
+		</scheme>
+
+		<scheme key="Options" name="Настройки" category="system">
+			<services>
+				<service-ref key="SystemSettingsManagement"/>
+			</services>
+		</scheme>
+
+		<scheme key="Departments" name="Подразделения" category="system">
+			<services>
+				<service-ref key="DepartmentsManagement"/>
+			</services>
+		</scheme>
+
+		<scheme key="Dictionaries" name="Справочники" category="system">
+			<services>
+				<service-ref key="BankListManagement"/>
+				<service-ref key="SynchronizeDictionaries"/>
+			</services>
+		</scheme>
+
+		<scheme key="buildin-admin-scheme" name="Схема прав встроенной учетной записи" category="system">
+			<services>
+				<service-ref key="EmployeeManagement"/>
+				<service-ref key="ChangeLockEmployee"/>
+				<service-ref key="SchemeManagement"/>
+				<service-ref key="SystemSettingsManagement"/>
+				<service-ref key="DepartmentsManagement"/>
+				<service-ref key="AssignEmployeeAccess"/>
+				<service-ref key="OfficesAdmin"/>
+				<service-ref key="ChangeEmployeePassword"/>
+				<service-ref key="DownloadLog"/>
+				<service-ref key="SynchronizeDictionaries"/>
+				<service-ref key="BankListManagement"/>
+				<service-ref key="SkinsManager"/>
+                <service-ref key="AdminSystemSettingsManagement"/>
+			</services>
+		</scheme>
+
+		<scheme key="anonymous-client-scheme" name="Схема прав анонимного клиента" category="client">
+			<services>
+				<service-ref key="LoanClaim"/>				
+			</services>
+		</scheme>
+
+		<scheme key="sms-banking-scheme" name="Схема для Sms-banking'a" category="client">
+			<services>
+				<service-ref key="AccountAndCardInfo"/>
+				<service-ref key="CurrenciesRateInfo"/>
+				<service-ref key="Abstract"/>
+				<service-ref key="RurPayment"/>
+                <service-ref key="InternalPayment"/>
+				<service-ref key="BankList"/>
+				<service-ref key="Offices"/>
+				<service-ref key="Accounts"/>
+				<service-ref key="SecuritiesOperationsClaim"/>
+				<service-ref key="DepositReplenishmentClaim"/>
+				<service-ref key="InternalTransferClaim"/>
+				<service-ref key="PurchaseSaleCurrencyPayment"/>
+				<service-ref key="CardReplenishmentPayment"/>
+				<service-ref key="CurrencyPayment"/>
+				<service-ref key="CountryList"/>
+				<service-ref key="GKHPayment"/>
+				<service-ref key="ElectricPayment"/>
+				<service-ref key="MobilePayment"/>
+				<service-ref key="InternetPayment"/>
+				<service-ref key="MGTSPayment"/>
+				<service-ref key="TVPayment"/>
+				<service-ref key="GoodsAndServicesPayment"/>
+				<service-ref key="ViewNewsManagment"/>
+				<service-ref key="ContactPayment"/>
+				<service-ref key="EditContactPayment"/>
+				<service-ref key="TaxPayment"/>
+				<service-ref key="LoanDetails"/>
+				<service-ref key="LoansInfo"/>
+				<service-ref key="LoanProductDetails"/>
+				<service-ref key="LoanCalculator"/>
+				<service-ref key="BankLoanProducts"/>
+				<service-ref key="SMSInformationClaim"/>
+				<service-ref key="IssueAdditionalCardClaim"/>
+				<service-ref key="BlockingCardClaim"/>
+				<service-ref key="NotReIssueCardClaim"/>
+				<service-ref key="IssueCardClaim"/>
+				<service-ref key="ReIssueCardClaim"/>
+				<service-ref key="UnblockingCardClaim"/>
+				<service-ref key="SmsBanking"/>
+			</services>
+		</scheme>
+		
+	</schemes>
+
+	<anonymous-client-scheme>
+		<scheme-ref key="anonymous-client-scheme"/>
+	</anonymous-client-scheme>
+
+	<buildin-admin-scheme>
+		<scheme-ref key="buildin-admin-scheme"/>
+	</buildin-admin-scheme>
+
+	<sms-banking-scheme>
+		<scheme-ref key="sms-banking-scheme"/>
+	</sms-banking-scheme>
+</operations-config>

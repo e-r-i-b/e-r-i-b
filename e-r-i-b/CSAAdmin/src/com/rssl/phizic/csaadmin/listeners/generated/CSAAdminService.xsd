@@ -1,0 +1,874 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+    <xsd:element name="Request" type="RequestType"/>
+    <xsd:element name="Response" type="ResponseType"/>
+
+    <xsd:complexType name="RequestType">
+        <xsd:sequence>
+            <xsd:element name="RqUID"       type="UUIDType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="RqTm"        type="DateTime"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="OperUID"     type="OUUIDType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SessionID"   type="UUIDType"     minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Data"        type="RequestData"  minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResponseType">
+        <xsd:sequence>
+            <xsd:element name="RqUID"   type="UUIDType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="RqTm"    type="DateTime"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="OperUID" type="OUUIDType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Status"  type="StatusType"   minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Data"    type="ResponseData" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="DateTime">
+		<xsd:annotation>
+			<xsd:documentation>Тип данных для представления дат</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+
+    <xsd:simpleType name="UUIDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="OUUIDType">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="StatusCodeType">
+        <xsd:restriction base="xsd:long"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="StatusDescType">
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="255"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="StatusType">
+        <xsd:sequence>
+            <xsd:element name="StatusCode" type="StatusCodeType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="StatusDesc" type="StatusDescType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RequestData">
+        <xsd:choice>
+            <xsd:element name="GetEmployeeListRq"            type="GetEmployeeListParametersType"            minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetEmployeeMailManagerListRq" type="GetEmployeeMailManagerListParametersType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetEmployeeManagerInfoRq"     type="GetEmployeeManagerInfoParametersType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetEmployeeByIdRq"            type="GetEmployeeByIdParametersType"            minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetCurrentEmployeeRq"         type="GetCurrentEmployeeParametersType"         minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SaveEmployeeRq"               type="SaveEmployeeParametersType"               minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="AssignAccessSchemeEmployeeRq" type="AssignAccessSchemeEmployeeParametersType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="DeleteEmployeeRq"             type="DeleteEmployeeParametersType"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="LockEmployeeRq"               type="LockEmployeeParametersType"               minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="UnlockEmployeeRq"             type="UnlockEmployeeParametersType"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="ChangeEmployeePasswordRq"     type="ChangeEmployeePasswordParametersType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SelfChangePasswordRq"         type="SelfChangePasswordParametersType"         minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetAllowedDepartmentsRq"      type="GetAllowedDepartmentsParametersType"      minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SaveAllowedDepartmentsRq"     type="SaveAllowedDepartmentsParametersType"     minOccurs="1" maxOccurs="1"/>
+
+            <xsd:element name="GetAccessSchemeListRq" type="GetAccessSchemeListParametersType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetAccessSchemeByIdRq" type="GetAccessSchemeByIdParametersType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SaveAccessSchemeRq"    type="SaveAccessSchemeParametersType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="DeleteAccessSchemeRq"  type="DeleteAccessSchemeParametersType"  minOccurs="1" maxOccurs="1"/>
+
+            <xsd:element name="GetAuthenticationParametersRq"       type="AuthenticationParametersRequestType"          minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetEmployeeSynchronizationDataRq"    type="GetEmployeeSynchronizationDataRequestType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="CloseSessionRq"                      type="CloseSessionParametersRequestType"            minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="ChangeNodeRq"                        type="ChangeNodeRequestType"                        minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SaveOperationContextRq"              type="SaveOperationContextRequestType"              minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetOperationContextRq"               type="GetOperationContextRequestType"               minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetCurrentEmployeeContextRq"         type="GetCurrentEmployeeContextParametersType"      minOccurs="1" maxOccurs="1"/>
+
+            <xsd:element name="GetIncomeMailListRq"                 type="GetIncomeMailListParametersType"      minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetOutcomeMailListRq"                type="GetOutcomeMailListParametersType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetRemovedMailListRq"                type="GetRemovedMailListParametersType"     minOccurs="1" maxOccurs="1"/>
+
+            <xsd:element name="GetMailStatisticsRq"                 type="GetMailStatisticsParametersType"              minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetMailEmployeeStatisticsRq"         type="GetMailEmployeeStatisticsParametersType"      minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetMailAverageTimeRq"                type="GetMailAverageTimeParametersType"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetFirstMailDateRq"                  type="GetFirstMailDateParametersType"               minOccurs="1" maxOccurs="1"/>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResponseData">
+        <xsd:choice>
+            <xsd:element name="GetEmployeeListRs"            type="GetEmployeeListResultType"            minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetEmployeeMailManagerListRs" type="GetEmployeeMailManagerListResultType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetEmployeeManagerInfoRs"     type="GetEmployeeManagerInfoResultType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetEmployeeByIdRs"            type="GetEmployeeByIdResultType"            minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetCurrentEmployeeRs"         type="GetCurrentEmployeeResultType"         minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SaveEmployeeRs"               type="SaveEmployeeResultType"               minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="AssignAccessSchemeEmployeeRs" type="AssignAccessSchemeEmployeeResultType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="DeleteEmployeeRs"             type="DeleteEmployeeResultType"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="LockEmployeeRs"               type="LockEmployeeResultType"               minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="UnlockEmployeeRs"             type="UnlockEmployeeResultType"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="ChangeEmployeePasswordRs"     type="ChangeEmployeePasswordResultType"     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SelfChangePasswordRs"         type="VoidResultType"                       minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetAllowedDepartmentsRs"      type="GetAllowedDepartmentsResultType"      minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SaveAllowedDepartmentsRs"     type="VoidResultType"                       minOccurs="1" maxOccurs="1"/>
+
+            <xsd:element name="GetAccessSchemeListRs" type="GetAccessSchemeListResultType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetAccessSchemeByIdRs" type="GetAccessSchemeByIdResultType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SaveAccessSchemeRs"    type="SaveAccessSchemeResultType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="DeleteAccessSchemeRs"  type="DeleteAccessSchemeResultType"  minOccurs="1" maxOccurs="1"/>
+
+            <xsd:element name="GetAuthenticationParametersRs"       type="AuthenticationParametersResultType"       minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetEmployeeSynchronizationDataRs"    type="GetEmployeeSynchronizationDataResultType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="CloseSessionRs"                      type="VoidResultType"                           minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="ChangeNodeRs"                        type="ChangeNodeResultType"                     minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="SaveOperationContextRs"              type="VoidResultType"                           minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetOperationContextRs"               type="GetOperationContextResultType"            minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetCurrentEmployeeContextRs"         type="GetCurrentEmployeeContextResultType"      minOccurs="1" maxOccurs="1"/>
+
+            <xsd:element name="GetIncomeMailListRs"                 type="GetIncomeMailListResultType"              minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetOutcomeMailListRs"                type="GetOutcomeMailListResultType"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetRemovedMailListRs"                type="GetRemovedMailListResultType"             minOccurs="1" maxOccurs="1"/>
+
+            <xsd:element name="GetMailStatisticsRs"                 type="GetMailStatisticsResultType"              minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetMailEmployeeStatisticsRs"         type="GetMailEmployeeStatisticsResultType"      minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetMailAverageTimeRs"                type="GetMailAverageTimeResultType"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="GetFirstMailDateRs"                  type="GetFirstMailDateResultType"               minOccurs="1" maxOccurs="1"/>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeListParametersType">
+        <xsd:sequence>
+            <xsd:element name="Filter" type="EmployeeListFilterParametersType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeMailManagerListParametersType">
+        <xsd:sequence>
+            <xsd:element name="Filter" type="EmployeeMailManagerFilterParametersType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeManagerInfoParametersType">
+        <xsd:sequence>
+            <xsd:element name="ManagerId" type="xsd:string" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeListResultType">
+        <xsd:sequence>
+            <xsd:element name="Employees" type="ArrayOfEmployeeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeMailManagerListResultType">
+        <xsd:sequence>
+            <xsd:element name="Employees" type="ArrayOfContactCenterEmployeeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeManagerInfoResultType">
+        <xsd:sequence>
+            <xsd:element name="ManagerInfo" type="ManagerInfoType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeByIdParametersType">
+        <xsd:sequence>
+            <xsd:element name="ExternalId" type="xsd:long"     nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeByIdResultType">
+        <xsd:sequence>
+            <xsd:element name="Employee" type="EmployeeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetCurrentEmployeeParametersType"/>
+
+    <xsd:complexType name="GetCurrentEmployeeResultType">
+        <xsd:sequence>
+            <xsd:element name="Employee" type="EmployeeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SaveEmployeeParametersType">
+        <xsd:sequence>
+            <xsd:element name="Employee"  type="EmployeeType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SaveEmployeeResultType">
+        <xsd:sequence>
+            <xsd:element name="Employee" type="EmployeeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AssignAccessSchemeEmployeeParametersType">
+        <xsd:sequence>
+            <xsd:element name="SchemeId"  type="xsd:long"     nillable="true"  minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Employee"  type="EmployeeType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AssignAccessSchemeEmployeeResultType">
+        <xsd:sequence>
+            <xsd:element name="AccessScheme" type="AccessSchemeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DeleteEmployeeParametersType">
+        <xsd:sequence>
+            <xsd:element name="Employee"  type="EmployeeType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DeleteEmployeeResultType">
+        <xsd:sequence>
+            <xsd:element name="Employee" type="EmployeeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LockEmployeeParametersType">
+        <xsd:sequence>
+            <xsd:element name="LockLoginParameter"  type="LoginType"      nillable="false" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="LockBlockParameter"  type="LoginBlockType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LockEmployeeResultType">
+        <xsd:sequence>
+            <xsd:element name="Employee" type="EmployeeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="UnlockEmployeeParametersType">
+        <xsd:sequence>
+            <xsd:element name="Login"     type="LoginType"    nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="UnlockEmployeeResultType">
+        <xsd:sequence>
+            <xsd:element name="Blocks" type="ArrayOfLoginBlockType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ChangeEmployeePasswordParametersType">
+        <xsd:sequence>
+            <xsd:element name="Login"     type="LoginType"    nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ChangeEmployeePasswordResultType">
+        <xsd:sequence>
+            <xsd:element name="Login" type="LoginType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SelfChangePasswordParametersType">
+        <xsd:sequence>
+            <xsd:element name="password"   type="xsd:string"  nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetAllowedDepartmentsParametersType">
+        <xsd:sequence>
+            <xsd:element name="Employee"  type="EmployeeType"          nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetAllowedDepartmentsResultType">
+        <xsd:sequence>
+            <xsd:element name="AllowedDepartments" type="ArrayOfDepartmentType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SaveAllowedDepartmentsParametersType">
+        <xsd:sequence>
+            <xsd:element name="AddDepartments"    type="ArrayOfDepartmentType" nillable="false" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="DeleteDepartments" type="ArrayOfDepartmentType" nillable="false" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Employee"          type="EmployeeType"          nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetAccessSchemeListParametersType">
+        <xsd:sequence>
+            <xsd:element name="Filter" type="AccessSchemeListFilterParametersType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetAccessSchemeListResultType">
+        <xsd:sequence>
+            <xsd:element name="Schemes" type="ArrayOfAccessSchemeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetAccessSchemeByIdParametersType">
+        <xsd:sequence>
+            <xsd:element name="ExternalId" type="xsd:long"     nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetAccessSchemeByIdResultType">
+        <xsd:sequence>
+            <xsd:element name="AccessScheme" type="AccessSchemeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SaveAccessSchemeParametersType">
+        <xsd:sequence>
+            <xsd:element name="AccessScheme" type="AccessSchemeType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SaveAccessSchemeResultType">
+        <xsd:sequence>
+            <xsd:element name="AccessScheme" type="AccessSchemeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DeleteAccessSchemeParametersType">
+        <xsd:sequence>
+            <xsd:element name="AccessScheme" type="AccessSchemeType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DeleteAccessSchemeResultType">
+        <xsd:sequence>
+            <xsd:element name="AccessScheme" type="AccessSchemeType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationParametersRequestType">
+        <xsd:annotation>
+            <xsd:documentation>Параметры аутентификации</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="token"  type="xsd:string"  nillable="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationParametersResultType">
+        <xsd:annotation>
+            <xsd:documentation>Параметры аутентификации</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="sessionId"               type="xsd:string"  nillable="false"/>
+            <xsd:element name="loginId"                 type="xsd:string"  nillable="false"/>
+            <xsd:element name="lastEmployeeUpdateDate"  type="DateTime"    nillable="false"/>
+            <xsd:element name="action"      type="xsd:string"   nillable="true"/>
+            <xsd:element name="parameters"  type="MapEntryType" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeSynchronizationDataRequestType">
+        <xsd:sequence>
+            <xsd:element name="loginId" type="xsd:string"  nillable="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetEmployeeSynchronizationDataResultType">
+        <xsd:annotation>
+            <xsd:documentation>Данные синхронизации сотрудника</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Employee"            type="EmployeeType"          nillable="true"  minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Login"               type="LoginType"             nillable="false" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="AllowedDepartments"  type="ArrayOfDepartmentType" nillable="true"  minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CloseSessionParametersRequestType"/>
+
+    <xsd:complexType name="ChangeNodeRequestType">
+        <xsd:sequence>
+            <xsd:element name="nodeId"      type="xsd:long"     nillable="false"/>
+            <xsd:element name="action"      type="xsd:string"   nillable="true"/>
+            <xsd:element name="parameters"  type="MapEntryType" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ChangeNodeResultType">
+        <xsd:sequence>
+            <xsd:element name="url"  type="xsd:string"  nillable="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SaveOperationContextRequestType">
+        <xsd:sequence>
+            <xsd:element name="context"     type="xsd:string"   nillable="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetOperationContextRequestType"/>
+
+    <xsd:complexType name="GetOperationContextResultType">
+        <xsd:sequence>
+            <xsd:element name="context"     type="xsd:string"   nillable="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetCurrentEmployeeContextParametersType"/>
+
+    <xsd:complexType name="GetCurrentEmployeeContextResultType">
+        <xsd:sequence>
+            <xsd:element name="loginId"         type="xsd:long"         nillable="false"  minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="allTbAccess"     type="xsd:boolean"      nillable="false"  minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="VoidResultType"/>
+
+    <xsd:complexType name="EmployeeListFilterParametersType">
+        <xsd:sequence>
+            <xsd:element name="firstResult"          type="xsd:int"         nillable="false"/>
+            <xsd:element name="maxResults"           type="xsd:int"         nillable="false"/>
+          	<xsd:element name="seekerLogin"          type="xsd:string"      nillable="false"/>
+            <xsd:element name="seekerAllDepartments" type="xsd:boolean"     nillable="false"/>
+            <xsd:element name="soughtId"             type="xsd:long"        nillable="true"/>
+            <xsd:element name="soughtLogin"          type="xsd:string"      nillable="true"/>
+          	<xsd:element name="soughtFIO"            type="xsd:string"      nillable="true"/>
+            <xsd:element name="soughtBlockedState"   type="xsd:long"        nillable="false"/>
+          	<xsd:element name="soughtBlockedUntil"   type="DateTime"        nillable="true"/>
+            <xsd:element name="soughtInfo"           type="xsd:string"      nillable="true"/>
+          	<xsd:element name="soughtTB"             type="xsd:string"      nillable="true"/>
+            <xsd:element name="soughtBranchCode"     type="xsd:string"      nillable="true"/>
+          	<xsd:element name="soughtDepartmentCode" type="xsd:string"      nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="EmployeeMailManagerFilterParametersType">
+        <xsd:sequence>
+            <xsd:element name="firstResult"          type="xsd:int"         nillable="false"/>
+            <xsd:element name="maxResults"           type="xsd:int"         nillable="false"/>
+          	<xsd:element name="soughtBlockedUntil"   type="DateTime"        nillable="false"/>
+            <xsd:element name="soughtId"             type="xsd:long"        nillable="true"/>
+          	<xsd:element name="soughtFIO"            type="xsd:string"      nillable="true"/>
+            <xsd:element name="soughtArea"           type="xsd:string"      nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessSchemeListFilterParametersType">
+        <xsd:sequence>
+            <xsd:element name="Categories"  type="ArrayOfCategoriesType" nillable="false" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetMultiNodeParametersType" abstract="true">
+        <xsd:sequence>
+            <xsd:element name="parameters"          type="xsd:string"   nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetMultiNodeListParametersType" abstract="true">
+        <xsd:complexContent>
+            <xsd:extension base="GetMultiNodeParametersType">
+                <xsd:sequence>
+                    <xsd:element name="firstResult"         type="xsd:int"      nillable="false"/>
+                    <xsd:element name="maxResults"          type="xsd:int"      nillable="false"/>
+                    <xsd:element name="orderParameters"     type="xsd:string"   nillable="true"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetIncomeMailListParametersType">
+        <xsd:complexContent>
+            <xsd:extension base="GetMultiNodeListParametersType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetOutcomeMailListParametersType">
+        <xsd:complexContent>
+            <xsd:extension base="GetMultiNodeListParametersType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetRemovedMailListParametersType">
+        <xsd:complexContent>
+            <xsd:extension base="GetMultiNodeListParametersType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetMailStatisticsParametersType">
+        <xsd:complexContent>
+            <xsd:extension base="GetMultiNodeParametersType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetMailEmployeeStatisticsParametersType">
+        <xsd:complexContent>
+            <xsd:extension base="GetMultiNodeParametersType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetMailAverageTimeParametersType">
+        <xsd:complexContent>
+            <xsd:extension base="GetMultiNodeParametersType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetFirstMailDateParametersType">
+        <xsd:complexContent>
+            <xsd:extension base="GetMultiNodeParametersType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetIncomeMailListResultType">
+        <xsd:sequence>
+            <xsd:element name="mailList"            type="IncomeMailListArrayType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetOutcomeMailListResultType">
+        <xsd:sequence>
+            <xsd:element name="mailList"            type="OutcomeMailListArrayType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetRemovedMailListResultType">
+        <xsd:sequence>
+            <xsd:element name="mailList"            type="RemovedMailListArrayType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetMailStatisticsResultType">
+        <xsd:sequence>
+            <xsd:element name="statisticsData"      type="MailStatisticsDataArrayType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetMailEmployeeStatisticsResultType">
+        <xsd:sequence>
+            <xsd:element name="statisticsData"      type="MailEmployeeStatisticsDataArrayType" nillable="true" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetMailAverageTimeResultType">
+        <xsd:sequence>
+            <xsd:element name="mailAverageTime"     type="MailAverageTimeType"  nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GetFirstMailDateResultType">
+        <xsd:sequence>
+            <xsd:element name="firstDate"           type="DateTime"  nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessSchemeType">
+        <xsd:annotation>
+            <xsd:documentation>Схема прав</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="externalId"        type="xsd:long"    nillable="true"/>
+            <xsd:element name="name"              type="xsd:string"  nillable="false"/>
+            <xsd:element name="category"          type="xsd:string"  nillable="false"/>
+            <xsd:element name="CAAdminScheme"     type="xsd:boolean" nillable="false"/>
+            <xsd:element name="VSPEmployeeScheme" type="xsd:boolean" nillable="false"/>
+            <xsd:element name="mailManagement"    type="xsd:boolean" nillable="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LoginType">
+        <xsd:annotation>
+            <xsd:documentation>Логин</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="id"              type="xsd:long"              nillable="true"/>
+            <xsd:element name="name"            type="xsd:string"            nillable="false"/>
+            <xsd:element name="password"        type="xsd:string"            nillable="true"/>
+            <xsd:element name="accessScheme"    type="AccessSchemeType"      nillable="true"/>
+            <xsd:element name="blocks"          type="ArrayOfLoginBlockType" nillable="true"/>
+            <xsd:element name="lastUpdateDate"  type="DateTime"              nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LoginBlockType">
+        <xsd:annotation>
+            <xsd:documentation>Блокировка</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="reasonType"        type="xsd:string"     nillable="false"/>
+            <xsd:element name="reasonDescription" type="xsd:string"     nillable="true"/>
+          	<xsd:element name="blockedFrom"       type="DateTime"       nillable="false"/>
+            <xsd:element name="blockedUntil"      type="DateTime"       nillable="true"/>
+            <xsd:element name="employee"          type="LoginType"      nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DepartmentType">
+        <xsd:sequence>
+            <xsd:element name="tb"  type="xsd:string" nillable="false"/>
+            <xsd:element name="osb" type="xsd:string" nillable="true"/>
+            <xsd:element name="vsp" type="xsd:string" nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="EmployeeType">
+        <xsd:annotation>
+            <xsd:documentation>Сотрудник</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="externalId"       type="xsd:long"       nillable="true"/>
+            <xsd:element name="login"            type="LoginType"      nillable="false"/>
+            <xsd:element name="surname"          type="xsd:string"     nillable="false"/>
+            <xsd:element name="firstName"        type="xsd:string"     nillable="false"/>
+            <xsd:element name="patronymic"       type="xsd:string"     nillable="true"/>
+            <xsd:element name="info"             type="xsd:string"     nillable="true"/>
+            <xsd:element name="email"            type="xsd:string"     nillable="true"/>
+            <xsd:element name="mobilePhone"      type="xsd:string"     nillable="true"/>
+            <xsd:element name="department"       type="DepartmentType" nillable="true"/>
+            <xsd:element name="caAdmin"          type="xsd:boolean"    nillable="false"/>
+            <xsd:element name="vspEmployee"      type="xsd:boolean"    nillable="false"/>
+            <xsd:element name="managerId"        type="xsd:string"     nillable="true"/>
+            <xsd:element name="managerPhone"     type="xsd:string"     nillable="true"/>
+            <xsd:element name="managerEMail"     type="xsd:string"     nillable="true"/>
+            <xsd:element name="managerLeadEMail" type="xsd:string"     nillable="true"/>
+            <xsd:element name="managerChannel"   type="xsd:string"     nillable="true"/>
+            <xsd:element name="sudirLogin"       type="xsd:string"     nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ManagerInfoType">
+        <xsd:annotation>
+            <xsd:documentation>Информация о менеджере</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name"    type="xsd:string"   nillable="false"/>
+            <xsd:element name="email"   type="xsd:string"   nillable="true"/>
+            <xsd:element name="phone"   type="xsd:string"   nillable="true"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ContactCenterEmployeeType">
+        <xsd:annotation>
+            <xsd:documentation>Сотрудник контактного центра</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="id"               type="xsd:long"       nillable="true"/>
+            <xsd:element name="externalId"       type="xsd:string"     nillable="false"/>
+            <xsd:element name="name"             type="xsd:string"     nillable="false"/>
+            <xsd:element name="department"       type="xsd:string"     nillable="false"/>
+            <xsd:element name="area"             type="xsd:string"     nillable="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArrayOfEmployeeType">
+        <xsd:annotation>
+            <xsd:documentation>Список сотрудников</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="EmployeeType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArrayOfContactCenterEmployeeType">
+        <xsd:annotation>
+            <xsd:documentation>Список сотрудников контактного центра</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="ContactCenterEmployeeType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArrayOfLoginBlockType">
+        <xsd:annotation>
+            <xsd:documentation>Список блокировок</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="LoginBlockType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArrayOfAccessSchemeType">
+        <xsd:annotation>
+            <xsd:documentation>Список схем прав</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="AccessSchemeType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArrayOfCategoriesType">
+        <xsd:annotation>
+            <xsd:documentation>Список категорий</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ArrayOfDepartmentType">
+        <xsd:annotation>
+            <xsd:documentation>Список категорий</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="DepartmentType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MapEntryType">
+        <xsd:annotation>
+            <xsd:documentation>Элемент списка мапы</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="key"     type="xsd:string"/>
+            <xsd:element name="value"   type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="IncomeMailListArrayType">
+        <xsd:annotation>
+            <xsd:documentation>Список писем</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="IncomeMailListDataType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OutcomeMailListArrayType">
+        <xsd:annotation>
+            <xsd:documentation>Список писем</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="OutcomeMailListDataType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RemovedMailListArrayType">
+        <xsd:annotation>
+            <xsd:documentation>Список писем</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="RemovedMailListDataType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailStatisticsDataArrayType">
+        <xsd:annotation>
+            <xsd:documentation>Список данных со статистикой писем</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="MailStatisticsDataType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailEmployeeStatisticsDataArrayType">
+        <xsd:annotation>
+            <xsd:documentation>Список данных со статистикой писем</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element maxOccurs="unbounded" minOccurs="0" name="item" type="MailEmployeeStatisticsDataType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailListDataTypeBase" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>Общие данные письма</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="nodeId"              type="xsd:long"/>
+            <xsd:element name="id"                  type="xsd:long"/>
+            <xsd:element name="number"              type="xsd:long"     minOccurs="0"/>
+            <xsd:element name="creationDate"        type="DateTime"     minOccurs="0"/>
+            <xsd:element name="responseMethod"      type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="state"               type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="stateDescription"    type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="type"                type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="typeDescription"     type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="theme"               type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="subject"             type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="employeeFIO"         type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="employeeUserId"      type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="tb"                  type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="area"                type="xsd:string"   minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="IncomeMailListDataType" xml:base="MailListDataTypeBase">
+        <xsd:annotation>
+            <xsd:documentation>Данные входящего письма</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="MailListDataTypeBase">
+                <xsd:sequence>
+                    <xsd:element name="senderFIO"           type="xsd:string"   minOccurs="0"/>
+                    <xsd:element name="senderId"            type="xsd:long"     minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OutcomeMailListDataType" xml:base="MailListDataTypeBase">
+        <xsd:annotation>
+            <xsd:documentation>Данные исходящего письма</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="MailListDataTypeBase">
+                <xsd:sequence>
+                    <xsd:element name="recipientFIO"       type="xsd:string"   minOccurs="0"/>
+                    <xsd:element name="recipientId"        type="xsd:long"     minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="RemovedMailListDataType" xml:base="MailListDataTypeBase">
+        <xsd:annotation>
+            <xsd:documentation>Данные удаленного письма</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="MailListDataTypeBase">
+                <xsd:sequence>
+                    <xsd:element name="recipientName"           type="xsd:string"   minOccurs="0"/>
+                    <xsd:element name="directionDescription"    type="xsd:string"   minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailStatisticsDataType">
+        <xsd:annotation>
+            <xsd:documentation>Статистика для писем</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="state"               type="xsd:string"/>
+            <xsd:element name="counter"             type="xsd:long"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailEmployeeStatisticsDataType">
+        <xsd:annotation>
+            <xsd:documentation>Статистика для писем в разрезе сотрудников</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="id"                  type="xsd:long"/>
+            <xsd:element name="nodeId"              type="xsd:long"/>
+            <xsd:element name="arriveTime"          type="DateTime"     minOccurs="0"/>
+            <xsd:element name="processingTime"      type="DateTime"     minOccurs="0"/>
+            <xsd:element name="state"               type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="employeeFIO"         type="xsd:string"   minOccurs="0"/>
+            <xsd:element name="areaName"            type="xsd:string"   minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailAverageTimeType">
+        <xsd:annotation>
+            <xsd:documentation>Среднее время обработки письма сотрудником</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="milliseconds"          type="xsd:long"/>
+            <xsd:element name="count"                 type="xsd:long"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

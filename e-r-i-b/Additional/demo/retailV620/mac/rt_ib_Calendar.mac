@@ -1,0 +1,116 @@
+import Љ «Ґ­¤ ам;
+import "rt_ib_xml.mac";
+
+
+// ----------------------------------------------------------------
+// Проводка списания платы за обслуживание
+// ----------------------------------------------------------------
+class(cBaseDeposit)
+    cNextWorkDate( inXml, outXml )
+
+/* 
+        Макрос определяет дату следующего рабочего дня
+
+        автор - Гайнанов Р.Ф.
+        дата создания - январь 2009.
+
+    -------------------
+      ИСХОДНЫЕ ДАННЫЕ  
+    -------------------
+
+Элемент сообщения          Тип             Комментарий                             Кратность
+--------------------------+---------------+---------------------------------------+--------------
+request                 
++-id                       string(32)      Идентификатор запроса в системе  ИКФЛ        
+L-nextWorkDate_q
+    +-fromDate             date            начальная дата 
+
+
+    -------------------
+          ОТВЕТ
+    -------------------
+Элемент сообщения       Тип             Комментарий
+-----------------------+---------------+----------------------------------------------------------------------
+response                        
++-parentId              string(32)      Идентификатор запроса в системе  ИКФЛ   
++-id                    string(32)      Идентификатор ответа    
+L-nextWorkDate_a
+  +-errorCode           int             Код ошибки ( 0 - нормальное завершение )
+  +-errorText           string(80)      Текст ошибки (if errorCode==0 - errorText не вставляется в ответный док)
+  +-nextDate            date            Дата следующего рабочего дня
+  +-isHoliday           boolean         признак выходного дня на входной дате
+*/
+
+
+
+
+  /* ------------------------------------------------------  
+  // Формируем выходной XML с датой следующего рабочего дня
+  --------------------------------------------------------*/
+  private macro CreateTagData( outXml, nextDate, isHoliday)
+
+    node = nodeAnswer.appendChild( outXML.createNode(1, "nextDate", "") );
+    node.text = String(NextDate);
+
+    node = nodeAnswer.appendChild( outXML.createNode(1, "isHoliday", "") );
+    node.text = isHoliday;
+
+    SetParm( 1, outXml );
+  end;//CreateTagData( outXml, commission, currency )
+                                                                            
+
+  private macro NextWorkDate (outXml)
+    var nextDate, isHoliday, curDate;
+
+    if(fromDate==null)
+        AddError2OutXml(outXml, -1,"не задана начальная дата");
+    end;
+    if (calendarFnCash == null)
+       AddError2OutXml(outXml, -1, "не установлено подразделение");
+    end;
+    setFNCash(calendarFnCash);
+    curDate = date(fromDate);
+    nextDate = DateAfterWorkDays(curDate,1);
+    isHoliday = not( IsWorkDay(curDate));
+    CreateTagData(outXml, nextDate, isHoliday);
+
+    return outXML;
+
+  end;
+
+
+  macro start( inXml, outXml )
+
+    var nodeParentElement;
+    var stat = 0;
+
+    if(not outXml )
+      outXml = CreateXMLObject();
+      if(not outXml) return; end;
+
+      nodeParentElement = inXml.documentElement.selectSingleNode( "//nextWorkDate_q" );
+      CreateBeginTag( outXml );
+
+      if ( nodeParentElement )
+        getParameters( nodeParentElement );
+        NextWorkDate( outXML );
+      end;
+
+    end;//if(not outXml )
+
+    return outXml;
+  end;//macro start( inXml, outXml )
+
+end;//class(cNextWorkDate) 
+
+
+// ---------------------------------------
+// Получение даты следующего рабочего дня
+// ---------------------------------------
+macro GetNextWorkDate( inXml, outXml )
+
+  var t = cNextWorkDate;
+  outXml = t.start( inXml, outXml );
+
+  SetParm( 1, outXml );
+end;

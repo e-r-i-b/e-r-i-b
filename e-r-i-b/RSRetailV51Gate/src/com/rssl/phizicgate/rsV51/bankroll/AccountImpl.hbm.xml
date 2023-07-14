@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <typedef name="AccountState" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.bankroll.AccountState</param>
+		<param name="identifierMethod">getId</param>
+		<param name="valueOfMethod">valueOf</param>
+	</typedef>
+
+    <class name="com.rssl.phizicgate.rsV51.bankroll.AccountImpl">
+        <id name="longId"/>
+
+        <property name="description"/>
+        <property name="number"/>
+        <property name="currency" type="com.rssl.phizicgate.rsV51.hibernate.RSRetailCurrencyType"/>
+	    <property name="openDate"/>
+	    <property name="branch"/>
+        <property name="accountState" type="AccountState"/>
+        <!--<property name="balance"/>           -->
+        <!--<property name="lastOperationDate"/> -->
+    </class>
+<!--TODO remove-->
+    <sql-query name="GetClientAccountByNumber">
+        <return alias="account" class="com.rssl.phizicgate.rsV51.bankroll.AccountImpl">
+            <return-property name="longId"          column="id"/>
+            <return-property name="number"          column="number"/>
+            <return-property name="description"     column="accType"/>
+            <return-property name="currency"        column="currencyId"/>
+	        <return-property name="openDate"        column="OpenDate"/>
+	        <return-property name="branch"          column="FNCash"/>
+            <return-property name="accountState"          column="accountState"/>
+        </return>
+        SELECT
+            accounts.Referenc      AS id,
+            accounts.Account       AS number,
+            accounts.Code_Currency AS currencyId,
+            accounts.Type_Account  AS accType,
+	        accounts.Open_Date     AS OpenDate,
+	        accounts.FNCash        AS FNCash,
+            case when accounts.Open_Close not like '%З%'
+                    then 0
+                else (case
+                        when accounts.UserTypeAccount like '%Я%' OR accounts.UserTypeAccount like '%Т%'
+                            then 3 end)
+            end                    AS accountState
+        FROM depositr_dbt AS accounts, depcontr_dbt AS contract
+        WHERE accounts.Account = :accountNumber AND
+	          accounts.CodClient = :clientId
+	          AND contract.ContractID = accounts.MainContractID
+    </sql-query>
+
+    <sql-query name="GetAccount">
+        <return alias="accounts" class="com.rssl.phizicgate.rsV51.bankroll.AccountImpl">
+            <return-property name="longId"          column="id"/>
+            <return-property name="number"          column="number"/>
+            <return-property name="description"     column="accType"/>
+            <return-property name="currency"        column="currencyId"/>
+	        <return-property name="openDate"        column="OpenDate"/>
+	        <return-property name="branch"          column="FNCash"/>
+            <return-property name="accountState"    column="accountState"/>
+        </return>
+        SELECT
+            accounts.Referenc      AS id,
+            accounts.Account       AS number,
+            accounts.Code_Currency AS currencyId,
+            accounts.Type_Account  AS accType,
+	        accounts.Open_Date     AS OpenDate,
+	        accounts.FNCash        AS FNCash,
+            case when accounts.Open_Close not like '%З%'
+                    then 0
+                else (case
+                        when accounts.UserTypeAccount like '%Я%' OR accounts.UserTypeAccount like '%Т%'
+                            then 3 end)
+            end                    AS accountState
+        FROM depositr_dbt AS accounts, depcontr_dbt AS contract
+        WHERE accounts.Referenc = :accountId
+	     AND contract.ContractID = accounts.MainContractID
+    </sql-query>
+
+    <sql-query name="GetAccountByNumber">
+        <return alias="accounts" class="com.rssl.phizicgate.rsV51.bankroll.AccountImpl">
+            <return-property name="longId"          column="id"/>
+            <return-property name="number"          column="number"/>
+            <return-property name="description"     column="accType"/>
+            <return-property name="currency"        column="currencyId"/>
+	        <return-property name="openDate"        column="OpenDate"/>
+	        <return-property name="branch"          column="FNCash"/>
+            <return-property name="accountState"    column="accountState"/>
+        </return>
+        SELECT
+            accounts.Referenc      AS id,
+            accounts.Account       AS number,
+            accounts.Code_Currency AS currencyId,
+            accounts.Type_Account  AS accType,
+	        accounts.Open_Date     AS OpenDate,
+	        accounts.FNCash        AS FNCash,
+            case when accounts.Open_Close not like '%З%'
+                    then 0
+                else (case
+                        when accounts.UserTypeAccount like '%Я%' OR accounts.UserTypeAccount like '%Т%'
+                            then 3 end)
+            end                    AS accountState
+        FROM depositr_dbt AS accounts
+        WHERE accounts.Account = :accountNumber
+    </sql-query>
+
+	<sql-query name="GetClientAccounts">
+	    <return alias="accounts" class="com.rssl.phizicgate.rsV51.bankroll.AccountImpl">
+	        <return-property name="longId"          column="id"/>
+	        <return-property name="number"          column="number"/>
+	        <return-property name="description"     column="accType"/>
+	        <return-property name="currency"        column="currencyId"/>
+		    <return-property name="openDate"        column="OpenDate"/>
+		    <return-property name="branch"          column="FNCash"/>
+            <return-property name="accountState"    column="accountState"/>
+	    </return>
+    	<![CDATA[
+		SELECT
+		   owned.Referenc       AS id,
+		   owned.Account        AS number,
+		   owned.Code_Currency  AS currencyId,
+		   owned.Type_Account   AS accType,
+		   owned.Open_Date      AS OpenDate,
+		   owned.FNCash         AS FNCash,
+		   case when owned.Open_Close not like '%З%'
+                    then 0
+                else (case
+                        when owned.UserTypeAccount like '%Я%' OR owned.UserTypeAccount like '%Т%'
+                            then 3 end)
+           end                    AS accountState
+
+		FROM depositr_dbt AS owned ,depcontr_dbt AS contract
+			WHERE owned.CodClient = :clientId And owned.Open_Close = '' 
+             And SUBSTRING (owned.Account, 0, 5) in ('40817','40820','42301','42601')
+			 And (owned.Action = 0 OR owned.Action = 1)
+		     And LOCATE('Я', owned.UserTypeAccount) = 0 And LOCATE('Т', owned.UserTypeAccount) = 0
+			 And LOCATE('К', owned.UserTypeAccount) = 0
+		     And contract.ContractID = owned.MainContractID
+		UNION
+		SELECT
+			deposited.Referenc      AS id,
+			deposited.Account       AS number,
+			deposited.Code_Currency AS currencyId,
+			deposited.Type_Account  AS accType,
+			deposited.Open_Date     AS OpenDate,
+			deposited.FNCash        AS FNCash,
+			case when deposited.Open_Close not like '%З%'
+                    then 0
+                else (case
+                        when deposited.UserTypeAccount like '%Я%' OR deposited.UserTypeAccount like '%Т%'
+                            then 3 end)
+            end                    AS accountState
+
+		FROM depositr_dbt AS deposited, sbtrast_dbt AS sbtrast ,depcontr_dbt AS contract
+		   WHERE sbtrast.CodClient = :clientId AND sbtrast.ReferenceKind = 0
+		   and deposited.Referenc = sbtrast.Referenc AND deposited.Open_Close = ''
+           And SUBSTRING (deposited.Account, 0, 5) in ('40817','40820','42301','42601')
+		   AND (deposited.Action = 0 OR deposited.Action = 1) AND (sbtrast.Action = 0 OR sbtrast.Action = 1)
+	       And LOCATE('Т', deposited.UserTypeAccount) = 0 And LOCATE('Я', deposited.UserTypeAccount) = 0
+		   And LOCATE('К', deposited.UserTypeAccount) = 0
+	       AND contract.ContractID = deposited.MainContractID
+		UNION
+		SELECT
+			deposited.Referenc        AS id,
+			deposited.Account         AS number,
+			deposited.Code_Currency   AS currencyId,
+			deposited.Type_Account    AS accType,
+			deposited.Open_Date       AS OpenDate,
+			deposited.FNCash          AS FNCash,
+		    case when deposited.Open_Close not like '%З%'
+                    then 0
+                else (case
+                        when deposited.UserTypeAccount like '%Я%' OR deposited.UserTypeAccount like '%Т%'
+                            then 3 end)
+            end                    AS accountState
+
+		FROM depositr_dbt AS deposited, sbtrast_dbt AS sbtrast ,depcontr_dbt AS contract
+		   WHERE sbtrast.CodClient = :clientId
+		   AND sbtrast.ReferenceKind = 1
+		   and deposited.MainContractID = sbtrast.Referenc AND deposited.Open_Close = ''
+           And SUBSTRING (deposited.Account, 0, 5) in ('40817','40820','42301','42601')
+		   AND (deposited.Action = 0 OR deposited.Action = 1) AND (sbtrast.Action = 0 OR sbtrast.Action = 1)
+	       And LOCATE('Т', deposited.UserTypeAccount) = 0 And LOCATE('Я', deposited.UserTypeAccount) = 0
+		   And LOCATE('К', deposited.UserTypeAccount) = 0
+		   AND contract.ContractID = deposited.MainContractID
+		]]>
+	</sql-query>
+
+<!--TODO не уверен, что запрос правильный. проверить-->
+	<sql-query name="GetAccountOwnerId">
+        <return-scalar column="CodClient" type="long"/>
+        SELECT TOP 1 owned.CodClient AS CodClient
+        FROM depositr_dbt AS owned
+        WHERE owned.Referenc = :accountId
+    </sql-query>
+
+</hibernate-mapping>

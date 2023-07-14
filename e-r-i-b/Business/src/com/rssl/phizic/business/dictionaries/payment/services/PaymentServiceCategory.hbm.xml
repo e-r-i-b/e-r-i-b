@@ -1,0 +1,22 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="CategoryPaymentType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.dictionaries.payment.services.CategoryServiceType</param>
+	</typedef>
+    <class name="com.rssl.phizic.business.dictionaries.payment.services.PaymentServiceCategory" table="PAYMENT_SERVICE_CATEGORIES">
+		 <composite-id>
+             <key-property  name="paymentService" column="PAYMENT_SERVICES_ID" type="long"/>
+             <key-property name="category" column="CATEGORY" type="CategoryPaymentType"/>
+		 </composite-id>
+    </class>
+
+    <!--Добавление категории (для 'живого' поиска)-->
+    <sql-query name="com.rssl.phizic.business.dictionaries.payment.services.addPaymentServiceCategory">
+        insert into payment_service_categories (payment_services_id, category)
+             values (:extra_payment_services_id, :extra_category)
+    </sql-query>
+    
+</hibernate-mapping>

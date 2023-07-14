@@ -1,0 +1,81 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="NotificationState">
+        <param name="enumClass">com.rssl.phizic.rsa.notifications.enumeration.FraudNotificationState</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.rsa.notifications.FraudNotification" table="FRAUD_NOTIFICATIONS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_FRAUD_NOTIFICATIONS</param>
+            </generator>
+        </id>
+
+        <property name="creationDate"            type="calendar"                 column="CREATION_DATE"              not-null="true"/>
+        <property name="requestBody"             type="string"                   column="REQUEST_BODY"               not-null="true"/>
+        <property name="state"                   type="NotificationState"          column="STATE"                   not-null="true"/>
+
+    </class>
+
+    <!-- Запрос на выборку идентификаторов фрод-оповещений для джоба
+        Опорный элемент:
+                        IDX_FN_NOT_SENT_ID
+        Предикат:
+                        DECODE("STATE", 'NOT_SENT', "ID", NULL) IS NOT NULL
+        Кардинальность:
+                         не превышает настройки com.rssl.rsa.notification.pack.size.limit (см. характеристики индекса)
+    -->
+    <sql-query name="com.rssl.phizic.rsa.notifications.getPackIds">
+        <return-scalar column="id" type="long"/>
+        <![CDATA[
+        SELECT ID id from
+            ( SELECT ID from FRAUD_NOTIFICATIONS
+                WHERE :max_limit >= rownum
+                    and not decode(STATE, 'NOT_SENT', ID, null) is null
+                 ORDER BY dbms_random.value
+            )
+        WHERE :limit >= rownum
+        ]]>
+    </sql-query>
+
+    <!-- Запрос на получение оповещения по идентификатору
+        Опорный элемент:
+                    IDX_FN_NOT_SENT_ID
+
+        Предикат:
+                    DECODE("STATE", 'NOT_SENT', "ID', NULL) IS NOT NULL
+
+        Кардинальность:
+                    1
+    -->
+    <sql-query name="com.rssl.phizic.rsa.notifications.getNotification">
+        <return class="com.rssl.phizic.rsa.notifications.FraudNotification" alias="notification"/>
+        <![CDATA[
+            select {notification.*} from FRAUD_NOTIFICATIONS notification
+            where decode(STATE, 'NOT_SENT', ID, null) = :id
+            for update nowait
+        ]]>
+    </sql-query>
+
+    <!--Обновление статуса фрод-оповещения
+        опорный элемент:
+                        IDX_FN_NOT_SENT_ID
+        предикат:
+                        DECODE("STATE",'NOT_SENT',"ID", NULL)=TO_NUMBER("EXTRA_ID))
+        кардинальность:
+                        1
+
+    -->
+    <sql-query name="com.rssl.phizic.rsa.notifications.updateState">
+        <![CDATA[
+            update FRAUD_NOTIFICATIONS
+                set state = :extra_state
+                where decode(STATE, 'NOT_SENT', ID, null) = :extra_id
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

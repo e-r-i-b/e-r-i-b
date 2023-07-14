@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2010 (http://www.altova.com) by KES (SBRF) -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<xsd:element name="CardToCardInfoRequest" type="CardToCardInfoRequestType"/>
+	<xsd:element name="CardToCardInfoResponse" type="CardToCardInfoResponseType"/>
+	<xsd:element name="CardToCardRequest" type="CardToCardRequestType"/>
+	<xsd:element name="CardToCardResponse" type="CardToCardResponseType"/>
+	<xsd:element name="SimplePaymentRequest" type="SimplePaymentRequestType"/>
+	<xsd:element name="SimplePaymentResponse" type="SimplePaymentResponseType"/>
+	<xsd:complexType name="HeadRequestType">
+		<xsd:sequence>
+			<xsd:element name="MessUID">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="MessageId" type="xsd:string"/>
+						<xsd:element name="MessageDate" type="xsd:string"/>
+						<xsd:element name="FromAbonent" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="OperUID">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="OperId" type="xsd:string"/>
+						<xsd:element name="STAN" type="xsd:string"/>
+						<xsd:element name="LTDT" type="xsd:string"/>
+						<xsd:element name="RRN" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="MessType" type="xsd:string"/>
+			<xsd:element name="Version" type="xsd:string"/>
+			<xsd:element name="RequestType" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="TargetSystem" type="xsd:string" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="HeadResponseType">
+		<xsd:sequence>
+			<xsd:element name="MessUID">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="MessageId" type="xsd:string"/>
+						<xsd:element name="MessageDate" type="xsd:string"/>
+						<xsd:element name="FromAbonent" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="OperUID" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="OperId" type="xsd:string" minOccurs="0"/>
+						<xsd:element name="STAN" type="xsd:string" minOccurs="0"/>
+						<xsd:element name="LTDT" type="xsd:string" minOccurs="0"/>
+						<xsd:element name="RRN" type="xsd:string" minOccurs="0"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="MessType" type="xsd:string"/>
+			<xsd:element name="Version" type="xsd:string"/>
+			<xsd:element name="RequestType" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="TargetSystem" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="Error">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="ErrCode" type="xsd:string"/>
+						<xsd:element name="ErrMes" type="xsd:string" minOccurs="0"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="parentId" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="MessageId" type="xsd:string"/>
+						<xsd:element name="MessageDate" type="xsd:string"/>
+						<xsd:element name="FromAbonent" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="SignType">
+		<xsd:sequence>
+			<xsd:element name="Issuer" type="xsd:string"/>
+			<xsd:element name="SN" type="xsd:string"/>
+			<xsd:element name="Value" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CardToCardInfoRequestType">
+		<xsd:sequence>
+			<xsd:element name="Head" type="HeadRequestType"/>
+			<xsd:element name="Body">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="DebitCard">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="CardNumber" type="xsd:string"/>
+									<xsd:element name="EndDate" type="xsd:string" minOccurs="0"/>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+						<xsd:element name="CurrCode" type="xsd:string"/>
+						<xsd:element name="CreditCard" type="xsd:string"/>
+						<xsd:element name="Summa" type="xsd:string"/>
+						<xsd:element name="Properties" type="xsd:string" minOccurs="0"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Sign" type="SignType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CardToCardInfoResponseType">
+		<xsd:sequence>
+			<xsd:element name="Head" type="HeadResponseType"/>
+			<xsd:element name="Body" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="AuthorizeCode" type="xsd:string"/>
+						<xsd:element name="Comission" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Sign" type="SignType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CardToCardRequestType">
+		<xsd:sequence>
+			<xsd:element name="Head" type="HeadRequestType"/>
+			<xsd:element name="Body">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="DebitCard">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="CardNumber" type="xsd:string"/>
+									<xsd:element name="EndDate" type="xsd:string" minOccurs="0"/>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+						<xsd:element name="CurrCode" type="xsd:string"/>
+						<xsd:element name="CreditCard" type="xsd:string"/>
+						<xsd:element name="Summa" type="xsd:string"/>
+						<xsd:element name="Properties" type="xsd:string" minOccurs="0"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Sign" type="SignType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CardToCardResponseType">
+		<xsd:sequence>
+			<xsd:element name="Head" type="HeadResponseType"/>
+			<xsd:element name="Body" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="AuthorizeCode" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Sign" type="SignType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="SimplePaymentRequestType">
+		<xsd:sequence>
+			<xsd:element name="Head" type="HeadRequestType"/>
+			<xsd:element name="Body">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Route">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="DigCode" type="xsd:string"/>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+						<xsd:element name="DebitCard">
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="CardNumber" type="xsd:string"/>
+									<xsd:element name="EndDate" type="xsd:string" minOccurs="0"/>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+						<xsd:element name="CurrCode" type="xsd:string"/>
+						<xsd:element name="RecIdentifier" type="xsd:string"/>
+						<xsd:element name="Summa" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Sign" type="SignType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="SimplePaymentResponseType">
+		<xsd:sequence>
+			<xsd:element name="Head" type="HeadResponseType"/>
+			<xsd:element name="Body" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="AuthorizeCode" type="xsd:string"/>
+						<xsd:element name="OperationIdentifier" type="xsd:string" minOccurs="0"/>
+						<xsd:element name="RecAcc" type="xsd:string" minOccurs="0"/>
+						<xsd:element name="RecBic" type="xsd:string" minOccurs="0"/>
+						<xsd:element name="RecCorrAcc" type="xsd:string" minOccurs="0"/>
+						<xsd:element name="RecInn" type="xsd:string" minOccurs="0"/>
+						<xsd:element name="RecCompName" type="xsd:string" minOccurs="0"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Sign" type="SignType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

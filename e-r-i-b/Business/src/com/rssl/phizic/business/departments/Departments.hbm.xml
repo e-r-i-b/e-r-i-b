@@ -1,0 +1,249 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="com.rssl.phizic.business.departments.Department" table="DEPARTMENTS">
+
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_DEPARTMENTS</param>
+			</generator>
+		</id>
+
+		<discriminator column="KIND" type="string"/>
+
+		<property name="name" type="string" column="NAME" not-null="true"/>
+		<property name="main" type="boolean" column="MAIN" not-null="true"/>
+        
+        <property name="service" type="boolean" column="SERVICE" not-null="true"/>
+
+		<property name="city" type="not-null-string" column="CITY"/>
+		<property name="address" type="not-null-string" column="POST_ADDRESS"/>
+		<property name="location" type="not-null-string" column="LOCATION"/>
+		<property name="telephone" type="not-null-string" column="PHONE"/>
+
+		<property name="weekOperationTimeBegin" type="string-time" column="WEEK_OPER_TIME_BEGIN"/>
+		<property name="weekOperationTimeEnd" type="string-time" column="WEEK_OPER_TIME_END"/>
+
+		<property name="weekendOperationTimeBegin" type="string-time" column="WEEKEND_OPER_TIME_BEGIN"/>
+		<property name="weekendOperationTimeEnd" type="string-time" column="WEEKEND_OPER_TIME_END"/>
+
+		<property name="fridayOperationTimeBegin" type="string-time" column="FRIDAY_OPER_TIME_BEGIN"/>
+		<property name="fridayOperationTimeEnd" type="string-time" column="FRIDAY_OPER_TIME_END"/>
+
+		<property name="timeScale" type="not-null-string" column="TIME_SCALE"/>
+        <property name="timeZone" type="integer" column="TIME_ZONE"/>
+		<property name="notifyContractCancelation" type="long" column="NOTIFY_CONRACT_CANCELATION"/>
+
+		<property name="connectionCharge" type="big_decimal" column="CONNECTION_CHARGE"/>
+		<property name="monthlyCharge" type="big_decimal" column="MONTHLY_CHARGE"/>
+		<property name="reconnectionCharge" type="big_decimal" column="RECONNECTION_CHARGE"/>
+
+        <property name="BIC" type="string" column="BIC"/>
+        <property name="synchKey" type="string" column="OFFICE_ID"/>
+        <property name="adapterUUID" type="string" column="ADAPTER_UUID"/>
+        <property name="billingId" type="long" column="BILLING_ID"/>
+
+        <property name="creditCardOffice" type="boolean"> 
+            <column name="IS_CREDIT_CARD_OFFICE" not-null="true" default="0"/>
+            <!-- по умолчанию ставим false -->
+        </property>
+
+        <property name="openIMAOffice" type="boolean">
+            <column name="IS_OPEN_IMA_OFFICE" not-null="true" default="0"/>
+            <!-- по умолчанию ставим false -->
+        </property>
+
+        <property name="possibleLoansOperation" type="boolean" column="POSSIBLE_LOANS_OPERATION"/>
+
+        <property name="active" type="boolean" column="ACTIVE" not-null="true"/>
+
+        <subclass name="com.rssl.phizic.business.dictionaries.offices.common.DepartmentImpl"
+                  discriminator-value="R" batch-size="500">
+
+            <component name="code" class="com.rssl.phizic.business.dictionaries.offices.common.CodeImpl">
+                <property name="id" type="string" column="OFFICE"/>
+            </component>
+
+		</subclass>
+
+	</class>
+
+    <class name="com.rssl.phizic.business.departments.TerBankDetails" table="TB_DETAILS">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_TB_DETAILS</param>
+            </generator>
+        </id>
+
+        <property name="code" type="string" column="CODE" not-null="true"/>
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="BIC" type="string" column="BIC" not-null="false"/>
+        <property name="OKPO" type="string" column="OKPO" not-null="false"/>
+        <property name="address" type="string" column="ADDRESS" not-null="false"/>
+        <property name="offCode" type="string" column="OFF_CODE" not-null="false"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.sbrf.getDepartmentByOfficeId">
+        select department from com.rssl.phizic.business.departments.Department as department
+            where department.synchKey=:office
+    </query>
+
+    <!--Есть ли подразделения, которые выдают кредитную карту для заданного региона-->
+    <!--
+        Опорный элемент: IDX_DEP_TB_IS_CRED_CARD_OFFICE
+        Предикаты доступа: access("IS_CREDIT_CARD_OFFICE"='1')
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.business.departments.haveDepartmentForCreditCardByRegion">
+        <return-scalar column="count" type="long"/>
+        <![CDATA[
+            select count(1) as count from dual
+             where exists(select 1 from DEPARTMENTS
+                           where IS_CREDIT_CARD_OFFICE='1'
+                             and (:region is null or :region='' or TB=:region))
+        ]]>
+    </sql-query>
+
+    <!--список подразделений, обслуживающихся в ИКФЛ-->
+    <query name="com.rssl.phizic.business.departments.Department.list">
+        select department
+        from com.rssl.phizic.business.dictionaries.offices.common.DepartmentImpl as department
+        where department.service = '1'
+        order by department.name
+    </query>
+
+    <query name="com.rssl.phizic.business.departments.GetMainDepartmentsCount">
+		select count(*)
+		from com.rssl.phizic.business.departments.Department department
+		where
+		     :externalSystemUUID = department.adapterUUID
+		and department.main = 1
+	</query>
+
+    <query name="com.rssl.phizic.business.departments.removeDepartment">
+        delete from com.rssl.phizic.business.departments.Department department
+            where department = :department
+    </query>
+
+    <!--кол-во подразделений к которым у сотрудника есть доступ из переданных-->
+    <sql-query name="com.rssl.phizic.business.departments.isDepatmentsAllowed">
+        <return-scalar column="departmentsCount" type="long"/>
+        SELECT
+            count(*) departmentsCount
+        FROM
+            DEPARTMENTS dep
+        WHERE
+            dep.ID in (:departments)
+            AND exists(SELECT 1 FROM ALLOWED_DEPARTMENTS ad
+                             WHERE ad.LOGIN_ID = :login
+                             AND ad.TB||'|'||ad.OSB||'|'||ad.VSP in (
+                                                                    dep.TB||'|*|*',
+                                                                    dep.TB||'|'||dep.OSB||'|*',
+                                                                    dep.TB||'|'||dep.OSB||'|'||dep.OFFICE,
+                                                                    '*|*|*')
+                        )
+    </sql-query>
+
+    <!--Есть ли доступ к подразделению с переданными tb, osb, vsp-->
+    <sql-query name="com.rssl.phizic.business.departments.isDepartmentsAllowedByCode">
+        <return-scalar column="allowed" type="boolean"/>
+        SELECT 1 allowed
+        FROM ALLOWED_DEPARTMENTS ad
+        WHERE ad.LOGIN_ID = :login
+             AND ad.TB||'|'||ad.OSB||'|'||ad.VSP in (:tb||'|*|*',
+                                                     :tb||'|'||:osb||'|*',
+                                                     :tb||'|'||:osb||'|'||:vsp,
+                                                     '*|*|*')
+    </sql-query>
+
+    <!--кол-во ТБ к которым у сотрудника есть доступ из переданных-->
+    <sql-query name="com.rssl.phizic.business.departments.isTBsAllowed">
+        <return-scalar column="departmentsCount" type="long"/>
+        SELECT
+           count(*) departmentsCount
+        FROM
+           DEPARTMENTS dep
+        WHERE
+           DECODE(dep.OFFICE||dep.OSB,NULL,dep.TB,NULL) in (:departments)
+           AND
+           nvl(dep.OSB, 'NULL') = 'NULL'
+           AND
+           nvl(dep.OFFICE, 'NULL') = 'NULL'
+           AND exists(SELECT 1 FROM ALLOWED_DEPARTMENTS ad
+                            WHERE ad.LOGIN_ID = :login
+                            AND ad.TB||'|'||ad.OSB||'|'||ad.VSP in (
+                                                                   dep.TB||'|*|*',
+                                                                   dep.TB||'|'||dep.OSB||'|*',
+                                                                   dep.TB||'|'||dep.OSB||'|'||dep.OFFICE,
+                                                                   '*|*|*')
+                       )
+    </sql-query>
+
+    <query name="com.rssl.phizic.business.departments.TerBankDetails.getAll">
+        select terBankDetails
+        from com.rssl.phizic.business.departments.TerBankDetails as terBankDetails
+        order by terBankDetails.code, terBankDetails.offCode
+    </query>
+
+	<sql-query name="com.rssl.phizic.business.departments.GetNumberTbById">
+        <return-scalar column="number_tb" type="string"/>
+           select dep.TB number_tb from DEPARTMENTS dep
+           where dep.id = :departmentId
+	</sql-query>
+
+    <sql-query name="com.rssl.phizic.business.departments.getAllowedReissueCardOffices">
+        <return alias="d" class="com.rssl.phizic.business.departments.Department"/>
+        <![CDATA[
+           select {d.*} from DEPARTMENTS d, DEPARTMENTS_RECORDING dr
+            where d.tb = dr.tb_erib
+              and d.osb = dr.osb_erib
+              and d.office = dr.office_erib
+              and dr.despatch is not null
+              and d.is_credit_card_office = 1
+              and ( upper(d.name) like upper('%'||:filter||'%') or
+                    upper(d.post_address) like upper('%'||:filter||'%') )
+        ]]>
+        </sql-query>
+    <!-- есть доступ ко всем ТБ -->
+    <sql-query name="com.rssl.phizic.business.departments.DepartmentService.isAllTBAccess">
+        <return-scalar column="count" type="long"/>
+        <![CDATA[
+            SELECT
+                count(*) as count
+            FROM
+                ALLOWED_DEPARTMENTS ad
+            WHERE
+                ad.LOGIN_ID = :loginId
+            AND
+                ad.TB ='*'
+        ]]>
+    </sql-query>
+
+    <sql-query name="com.rssl.phizic.business.departments.DepartmentService.getExtendedLoanClaimClientOffices">
+        <return alias="D" class="com.rssl.phizic.business.departments.Department"/>
+        <![CDATA[
+            SELECT {D.*} FROM DEPARTMENTS D
+             WHERE (
+                     UPPER(D.NAME)         LIKE UPPER('%'||:officeInfo||'%') OR
+                     UPPER(D.POST_ADDRESS) LIKE UPPER('%'||:officeInfo||'%')
+                   )
+
+               AND D.TB IN (:additionTBs)
+               AND D.POSSIBLE_LOANS_OPERATION  = '1'
+        ]]>
+    </sql-query>
+
+    <!-- Возвращает ОСБ если есть при переданных параметрах TB и OSB -->
+    <!-- Опорный элемент: I_DEPARTMENTS_BANK_INFO
+         Предикаты доступа: access("TB"=:TB AND NVL("OSB",'NULL')=:OSB AND NVL("OFFICE",'NULL')='NULL')
+         Кардинальность: 1 -->
+    <sql-query name="com.rssl.phizic.business.departments.getBranch">
+        <return alias="department" class="com.rssl.phizic.business.dictionaries.offices.extended.ExtendedDepartment"/>
+        <![CDATA[
+           SELECT department.* FROM DEPARTMENTS department
+           WHERE (department.TB = :tb AND nvl(department.OSB, 'NULL') = :osb AND nvl(department.OFFICE, 'NULL') = 'NULL')
+        ]]>
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,138 @@
+// ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+// ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+// ˆŠ”‹. ƒ« ¢­ë© ¬ ªà®á 
+// ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+// ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+
+import rcw, rsd, deprintr;
+import "rt_ib_xml.mac"; 
+import "rt_ib_getDepositList.mac",
+       "rt_ib_DepositProduct.mac",
+       "rt_ib_getClientDepositInfo.mac",
+       "rt_ib_getAccountTransactions.mac",
+       "rt_ib_CalcComPay.mac",
+       "rt_ib_makePostDocument.mac",
+       "rt_ib_carryDeposit.mac", 
+       "rt_ib_recallDocument.mac"; 
+
+
+// ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+// ¡à ¡®âç¨ª 
+// ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+macro requestDispatcher( xmlDoc, outXml )
+  var firstNode, nextNode;
+  var proc_ref = "";
+
+  outXml = null;
+
+  firstNode = xmlDoc.documentElement.childNodes.item(0);   
+  if ( firstNode.NodeName == "id" )
+    ParentId = firstNode.text;
+  end;
+
+  nextNode = firstNode.nextSibling;
+  if ( nextNode )
+    NameInputTag = nextNode.nodeName;
+  end;
+
+  if  ( NameInputTag == "getDepositList_q" )
+    proc_ref = "GetDepositList";    // 
+  elif( NameInputTag == "depositProduct_q" )
+    proc_ref = "DepositProduct";    // 
+  elif( NameInputTag == "getClientDepositInfo_q" )
+    proc_ref = "GetClientDepositInfo";
+  elif( NameInputTag == "commissionPay_q" )
+    proc_ref = "CalcComPay";       // ª®¬¨áá¨ï ¢ª« ¤­®£® ¤®ªã¬¥­â 
+  elif(( NameInputTag == "internalTransfer_q" ) or
+       ( NameInputTag == "openDeposit_q"      ) or
+       ( NameInputTag == "closeDeposit_q"     ) or
+       ( NameInputTag == "externalTransfer_q" ) 
+      )
+    proc_ref = "makePayDocument";       // ª®¬¨áá¨ï ¢ª« ¤­®£® ¤®ªã¬¥­â 
+  elif( NameInputTag == "carryDeposit_q" )
+    proc_ref = "carryDeposit";       // ª®¬¨áá¨ï ¢ª« ¤­®£® ¤®ªã¬¥­â 
+  elif( NameInputTag == "recallDocument_q" )
+    proc_ref = "recallDocument";       // â§ë¢ ¯« â¥¦ 
+  elif( NameInputTag == "getAccountTransactions_q" )
+    proc_ref = "getAccountTransactions";       // need more info
+  else
+    outXml = AddError2OutXml_(outXML, "­¥¨§¢¥áâ­ë© § ¯à®á");
+  end;
+
+  if( proc_ref )
+    if(not ExecMacro(proc_ref, xmlDoc, outXml))
+      outXml = AddError2OutXml_(outXML, "è¨¡ª  § ¯ãáª  ¯à®æ¥¤ãàë "+proc_ref+" rt_ib__mail.mac" );
+    end;
+  end;
+  SetParm( 1, outXml );
+
+end;
+
+
+// ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+// ƒ®«®¢­ ï äã­ªæ¨ï
+// ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+macro XML_Dispatch( xml_request )
+  var xmlDoc, outXml, strErr = "ERROR";
+  var account, filial, dateDoc, sum, currency, clientID, operationType, operationSubspecies;
+
+  xmlDoc = CreateXMLObject();
+
+  if( xmlDoc )
+    if( xmlDoc.loadXML(xml_request) )
+      if( xmlDoc.documentElement.nodeName == "request" )
+        requestDispatcher( xmlDoc, outXml );
+      else
+        // ¤àã£¨¥ ¤¥©áâ¢¨ï :)
+        outXml = AddError2OutXml_(outXML, "‡ ¯à®á '"+xmlDoc.documentElement.nodeName+"' ­¥ ¯®¤¤¥à¦¨¢ ¥âáï" );
+      end;
+    else
+      outXml = AddError2OutXml_(outXML, "è¨¡ª  § £àã§ª¨ xml-¤®ªã¬¥­â " );
+    end;
+  else
+    strErr = "è¨¡ª  ¨­¨æ¨ «¨§ æ¨¨ Active-X ª®¬¯®­¥­â ";
+  end;
+
+//  setoutput( "qwe.txt", true );
+  if( outXml )
+    return "<?xml version=\"1.0\" encoding=\"CP866\"?>"+string(outXml.xml);
+  else
+    return (strErr);
+  end;
+//  setoutput( null, true );
+
+end;
+
+
+
+
+// ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+// â« ¤ª 
+// ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ              
+macro debug
+  var request = "";
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_CalcComPay.xml") txt;
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_DepositProduct.xml") txt;
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_getClientDepositInfo_.xml") txt;
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_getDepositList.xml") txt;
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_makePostDocument.xml") txt; 
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_carryDeposit.xml") txt; 
+  FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_recallDocument.xml") txt; 
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\rt_ib_07.xml") txt; 
+  //FILE t("d:\\RsBank60.04.24\\retail_deb\\err2.xml") txt; 
+
+  if ( open(t) )
+    while(next(t) )
+      if ( substr( t.str, 1, 1 ) != ";" )
+        request = request + t.str;
+      end;
+    end;
+    close(t);
+
+    println(XML_Dispatch(request));
+  
+  end;
+end;
+
+//debug;

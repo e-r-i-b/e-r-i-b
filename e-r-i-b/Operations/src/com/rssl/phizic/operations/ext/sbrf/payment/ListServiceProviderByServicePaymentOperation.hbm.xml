@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+     <!-- Возвращает поставщиков, соответствующий группе :groupId -->
+    <sql-query name="com.rssl.phizic.operations.ext.sbrf.payment.ListServiceProviderByServicePaymentOperation.list" >
+        <return-scalar column="PROVIDER_ID" type="long"/>
+        <return-scalar column="PROVIDER_NAME" type="string"/>
+        <return-scalar column="IMAGE_ID" type="long"/>
+        <return-scalar column="DESCRIPTION" type="string"/>
+
+        <![CDATA[
+        SELECT  res_provider.ID PROVIDER_ID,
+                res_provider.IMAGE_ID IMAGE_ID,
+                res_provider.NAME PROVIDER_NAME,
+                res_provider.DESCRIPTION DESCRIPTION
+        FROM    SERVICE_PROVIDERS res_provider
+        WHERE   res_provider.ID in
+                (
+                    SELECT  min(provider.ID)
+                    FROM    SERVICE_PROVIDERS provider
+                            JOIN
+                            SERV_PROVIDER_PAYMENT_SERV provider_payment on provider.id =  provider_payment.service_provider_id
+                            LEFT OUTER JOIN
+                            SERVICE_PROVIDER_REGIONS serviceProviderRegions ON serviceProviderRegions.SERVICE_PROVIDER_ID = provider.ID
+                    where   provider.visible_payments_for_ib = 1
+                            AND
+                            (provider.IS_POPULAR = 1 or provider.IS_FEDERAL = 1)
+
+                AND
+                provider.KIND <> 'T'
+                AND
+                provider.IS_ALLOW_PAYMENTS = 1
+                AND
+                provider.STATE = 'ACTIVE'
+                AND
+                (:clientType <> 'CARD' OR (provider.ACCOUNT_TYPE = 'CARD' OR provider.ACCOUNT_TYPE = 'ALL'))
+                AND
+                not(provider.BILLING_ID is null)
+                AND
+                -- хоть каке-то переводы должны быть доступны
+                (:cardProvidersAllowed = 1 or :accountProvidersAllowed = 1  or :federalProvidersAllowed = 1)
+                AND
+                (
+                    -- A. Либо поставщик поддерживает переводы со счёта
+                    ( (provider.ACCOUNT_TYPE in ('DEPOSIT', 'ALL')) and (:accountProvidersAllowed = 1) ) or
+                    -- B. Либо поставщик поддерживает карточные переводы
+                    ( (provider.ACCOUNT_TYPE in ('CARD', 'ALL')) and
+                      -- карточные переводы разрешены для любых поставщиков (1) либо только для федеральных (2)
+                      (:cardProvidersAllowed = 1 or (:cardProvidersAllowed = 2 and :federalProvidersAllowed = 1 and provider.IS_FEDERAL = 1))
+                    )
+                )
+                -- указан список внешних ID, не содержащих услугу
+                AND
+                not(provider.BILLING_ID is null)
+                AND
+                (:externalIdCount=0 OR SUBSTR(provider.EXTERNAL_ID, INSTR(provider.EXTERNAL_ID, '@')+1) IN (:servicelessExternalIdList))
+                AND
+                (
+                    provider.IS_FEDERAL = 1
+                    OR
+                    (
+                        :extra_region_id is null OR serviceProviderRegions.REGION_ID is NULL OR
+                        serviceProviderRegions.REGION_ID in
+                        (
+                            SELECT      ID
+                            FROM        REGIONS regions
+                            START WITH  regions.ID = :extra_region_id
+                            CONNECT BY  regions.ID = PRIOR regions.PARENT_ID
+                        ) OR
+                        serviceProviderRegions.REGION_ID in
+                        (
+                            SELECT      ID
+                            FROM        REGIONS regions
+                            START WITH  regions.ID = :extra_region_id
+                            CONNECT BY  regions.PARENT_ID = PRIOR regions.ID
+                        )
+                    )
+                )
+                AND
+                provider_payment.payment_service_id = :groupId
+
+        GROUP BY provider.CODE_RECIPIENT_SBOL, provider.CODE)
+        ]]>
+
+    </sql-query>
+</hibernate-mapping>

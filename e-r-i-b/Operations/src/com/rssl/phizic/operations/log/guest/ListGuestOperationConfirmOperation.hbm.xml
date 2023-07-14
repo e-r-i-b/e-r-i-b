@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <!--Получить журнал подтверждений операции по идентификатору операции
+        Опорный элемент: I_G_OPERATION_CONFIRM_UID
+        Предикаты доступа: access("ENTRY"."OPERATION_UID"=:EXTRA_OPERATIONUID)
+        Кардинальность: 0 - количество попыток ввода и отправок смс
+    -->
+    <sql-query name="com.rssl.phizic.operations.log.guest.ListGuestOperationConfirmOperation.list">
+        <return alias="entry" class="com.rssl.phizic.logging.confirm.GuestOperationConfirmLogEntry"/>
+        <![CDATA[
+            select
+                entry.*
+            from
+                GUEST_OPERATION_CONFIRM_LOG entry
+            where
+                entry.OPERATION_UID = :extra_operationUID
+            order by entry.ID
+        ]]>
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,41 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.externalsystem.ExternalSystemRouteInfo" table="EXTERNAL_SYSTEM_ROUTE_INFO">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_EXTERNAL_SYSTEM_ROUTE_INFO</param>
+            </generator>
+        </id>
+
+        <property name="systemId"           type="string"       column="SYSTEM_ID"          not-null="false"/>
+        <property name="productType"        type="string"       column="PRODUCT_TYPE"       not-null="true"/>
+        <property name="tbCode"             type="string"       column="TB_CODE"            not-null="false"/>
+        <property name="udboRequest"        type="boolean"      column="UDBO_REQUEST"       not-null="false"/>
+
+    </class>
+
+    <!--поиск списка кодов внешних систем по продуктам в разрезе ТБ-->
+    <sql-query name="com.rssl.phizic.business.externalsystem.ExternalSystemRouteInfo.products.list">
+        <return alias="adapter" class="com.rssl.phizicgate.manager.routing.Adapter"/>
+        <![CDATA[
+            select {adapter.*} from ADAPTERS adapter
+            left join EXTERNAL_SYSTEM_ROUTE_INFO info on adapter.UUID = info.SYSTEM_ID
+            where info.PRODUCT_TYPE = :productType
+              and info.TB_CODE = :tbCode
+        ]]>
+    </sql-query>
+
+    <!--поиск списка кодов внешних систем запроса УДБО в разрезе ТБ-->
+    <sql-query name="com.rssl.phizic.business.externalsystem.ExternalSystemRouteInfo.udbo.list">
+        <return alias="adapter" class="com.rssl.phizicgate.manager.routing.Adapter"/>
+        <![CDATA[
+            select {adapter.*} from ADAPTERS adapter
+            left join EXTERNAL_SYSTEM_ROUTE_INFO info on adapter.UUID = info.SYSTEM_ID
+            where info.UDBO_REQUEST = '1'
+              and info.TB_CODE = :tbCode
+        ]]>
+    </sql-query>
+</hibernate-mapping>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4"
+         xmlns="http://java.sun.com/xml/ns/j2ee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+	id="WebApp_IQWaveListener">
+
+    <listener>
+        <listener-class>com.sun.xml.rpc.server.http.JAXRPCContextListener</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>com.rssl.phizic.init.InitializerListenerBase</listener-class>
+    </listener>
+
+    <filter>
+       <filter-name>ApplicationInfoFilter</filter-name>
+       <filter-class>com.rssl.phizic.config.ApplicationInfoFilter</filter-class>
+       <init-param>
+           <param-name>application</param-name>
+           <param-value>IQWaveListener</param-value>
+       </init-param>
+   </filter>
+
+    <filter>
+        <filter-name>ContextFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.common.GateContextFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>SystemLogFilter</filter-name>
+        <filter-class>com.rssl.phizic.web.log.SystemLogFilter</filter-class>
+    </filter>
+
+    <servlet>
+        <description>JAX-RPC endpoint handler</description>
+        <display-name>JAXRPCServlet</display-name>
+        <servlet-name>JAXRPCServlet</servlet-name>
+        <servlet-class>com.sun.xml.rpc.server.http.JAXRPCServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <filter-mapping>
+        <filter-name>ApplicationInfoFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ContextFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>SystemLogFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <servlet-mapping>
+        <servlet-name>JAXRPCServlet</servlet-name>
+        <url-pattern>/services/*</url-pattern>
+    </servlet-mapping>
+</web-app>

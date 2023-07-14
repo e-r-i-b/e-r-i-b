@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.addressBook.reports.RequestsCountReportEntity">
+        <id name="login" type="long"/>
+        <property name="name"                type="string"/>
+        <property name="document"            type="string"/>
+        <property name="birthday"            type="calendar"/>
+        <property name="tb"                  type="string"/>
+        <property name="count"               type="long"/>
+    </class>
+
+    <sql-query name="com.rssl.phizic.operations.addressBook.reports.AddressBookRequestsCountReportOperation.list">
+        <return alias="reportEntry" class="com.rssl.phizic.business.addressBook.reports.RequestsCountReportEntity">
+            <return-property name="login"               column="LOGIN_ID"/>
+            <return-property name="name"                column="FIO"/>
+            <return-property name="document"            column="DOCUMENT"/>
+            <return-property name="birthday"            column="BIRTHDAY"/>
+            <return-property name="tb"                  column="TB"/>
+            <return-property name="count"               column="ALL_COUNT"/>
+        </return>
+        <!--
+           Опорный объект: I_COUNT_AB_REQUESTS_COUNT_DATE
+           Предикаты доступа: access("REPORTENTRY"."SYNCHRONIZATION_DATE">=TO_TIMESTAMP(:EXTRA_FROM_DATE) AND
+               "REPORTENTRY"."SYNCHRONIZATION_DATE"<=TO_TIMESTAMP(:EXTRA_TO_DATE))
+           Кардинальность: сотрудник вводит число клиентов (строк выборки) и границы времени для отображения (с учетом пагинации)
+        -->
+        SELECT
+            reportEntry.LOGIN_ID LOGIN_ID,
+            reportEntry.FIO FIO,
+            reportEntry.DOCUMENT DOCUMENT,
+            reportEntry.BIRTHDAY BIRTHDAY,
+            reportEntry.TB TB,
+            count(reportEntry.LOGIN_ID) ALL_COUNT
+        FROM ADDRESS_BOOK_REQUESTS_COUNT reportEntry
+        WHERE reportEntry.SYNCHRONIZATION_DATE BETWEEN :extra_from_date AND :extra_to_date
+        GROUP BY reportEntry.LOGIN_ID, reportEntry.FIO, reportEntry.DOCUMENT, reportEntry.BIRTHDAY, reportEntry.TB
+        ORDER BY ALL_COUNT DESC
+    </sql-query>
+</hibernate-mapping>

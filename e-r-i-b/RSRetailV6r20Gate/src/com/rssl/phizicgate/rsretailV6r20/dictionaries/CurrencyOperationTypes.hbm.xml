@@ -1,0 +1,35 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.gate.dictionaries.CurrencyOperationType" table="CURRENCY_OPERATION_TYPES">
+
+	    <id name="id" type="long" node="id"/>
+
+        <property name="code" type="string" column="CODE" not-null="true"/>
+		<property name="name" type="string" column="NAME"/>
+	    <property name="description" type="string" column="PRIM"/>
+
+    </class>
+
+	<sql-query name="com.rssl.phizicgate.rsretailV6r20.dictionaries.GetCurrencyOperationTypes">
+        <return alias="currencyOperType" class="com.rssl.phizic.gate.dictionaries.CurrencyOperationType">
+	        <return-property name="id" column="operId"/>
+	        <return-property name="code" column="operCode"/>
+	        <return-property name="name" column="operName"/>
+	        <return-property name="description" column="operDesc"/>
+        </return>
+        <![CDATA[
+        SELECT
+		oper.t_attrid    as operId,
+		oper.t_nameobject as operCode,
+		oper.t_name as operName,
+		oper.t_fullname  as operDesc
+		FROM DOBJATTR_DBT oper
+		WHERE T_OBJECTTYPE=501 and T_GROUPID=7
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

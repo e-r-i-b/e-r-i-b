@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="ReIssueCardClaim"
+              description="Перевыпуск карты"
+			  detailedDescription="На данной странице Вы можете оформить заявку на перевыпуск карты. Для этого заполните поля формы и нажмите на кнопку «Перевыпустить»."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.ReIssueCardClaim"/>
+	<statemachine name="PaymentStateMachine"/>
+
+	<fields>
+		<field name="state"
+		       source="state"
+		       description="Статус заявки"
+			   type="string"/>
+
+        <field name="operationDate" 
+               source="operation-date-short-year"
+               description="Дата проведения операции"/>
+
+		<field name="dateCreated"
+		       source="date-created"
+		       description="Дата создания"
+			   type="string"/>
+
+		<field name="cardLink"
+		       description="Карта"
+		       type="resource"
+		       source="extra-parameters/parameter[@name='card']/@value">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator
+                    mode="document|by-template|draft-template|long-offer|mobile|pre-template|prepare|prepare-long-offer|sms|template"
+                    class="com.rssl.phizic.business.payments.forms.validators.ReissuedUniCardTypeValidator"/>
+			</validators>
+		</field>
+
+        <field
+                name="blockReason"
+                description="Причина блокировки карты"
+                source="extra-parameters/parameter[@name='card-block-reason']/@value"
+                type="string">
+        </field>
+
+        <field
+                name="isCommission"
+                description="Плата за перевыпуск"
+                source="extra-parameters/parameter[@name='is-commission']/@value"
+                type="boolean"
+                signable="true">
+        </field>
+
+        <field name="cardNumber"
+               description="Номер карты"
+               type="string"
+               source="extra-parameters/parameter[@name='card-number']/@value"
+               value="form.cardLink==null?null:form.cardLink.getNumber()"
+               signable="true">
+        </field>
+
+        <field name="cardName"
+               source="extra-parameters/parameter[@name='card-name']/@value"
+               description="Описание перевыпускаемой карте"
+               value="form.cardLink==null?null:form.cardLink.description"/>
+
+        <field name="cardType"
+               source="extra-parameters/parameter[@name='card-type']/@value"
+               description="Описание перевыпускаемой карте"
+               value="form.cardLink==null?null:form.cardLink.card.cardType.description"/>
+
+        <field name="cardTypeName"
+               source="extra-parameters/parameter[@name='card-type-name']/@value"
+               description="Описание перевыпускаемой карте"
+               type="string"
+               value="form.cardLink==null?null:form.cardLink.card.cardType.type"/>
+
+        <field name="cardCurrency"
+               source="extra-parameters/parameter[@name='card-currency']/@value"
+               description="Валюты перевыпускаемой карте"
+               value="form.cardLink==null?null:form.cardLink.currency.code"/>
+
+        <field name="issueDate"
+               source="extra-parameters/parameter[@name='issue-date']/@value"
+               description="Дата выпуска карты"
+               type="string"
+               value="form.cardLink==null?null:java.lang.String.format('%1$te.%1$tm.%1$tY', form.cardLink.card.issueDate.time)"/>
+
+        <field name="expireDate"
+               source="extra-parameters/parameter[@name='expire-date']/@value"
+               description="Действует до"
+               type="string"
+               value="form.cardLink==null?null:java.lang.String.format('%1$te.%1$tm.%1$tY', form.cardLink.expireDate.time)"/>
+
+        <field name="displayedExpireDate"
+               source="extra-parameters/parameter[@name='displayed-expire-date']/@value"
+               description="Действует до"
+               type="string"
+               value="form.cardLink==null?null:form.cardLink.card.displayedExpireDate"/>
+
+        <field name="userFirstName"
+               source="extra-parameters/parameter[@name='user-first-name']/@value"
+               description="Имя пользователя"
+               type="string"
+               value="form.cardLink==null?null:form.cardLink.cardClient.firstName"/>
+
+        <field name="userSurname"
+               source="extra-parameters/parameter[@name='user-sur-name']/@value"
+               description="Имя пользователя"
+               type="string"
+               value="form.cardLink==null?null:form.cardLink.cardClient.surName"/>
+
+        <field name="userPatrName"
+               source="extra-parameters/parameter[@name='user-patr-name']/@value"
+               description="Имя пользователя"
+               type="string"
+               value="form.cardLink==null?null:form.cardLink.cardClient.patrName"/>
+
+		<field name="reissueReason"
+		       source="extra-parameters/parameter[@name='reason-code']/@value"
+			   type="string"
+		       description="Причина перевыпуска"
+               signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+        <field name="placeForGetCard"
+               source="extra-parameters/parameter[@name='office-info']/@value"
+               description="Информация об офисе для перевыпуска карты"
+               type="string">
+        </field>
+
+        <field name="srcOfficeCodeRegion"
+               source="extra-parameters/parameter[@name='source-office-region']/@value"
+               description="Номер ТБ банка держателя карты"
+               value="form.cardLink==null?null:form.cardLink.gflTB"
+               type="string"
+               signable="true">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+		<field name="srcOfficeCodeBranch"
+               source="extra-parameters/parameter[@name='source-office-branch']/@value"
+               description="Номер ОСБ банка держателя карты"
+               value="form.cardLink==null?null:form.cardLink.gflOSB"
+               type="string"
+               signable="true">
+        </field>
+
+		<field name="srcOfficeCodeOffice"
+               source="extra-parameters/parameter[@name='source-office-office']/@value"
+               description="Номер ВСП банка держателя карты"
+               value="form.cardLink==null?null:form.cardLink.gflVSP"
+               type="string"
+               signable="true">
+        </field>
+
+		<field name="officeCodeRegion"
+               source="extra-parameters/parameter[@name='destination-office-region']/@value"
+               description="Номер ТБ"
+               type="string"
+               signable="true">
+            <validators>
+                <validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field name="officeCodeBranch"
+               source="extra-parameters/parameter[@name='destination-office-branch']/@value"
+               description="Номер ОСБ"
+               type="string"
+               signable="true">
+        </field>
+
+		<field name="officeCodeOffice"
+               source="extra-parameters/parameter[@name='destination-office-office']/@value"
+               description="Номер ВСП"
+               type="string"
+               signable="true">
+        </field>
+
+        <field name="officeName"
+               source="extra-parameters/parameter[@name='destination-office-name']/@value" 
+               description="ВСП получения">
+        </field>
+
+        <field name="officeAddress"
+               source="extra-parameters/parameter[@name='destination-office-address']/@value"
+               description="Адрес ВСП получения">
+        </field>
+	</fields>
+
+	<form-validators>
+        <form-validator mode="document|by-template|draft-template|long-offer|mobile|pre-template|prepare|prepare-long-offer|template"
+                        class="com.rssl.phizic.business.payments.forms.validators.CardBlockedValidator">
+			<message text="Перевыпускаемая карта должна быть заблокирована. Для того чтобы заблокировать карту перейдите по ссылке &lt;a href='payment.do?form=BlockingCardClaim'&gt;«Блокировка карты»&lt;/a&gt;."/>
+            <field-ref name="card">cardLink</field-ref>
+		</form-validator>
+
+        <form-validator mode="sms" class="com.rssl.phizic.business.payments.forms.validators.CardBlockedValidator">
+			<message text="Перевыпускаемая карта должна быть заблокирована. Для того чтобы заблокировать карту пришлите команду БЛОКИРОВКА КАРТА КОД_ПРИЧИНЫ_БЛОКИРОВКИ."/>
+            <field-ref name="card">cardLink</field-ref>
+		</form-validator>
+
+        <form-validator class="com.rssl.phizic.business.payments.forms.validators.ReissuedCardOfficeValidator" mode="document">
+            <message text="В выбранном отделении невозможно получить перевыпущенную карту."/>
+            <field-ref name="cardId">cardLink</field-ref>
+            <field-ref name="officeRegion">officeCodeRegion</field-ref>
+            <field-ref name="officeBranch">officeCodeBranch</field-ref>
+            <field-ref name="officeOffice">officeCodeOffice</field-ref>
+        </form-validator>
+	</form-validators>
+</payment-form>

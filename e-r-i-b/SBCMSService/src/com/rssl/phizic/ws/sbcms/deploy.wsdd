@@ -1,0 +1,29 @@
+<!-- Use this file to deploy some handlers/chains and services      -->
+<!-- Two ways to do this:                                           -->
+<!--   java org.apache.axis.client.AdminClient deploy.wsdd          -->
+<!--      after the axis server is running                          -->
+<!-- or                                                             -->
+<!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   -->
+<!--      from the same directory that the Axis engine runs         -->
+
+<deployment
+    xmlns="http://xml.apache.org/axis/wsdd/"
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from PosGate WSDL service -->
+
+  <service name="PosGateSOAP" provider="java:RPC" style="document" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://tempuri.org/PosGate/"/>
+      <parameter name="wsdlServiceElement" value="PosGate"/>
+      <parameter name="schemaUnqualified" value="http://tempuri.org/PosGate/"/>
+      <parameter name="wsdlServicePort" value="PosGateSOAP"/>
+      <parameter name="className" value="com.rssl.phizic.ws.sbcms.PosGateSOAPImpl"/>
+      <parameter name="wsdlPortType" value="PosGate"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="pqQuery" qname="pqQuery" returnQName="retNS:pqResponse" xmlns:retNS="http://tempuri.org/PosGate/" returnType="rtns:string" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="http://tempuri.org/PosGate/NewOperation" >
+        <parameter qname="pns:pqRequest" xmlns:pns="http://tempuri.org/PosGate/" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <parameter name="allowedMethods" value="pqQuery"/>
+
+  </service>
+</deployment>

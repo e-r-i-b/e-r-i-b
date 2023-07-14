@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping catalog="RSBankV55">
+
+    <class name="com.rssl.phizic.gate.dictionaries.ContactMember" table="CONTACT_BANKS">
+	    <id name="code" type="string" column="CODE"/>
+	    <property name="id" type="long" column="ID"/>
+	    <property name="name" type="string" column="NAME"/>
+        <property name="phone" type="string" column="PHONE"/>
+	    <property name="address" type="string" column="ADDRESS"/>
+	    <property name="city" type="string" column="CITY"/>
+	    <property name="countryId" type="string" column="COUNTRY_ID" not-null="true"/>
+	    <property name="deleted" type="boolean" column="DELETED" not-null="true"/>
+	    <property name="comment" type="string" column="commentary"/>
+	    <property name="regMask" type="string" column="REGMASK"/>
+    </class>
+
+    <sql-query name="getContactMembers">
+        <return alias="party" class="com.rssl.phizic.gate.dictionaries.ContactMember">
+	        <return-property name="id" column="id"/>
+            <return-property name="code" column="code"/>
+            <return-property name="name" column="name"/>
+            <return-property name="phone" column="phone"/>
+            <return-property name="address" column="address"/>
+            <return-property name="city" column="city"/>
+            <return-property name="countryId" column="countryId"/>
+	        <return-property name="deleted" column="deleted"/>
+	        <return-property name="comment" column="comment"/>
+	        <return-property name="regMask" column="regMask"/>
+        </return>
+        <![CDATA[
+           SELECT bank.CorrID      as id, 
+                  bank.PointCode   as code,
+                  bank.Name        as name,
+                  bank.Phones      as phone,
+                  bank.Address     as address,
+                  bank.City        as city,
+                  bank.CountryCode as countryId,
+                  if (bank.Deleted = 'X', 1, 0) AS deleted,
+                  --bank.NameLat,
+                  --bank.CityLat,
+                  --bank.AddressLat,
+                  CONVERT(comm.comment +'. Example: ' + comm.Example, SQL_CHAR) as comment,
+                  comm.RegMask     as regMask 
+            FROM "psbank_cnt" as bank left join pscntgrn_dbt as comm  on comm.PointCode = bank.parentPointCode and comm.fieldno=3
+            where bank.psNum=2
+        ]]>
+    </sql-query>
+
+    <sql-query name="getContactMembersByTemplate">
+        <return alias="party" class="com.rssl.phizic.gate.dictionaries.ContactMember">
+	        <return-property name="id" column="id"/>
+            <return-property name="code" column="code"/>
+            <return-property name="name" column="name"/>
+            <return-property name="phone" column="phone"/>
+            <return-property name="address" column="address"/>
+            <return-property name="city" column="city"/>
+            <return-property name="countryId" column="countryId"/>
+	        <return-property name="deleted" column="deleted"/>
+	        <return-property name="comment" column="comment"/>
+	        <return-property name="regMask" column="regMask"/>
+        </return>
+        <![CDATA[
+           SELECT bank.CorrID      as id,
+                  bank.PointCode   as code,
+                  bank.Name        as name,
+                  bank.Phones      as phone,
+                  bank.Address     as address,
+                  bank.City        as city,
+                  bank.CountryCode as countryId,
+                  if (bank.Deleted = 'X', 1, 0) AS deleted,
+                  --bank.NameLat,
+                  --bank.CityLat,
+                  --bank.AddressLat,
+                  CONVERT(comm.comment +'. Example: ' + comm.Example, SQL_CHAR) as comment,
+                  comm.RegMask     as regMask
+            FROM "psbank_cnt" as bank left join pscntgrn_dbt as comm  on comm.PointCode = bank.parentPointCode and comm.fieldno=3
+            where bank.psNum=2
+        ]]>
+    </sql-query>
+</hibernate-mapping>

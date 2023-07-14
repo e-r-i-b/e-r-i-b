@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!--
+  - Для сообщений(!!!НЕ default-message!!!) можно задать шаблоны разных каналов для этого используется атрибут
+  - channel в тэге <text>, который может принимать следующие значения:
+  -
+  - MOBILE_API данное значение используется если текст шаблона используется для канала мобильного приложения
+  - INTERNET_CLIENT данное значение используется если текст шаблона используется для канала интернет клиента
+  - SELF_SERVICE_DEVICE данное значение используется если текст шаблона используется для канала устройств самообслуживания
+  - SOCIAL_API данное значение используется если текст шаблона используется для канала социальных приложений
+  -
+  - Атрибут channel необязателен для случаев:
+  - 1. Для всех каналов определен единый шаблон;
+  - 2. Для каждого канала шаблон описан самостоятельно и для шаблона с каналом INTERNET_CLIENT можно не задавать
+  - атрибут channel;
+  - 3. Для какого то одного канала(за исключением INTERNET_CLIENT) шаблон задан самостоятельно.
+  -
+  - Если используется единый шаблон для всех каналов атрибут channel можно не указывать и в таком случае запись
+  - сообщения будет выглядеть следующим образом:
+
+  <message>
+    <text>
+        some template
+    </text>
+    <key>
+        some key
+    </key>
+    <variables>
+        some variables
+    </variables>
+    <description>some description</description>
+  </message>
+
+  - Если для канала MOBILE_API или SELF_SERVICE_DEVICE используется какой-то свой шаблон, запись сообщения
+  - примет вид:
+
+  <message>
+    <text>
+        some template for INTERNET_CLIENT and SELF_SERVICE_DEVICE
+    </text>
+
+    <text channel="MOBILE_API">
+        some template for MOBILE_API
+    </text>
+    <key>
+        some key
+    </key>
+    <variables>
+        some variables
+    </variables>
+    <description>some description</description>
+  </message>
+
+  - в такой записи для каналов INTERNET_CLIENT и SELF_SERVICE_DEVICE будет определен шаблон без атрибута
+  - channel, а для MOBILE_API будет определен шаблон со значением 'some template for MOBILE_API'.
+  -
+  - Если для каждого канала указывается свой шаблон то запись примет вид:
+
+  <message>
+    <text [channel="INTERNET_CLIENT"]>
+        some template for INTERNET_CLIENT
+    </text>
+
+    <text channel="MOBILE_API">
+        some template for MOBILE_API
+    </text>
+
+    <text channel="SELF_SERVICE_DEVICE">
+        some template for SELF_SERVICE_DEVICE
+    </text>
+    <key>
+        some key
+    </key>
+    <variables>
+        some variables
+    </variables>
+    <description>some description</description>
+  </message>
+  -
+  - запись [channel="INTERNET_CLIENT"] означает что атрибут необязателен
+  -->
+<sms-refuse-config>
+
+    <default-message>
+		<text>
+			<![CDATA[
+			Не выполнена операция ${document.ground} от ${creation_date}. Вы можете повторить данную операцию позже.            
+            ]]>
+		</text>
+        <variables>
+            document.ground, creation_date
+        </variables>
+	    <description>Сообщение при отказе выполнения операции (по умолчанию)</description>
+        <priority>3</priority>
+	</default-message>
+
+    <message>
+		<text>
+		    <![CDATA[
+            <@compress single_line=true>
+             Сбербанк Онлайн.
+
+			<#if document.longOffer>
+			    Создание автоплатежа.
+			<#elseif document.template>
+				Создание шаблона.
+			</#if>
+             Не выполнена операция:
+            <#assign separator=''/>
+            <#if isCard(document.chargeOffResourceType) >
+    			${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+            <#else>
+                <#if document.chargeOffAccount??>
+                    ${separator}<#assign separator=','/> счет списания ${document.chargeOffAccount}
+                </#if>
+            </#if>
+
+            <#if document.receiverAccount??>
+                <#if document.receiverAccount != "">
+                    <#if isCard(document.destinationResourceType) >
+                        ${separator}<#assign separator=','/> карта зачисления ${getCutCardNumber(document.receiverAccount)}
+                    <#else>
+                        ${separator}<#assign separator=','/> счет зачисления ${document.receiverAccount}
+                    </#if>
+                </#if>
+            </#if>
+
+            <#if document.receiverBIC??>
+                <#if document.receiverBIC !="">
+                    ${separator}<#assign separator=','/> БИК ${document.receiverBIC}
+                </#if>
+            </#if>
+
+            <#if document.inputSumType??>
+                <#if document.exactAmount??>
+                   ${separator}<#assign separator=','/> сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                </#if>
+            </#if>
+            <#if document.longOffer>
+                ${separator}<#assign separator=','/> повторяется ${document.executionEventType.description},
+			    дата начала ${document.startDate.time?date?string("dd.MM.yyyy")},
+			    дата окончания ${document.endDate.time?date?string("dd.MM.yyyy")}
+			</#if>
+            . Вы можете повторить данную операцию позже.
+			</@compress>
+            ]]>
+		</text>
+		<key>com.rssl.phizic.business.documents.payments.RurPayment</key>
+        <variables>
+            document.chargeOffAccount, document.startDate.time, date, string("dd.MM.yyyy"), isCard(document.chargeOffResourceType), document.exactAmount, document.template,
+            document.receiverAccount, getCutCardNumber(document.chargeOffAccount), getCutCardNumber(document.receiverAccount),
+            document.longOffer, document.receiverBIC, document.exactAmount.decimal, separator, document.exactAmount.currency.code,
+            isCard(document.destinationResourceType), document.executionEventType.description, document.endDate.time, document.inputSumType
+        </variables>
+	    <description>Сообщение при отказе создания шаблона, автоплатежа  и операции для перевода частному лицу</description>
+        <priority>3</priority>
+	</message>
+
+    <message>
+		<text>
+			<![CDATA[
+            <@compress single_line=true>
+            Сбербанк Онлайн. Не выполнена операция:
+
+			<#if document.longOffer>
+			    Создание автоплатежа.
+			<#elseif document.template>
+				Создание шаблона.
+			</#if>
+            <#assign separator=''/>
+            <#if isCard(document.chargeOffResourceType) >
+    			${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+            <#else>
+                <#if document.chargeOffAccount??>
+                   ${separator}<#assign separator=','/> счет списания ${document.chargeOffAccount}
+                </#if>
+            </#if>
+
+            <#if isCard(document.destinationResourceType) >
+               ${separator}<#assign separator=','/> карта зачисления ${getCutCardNumber(document.receiverAccount)}
+            <#else>
+                <#if document.receiverAccount??>
+                   ${separator}<#assign separator=','/> счет зачисления ${document.receiverAccount}
+                </#if>
+            </#if>
+
+            <#if document.inputSumType??>
+                <#if document.exactAmount??>
+                    ${separator}<#assign separator=','/> сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                </#if>
+            </#if>
+
+            <#if document.longOffer>
+                ${separator}<#assign separator=','/> повторяется ${document.executionEventType.description},
+			    дата начала ${document.startDate.time?date?string("dd.MM.yyyy")},
+			    дата окончания ${document.endDate.time?date?string("dd.MM.yyyy")}
+			</#if>
+            . Вы можете повторить данную операцию позже.
+			</@compress>
+			]]>
+		</text>
+		<key>com.rssl.phizic.business.documents.InternalTransfer</key>
+        <variables>
+            document.chargeOffAccount, document.startDate.time, date, string("dd.MM.yyyy"), isCard(document.chargeOffResourceType), document.exactAmount,
+            document.receiverAccount, getCutCardNumber(document.chargeOffAccount), getCutCardNumber(document.receiverAccount),
+            document.longOffer, document.exactAmount.decimal, separator, document.exactAmount.currency.code, isCard(document.destinationResourceType),
+            document.executionEventType.description, document.endDate.time, document.inputSumType, document.template
+        </variables>
+	    <description>Сообщение при отказе создания шаблона или автоплатежа (перевод между своими счетами)</description>
+        <priority>3</priority>
+	</message>
+
+    <message>
+		<text>
+			<![CDATA[
+            <@compress single_line=true>
+                Сбербанк Онлайн.  Не выполнена операция:
+                <#assign autoSubscription = document.longOffer  && (document.formName == "RurPayJurSB" ||
+                                                        document.formName == "EditAutoSubscriptionPayment" ||
+                                                        document.formName == "DelayAutoSubscriptionPayment" ||
+                                                        document.formName == "CloseAutoSubscriptionPayment" ||
+                                                        document.formName == "RecoveryAutoSubscriptionPayment") />
+    			<#if !document.longOffer>
+    				<#assign autoSubscription=false />
+    				<#if (document.formName == "AirlineReservationPayment")>
+                        Оплата брони ОАО Аэрофлот. Реквизиты операции: карта списания  ${getCutCardNumber(document.chargeOffAccount)},
+                        сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}, номер брони ${document.airlineReservationId}.
+    				</#if>
+            <#else>
+                <#if autoSubscription>
+                    <#if (document.autoSubType! == "ALWAYS")>
+                        <#assign autoSubTypeString = "регулярный на фиксированную сумму" />
+                    </#if>
+                    <#if (document.autoSubType! == "INVOICE")>
+                        <#assign autoSubTypeString = "по выставленному счету" />
+                    </#if>
+                    <#if (document.autoSubType! == "THRESHOLD")>
+                        <#assign autoSubTypeString = "пороговый" />
+                    </#if>
+                    Подключение автоплатежа ${document.friendlyName}. Реквизиты операции:
+                    карта списания ${getCutCardNumber(document.chargeOffAccount)},
+                    тип ${autoSubTypeString},
+                    <#if document.sumType! == "FIXED_SUMMA_IN_RECIP_CURR">
+                        сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code},
+                        дата ближайшего платежа ${document.nextPayDate.time?date?string("dd.MM.yyyy")}.
+                    <#else>
+                        начало действия после ${document.startDate.time?date?string("dd.MM.yyyy")}
+                        <#if document.maxSumWritePerMonth??>
+                            , сумма платежей в месяц не более ${document.maxSumWritePerMonth.decimal} ${document.maxSumWritePerMonth.currency.code}.
+                        <#else>
+                            .
+                        </#if>
+                    </#if>
+                <#else>
+
+                    <#if document.longOffer>
+                        Создание автоплатежа.
+                    <#elseif document.template>
+                        Создание шаблона.
+                    </#if>
+                        Реквизиты операции:
+                    <#assign separator=''/>
+                    <#if isCard(document.chargeOffResourceType) >
+                        ${separator}<#assign separator=','/> карта списания ${getCutCardNumber(document.chargeOffAccount)}
+                    <#else>
+                        <#if document.chargeOffAccount??>
+                            ${separator}<#assign separator=','/> счет списания ${document.chargeOffAccount}
+                        </#if>
+                    </#if>
+
+                    <#if document.receiverAccount??>
+                        <#if document.receiverAccount != "">
+                            <#if isCard(document.destinationResourceType) >
+                                ${separator}<#assign separator=','/> карта зачисления ${getCutCardNumber(document.receiverAccount)}
+                            <#else>
+                                ${separator}<#assign separator=','/> счет зачисления ${document.receiverAccount}
+                            </#if>
+                        </#if>
+                    </#if>
+
+                    <#if document.receiverBIC??>
+                        <#if document.receiverBIC !="">
+                            ${separator}<#assign separator=','/> БИК ${document.receiverBIC}
+                        </#if>
+                    </#if>
+
+                    <#if document.inputSumType??>
+                        <#if document.exactAmount??>
+                            ${separator}<#assign separator=','/> сумма ${document.exactAmount.decimal} ${document.exactAmount.currency.code}
+                        </#if>
+                    </#if>
+
+                    <#if document.recipientInfo??>
+                        <#if document.recipientInfo.payerAccount??>
+                            ${separator}<#assign separator=','/> лицевой счет ${document.recipientInfo.payerAccount}
+                        </#if>
+                    </#if>
+
+                    <#if document.receiverName??>
+                        ${separator}<#assign separator=','/> ${document.receiverName}
+                    </#if>
+
+                    <#list document.extendedFields as field>
+                        <#if (field.key || field.requiredForConformation) && field.value??>
+                           ${separator}<#assign separator=','/> ${field.name}
+                            <#if field.type == "list">
+                                <#list field.values as val>
+                                    <#if val.id == field.value>
+                                       ${val.value}
+                                    </#if>
+                                </#list>
+                            <#else>
+                                ${field.value}
+                                <#if field.type == "money">
+                                    ${document.destinationAmount.currency.code}
+                                </#if>
+                            </#if>
+                        </#if>
+                    </#list>
+                    <#if document.longOffer>
+                        ${separator}<#assign separator=','/> повторяется ${document.executionEventType.description},
+                        дата начала ${document.startDate.time?date?string("dd.MM.yyyy")},
+                        дата окончания ${document.endDate.time?date?string("dd.MM.yyyy")}
+                    </#if>
+                </#if>
+                .
+            </#if>
+            Вы можете повторить данную операцию позже.
+			</@compress>
+            ]]>
+		</text>
+		<key>com.rssl.phizic.business.documents.payments.JurPayment</key>
+        <variables>
+            autoSubscription, document.longOffer, document.formName, getCutCardNumber(document.chargeOffAccount),
+            document.chargeOffAccount, document.exactAmount.decimal, document.exactAmount.currency.code, document.airlineReservationId,
+            document.autoSubType, autoSubTypeString, document.friendlyName,  document.sumType, document.nextPayDate.time,
+            document.startDate.time, date, string("dd.MM.yyyy"), document.maxSumWritePerMonth, document.maxSumWritePerMonth.decimal, document.maxSumWritePerMonth.currency.code,
+            separator, document.chargeOffResourceType, document.receiverAccount, isCard(document.destinationResourceType),
+            document.destinationResourceType, getCutCardNumber(document.receiverAccount), document.receiverAccount, document.receiverBIC,
+            document.inputSumType, document.recipientInfo, document.recipientInfo.payerAccount, document.receiverName, document.extendedFields, field,
+            field.key, field.requiredForConformation, field.value, field.name, field.type, field.values, val, val.id, val.value,
+            document.destinationAmount.currency.code, document.executionEventType.description, document.template
+        </variables>
+	    <description>Сообщение при отказе создания шаблона или автоплатежа (оплата услуг)</description>
+        <priority>3</priority>
+	</message>
+</sms-refuse-config>

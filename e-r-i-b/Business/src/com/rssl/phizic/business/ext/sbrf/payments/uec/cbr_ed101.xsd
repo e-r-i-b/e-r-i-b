@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+<!-- edited with XMLSpy v2011 rel. 2 (http://www.altova.com) by Jen (Jen) -->
+<!--Центральный Банк Российской Федерации.
+Унифицированные форматы электронных банковских сообщений.
+
+Схемы с описанием прикладных частей электроных сообщений, используемых в расчетной сети Банка России.
+
+июнь 2010  г.-->
+<!--e-mail:  wlad@e-burg.cbr.ru-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ed="urn:cbr-ru:ed:v2.0" xmlns:lt="urn:cbr-ru:ed:leaftypes:v2.0" targetNamespace="urn:cbr-ru:ed:v2.0" elementFormDefault="qualified" attributeFormDefault="unqualified" version="2.4.8">
+	<xs:include schemaLocation="cbr_ed_objects.xsd"/>
+	<xs:import namespace="urn:cbr-ru:ed:leaftypes:v2.0" schemaLocation="cbr_ed_leaftypes.xsd"/>
+	<xs:annotation>
+		<xs:documentation>Прикладные части ЭС</xs:documentation>
+	</xs:annotation>
+	<xs:element name="ED101" type="ed:ED101"/>
+	<xs:complexType name="ED101">
+		<xs:annotation>
+			<xs:documentation>Платежное поручение</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="ed:ED0">
+				<xs:sequence>
+					<xs:element name="Purpose" type="lt:Max210TextType">
+						<xs:annotation>
+							<xs:documentation>В случае начисления - описание начисления, в случае авансового платежа - назначение платежа из каталога услуг</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="DepartmentalInfo" type="ed:DepartmentalInfo" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Ведомственная информация</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="InitialED" type="ed:EDRefID" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Идентификаторы исходного ЭПД. Указывается, если ЭПД был составлен на основании другого ЭПД</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="Payer">
+						<xs:annotation>
+							<xs:documentation>Реквизиты плательщика</xs:documentation>
+						</xs:annotation>
+						<xs:complexType>
+							<xs:complexContent>
+								<xs:extension base="ed:CustomerRU0">
+									<xs:sequence>
+										<xs:element name="PayerID" type="lt:PayerIDType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Идентификатор плательщика в формате ГИС ГМП</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="Name" type="lt:Max150TextType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>ФИО плательщика</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="Address" type="lt:Max1020TextType" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Адрес плательщика</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:extension>
+							</xs:complexContent>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="Payee" type="ed:CustomerRU">
+						<xs:annotation>
+							<xs:documentation>Реквизиты получателя</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="ChargeID" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Уникальный идентификатор начисления (УИН) в формате ГИС ГМП </xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="lt:ChargeIDType"/>
+						</xs:simpleType>
+					</xs:element>
+					<xs:element name="SupplierServiceCode" type="lt:SupplierServiceCodeType" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Код услуги поставщика (код по ФРГУ или внутренний код услуги поставщика), по которой совершается авансовый платеж</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="PortalServiceCode" type="lt:PortalServiceCodeType" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Код услуги на портале УЭК, по которой совершается авансовый платеж</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+					<xs:element name="SPNameID" type="lt:SPNameIDType" minOccurs="0">
+						<xs:annotation>
+							<xs:documentation>Идентификатор поставщика в ЕРИБ</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+				<xs:attribute name="TransKind" type="lt:TransactionKindCodeType" use="required" fixed="01">
+					<xs:annotation>
+						<xs:documentation>Вид операции. Фиксированное значение "01"</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="Priority" type="lt:PaytPriorityCodeType">
+					<xs:annotation>
+						<xs:documentation>Очередность платежа</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="ReceiptDate" type="lt:DateType">
+					<xs:annotation>
+						<xs:documentation>В случае начисления - дата выставления начисления, в случае авансовых платежей - не заполняется либо заполняется текущей датой</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="FileDate" type="lt:DateType">
+					<xs:annotation>
+						<xs:documentation>Дата помещения в картотеку. Заполняется при наличии</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="ChargeOffDate" type="lt:DateType">
+					<xs:annotation>
+						<xs:documentation>Списано со счета плательщика. Дата списания денежных средств со счета плательщика. Заполняется при платежах клиента кредитной организации</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="SystemCode" type="lt:TwoDigitCodeType">
+					<xs:annotation>
+						<xs:documentation>Признак системы обработки. Не заполняется для ЭД в составе пакета. Обязателен для заполнения в ЭД, не оформленных в пакет</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="PaytKind" type="lt:OneDigitCodeType" use="required">
+					<xs:annotation>
+						<xs:documentation>Вид платежа. Всегда передается "0".</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="Sum" type="lt:KopeckAmountType" use="required">
+					<xs:annotation>
+						<xs:documentation>Сумма платежа</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="DocUID" type="lt:UUIDType" use="required">
+					<xs:annotation>
+						<xs:documentation>Уникальный идентификатор документа во внешней системе</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+</xs:schema>

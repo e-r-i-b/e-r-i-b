@@ -1,0 +1,80 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class name="com.rssl.phizic.business.dictionaries.bankcells.TermOfLease" table="TERMS_OF_LEASE">
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_TERMS_OF_LEASE</param>
+			</generator>
+		</id>
+
+		<property name="description" type="not-null-string" column="DESCRIPTION" not-null="true"/>
+		<property name="sortOrder" type="long" column="SORT_ORDER" not-null="true"/>
+	</class>
+
+	<class name="com.rssl.phizic.business.dictionaries.bankcells.CellType" table="CELLTYPES">
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_CELLTYPES</param>
+			</generator>
+		</id>
+
+		<property name="description" type="not-null-string" column="DESCRIPTION" not-null="true"/>
+
+		<set name="termsOfLease" table="CELLTYPES_TERMS_OF_LEASE" lazy="false">
+			<key column="CELLTYPE_ID"/>
+		    <many-to-many class="com.rssl.phizic.business.dictionaries.bankcells.TermOfLease" column="TERM_OF_LEASE_ID"/>
+		</set>
+	</class>
+
+	<class name="com.rssl.phizic.business.dictionaries.bankcells.OfficeCellType" table="OFFICE_CELLTYPES">
+		<id name="id" type="long">
+			<generator class="native">
+				<param name="sequence">S_OFFICE_CELLTYPES</param>
+			</generator>
+		</id>
+
+		<property name="presence" type="boolean" column="PRESENCE" not-null="true"/> 
+
+		<many-to-one name="department"
+		             class="com.rssl.phizic.business.dictionaries.offices.common.DepartmentImpl"
+		             column="DEPARTMENT_ID"
+		             not-null="true"
+		             lazy="false"/>
+
+		<many-to-one name="cellType"
+		             class="com.rssl.phizic.business.dictionaries.bankcells.CellType"
+		             column="CELLTYPE_ID"
+		             not-null="true"
+		             lazy="false"/>
+	</class>
+
+	<query name="com.rssl.phizic.business.dictionaries.bankcells.OfficeCellType.getOfficeCellType">
+		select officeCellType
+		from com.rssl.phizic.business.dictionaries.bankcells.OfficeCellType officeCellType
+		where officeCellType.department.id = :officeId and officeCellType.cellType.id = :cellTypeId
+	</query>
+
+	<query name="com.rssl.phizic.business.dictionaries.bankcells.OfficeCellType.list">
+		select officeCellType
+		from com.rssl.phizic.business.dictionaries.bankcells.OfficeCellType officeCellType
+		order by officeCellType.department.name, officeCellType.cellType.description
+	</query>
+
+	<query name="com.rssl.phizic.business.dictionaries.bankcells.CellType.list">
+		select cellType
+		from com.rssl.phizic.business.dictionaries.bankcells.CellType cellType
+		order by cellType.description
+	</query>
+
+	<query name="com.rssl.phizic.business.dictionaries.bankcells.OfficeListByCellType">
+		select officeCellType.department
+		from com.rssl.phizic.business.dictionaries.bankcells.OfficeCellType officeCellType
+		where officeCellType.cellType.id = :cellTypeId
+		and officeCellType.presence = '1'
+		order by officeCellType.department.name
+	</query>
+</hibernate-mapping>

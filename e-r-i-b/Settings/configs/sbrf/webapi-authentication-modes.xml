@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<access-rules xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="./../../schemas/authenticationModes.xsd">
+	<simple-rule>
+		<description>Политика доступа клиентов в "Сбербанк Онлайн" через webAPI</description>
+        <!-- Режим аутентификации для стандартного входа -->
+        <authentication-mode user-visiting-mode="basic">
+			<stage>
+				<key>lp</key>
+                <!-- URL для входя через ЦСА нашей разработки.-->
+                <allow-action>/webapi.do</allow-action>
+			</stage>
+			<on-complete>
+                <action>com.rssl.phizic.business.security.auth.ClientAthenticationCompleteAction</action>
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.SetupPersonContextFieldsAction</action>
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.resources.AddOrUpdateClientResourcesAction</action>
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.resources.UpdateClientResourcesViewsAction</action>
+                <!--<action>com.rssl.phizic.messaging.ext.sbrf.UserLogonNotificationAction</action>-->
+                <action>com.rssl.phizic.web.common.client.ext.sbrf.resources.AddOrUpdateClientTarifPlanCodeType</action>
+            </on-complete>
+
+		</authentication-mode>
+
+		<confirmation-mode>
+			<key-property>secure-confirm-choice</key-property>
+			<strategy>
+				<key>smsp</key>
+				<compas>
+                    <default>true</default>
+                    <strategy>com.rssl.phizic.auth.modes.iPasSmsPasswordConfirmStrategy</strategy>
+                </compas>
+				<compas>
+                    <strategy>com.rssl.phizic.auth.modes.iPasPasswordCardConfirmStrategy</strategy>
+                </compas>
+                <compas>
+                    <strategy>com.rssl.phizic.operations.ext.sbrf.strategy.iPasCapConfirmStrategy</strategy>
+                </compas>
+                <compas>
+                    <strategy>com.rssl.phizic.auth.modes.PushPasswordConfirmStrategy</strategy>
+                </compas>
+			</strategy>
+            <strategy>
+				<key>cryptoLike</key>
+                <compas>
+                    <default>true</default>
+                    <strategy>com.rssl.phizic.auth.modes.iPasSmsPasswordConfirmStrategy</strategy>
+                </compas>
+				<compas>
+                    <strategy>com.rssl.phizic.auth.modes.iPasPasswordCardConfirmStrategy</strategy>
+                </compas>
+                <compas>
+                    <strategy>com.rssl.phizic.operations.ext.sbrf.strategy.iPasCapConfirmStrategy</strategy>
+                </compas>
+                <compas>
+                    <strategy>com.rssl.phizic.auth.modes.PushPasswordConfirmStrategy</strategy>
+                </compas>
+			</strategy>
+		</confirmation-mode>
+
+		<authentication-choice>
+			<property>simple-auth-choice</property>
+			<option>
+				<name>Без подтверждения</name>
+				<value>lp</value>
+			</option>
+			<option>
+				<name>смс-пароль или пароль с чека</name>
+				<value>smsp</value>
+			</option>
+		</authentication-choice>
+
+		<confirmation-choice>
+			<property>secure-confirm-choice</property>
+            <option>
+                <name>смс-пароль или пароль с чека</name>
+                <value>smsp</value>
+            </option>
+		</confirmation-choice>
+	</simple-rule>
+</access-rules>

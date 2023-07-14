@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.rssl.phizicgate.rsV55.bankroll">
+
+    <sql-query name="GetAccountBalance">
+        <return-scalar type="double" column="balance"/>
+	    <![CDATA[
+			SELECT TOP 1
+				trans.Rest AS balance
+			FROM sbdepdoc_dbt trans
+			WHERE                                                                               
+				-- Выборка по 6-му ключу
+					trans.Referenc = :accountId
+				AND trans.Date_Document <= :balanceDate
+				-- Ф-я IsServDocWithEst из Mac\DEPOSITR\issrvdoc.mac
+				AND trans.KindOp NOT IN (8, 9, 14, 15, 16)
+				AND trans.Action  <> 2
+				-- Получение 17-го бита
+				AND (MOD(trans.Flags, 262144) - MOD(trans.Flags, 131072)) = 0
+				-- Проверка FlagStorn = "" для получения остатка и даты последней операции
+				AND trans.FlagStorn = ''
+			ORDER BY trans.Date_Document DESC
+					,trans.NumDayDoc     DESC
+        ]]>
+    </sql-query>
+
+	<sql-query name="GetPreviousOperationDate">
+	    <return-scalar type="calendar" column="previousOperationDate"/>
+		<![CDATA[
+			SELECT TOP 1
+				trans.Date_Document AS previousOperationDate
+			FROM sbdepdoc_dbt trans
+			WHERE
+				-- Выборка по 6-му ключу
+					trans.Referenc = :accountId
+				AND trans.Date_Document < :fromDate
+				-- Ф-я IsServDocWithEst из Mac\DEPOSITR\issrvdoc.mac
+				AND trans.KindOp NOT IN (8, 9, 14, 15, 16)
+				AND trans.Action  <> 2
+				-- Получение 17-го бита
+				AND (MOD(trans.Flags, 262144) - MOD(trans.Flags, 131072)) = 0
+				-- Проверка FlagStorn = "" для получения остатка и даты последней операции
+				AND trans.FlagStorn = ''
+	                    -- для вкладов
+			      --GROUP BY  trans.Date_Document
+			--HAVING trans.Date_Document = MAX(trans.Date_Document)
+	                    -- для счетов
+			ORDER BY trans.Date_Document DESC
+					,trans.NumDayDoc     DESC
+	    ]]>
+	</sql-query>
+</hibernate-mapping>

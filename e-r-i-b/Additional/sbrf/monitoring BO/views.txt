@@ -1,0 +1,976 @@
+•	MOBAPP_DEPOSIT_OPEN_MBO 
+•	MOBAPP_DEPOSIT_OPEN_DAY 
+•	MOBAPP_PAYMENT_ACCARD_MBO
+•	MOBAPP_PAYMENT_ACCARD_DAY 
+•	TIVOLI_CREDIT_REQUEST_MBO 
+•	TIVOLI_CREDIT_REQUEST_DAY 
+•	TIVOLI_CREDIT_RESPONSE_MBO 
+•	TIVOLI_CREDIT_RESPONSE_DAY 
+
+
+--------------------------------------------------------
+--  DDL for View MOBAPP_DEPOSIT_OPEN
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "MOBAPP_DEPOSIT_OPEN" ("MAPP_DEPOSIT_OPEN_TOTAL", "MAPP_DEPOSIT_OPEN_ANDR_TOTAL", "MAPP_DEPOSIT_OPEN_IOS_TOTAL", "MAPP_DEPOSIT_OPEN_WINPH_TOTAL", "MAPP_DEPOSIT_OPEN_SUCC", "MAPP_DEPOSIT_OPEN_ANDR_SUCC", "MAPP_DEPOSIT_OPEN_IOS_SUCC", "MAPP_DEPOSIT_OPEN_WINPH_SUCC", "MAPP_DEPOSIT_OPEN_FAIL", "MAPP_DEPOSIT_OPEN_ANDROID_FAIL", "MAPP_DEPOSIT_OPEN_IOS_FAIL", "MAPP_DEPOSIT_OPEN_WINPH_FAIL", "MAPP_DEPOSIT_OPEN_ERR_105", "MAPP_DEPOSIT_OPEN_ERR_200", "MAPP_DEPOSIT_OPEN_ERR_403", "MAPP_DEPOSIT_OPEN_ERR_404", "MAPP_DEPOSIT_OPEN_ERR_405", "MAPP_DEPOSIT_OPEN_ERR_406", "MAPP_DEPOSIT_OPEN_ERR_407", "MAPP_DEPOSIT_OPEN_ERR_408", "MAPP_DEPOSIT_OPEN_ERR_409", "MAPP_DEPOSIT_OPEN_ERR_425", "MAPP_DEPOSIT_OPEN_ERR_602", "MAPP_DEPOSIT_OPEN_ERR_603", "MAPP_DEPOSIT_OPEN_ERR_604", "MAPP_DEPOSIT_OPEN_ERR_605", "MAPP_DEPOSIT_OPEN_ERR_630", "MAPP_DEPOSIT_OPEN_ERR_633", "MAPP_DEPOSIT_OPEN_ERR_438", "MAPP_DEPOSIT_OPEN_ERR_430", "MAPP_DEPOSIT_OPEN_ERR_621", "MAPP_DEPOSIT_OPEN_BUSINESS_ERR") AS 
+  select 
+  "MAPP_DEPOSIT_OPEN_TOTAL", "MAPP_DEPOSIT_OPEN_ANDR_TOTAL", "MAPP_DEPOSIT_OPEN_IOS_TOTAL", "MAPP_DEPOSIT_OPEN_WINPH_TOTAL", "MAPP_DEPOSIT_OPEN_SUCC", "MAPP_DEPOSIT_OPEN_ANDR_SUCC", "MAPP_DEPOSIT_OPEN_IOS_SUCC", "MAPP_DEPOSIT_OPEN_WINPH_SUCC", "MAPP_DEPOSIT_OPEN_FAIL", "MAPP_DEPOSIT_OPEN_ANDROID_FAIL", "MAPP_DEPOSIT_OPEN_IOS_FAIL", "MAPP_DEPOSIT_OPEN_WINPH_FAIL", "MAPP_DEPOSIT_OPEN_ERR_105", "MAPP_DEPOSIT_OPEN_ERR_200", "MAPP_DEPOSIT_OPEN_ERR_403", "MAPP_DEPOSIT_OPEN_ERR_404", "MAPP_DEPOSIT_OPEN_ERR_405", "MAPP_DEPOSIT_OPEN_ERR_406", "MAPP_DEPOSIT_OPEN_ERR_407", "MAPP_DEPOSIT_OPEN_ERR_408", "MAPP_DEPOSIT_OPEN_ERR_409", "MAPP_DEPOSIT_OPEN_ERR_425", "MAPP_DEPOSIT_OPEN_ERR_602", "MAPP_DEPOSIT_OPEN_ERR_603", "MAPP_DEPOSIT_OPEN_ERR_604", "MAPP_DEPOSIT_OPEN_ERR_605", "MAPP_DEPOSIT_OPEN_ERR_630", "MAPP_DEPOSIT_OPEN_ERR_633", "MAPP_DEPOSIT_OPEN_ERR_438", "MAPP_DEPOSIT_OPEN_ERR_430", "MAPP_DEPOSIT_OPEN_ERR_621", "MAPP_DEPOSIT_OPEN_BUSINESS_ERR"
+from (
+    select
+        count(STATE_CODE) as MAPP_DEPOSIT_OPEN_TOTAL,
+        count(case when PLATFORM like 'android' then 1 else null end) as MAPP_DEPOSIT_OPEN_ANDR_TOTAL,
+        count(case when PLATFORM like 'iPhone' or PLATFORM like 'iPad' then 1 else null end) as MAPP_DEPOSIT_OPEN_IOS_TOTAL,
+        count(case when PLATFORM like 'winPhone' then 1 else null end) as MAPP_DEPOSIT_OPEN_WINPH_TOTAL,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) then 1 else null end) as MAPP_DEPOSIT_OPEN_SUCC,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'android' then 1 else null end) as MAPP_DEPOSIT_OPEN_ANDR_SUCC,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and (PLATFORM like 'iPhone' or PLATFORM like 'iPad') then 1 else null end) as MAPP_DEPOSIT_OPEN_IOS_SUCC,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'winPhone' then 1 else null end) as MAPP_DEPOSIT_OPEN_WINPH_SUCC,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) then 1 else null end) as MAPP_DEPOSIT_OPEN_FAIL,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'android' then 1 else null end) as MAPP_DEPOSIT_OPEN_ANDROID_FAIL,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and (PLATFORM like 'iPhone' or PLATFORM like 'iPad') then 1 else null end) as MAPP_DEPOSIT_OPEN_IOS_FAIL,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'winPhone' then 1 else null end) as MAPP_DEPOSIT_OPEN_WINPH_FAIL,
+        count(case when STATE_CODE = '102' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_102,
+        count(case when STATE_CODE = '105' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_105,
+        count(case when STATE_CODE = '200' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_200,
+        count(case when STATE_CODE = '403' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_403,
+        count(case when STATE_CODE = '404' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_404,
+        count(case when STATE_CODE = '405' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_405,
+        count(case when STATE_CODE = '406' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_406,
+        count(case when STATE_CODE = '407' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_407,
+        count(case when STATE_CODE = '408' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_408,
+        count(case when STATE_CODE = '409' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_409,
+        count(case when STATE_CODE = '425' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_425,
+        count(case when STATE_CODE = '602' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_602,
+        count(case when STATE_CODE = '603' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_603,
+        count(case when STATE_CODE = '604' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_604,
+        count(case when STATE_CODE = '605' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_605,
+        count(case when STATE_CODE = '630' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_630,
+        count(case when STATE_CODE = '633' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_633,
+        count(case when STATE_CODE = '438' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_438,
+        count(case when STATE_CODE = '430' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_430,
+        count(case when STATE_CODE = '621' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_621,
+        count(case when STATE_CODE = 'BUSINESS_ERROR' then 1 else null end) as MAPP_DEPOSIT_OPEN_BUSINESS_ERR
+    from(
+        select STATE_CODE, PLATFORM
+        from MONITORING_BUSINESS_OPERATION
+        where OPERATION_TYPE in ('AOC', 'AOC_ALF')
+        and PLATFORM is not null and application='mobile'
+        and START_DATE >= sysdate-1/1440
+    )
+);
+/
+--------------------------------------------------------
+--  DDL for View MOBAPP_DEPOSIT_OPEN_DAY
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "MOBAPP_DEPOSIT_OPEN_DAY" ("START_DATE", "MAPP_DEPOSIT_OPEN_TOTAL", "MAPP_DEPOSIT_OPEN_ANDR_TOTAL", "MAPP_DEPOSIT_OPEN_IOS_TOTAL", "MAPP_DEPOSIT_OPEN_WINPH_TOTAL", "MAPP_DEPOSIT_OPEN_SUCC", "MAPP_DEPOSIT_OPEN_ANDR_SUCC", "MAPP_DEPOSIT_OPEN_IOS_SUCC", "MAPP_DEPOSIT_OPEN_WINPH_SUCC", "MAPP_DEPOSIT_OPEN_FAIL", "MAPP_DEPOSIT_OPEN_ANDROID_FAIL", "MAPP_DEPOSIT_OPEN_IOS_FAIL", "MAPP_DEPOSIT_OPEN_WINPH_FAIL", "MAPP_DEPOSIT_OPEN_ERR_105", "MAPP_DEPOSIT_OPEN_ERR_200", "MAPP_DEPOSIT_OPEN_ERR_403", "MAPP_DEPOSIT_OPEN_ERR_404", "MAPP_DEPOSIT_OPEN_ERR_405", "MAPP_DEPOSIT_OPEN_ERR_406", "MAPP_DEPOSIT_OPEN_ERR_407", "MAPP_DEPOSIT_OPEN_ERR_408", "MAPP_DEPOSIT_OPEN_ERR_409", "MAPP_DEPOSIT_OPEN_ERR_425", "MAPP_DEPOSIT_OPEN_ERR_602", "MAPP_DEPOSIT_OPEN_ERR_603", "MAPP_DEPOSIT_OPEN_ERR_604", "MAPP_DEPOSIT_OPEN_ERR_605", "MAPP_DEPOSIT_OPEN_ERR_630", "MAPP_DEPOSIT_OPEN_ERR_633", "MAPP_DEPOSIT_OPEN_ERR_438", "MAPP_DEPOSIT_OPEN_ERR_430", "MAPP_DEPOSIT_OPEN_ERR_621", "MAPP_DEPOSIT_OPEN_BUSINESS_ERR") AS 
+  with mask as (
+  select trunc(sysdate) - (1/1440)*(level) START_DATE from dual connect by level < 1441
+),
+operation as (
+  select trunc(START_DATE, 'MI') START_DATE,  STATE_CODE, PLATFORM
+  from MONITORING_BUSINESS_OPERATION
+  where 
+      OPERATION_TYPE in ('AOC', 'AOC_ALF')
+  and PLATFORM is not null and application='mobile'
+  and START_DATE >= trunc(sysdate) - 1
+  and START_DATE < trunc(sysdate)
+)
+select 
+  "START_DATE", "MAPP_DEPOSIT_OPEN_TOTAL", "MAPP_DEPOSIT_OPEN_ANDR_TOTAL", "MAPP_DEPOSIT_OPEN_IOS_TOTAL", "MAPP_DEPOSIT_OPEN_WINPH_TOTAL", "MAPP_DEPOSIT_OPEN_SUCC", "MAPP_DEPOSIT_OPEN_ANDR_SUCC", "MAPP_DEPOSIT_OPEN_IOS_SUCC", "MAPP_DEPOSIT_OPEN_WINPH_SUCC", "MAPP_DEPOSIT_OPEN_FAIL", "MAPP_DEPOSIT_OPEN_ANDROID_FAIL", "MAPP_DEPOSIT_OPEN_IOS_FAIL", "MAPP_DEPOSIT_OPEN_WINPH_FAIL", "MAPP_DEPOSIT_OPEN_ERR_105", "MAPP_DEPOSIT_OPEN_ERR_200", "MAPP_DEPOSIT_OPEN_ERR_403", "MAPP_DEPOSIT_OPEN_ERR_404", "MAPP_DEPOSIT_OPEN_ERR_405", "MAPP_DEPOSIT_OPEN_ERR_406", "MAPP_DEPOSIT_OPEN_ERR_407", "MAPP_DEPOSIT_OPEN_ERR_408", "MAPP_DEPOSIT_OPEN_ERR_409", "MAPP_DEPOSIT_OPEN_ERR_425", "MAPP_DEPOSIT_OPEN_ERR_602", "MAPP_DEPOSIT_OPEN_ERR_603", "MAPP_DEPOSIT_OPEN_ERR_604", "MAPP_DEPOSIT_OPEN_ERR_605", "MAPP_DEPOSIT_OPEN_ERR_630", "MAPP_DEPOSIT_OPEN_ERR_633", "MAPP_DEPOSIT_OPEN_ERR_438", "MAPP_DEPOSIT_OPEN_ERR_430", "MAPP_DEPOSIT_OPEN_ERR_621", "MAPP_DEPOSIT_OPEN_BUSINESS_ERR"
+from (
+  select
+      START_DATE,
+      count(STATE_CODE) as MAPP_DEPOSIT_OPEN_TOTAL,
+      count(case when PLATFORM like 'android' then 1 else null end) as MAPP_DEPOSIT_OPEN_ANDR_TOTAL,
+      count(case when PLATFORM like 'iPhone' or PLATFORM like 'iPad' then 1 else null end) as MAPP_DEPOSIT_OPEN_IOS_TOTAL,
+      count(case when PLATFORM like 'winPhone' then 1 else null end) as MAPP_DEPOSIT_OPEN_WINPH_TOTAL,
+      count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) then 1 else null end) as MAPP_DEPOSIT_OPEN_SUCC,
+      count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'android' then 1 else null end) as MAPP_DEPOSIT_OPEN_ANDR_SUCC,
+      count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and (PLATFORM like 'iPhone' or PLATFORM like 'iPad') then 1 else null end) as MAPP_DEPOSIT_OPEN_IOS_SUCC,
+      count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'winPhone' then 1 else null end) as MAPP_DEPOSIT_OPEN_WINPH_SUCC,
+      count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) then 1 else null end) as MAPP_DEPOSIT_OPEN_FAIL,
+      count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'android' then 1 else null end) as MAPP_DEPOSIT_OPEN_ANDROID_FAIL,
+      count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and (PLATFORM like 'iPhone' or PLATFORM like 'iPad') then 1 else null end) as MAPP_DEPOSIT_OPEN_IOS_FAIL,
+      count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'winPhone' then 1 else null end) as MAPP_DEPOSIT_OPEN_WINPH_FAIL,
+      count(case when STATE_CODE = '102' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_102,
+      count(case when STATE_CODE = '105' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_105,
+      count(case when STATE_CODE = '200' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_200,
+      count(case when STATE_CODE = '400' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_400,
+      count(case when STATE_CODE = '403' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_403,
+      count(case when STATE_CODE = '404' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_404,
+      count(case when STATE_CODE = '405' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_405,
+      count(case when STATE_CODE = '406' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_406,
+      count(case when STATE_CODE = '407' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_407,
+      count(case when STATE_CODE = '408' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_408,
+      count(case when STATE_CODE = '409' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_409,
+      count(case when STATE_CODE = '425' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_425,
+      count(case when STATE_CODE = '602' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_602,
+      count(case when STATE_CODE = '603' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_603,
+      count(case when STATE_CODE = '604' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_604,
+      count(case when STATE_CODE = '605' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_605,
+      count(case when STATE_CODE = '630' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_630,
+      count(case when STATE_CODE = '633' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_633,
+      count(case when STATE_CODE = '438' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_438,
+      count(case when STATE_CODE = '430' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_430,
+      count(case when STATE_CODE = '621' then 1 else null end) as MAPP_DEPOSIT_OPEN_ERR_621,
+      count(case when STATE_CODE = 'BUSINESS_ERROR' then 1 else null end) as MAPP_DEPOSIT_OPEN_BUSINESS_ERR
+  from(
+    select mask.START_DATE, operation.STATE_CODE, operation.PLATFORM
+    from mask 
+    left join operation on mask.START_DATE=operation.START_DATE
+  )    
+  group by START_DATE
+  order by START_DATE desc
+);
+/
+--------------------------------------------------------
+--  DDL for View MOBAPP_PAYMENT_ACCARD
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "MOBAPP_PAYMENT_ACCARD" ("MAPP_PAYM_ACCARD_TOTAL", "MAPP_PAYM_ACCARD_ANDR_TOTAL", "MAPP_PAYM_ACCARD_IOS_TOTAL", "MAPP_PAYM_ACCARD_WINPH_TOTAL", "MAPP_PAYM_ACCARD_SUCC", "MAPP_PAYM_ACCARD_ANDR_SUCC", "MAPP_PAYM_ACCARD_IOS_SUCC", "MAPP_PAYM_ACCARD_WINPH_SUCC", "MAPP_PAYM_ACCARD_FAIL", "MAPP_PAYM_ACCARD_ANDR_FAIL", "MAPP_PAYM_ACCARD_IOS_FAIL", "MAPP_PAYM_ACCARD_WINPH_FAIL", "MAPP_PAYM_ACCARD_ERR_105", "MAPP_PAYM_ACCARD_ERR_200", "MAPP_PAYM_ACCARD_ERR_403", "MAPP_PAYM_ACCARD_ERR_404", "MAPP_PAYM_ACCARD_ERR_405", "MAPP_PAYM_ACCARD_ERR_406", "MAPP_PAYM_ACCARD_ERR_407", "MAPP_PAYM_ACCARD_ERR_408", "MAPP_PAYM_ACCARD_ERR_409", "MAPP_PAYM_ACCARD_ERR_425", "MAPP_PAYM_ACCARD_ERR_602", "MAPP_PAYM_ACCARD_ERR_603", "MAPP_PAYM_ACCARD_ERR_604", "MAPP_PAYM_ACCARD_ERR_605", "MAPP_PAYM_ACCARD_ERR_630", "MAPP_PAYM_ACCARD_ERR_633", "MAPP_PAYM_ACCARD_ERR_438", "MAPP_PAYM_ACCARD_ERR_430", "MAPP_PAYM_ACCARD_ERR_621", "MAPP_PAYM_ACCARD_BUSINESS_ERR") AS 
+  select 
+  "MAPP_PAYM_ACCARD_TOTAL", "MAPP_PAYM_ACCARD_ANDR_TOTAL", "MAPP_PAYM_ACCARD_IOS_TOTAL", "MAPP_PAYM_ACCARD_WINPH_TOTAL", "MAPP_PAYM_ACCARD_SUCC", "MAPP_PAYM_ACCARD_ANDR_SUCC", "MAPP_PAYM_ACCARD_IOS_SUCC", "MAPP_PAYM_ACCARD_WINPH_SUCC", "MAPP_PAYM_ACCARD_FAIL", "MAPP_PAYM_ACCARD_ANDR_FAIL", "MAPP_PAYM_ACCARD_IOS_FAIL", "MAPP_PAYM_ACCARD_WINPH_FAIL", "MAPP_PAYM_ACCARD_ERR_105", "MAPP_PAYM_ACCARD_ERR_200", "MAPP_PAYM_ACCARD_ERR_403", "MAPP_PAYM_ACCARD_ERR_404", "MAPP_PAYM_ACCARD_ERR_405", "MAPP_PAYM_ACCARD_ERR_406", "MAPP_PAYM_ACCARD_ERR_407", "MAPP_PAYM_ACCARD_ERR_408", "MAPP_PAYM_ACCARD_ERR_409", "MAPP_PAYM_ACCARD_ERR_425", "MAPP_PAYM_ACCARD_ERR_602", "MAPP_PAYM_ACCARD_ERR_603", "MAPP_PAYM_ACCARD_ERR_604", "MAPP_PAYM_ACCARD_ERR_605", "MAPP_PAYM_ACCARD_ERR_630", "MAPP_PAYM_ACCARD_ERR_633", "MAPP_PAYM_ACCARD_ERR_438", "MAPP_PAYM_ACCARD_ERR_430", "MAPP_PAYM_ACCARD_ERR_621", "MAPP_PAYM_ACCARD_BUSINESS_ERR"
+from (
+    select
+        count(STATE_CODE) as MAPP_PAYM_ACCARD_TOTAL,
+        count(case when PLATFORM like 'android' then 1 else null end) as MAPP_PAYM_ACCARD_ANDR_TOTAL,
+        count(case when PLATFORM like 'iPhone' or PLATFORM like 'iPad' then 1 else null end) as MAPP_PAYM_ACCARD_IOS_TOTAL,
+        count(case when PLATFORM like 'winPhone' then 1 else null end) as MAPP_PAYM_ACCARD_WINPH_TOTAL,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) then 1 else null end) as MAPP_PAYM_ACCARD_SUCC,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'android' then 1 else null end) as MAPP_PAYM_ACCARD_ANDR_SUCC,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and (PLATFORM like 'iPhone' or PLATFORM like 'iPad') then 1 else null end) as MAPP_PAYM_ACCARD_IOS_SUCC,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'winPhone' then 1 else null end) as MAPP_PAYM_ACCARD_WINPH_SUCC,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) then 1 else null end) as MAPP_PAYM_ACCARD_FAIL,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'android' then 1 else null end) as MAPP_PAYM_ACCARD_ANDR_FAIL,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and (PLATFORM like 'iPhone' or PLATFORM like 'iPad') then 1 else null end) as MAPP_PAYM_ACCARD_IOS_FAIL,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'winPhone' then 1 else null end) as MAPP_PAYM_ACCARD_WINPH_FAIL,
+        count(case when STATE_CODE = '102' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_102,
+        count(case when STATE_CODE = '105' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_105,
+        count(case when STATE_CODE = '200' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_200,
+        count(case when STATE_CODE = '400' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_400,
+        count(case when STATE_CODE = '403' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_403,
+        count(case when STATE_CODE = '404' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_404,
+        count(case when STATE_CODE = '405' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_405,
+        count(case when STATE_CODE = '406' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_406,
+        count(case when STATE_CODE = '407' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_407,
+        count(case when STATE_CODE = '408' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_408,
+        count(case when STATE_CODE = '409' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_409,
+        count(case when STATE_CODE = '425' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_425,
+        count(case when STATE_CODE = '602' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_602,
+        count(case when STATE_CODE = '603' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_603,
+        count(case when STATE_CODE = '604' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_604,
+        count(case when STATE_CODE = '605' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_605,
+        count(case when STATE_CODE = '630' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_630,
+        count(case when STATE_CODE = '633' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_633,
+        count(case when STATE_CODE = '438' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_438,
+        count(case when STATE_CODE = '430' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_430,
+        count(case when STATE_CODE = '621' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_621,
+        count(case when STATE_CODE = 'BUSINESS_ERROR' then 1 else null end) as MAPP_PAYM_ACCARD_BUSINESS_ERR
+    from(
+        select STATE_CODE, PLATFORM
+        from MONITORING_BUSINESS_OPERATION
+        where OPERATION_TYPE= 'AC'
+        and PLATFORM is not null and application='mobile'
+        and START_DATE >= sysdate - 1/1440        
+    )
+);
+/
+--------------------------------------------------------
+--  DDL for View MOBAPP_PAYMENT_ACCARD_DAY
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "MOBAPP_PAYMENT_ACCARD_DAY" ("START_DATE", "MAPP_PAYM_ACCARD_TOTAL", "MAPP_PAYM_ACCARD_ANDR_TOTAL", "MAPP_PAYM_ACCARD_IOS_TOTAL", "MAPP_PAYM_ACCARD_WINPH_TOTAL", "MAPP_PAYM_ACCARD_SUCC", "MAPP_PAYM_ACCARD_ANDR_SUCC", "MAPP_PAYM_ACCARD_IOS_SUCC", "MAPP_PAYM_ACCARD_WINPH_SUCC", "MAPP_PAYM_ACCARD_FAIL", "MAPP_PAYM_ACCARD_ANDR_FAIL", "MAPP_PAYM_ACCARD_IOS_FAIL", "MAPP_PAYM_ACCARD_WINPH_FAIL", "MAPP_PAYM_ACCARD_ERR_105", "MAPP_PAYM_ACCARD_ERR_200", "MAPP_PAYM_ACCARD_ERR_403", "MAPP_PAYM_ACCARD_ERR_404", "MAPP_PAYM_ACCARD_ERR_405", "MAPP_PAYM_ACCARD_ERR_406", "MAPP_PAYM_ACCARD_ERR_407", "MAPP_PAYM_ACCARD_ERR_408", "MAPP_PAYM_ACCARD_ERR_409", "MAPP_PAYM_ACCARD_ERR_425", "MAPP_PAYM_ACCARD_ERR_602", "MAPP_PAYM_ACCARD_ERR_603", "MAPP_PAYM_ACCARD_ERR_604", "MAPP_PAYM_ACCARD_ERR_605", "MAPP_PAYM_ACCARD_ERR_630", "MAPP_PAYM_ACCARD_ERR_633", "MAPP_PAYM_ACCARD_ERR_438", "MAPP_PAYM_ACCARD_ERR_430", "MAPP_PAYM_ACCARD_ERR_621", "MAPP_PAYM_ACCARD_BUSINESS_ERR") AS 
+  with mask as (
+  select trunc(sysdate) - (1/1440)*(level) START_DATE from dual connect by level < 1441
+),
+operation as (
+  select 
+      trunc(START_DATE, 'MI') START_DATE, STATE_CODE, PLATFORM
+  from MONITORING_BUSINESS_OPERATION
+  where 
+      OPERATION_TYPE= 'AC'
+  and PLATFORM is not null and application='mobile'
+  and START_DATE >= trunc(sysdate) - 1
+  and START_DATE < trunc(sysdate)
+)
+select 
+  "START_DATE","MAPP_PAYM_ACCARD_TOTAL", "MAPP_PAYM_ACCARD_ANDR_TOTAL", "MAPP_PAYM_ACCARD_IOS_TOTAL", "MAPP_PAYM_ACCARD_WINPH_TOTAL", "MAPP_PAYM_ACCARD_SUCC", "MAPP_PAYM_ACCARD_ANDR_SUCC", "MAPP_PAYM_ACCARD_IOS_SUCC", "MAPP_PAYM_ACCARD_WINPH_SUCC", "MAPP_PAYM_ACCARD_FAIL", "MAPP_PAYM_ACCARD_ANDR_FAIL", "MAPP_PAYM_ACCARD_IOS_FAIL", "MAPP_PAYM_ACCARD_WINPH_FAIL", "MAPP_PAYM_ACCARD_ERR_105", "MAPP_PAYM_ACCARD_ERR_200", "MAPP_PAYM_ACCARD_ERR_403", "MAPP_PAYM_ACCARD_ERR_404", "MAPP_PAYM_ACCARD_ERR_405", "MAPP_PAYM_ACCARD_ERR_406", "MAPP_PAYM_ACCARD_ERR_407", "MAPP_PAYM_ACCARD_ERR_408", "MAPP_PAYM_ACCARD_ERR_409", "MAPP_PAYM_ACCARD_ERR_425", "MAPP_PAYM_ACCARD_ERR_602", "MAPP_PAYM_ACCARD_ERR_603", "MAPP_PAYM_ACCARD_ERR_604", "MAPP_PAYM_ACCARD_ERR_605", "MAPP_PAYM_ACCARD_ERR_630", "MAPP_PAYM_ACCARD_ERR_633", "MAPP_PAYM_ACCARD_ERR_438", "MAPP_PAYM_ACCARD_ERR_430", "MAPP_PAYM_ACCARD_ERR_621", "MAPP_PAYM_ACCARD_BUSINESS_ERR"
+from (
+    select
+        START_DATE,
+        count(STATE_CODE) as MAPP_PAYM_ACCARD_TOTAL,
+        count(case when PLATFORM like 'android' then 1 else null end) as MAPP_PAYM_ACCARD_ANDR_TOTAL,
+        count(case when PLATFORM like 'iPhone' or PLATFORM like 'iPad' then 1 else null end) as MAPP_PAYM_ACCARD_IOS_TOTAL,
+        count(case when PLATFORM like 'winPhone' then 1 else null end) as MAPP_PAYM_ACCARD_WINPH_TOTAL,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) then 1 else null end) as MAPP_PAYM_ACCARD_SUCC,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'android' then 1 else null end) as MAPP_PAYM_ACCARD_ANDR_SUCC,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and (PLATFORM like 'iPhone' or PLATFORM like 'iPad') then 1 else null end) as MAPP_PAYM_ACCARD_IOS_SUCC,
+        count(case when (STATE_CODE = 'EXECUTED' or STATE_CODE not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'winPhone' then 1 else null end) as MAPP_PAYM_ACCARD_WINPH_SUCC,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) then 1 else null end) as MAPP_PAYM_ACCARD_FAIL,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'android' then 1 else null end) as MAPP_PAYM_ACCARD_ANDR_FAIL,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and (PLATFORM like 'iPhone' or PLATFORM like 'iPad') then 1 else null end) as MAPP_PAYM_ACCARD_IOS_FAIL,
+        count(case when (STATE_CODE <> 'EXECUTED' and STATE_CODE in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633')) and PLATFORM like 'winPhone' then 1 else null end) as MAPP_PAYM_ACCARD_WINPH_FAIL,
+        count(case when STATE_CODE = '102' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_102,
+        count(case when STATE_CODE = '105' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_105,
+        count(case when STATE_CODE = '200' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_200,
+        count(case when STATE_CODE = '400' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_400,
+        count(case when STATE_CODE = '403' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_403,
+        count(case when STATE_CODE = '404' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_404,
+        count(case when STATE_CODE = '405' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_405,
+        count(case when STATE_CODE = '406' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_406,
+        count(case when STATE_CODE = '407' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_407,
+        count(case when STATE_CODE = '408' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_408,
+        count(case when STATE_CODE = '409' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_409,
+        count(case when STATE_CODE = '425' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_425,
+        count(case when STATE_CODE = '602' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_602,
+        count(case when STATE_CODE = '603' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_603,
+        count(case when STATE_CODE = '604' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_604,
+        count(case when STATE_CODE = '605' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_605,
+        count(case when STATE_CODE = '630' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_630,
+        count(case when STATE_CODE = '633' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_633,
+        count(case when STATE_CODE = '438' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_438,
+        count(case when STATE_CODE = '430' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_430,
+        count(case when STATE_CODE = '621' then 1 else null end) as MAPP_PAYM_ACCARD_ERR_621,
+        count(case when STATE_CODE = 'BUSINESS_ERROR' then 1 else null end) as MAPP_PAYM_ACCARD_BUSINESS_ERR
+    from (
+      select mask.START_DATE, operation.STATE_CODE, operation.PLATFORM
+      from mask 
+      left join operation on mask.START_DATE=operation.START_DATE
+    )    
+    group by START_DATE
+    order by START_DATE desc
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_ACCT_OPEN
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_ACCT_OPEN" ("ERIB_TCDO_ALL_FAIL", "ERIB_TCDO_ALL_SUCC", "ERIB_TCDO_ALL_TOTAL", "ERIB_TCDO_ATM_FAIL", "ERIB_TCDO_ATM_SUCC", "ERIB_TCDO_ATM_TOTAL", "ERIB_TCDO_ERMB_FAIL", "ERIB_TCDO_ERMB_SUCC", "ERIB_TCDO_ERMB_TOTAL", "ERIB_TCDO_MP_FAIL_633", "ERIB_TCDO_MP_FAIL_630", "ERIB_TCDO_MP_FAIL_621", "ERIB_TCDO_MP_FAIL_605", "ERIB_TCDO_MP_FAIL_604", "ERIB_TCDO_MP_FAIL_603", "ERIB_TCDO_MP_FAIL_602", "ERIB_TCDO_MP_FAIL_430", "ERIB_TCDO_MP_FAIL_405", "ERIB_TCDO_MP_FAIL_404", "ERIB_TCDO_MP_FAIL_403", "ERIB_TCDO_MP_FAIL_200", "ERIB_TCDO_MP_FAIL_105", "ERIB_TCDO_MP_FAIL_TECH", "ERIB_TCDO_MP_SUCC", "ERIB_TCDO_MP_FAIL_BSNS", "ERIB_TCDO_MP_TOTAL", "ERIB_TCDO_WEB_FAIL", "ERIB_TCDO_WEB_SUCC", "ERIB_TCDO_WEB_TOTAL", "ERIB_TCIO_ALL_FAIL", "ERIB_TCIO_ALL_SUCC", "ERIB_TCIO_ALL_TOTAL", "ERIB_TCIO_ATM_FAIL", "ERIB_TCIO_ATM_SUCC", "ERIB_TCIO_ATM_TOTAL", "ERIB_TCIO_ERMB_FAIL", "ERIB_TCIO_ERMB_SUCC", "ERIB_TCIO_ERMB_TOTAL", "ERIB_TCIO_MP_FAIL", "ERIB_TCIO_MP_SUCC", "ERIB_TCIO_MP_TOTAL", "ERIB_TCIO_WEB_FAIL", "ERIB_TCIO_WEB_SUCC", "ERIB_TCIO_WEB_TOTAL", "ERIB_TDDO_ALL_FAIL", "ERIB_TDDO_ALL_SUCC", "ERIB_TDDO_ALL_TOTAL", "ERIB_TDDO_ATM_FAIL", "ERIB_TDDO_ATM_SUCC", "ERIB_TDDO_ATM_TOTAL", "ERIB_TDDO_ERMB_FAIL", "ERIB_TDDO_ERMB_SUCC", "ERIB_TDDO_ERMB_TOTAL", "ERIB_TDDO_MP_FAIL", "ERIB_TDDO_MP_SUCC", "ERIB_TDDO_MP_TOTAL", "ERIB_TDDO_WEB_FAIL", "ERIB_TDDO_WEB_SUCC", "ERIB_TDDO_WEB_TOTAL", "ERIB_TDIO_ALL_FAIL", "ERIB_TDIO_ALL_SUCC", "ERIB_TDIO_ALL_TOTAL", "ERIB_TDIO_ATM_FAIL", "ERIB_TDIO_ATM_SUCC", "ERIB_TDIO_ATM_TOTAL", "ERIB_TDIO_ERMB_FAIL", "ERIB_TDIO_ERMB_SUCC", "ERIB_TDIO_ERMB_TOTAL", "ERIB_TDIO_MP_FAIL", "ERIB_TDIO_MP_SUCC", "ERIB_TDIO_MP_TOTAL", "ERIB_TDIO_WEB_FAIL", "ERIB_TDIO_WEB_SUCC", "ERIB_TDIO_WEB_TOTAL", "ERIB_TDO_ALL_FAIL", "ERIB_TDO_ALL_SUCC", "ERIB_TDO_ALL_TOTAL", "ERIB_TDO_ATM_FAIL", "ERIB_TDO_ATM_SUCC", "ERIB_TDO_ATM_TOTAL", "ERIB_TDO_ERMB_FAIL", "ERIB_TDO_ERMB_SUCC", "ERIB_TDO_ERMB_TOTAL", "ERIB_TDO_MP_FAIL", "ERIB_TDO_MP_SUCC", "ERIB_TDO_MP_TOTAL", "ERIB_TDO_WEB_FAIL", "ERIB_TDO_WEB_SUCC", "ERIB_TDO_WEB_TOTAL") AS 
+  select /*[Мониторинг TIVOLI] Открытие ОМС с переводом с карты», «Открытие ОМС с переводом с вклада*/
+  sum(case when op = 'TCDO' and sc != '0' then cnt else 0 end) as ERIB_TCDO_ALL_FAIL,
+  sum(case when op = 'TCDO' and sc = '0' then cnt else 0 end) as ERIB_TCDO_ALL_SUCC,
+  sum(case when op = 'TCDO'  then cnt else 0 end) as ERIB_TCDO_ALL_TOTAL,
+  sum(case when op = 'TCDO' and ap = 'atm' and sc != '0' then cnt else 0 end) as ERIB_TCDO_ATM_FAIL,
+  sum(case when op = 'TCDO' and ap = 'atm' and sc = '0' then cnt else 0 end) as ERIB_TCDO_ATM_SUCC,
+  sum(case when op = 'TCDO' and ap = 'atm'  then cnt else 0 end) as ERIB_TCDO_ATM_TOTAL,
+  sum(case when op = 'TCDO' and ap = 'ermb' and sc != '0' then cnt else 0 end) as ERIB_TCDO_ERMB_FAIL,
+  sum(case when op = 'TCDO' and ap = 'ermb' and sc = '0' then cnt else 0 end) as ERIB_TCDO_ERMB_SUCC,
+  sum(case when op = 'TCDO' and ap = 'ermb'  then cnt else 0 end) as ERIB_TCDO_ERMB_TOTAL,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-633' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_633,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-630' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_630,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-621' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_621,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-605' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_605,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-604' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_604,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-603' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_603,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-602' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_602,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-430' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_430,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-405' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_405,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-404' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_404,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-403' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_403,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-200' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_200,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc = '-105' then cnt else 0 end) as ERIB_TCDO_MP_FAIL_105,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633') then cnt else 0 end) as ERIB_TCDO_MP_FAIL_TECH,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc not in ('-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633') then cnt else 0 end) as ERIB_TCDO_MP_SUCC,
+  sum(case when op = 'TCDO' and ap = 'mp' and sc not in ('0','-105','-200','-403','-404','-405','-430','-602','-603','-604','-605','-621','-630','-633') then cnt else 0 end) as ERIB_TCDO_MP_FAIL_BSNS,
+  sum(case when op = 'TCDO' and ap = 'mp'  then cnt else 0 end) as ERIB_TCDO_MP_TOTAL,
+  sum(case when op = 'TCDO' and ap = 'web' and sc != '0' then cnt else 0 end) as ERIB_TCDO_WEB_FAIL,
+  sum(case when op = 'TCDO' and ap = 'web' and sc = '0' then cnt else 0 end) as ERIB_TCDO_WEB_SUCC,
+  sum(case when op = 'TCDO' and ap = 'web'  then cnt else 0 end) as ERIB_TCDO_WEB_TOTAL,
+  sum(case when op = 'TCIO' and sc != '0' then cnt else 0 end) as ERIB_TCIO_ALL_FAIL,
+  sum(case when op = 'TCIO' and sc = '0' then cnt else 0 end) as ERIB_TCIO_ALL_SUCC,
+  sum(case when op = 'TCIO'  then cnt else 0 end) as ERIB_TCIO_ALL_TOTAL,
+  sum(case when op = 'TCIO' and ap = 'atm' and sc != '0' then cnt else 0 end) as ERIB_TCIO_ATM_FAIL,
+  sum(case when op = 'TCIO' and ap = 'atm' and sc = '0' then cnt else 0 end) as ERIB_TCIO_ATM_SUCC,
+  sum(case when op = 'TCIO' and ap = 'atm'  then cnt else 0 end) as ERIB_TCIO_ATM_TOTAL,
+  sum(case when op = 'TCIO' and ap = 'ermb' and sc != '0' then cnt else 0 end) as ERIB_TCIO_ERMB_FAIL,
+  sum(case when op = 'TCIO' and ap = 'ermb' and sc = '0' then cnt else 0 end) as ERIB_TCIO_ERMB_SUCC,
+  sum(case when op = 'TCIO' and ap = 'ermb'  then cnt else 0 end) as ERIB_TCIO_ERMB_TOTAL,
+  sum(case when op = 'TCIO' and ap = 'mp' and sc != '0' then cnt else 0 end) as ERIB_TCIO_MP_FAIL,
+  sum(case when op = 'TCIO' and ap = 'mp' and sc = '0' then cnt else 0 end) as ERIB_TCIO_MP_SUCC,
+  sum(case when op = 'TCIO' and ap = 'mp'  then cnt else 0 end) as ERIB_TCIO_MP_TOTAL,
+  sum(case when op = 'TCIO' and ap = 'web' and sc != '0' then cnt else 0 end) as ERIB_TCIO_WEB_FAIL,
+  sum(case when op = 'TCIO' and ap = 'web' and sc = '0' then cnt else 0 end) as ERIB_TCIO_WEB_SUCC,
+  sum(case when op = 'TCIO' and ap = 'web'  then cnt else 0 end) as ERIB_TCIO_WEB_TOTAL,
+  sum(case when op = 'TDDO' and sc != '0' then cnt else 0 end) as ERIB_TDDO_ALL_FAIL,
+  sum(case when op = 'TDDO' and sc = '0' then cnt else 0 end) as ERIB_TDDO_ALL_SUCC,
+  sum(case when op = 'TDDO'  then cnt else 0 end) as ERIB_TDDO_ALL_TOTAL,
+  sum(case when op = 'TDDO' and ap = 'atm' and sc != '0' then cnt else 0 end) as ERIB_TDDO_ATM_FAIL,
+  sum(case when op = 'TDDO' and ap = 'atm' and sc = '0' then cnt else 0 end) as ERIB_TDDO_ATM_SUCC,
+  sum(case when op = 'TDDO' and ap = 'atm'  then cnt else 0 end) as ERIB_TDDO_ATM_TOTAL,
+  sum(case when op = 'TDDO' and ap = 'ermb' and sc != '0' then cnt else 0 end) as ERIB_TDDO_ERMB_FAIL,
+  sum(case when op = 'TDDO' and ap = 'ermb' and sc = '0' then cnt else 0 end) as ERIB_TDDO_ERMB_SUCC,
+  sum(case when op = 'TDDO' and ap = 'ermb'  then cnt else 0 end) as ERIB_TDDO_ERMB_TOTAL,
+  sum(case when op = 'TDDO' and ap = 'mp' and sc != '0' then cnt else 0 end) as ERIB_TDDO_MP_FAIL,
+  sum(case when op = 'TDDO' and ap = 'mp' and sc = '0' then cnt else 0 end) as ERIB_TDDO_MP_SUCC,
+  sum(case when op = 'TDDO' and ap = 'mp'  then cnt else 0 end) as ERIB_TDDO_MP_TOTAL,
+  sum(case when op = 'TDDO' and ap = 'web' and sc != '0' then cnt else 0 end) as ERIB_TDDO_WEB_FAIL,
+  sum(case when op = 'TDDO' and ap = 'web' and sc = '0' then cnt else 0 end) as ERIB_TDDO_WEB_SUCC,
+  sum(case when op = 'TDDO' and ap = 'web'  then cnt else 0 end) as ERIB_TDDO_WEB_TOTAL,
+  sum(case when op = 'TDIO' and sc != '0' then cnt else 0 end) as ERIB_TDIO_ALL_FAIL,
+  sum(case when op = 'TDIO' and sc = '0' then cnt else 0 end) as ERIB_TDIO_ALL_SUCC,
+  sum(case when op = 'TDIO'  then cnt else 0 end) as ERIB_TDIO_ALL_TOTAL,
+  sum(case when op = 'TDIO' and ap = 'atm' and sc != '0' then cnt else 0 end) as ERIB_TDIO_ATM_FAIL,
+  sum(case when op = 'TDIO' and ap = 'atm' and sc = '0' then cnt else 0 end) as ERIB_TDIO_ATM_SUCC,
+  sum(case when op = 'TDIO' and ap = 'atm'  then cnt else 0 end) as ERIB_TDIO_ATM_TOTAL,
+  sum(case when op = 'TDIO' and ap = 'ermb' and sc != '0' then cnt else 0 end) as ERIB_TDIO_ERMB_FAIL,
+  sum(case when op = 'TDIO' and ap = 'ermb' and sc = '0' then cnt else 0 end) as ERIB_TDIO_ERMB_SUCC,
+  sum(case when op = 'TDIO' and ap = 'ermb'  then cnt else 0 end) as ERIB_TDIO_ERMB_TOTAL,
+  sum(case when op = 'TDIO' and ap = 'mp' and sc != '0' then cnt else 0 end) as ERIB_TDIO_MP_FAIL,
+  sum(case when op = 'TDIO' and ap = 'mp' and sc = '0' then cnt else 0 end) as ERIB_TDIO_MP_SUCC,
+  sum(case when op = 'TDIO' and ap = 'mp'  then cnt else 0 end) as ERIB_TDIO_MP_TOTAL,
+  sum(case when op = 'TDIO' and ap = 'web' and sc != '0' then cnt else 0 end) as ERIB_TDIO_WEB_FAIL,
+  sum(case when op = 'TDIO' and ap = 'web' and sc = '0' then cnt else 0 end) as ERIB_TDIO_WEB_SUCC,
+  sum(case when op = 'TDIO' and ap = 'web'  then cnt else 0 end) as ERIB_TDIO_WEB_TOTAL,
+  sum(case when op = 'TDO' and sc != '0' then cnt else 0 end) as ERIB_TDO_ALL_FAIL,
+  sum(case when op = 'TDO' and sc = '0' then cnt else 0 end) as ERIB_TDO_ALL_SUCC,
+  sum(case when op = 'TDO'  then cnt else 0 end) as ERIB_TDO_ALL_TOTAL,
+  sum(case when op = 'TDO' and ap = 'atm' and sc != '0' then cnt else 0 end) as ERIB_TDO_ATM_FAIL,
+  sum(case when op = 'TDO' and ap = 'atm' and sc = '0' then cnt else 0 end) as ERIB_TDO_ATM_SUCC,
+  sum(case when op = 'TDO' and ap = 'atm'  then cnt else 0 end) as ERIB_TDO_ATM_TOTAL,
+  sum(case when op = 'TDO' and ap = 'ermb' and sc != '0' then cnt else 0 end) as ERIB_TDO_ERMB_FAIL,
+  sum(case when op = 'TDO' and ap = 'ermb' and sc = '0' then cnt else 0 end) as ERIB_TDO_ERMB_SUCC,
+  sum(case when op = 'TDO' and ap = 'ermb'  then cnt else 0 end) as ERIB_TDO_ERMB_TOTAL,
+  sum(case when op = 'TDO' and ap = 'mp' and sc != '0' then cnt else 0 end) as ERIB_TDO_MP_FAIL,
+  sum(case when op = 'TDO' and ap = 'mp' and sc = '0' then cnt else 0 end) as ERIB_TDO_MP_SUCC,
+  sum(case when op = 'TDO' and ap = 'mp'  then cnt else 0 end) as ERIB_TDO_MP_TOTAL,
+  sum(case when op = 'TDO' and ap = 'web' and sc != '0' then cnt else 0 end) as ERIB_TDO_WEB_FAIL,
+  sum(case when op = 'TDO' and ap = 'web' and sc = '0' then cnt else 0 end) as ERIB_TDO_WEB_SUCC,
+  sum(case when op = 'TDO' and ap = 'web'  then cnt else 0 end) as ERIB_TDO_WEB_TOTAL
+from (  
+  select 'ap' as ap,'op' as op,'sc' as sc, 0 as cnt from dual union all
+  select ap, op, sc, count(1) as cnt from (
+    select 
+      case 
+        when mbo.APPLICATION in ('PhizIC', 'internet') then 'web'
+        when mbo.APPLICATION in ('sms') then 'ermb'
+        when mbo.APPLICATION like 'mobile%' then 'mp'
+        when mbo.APPLICATION in ('atm') then 'atm'
+      end as ap,
+      mbo.OPERATION_TYPE as op,
+      mbo.STATE_CODE as sc
+    from MONITORING_BUSINESS_OPERATION mbo
+    where 
+        mbo.START_DATE >= sysdate-1/1440
+    and mbo.OPERATION_TYPE in ('TDDO', 'TCDO', 'TDO', 'TDIO', 'TCIO')
+  )
+  group by ap, op, sc
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_C2C_ERR
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_C2C_ERR" ("SUCCESSFUL", "E_709", "E_1006", "E_4000", "E_4893", "E_4894", "E_4895", "E_4897", "E_4900", "E_5068", "E_5088", "E_5091", "BUSINESS_ERROR", "UNKNOW_ERROR") AS 
+  select /*[Мониторинг TIVOLI] Перевод «Карта-карта через СБОЛ */
+  coalesce(sum(decode(STATE_CODE, 'S',    1, 0)), 0) "SUCCESSFUL",
+  coalesce(sum(decode(STATE_CODE, '709',  1, 0)), 0) "E_709",
+  coalesce(sum(decode(STATE_CODE, '1006', 1, 0)), 0) "E_1006",
+  coalesce(sum(decode(STATE_CODE, '4000', 1, 0)), 0) "E_4000",
+  coalesce(sum(decode(STATE_CODE, '4893', 1, 0)), 0) "E_4893",
+  coalesce(sum(decode(STATE_CODE, '4894', 1, 0)), 0) "E_4894",
+  coalesce(sum(decode(STATE_CODE, '4895', 1, 0)), 0) "E_4895",
+  coalesce(sum(decode(STATE_CODE, '4897', 1, 0)), 0) "E_4897",
+  coalesce(sum(decode(STATE_CODE, '4900', 1, 0)), 0) "E_4900",
+  coalesce(sum(decode(STATE_CODE, '5068', 1, 0)), 0) "E_5068",
+  coalesce(sum(decode(STATE_CODE, '5088', 1, 0)), 0) "E_5088",
+  coalesce(sum(decode(STATE_CODE, '5091', 1, 0)), 0) "E_5091",
+  coalesce(sum(decode(STATE_CODE, 'BE',   1, 0)), 0) "BUSINESS_ERROR",
+  coalesce(sum(decode(STATE_CODE, 'UE',   1, 0)), 0) "UNKNOW_ERROR"
+from (
+  select
+    decode(mbo.STATE_CODE,
+      '709',   '709',
+      '1006',  '1006',
+      '4000',  '4000',
+      '4893',  '4893',
+      '4894',  '4894',
+      '4895',  '4895',
+      '4897',  '4897',
+      '4900',  '4900',
+      '5068',  '5068',
+      '5088',  '5088',
+      '5091',  '5091',
+      '-5000', 'BE',
+      '2',     'BE',
+      '1000',  'BE',
+      '1005',  'BE',
+      '1007',  'BE',
+      '1008',  'BE',
+      '1009',  'BE',
+      '1010',  'BE',
+      '1011',  'BE',
+      '1016',  'BE',
+      '1019',  'BE',
+      '5001',  'BE',
+      '5001',  'BE',
+      '5003',  'BE',
+      '5005',  'BE',
+      '5007',  'BE',
+      '5012',  'BE',
+      '5013',  'BE',
+      '5014',  'BE',
+      '5021',  'BE',
+      '5030',  'BE',
+      '5031',  'BE',
+      '5041',  'BE',
+      '5043',  'BE',
+      '5051',  'BE',
+      '5054',  'BE',
+      '5057',  'BE',
+      '5061',  'BE',
+      '5065',  'BE',
+      '5075',  'BE',
+      '5083',  'BE',
+      '5089',  'BE',
+      '5096',  'BE',
+      '5098',  'BE',
+      '0',     'S'
+      ,'2000', 'S',
+      'UE'
+    ) as STATE_CODE
+  from MONITORING_BUSINESS_OPERATION mbo
+  where 
+      mbo.START_DATE >= sysdate-2/1440
+  and mbo.START_DATE < sysdate-1/1440
+  and mbo.OPERATION_TYPE in ('CARD_TRANSFER')
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_CARD_DEPO_ZERO_SUMM
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_CARD_DEPO_ZERO_SUMM" ("SUCCESSFUL", "E_633", "E_630", "E_621", "E_605", "E_604", "E_603", "E_602", "E_438", "E_430", "E_425", "E_409", "E_408", "E_407", "E_406", "E_405", "E_404", "E_403", "BUSINESS_ERROR") AS 
+  select /*[Мониторинг TIVOLI] Открытие вклада через СБОЛ(Вклад на нулевую сумму)*/
+  coalesce(sum(decode(STATE_CODE, 'S',    1, 0)), 0) "SUCCESSFUL",
+  coalesce(sum(decode(STATE_CODE, '-633', 1, 0)), 0) "E_633",
+  coalesce(sum(decode(STATE_CODE, '-630', 1, 0)), 0) "E_630",
+  coalesce(sum(decode(STATE_CODE, '-621', 1, 0)), 0) "E_621",
+  coalesce(sum(decode(STATE_CODE, '-605', 1, 0)), 0) "E_605",
+  coalesce(sum(decode(STATE_CODE, '-604', 1, 0)), 0) "E_604",
+  coalesce(sum(decode(STATE_CODE, '-603', 1, 0)), 0) "E_603",
+  coalesce(sum(decode(STATE_CODE, '-602', 1, 0)), 0) "E_602",
+  coalesce(sum(decode(STATE_CODE, '-438', 1, 0)), 0) "E_438",
+  coalesce(sum(decode(STATE_CODE, '-430', 1, 0)), 0) "E_430",
+  coalesce(sum(decode(STATE_CODE, '-425', 1, 0)), 0) "E_425",
+  coalesce(sum(decode(STATE_CODE, '-409', 1, 0)), 0) "E_409",
+  coalesce(sum(decode(STATE_CODE, '-408', 1, 0)), 0) "E_408",
+  coalesce(sum(decode(STATE_CODE, '-407', 1, 0)), 0) "E_407",
+  coalesce(sum(decode(STATE_CODE, '-406', 1, 0)), 0) "E_406",
+  coalesce(sum(decode(STATE_CODE, '-405', 1, 0)), 0) "E_405",
+  coalesce(sum(decode(STATE_CODE, '-404', 1, 0)), 0) "E_404",
+  coalesce(sum(decode(STATE_CODE, '-403', 1, 0)), 0) "E_403",
+  coalesce(sum(decode(STATE_CODE, 'BE',   1, 0)), 0) "BUSINESS_ERROR"
+from (
+  select
+    decode( mbo.STATE_CODE,
+      '-633','-633',
+      '-630','-630',
+      '-621','-621',
+      '-605','-605',
+      '-604','-604',
+      '-603','-603',
+      '-602','-602',
+      '-438','-438',
+      '-430','-430',
+      '-425','-425',
+      '-409','-409',
+      '-408','-408',
+      '-407','-407',
+      '-406','-406',
+      '-405','-405',
+      '-404','-404',
+      '-403','-403',
+      '0','S',
+      'BE'
+    ) as STATE_CODE
+    from MONITORING_BUSINESS_OPERATION mbo
+    where 
+        mbo.START_DATE >= sysdate-1/1440
+    and mbo.OPERATION_TYPE in ('TDO')
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_CARD_NEW_DEPO
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_CARD_NEW_DEPO" ("SUCCESSFUL", "E_633", "E_630", "E_621", "E_605", "E_604", "E_603", "E_602", "E_438", "E_430", "E_425", "E_409", "E_408", "E_407", "E_406", "E_405", "E_404", "E_403", "BUSINESS_ERROR") AS 
+  select /*[Мониторинг TIVOLI] Открытие вклада через СБОЛ(Вклад/Карта -> новый вклад)*/
+  coalesce(sum(decode(STATE_CODE, 'S',    1, 0)), 0) "SUCCESSFUL",
+  coalesce(sum(decode(STATE_CODE, '-633', 1, 0)), 0) "E_633",
+  coalesce(sum(decode(STATE_CODE, '-630', 1, 0)), 0) "E_630",
+  coalesce(sum(decode(STATE_CODE, '-621', 1, 0)), 0) "E_621",
+  coalesce(sum(decode(STATE_CODE, '-605', 1, 0)), 0) "E_605",
+  coalesce(sum(decode(STATE_CODE, '-604', 1, 0)), 0) "E_604",
+  coalesce(sum(decode(STATE_CODE, '-603', 1, 0)), 0) "E_603",
+  coalesce(sum(decode(STATE_CODE, '-602', 1, 0)), 0) "E_602",
+  coalesce(sum(decode(STATE_CODE, '-438', 1, 0)), 0) "E_438",
+  coalesce(sum(decode(STATE_CODE, '-430', 1, 0)), 0) "E_430",
+  coalesce(sum(decode(STATE_CODE, '-425', 1, 0)), 0) "E_425",
+  coalesce(sum(decode(STATE_CODE, '-409', 1, 0)), 0) "E_409",
+  coalesce(sum(decode(STATE_CODE, '-408', 1, 0)), 0) "E_408",
+  coalesce(sum(decode(STATE_CODE, '-407', 1, 0)), 0) "E_407",
+  coalesce(sum(decode(STATE_CODE, '-406', 1, 0)), 0) "E_406",
+  coalesce(sum(decode(STATE_CODE, '-405', 1, 0)), 0) "E_405",
+  coalesce(sum(decode(STATE_CODE, '-404', 1, 0)), 0) "E_404",
+  coalesce(sum(decode(STATE_CODE, '-403', 1, 0)), 0) "E_403",
+  coalesce(sum(decode(STATE_CODE, 'BE',   1, 0)), 0) "BUSINESS_ERROR"
+from (
+  select
+    decode( mbo.STATE_CODE,
+      '-633','-633',
+      '-630','-630',
+      '-621','-621',
+      '-605','-605',
+      '-604','-604',
+      '-603','-603',
+      '-602','-602',
+      '-438','-438',
+      '-430','-430',
+      '-425','-425',
+      '-409','-409',
+      '-408','-408',
+      '-407','-407',
+      '-406','-406',
+      '-405','-405',
+      '-404','-404',
+      '-403','-403',
+      '0','S',
+      'BE'
+    ) as STATE_CODE
+    from MONITORING_BUSINESS_OPERATION mbo
+    where 
+        mbo.START_DATE >= sysdate-1/1440
+    and mbo.OPERATION_TYPE in ('TCDO')
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_CREDIT_REQUEST
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_CREDIT_REQUEST" ("ERIB_CREDIT_REQUEST_TOTAL", "ERIB_CREDIT_REQUEST_SUCCESS", "ERIB_CREDIT_REQUEST_FAIL") AS 
+  select "ERIB_CREDIT_REQUEST_TOTAL","ERIB_CREDIT_REQUEST_SUCCESS","ERIB_CREDIT_REQUEST_FAIL" from 
+(
+  select
+    count(STATE_CODE) as ERIB_CREDIT_REQUEST_TOTAL,
+    count(case when STATE_CODE = 'DISPATCHED' then 1 else null end) as ERIB_CREDIT_REQUEST_SUCCESS,
+    count(case when STATE_CODE = 'ERROR' then 1 else null end) as ERIB_CREDIT_REQUEST_FAIL
+  from(
+    select STATE_CODE
+    from MONITORING_BUSINESS_OPERATION
+    where 
+        OPERATION_TYPE='CREDIT'
+    and START_DATE >=sysdate-1/1440
+  )
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_CREDIT_RESPONSE
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_CREDIT_RESPONSE" ("ERIB_CREDIT_RESPONSE_TOTAL", "ERIB_CREDIT_RESPONSE_SUCCESS", "ERIB_CREDIT_RESPONSE_FAIL") AS 
+  select "ERIB_CREDIT_RESPONSE_TOTAL","ERIB_CREDIT_RESPONSE_SUCCESS","ERIB_CREDIT_RESPONSE_FAIL" from (
+  select
+    count(STATE_CODE) as ERIB_CREDIT_RESPONSE_TOTAL,
+    count(case when STATE_CODE = 'EXECUTED' then 1 else null end) as ERIB_CREDIT_RESPONSE_SUCCESS,
+    count(case when STATE_CODE = 'ERROR' then 1 else null end) as ERIB_CREDIT_RESPONSE_FAIL
+  from(
+    select STATE_CODE
+    from MONITORING_BUSINESS_OPERATION
+    where OPERATION_TYPE='CRD_DCSN'
+    and START_DATE >= sysdate - 1/1440
+  )
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_CREDIT_REQUEST_DAY
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_CREDIT_REQUEST_DAY" ("START_DATE", "ERIB_CREDIT_REQUEST_TOTAL", "ERIB_CREDIT_REQUEST_SUCCESS", "ERIB_CREDIT_REQUEST_FAIL") AS 
+  with mask as (
+  select trunc(sysdate) - (1/1440)*(level) START_DATE from dual connect by level < 1441
+),
+operation as (
+  select 
+    trunc(START_DATE, 'MI') START_DATE,  STATE_CODE
+  from MONITORING_BUSINESS_OPERATION
+  where 
+      OPERATION_TYPE='CREDIT'
+  and START_DATE >= trunc(sysdate)-1
+  and START_DATE < trunc(sysdate)
+)
+select "START_DATE","ERIB_CREDIT_REQUEST_TOTAL","ERIB_CREDIT_REQUEST_SUCCESS","ERIB_CREDIT_REQUEST_FAIL" from 
+(
+  select
+    START_DATE,
+    count(STATE_CODE) as ERIB_CREDIT_REQUEST_TOTAL,
+    count(case when STATE_CODE = 'DISPATCHED' then 1 else null end) as ERIB_CREDIT_REQUEST_SUCCESS,
+    count(case when STATE_CODE = 'ERROR' then 1 else null end) as ERIB_CREDIT_REQUEST_FAIL
+  from(
+    select mask.START_DATE, operation.STATE_CODE
+    from mask 
+    left join operation on mask.START_DATE=operation.START_DATE
+  )
+  group by START_DATE
+  order by START_DATE desc
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_CREDIT_RESPONSE_DAY
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_CREDIT_RESPONSE_DAY" ("START_DATE", "ERIB_CREDIT_RESPONSE_TOTAL", "ERIB_CREDIT_RESPONSE_SUCCESS", "ERIB_CREDIT_RESPONSE_FAIL") AS 
+  with mask as (
+  select trunc(sysdate) - (1/1440)*(level) START_DATE from dual connect by level < 1441
+),
+operation as (
+  select 
+    trunc(START_DATE, 'MI') START_DATE,  STATE_CODE
+  from MONITORING_BUSINESS_OPERATION
+  where 
+      OPERATION_TYPE='CRD_DCSN'
+  and START_DATE >= trunc(sysdate)-1
+  and START_DATE < trunc(sysdate)
+)
+select "START_DATE","ERIB_CREDIT_RESPONSE_TOTAL","ERIB_CREDIT_RESPONSE_SUCCESS","ERIB_CREDIT_RESPONSE_FAIL" from 
+(
+  select
+    START_DATE,
+    count(STATE_CODE) as ERIB_CREDIT_RESPONSE_TOTAL,
+    count(case when STATE_CODE = 'EXECUTED' then 1 else null end) as ERIB_CREDIT_RESPONSE_SUCCESS,
+    count(case when STATE_CODE = 'ERROR' then 1 else null end) as ERIB_CREDIT_RESPONSE_FAIL
+  from(
+    select mask.START_DATE, operation.STATE_CODE
+    from mask 
+    left join operation on mask.START_DATE=operation.START_DATE
+  )
+  group by START_DATE
+  order by START_DATE desc
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_DEPO_NEW_DEPO
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_DEPO_NEW_DEPO" ("SUCCESSFUL", "E_633", "E_630", "E_621", "E_605", "E_604", "E_603", "E_602", "E_438", "E_430", "E_425", "E_409", "E_408", "E_407", "E_406", "E_405", "E_404", "E_403", "BUSINESS_ERROR") AS 
+  select 
+  coalesce(sum(decode(STATE_CODE, 'S',    1, 0)), 0) "SUCCESSFUL",
+  coalesce(sum(decode(STATE_CODE, '-633', 1, 0)), 0) "E_633",
+  coalesce(sum(decode(STATE_CODE, '-630', 1, 0)), 0) "E_630",
+  coalesce(sum(decode(STATE_CODE, '-621', 1, 0)), 0) "E_621",
+  coalesce(sum(decode(STATE_CODE, '-605', 1, 0)), 0) "E_605",
+  coalesce(sum(decode(STATE_CODE, '-604', 1, 0)), 0) "E_604",
+  coalesce(sum(decode(STATE_CODE, '-603', 1, 0)), 0) "E_603",
+  coalesce(sum(decode(STATE_CODE, '-602', 1, 0)), 0) "E_602",
+  coalesce(sum(decode(STATE_CODE, '-438', 1, 0)), 0) "E_438",
+  coalesce(sum(decode(STATE_CODE, '-430', 1, 0)), 0) "E_430",
+  coalesce(sum(decode(STATE_CODE, '-425', 1, 0)), 0) "E_425",
+  coalesce(sum(decode(STATE_CODE, '-409', 1, 0)), 0) "E_409",
+  coalesce(sum(decode(STATE_CODE, '-408', 1, 0)), 0) "E_408",
+  coalesce(sum(decode(STATE_CODE, '-407', 1, 0)), 0) "E_407",
+  coalesce(sum(decode(STATE_CODE, '-406', 1, 0)), 0) "E_406",
+  coalesce(sum(decode(STATE_CODE, '-405', 1, 0)), 0) "E_405",
+  coalesce(sum(decode(STATE_CODE, '-404', 1, 0)), 0) "E_404",
+  coalesce(sum(decode(STATE_CODE, '-403', 1, 0)), 0) "E_403",
+  coalesce(sum(decode(STATE_CODE, 'BE',   1, 0)), 0) "BUSINESS_ERROR"
+from (
+  select
+    decode( mbo.STATE_CODE,
+      '-633','-633',
+      '-630','-630',
+      '-621','-621',
+      '-605','-605',
+      '-604','-604',
+      '-603','-603',
+      '-602','-602',
+      '-438','-438',
+      '-430','-430',
+      '-425','-425',
+      '-409','-409',
+      '-408','-408',
+      '-407','-407',
+      '-406','-406',
+      '-405','-405',
+      '-404','-404',
+      '-403','-403',
+      '0','S',
+      'BE'
+    ) as STATE_CODE
+    from MONITORING_BUSINESS_OPERATION mbo
+    where 
+        START_DATE >= to_date('18.06.2015 13:00:00','dd.mm.yyyy hh24:mi:ss')
+    and START_DATE < to_date('18.06.2015 14:00:00','dd.mm.yyyy hh24:mi:ss')
+    and mbo.OPERATION_TYPE in ('TDDO')
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_IQWAVE_ERR
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_IQWAVE_ERR" ("SUCCESSFUL", "E_709", "E_1006", "E_4000", "E_4893", "E_4894", "E_4895", "E_4897", "E_4900", "E_5068", "E_5088", "E_5091", "BUSINESS_ERROR", "UNKNOW_ERROR") AS 
+  select /*[Мониторинг TIVOLI] Платежи через СБОЛ в пользу федеральных получателей*/
+  coalesce(sum(decode(STATE_CODE, 'S',    1, 0)), 0) "SUCCESSFUL",
+  coalesce(sum(decode(STATE_CODE, '709', 1, 0)), 0) "E_709",
+  coalesce(sum(decode(STATE_CODE, '1006', 1, 0)), 0) "E_1006",
+  coalesce(sum(decode(STATE_CODE, '4000', 1, 0)), 0) "E_4000",
+  coalesce(sum(decode(STATE_CODE, '4893', 1, 0)), 0) "E_4893",
+  coalesce(sum(decode(STATE_CODE, '4894', 1, 0)), 0) "E_4894",
+  coalesce(sum(decode(STATE_CODE, '4895', 1, 0)), 0) "E_4895",
+  coalesce(sum(decode(STATE_CODE, '4897', 1, 0)), 0) "E_4897",
+  coalesce(sum(decode(STATE_CODE, '4900', 1, 0)), 0) "E_4900",
+  coalesce(sum(decode(STATE_CODE, '5068', 1, 0)), 0) "E_5068",
+  coalesce(sum(decode(STATE_CODE, '5088', 1, 0)), 0) "E_5088",
+  coalesce(sum(decode(STATE_CODE, '5091', 1, 0)), 0) "E_5091",
+  coalesce(sum(decode(STATE_CODE, 'BE', 1, 0)), 0) "BUSINESS_ERROR",
+  coalesce(sum(decode(STATE_CODE, 'UE', 1, 0)), 0) "UNKNOW_ERROR"
+from (
+  select
+    decode( mbo.STATE_CODE,
+      '709',   '709',
+      '1006',  '1006',
+      '4000',  '4000',
+      '4893',  '4893',
+      '4894',  '4894',
+      '4895',  '4895',
+      '4897',  '4897',
+      '4900',  '4900',
+      '5068',  '5068',
+      '5088',  '5088',
+      '5091',  '5091',
+      '-5000',  'BE',
+      '2',     'BE',
+      '1000',  'BE',
+      '1005',  'BE',
+      '1007',  'BE',
+      '1008',  'BE',
+      '1009',  'BE',
+      '1010',  'BE',
+      '1011',  'BE',
+      '1016',  'BE',
+      '1019',  'BE',
+      '5001',  'BE',
+      '5001',  'BE',
+      '5003',  'BE',
+      '5005',  'BE',
+      '5007',  'BE',
+      '5012',  'BE',
+      '5013',  'BE',
+      '5014',  'BE',
+      '5021',  'BE',
+      '5030',  'BE',
+      '5031',  'BE',
+      '5041',  'BE',
+      '5043',  'BE',
+      '5051',  'BE',
+      '5054',  'BE',
+      '5057',  'BE',
+      '5061',  'BE',
+      '5065',  'BE',
+      '5075',  'BE',
+      '5083',  'BE',
+      '5089',  'BE',
+      '5096',  'BE',
+      '5098',  'BE',
+      '0',     'S'
+      ,'2000', 'S',
+      'UE'
+    ) as STATE_CODE
+    from MONITORING_BUSINESS_OPERATION mbo
+    where 
+        mbo.START_DATE >= sysdate-1/1440
+    and mbo.OPERATION_TYPE in ('IQWAVE')
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_PAY_STAT
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_PAY_STAT" ("SBOL_TDC_CONFIRM_CHECK", "SBOL_TDC_CONFIRM_NONE", "SBOL_TDC_CONFIRM_SMS", "SBOL_TDC_FAULT_PERCENT", "SBOL_TDC_STATE_DELAYEDDISPATCH", "SBOL_TDC_STATE_DISPATCHED", "SBOL_TDC_STATE_ERROR", "SBOL_TDC_STATE_EXECUTED", "SBOL_TDC_STATE_REFUSED", "SBOL_TDC_STATE_SAVED", "SBOL_TDC_TOTAL", "SBOL_TDC_UNCONFIRMED_PERCENT", "SBOL_TCD_CONFIRM_CHECK", "SBOL_TCD_CONFIRM_NONE", "SBOL_TCD_CONFIRM_SMS", "SBOL_TCD_FAULT_PERCENT", "SBOL_TCD_STATE_DELAYEDDISPATCH", "SBOL_TCD_STATE_DISPATCHED", "SBOL_TCD_STATE_ERROR", "SBOL_TCD_STATE_EXECUTED", "SBOL_TCD_STATE_REFUSED", "SBOL_TCD_STATE_SAVED", "SBOL_TCD_TOTAL", "SBOL_TCD_UNCONFIRMED_PERCENT") AS 
+  select /*[Мониторинг TIVOLI] Перевод вклад -> карта в СБОЛ, Перевод карта -> вклад в СБОЛ*/ 
+  SBOL_TDC_CONFIRM_CHECK,
+  SBOL_TDC_CONFIRM_NONE,
+  SBOL_TDC_CONFIRM_SMS,
+  decode(SBOL_TDC_TOTAL,0,0,round(SBOL_TDC_STATE_ERROR*100/SBOL_TDC_TOTAL)) as SBOL_TDC_FAULT_PERCENT,
+  SBOL_TDC_STATE_DELAYEDDISPATCH,
+  SBOL_TDC_STATE_DISPATCHED,
+  SBOL_TDC_STATE_ERROR,
+  SBOL_TDC_STATE_EXECUTED,
+  SBOL_TDC_STATE_REFUSED,
+  SBOL_TDC_STATE_SAVED,
+  SBOL_TDC_TOTAL,
+  decode(SBOL_TDC_TOTAL,0,0,round((SBOL_TDC_CONFIRM_CHECK+SBOL_TDC_CONFIRM_SMS)*100/SBOL_TDC_TOTAL)) as SBOL_TDC_UNCONFIRMED_PERCENT,
+  SBOL_TCD_CONFIRM_CHECK,
+  SBOL_TCD_CONFIRM_NONE,
+  SBOL_TCD_CONFIRM_SMS,
+  decode(SBOL_TDC_TOTAL,0,0,round(SBOL_TCD_STATE_ERROR*100/SBOL_TCD_TOTAL)) as SBOL_TCD_FAULT_PERCENT,
+  SBOL_TCD_STATE_DELAYEDDISPATCH,
+  SBOL_TCD_STATE_DISPATCHED,
+  SBOL_TCD_STATE_ERROR,
+  SBOL_TCD_STATE_EXECUTED,
+  SBOL_TCD_STATE_REFUSED,
+  SBOL_TCD_STATE_SAVED,
+  SBOL_TCD_TOTAL,
+  decode(SBOL_TDC_TOTAL,0,0,round((SBOL_TCD_CONFIRM_CHECK+SBOL_TCD_CONFIRM_SMS)*100/SBOL_TCD_TOTAL)) as SBOL_TCD_UNCONFIRMED_PERCENT
+from(
+  select
+    count(case when PTYPE = 'TDC' and CONFIRM_STRATEGY_TYPE = 'card' then 1 else null end) as SBOL_TDC_CONFIRM_CHECK,
+    count(case when PTYPE = 'TDC' and CONFIRM_STRATEGY_TYPE = 'none' then 1 else null end) as SBOL_TDC_CONFIRM_NONE,
+    count(case when PTYPE = 'TDC' and CONFIRM_STRATEGY_TYPE = 'sms' then 1 else null end) as SBOL_TDC_CONFIRM_SMS,
+    count(case when PTYPE = 'TDC' and STATE_CODE = 'DELAYED_DISPATCH' then 1 else null end) as SBOL_TDC_STATE_DELAYEDDISPATCH,
+    count(case when PTYPE = 'TDC' and STATE_CODE = 'DISPATCHED' then 1 else null end) as SBOL_TDC_STATE_DISPATCHED,
+    count(case when PTYPE = 'TDC' and STATE_CODE = 'ERROR' then 1 else null end) as SBOL_TDC_STATE_ERROR,
+    count(case when PTYPE = 'TDC' and STATE_CODE = 'EXECUTED' then 1 else null end) as SBOL_TDC_STATE_EXECUTED,
+    count(case when PTYPE = 'TDC' and STATE_CODE = 'REFUSED' then 1 else null end) as SBOL_TDC_STATE_REFUSED,
+    count(case when PTYPE = 'TDC' and STATE_CODE = 'SAVED' then 1 else null end) as SBOL_TDC_STATE_SAVED,
+    count(case when PTYPE = 'TDC' and CONFIRM_STRATEGY_TYPE = 'null' then 1 else null end) as SBOL_TDC_TOTAL,
+    count(case when PTYPE = 'TCD' and CONFIRM_STRATEGY_TYPE = 'card' then 1 else null end) as SBOL_TCD_CONFIRM_CHECK,
+    count(case when PTYPE = 'TCD' and CONFIRM_STRATEGY_TYPE = 'none' then 1 else null end) as SBOL_TCD_CONFIRM_NONE,
+    count(case when PTYPE = 'TCD' and CONFIRM_STRATEGY_TYPE = 'sms' then 1 else null end) as SBOL_TCD_CONFIRM_SMS,
+    count(case when PTYPE = 'TCD' and STATE_CODE = 'DELAYED_DISPATCH' then 1 else null end) as SBOL_TCD_STATE_DELAYEDDISPATCH,
+    count(case when PTYPE = 'TCD' and STATE_CODE = 'DISPATCHED' then 1 else null end) as SBOL_TCD_STATE_DISPATCHED,
+    count(case when PTYPE = 'TCD' and STATE_CODE = 'ERROR' then 1 else null end) as SBOL_TCD_STATE_ERROR,
+    count(case when PTYPE = 'TCD' and STATE_CODE = 'EXECUTED' then 1 else null end) as SBOL_TCD_STATE_EXECUTED,
+    count(case when PTYPE = 'TCD' and STATE_CODE = 'REFUSED' then 1 else null end) as SBOL_TCD_STATE_REFUSED,
+    count(case when PTYPE = 'TCD' and STATE_CODE = 'SAVED' then 1 else null end) as SBOL_TCD_STATE_SAVED,
+    count(case when PTYPE = 'TCD' and CONFIRM_STRATEGY_TYPE = 'null' then 1 else null end) as SBOL_TCD_TOTAL
+  from(
+    select 
+      case 
+        when mbo.STATE_CODE='0' then 'EXECUTED'
+        when regexp_like(mbo.STATE_CODE, '\-\d{1,3}') then 'ERROR'
+        else mbo.STATE_CODE
+      end as STATE_CODE,
+      decode(mbo.STATE_CODE, 'card', 'card', 'sms', 'sms', 'none', 'none', 'null') as CONFIRM_STRATEGY_TYPE,
+      mbo.OPERATION_TYPE as PTYPE
+    from MONITORING_BUSINESS_OPERATION mbo
+    where 
+        mbo.START_DATE >= sysdate-1/1440
+    and mbo.OPERATION_TYPE in ('TCD', 'TDC')
+  )
+);
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_TB_DOC
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_TB_DOC" ("tb", "sum(docs)") AS 
+  with depts as (
+  select '13' tb from dual union all
+  select '18' tb from dual union all
+  select '16' tb from dual union all
+  select '31' tb from dual union all
+  select '36' tb from dual union all
+  select '38' tb from dual union all
+  select '40' tb from dual union all
+  select '42' tb from dual union all
+  select '44' tb from dual union all
+  select '49' tb from dual union all
+  select '52' tb from dual union all
+  select '54' tb from dual union all
+  select '55' tb from dual union all
+  select '60' tb from dual union all
+  select '67' tb from dual union all
+  select '70' tb from dual union all
+  select '77' tb from dual union all
+  select '99' tb from dual
+)
+select TB as "tb",round(sum(DOCS)/5,0) as "sum(docs)" from (
+  select TB, 0 DOCS from depts union all
+  select 
+    mbo.TB, 1 DOCS
+  from MONITORING_BUSINESS_OPERATION mbo
+  where 
+      mbo.START_DATE >= sysdate-5/1440
+  and mbo.TB in ('13','18','16','31','36','38','40','42','44','49','52','54','55','60','67','70','77','99')
+)    
+group by TB
+order by 1;
+/
+--------------------------------------------------------
+--  DDL for View TIVOLI_TRANSFER_IMA
+--------------------------------------------------------
+
+  CREATE OR REPLACE FORCE VIEW "TIVOLI_TRANSFER_IMA" ("ERIB_TCI_ALL_FAIL", "ERIB_TCI_ALL_SUCC", "ERIB_TCI_ALL_TOTAL", "ERIB_TCI_ATM_FAIL", "ERIB_TCI_ATM_SUCC", "ERIB_TCI_ATM_TOTAL", "ERIB_TCI_ERMB_FAIL", "ERIB_TCI_ERMB_SUCC", "ERIB_TCI_ERMB_TOTAL", "ERIB_TCI_MP_FAIL", "ERIB_TCI_MP_SUCC", "ERIB_TCI_MP_TOTAL", "ERIB_TCI_WEB_FAIL", "ERIB_TCI_WEB_SUCC", "ERIB_TCI_WEB_TOTAL", "ERIB_TDI_ALL_FAIL", "ERIB_TDI_ALL_SUCC", "ERIB_TDI_ALL_TOTAL", "ERIB_TDI_ATM_FAIL", "ERIB_TDI_ATM_SUCC", "ERIB_TDI_ATM_TOTAL", "ERIB_TDI_ERMB_FAIL", "ERIB_TDI_ERMB_SUCC", "ERIB_TDI_ERMB_TOTAL", "ERIB_TDI_MP_FAIL", "ERIB_TDI_MP_SUCC", "ERIB_TDI_MP_TOTAL", "ERIB_TDI_WEB_FAIL", "ERIB_TDI_WEB_SUCC", "ERIB_TDI_WEB_TOTAL", "ERIB_TIC_ALL_FAIL", "ERIB_TIC_ALL_SUCC", "ERIB_TIC_ALL_TOTAL", "ERIB_TIC_ATM_FAIL", "ERIB_TIC_ATM_SUCC", "ERIB_TIC_ATM_TOTAL", "ERIB_TIC_ERMB_FAIL", "ERIB_TIC_ERMB_SUCC", "ERIB_TIC_ERMB_TOTAL", "ERIB_TIC_MP_FAIL", "ERIB_TIC_MP_SUCC", "ERIB_TIC_MP_TOTAL", "ERIB_TIC_WEB_FAIL", "ERIB_TIC_WEB_SUCC", "ERIB_TIC_WEB_TOTAL", "ERIB_TID_ALL_FAIL", "ERIB_TID_ALL_SUCC", "ERIB_TID_ALL_TOTAL", "ERIB_TID_ATM_FAIL", "ERIB_TID_ATM_SUCC", "ERIB_TID_ATM_TOTAL", "ERIB_TID_ERMB_FAIL", "ERIB_TID_ERMB_SUCC", "ERIB_TID_ERMB_TOTAL", "ERIB_TID_MP_FAIL", "ERIB_TID_MP_SUCC", "ERIB_TID_MP_TOTAL", "ERIB_TID_WEB_FAIL", "ERIB_TID_WEB_SUCC", "ERIB_TID_WEB_TOTAL") AS 
+  select /*[Мониторинг TIVOLI] Перевод средств со вклада ОМС на карту, Перевод средств со вклада ОМС на вклад*/
+  sum(case when op = 'TCI' and sc != '0' then cnt else 0 end) as ERIB_TCI_ALL_FAIL,
+  sum(case when op = 'TCI' and sc = '0' then cnt else 0 end) as ERIB_TCI_ALL_SUCC,
+  sum(case when op = 'TCI'  then cnt else 0 end) as ERIB_TCI_ALL_TOTAL,
+  sum(case when op = 'TCI' and ap = 'atm' and sc != '0' then cnt else 0 end) as ERIB_TCI_ATM_FAIL,
+  sum(case when op = 'TCI' and ap = 'atm' and sc = '0' then cnt else 0 end) as ERIB_TCI_ATM_SUCC,
+  sum(case when op = 'TCI' and ap = 'atm'  then cnt else 0 end) as ERIB_TCI_ATM_TOTAL,
+  sum(case when op = 'TCI' and ap = 'ermb' and sc != '0' then cnt else 0 end) as ERIB_TCI_ERMB_FAIL,
+  sum(case when op = 'TCI' and ap = 'ermb' and sc = '0' then cnt else 0 end) as ERIB_TCI_ERMB_SUCC,
+  sum(case when op = 'TCI' and ap = 'ermb'  then cnt else 0 end) as ERIB_TCI_ERMB_TOTAL,
+  sum(case when op = 'TCI' and ap = 'mp' and sc != '0' then cnt else 0 end) as ERIB_TCI_MP_FAIL,
+  sum(case when op = 'TCI' and ap = 'mp' and sc = '0' then cnt else 0 end) as ERIB_TCI_MP_SUCC,
+  sum(case when op = 'TCI' and ap = 'mp'  then cnt else 0 end) as ERIB_TCI_MP_TOTAL,
+  sum(case when op = 'TCI' and ap = 'web' and sc != '0' then cnt else 0 end) as ERIB_TCI_WEB_FAIL,
+  sum(case when op = 'TCI' and ap = 'web' and sc = '0' then cnt else 0 end) as ERIB_TCI_WEB_SUCC,
+  sum(case when op = 'TCI' and ap = 'web'  then cnt else 0 end) as ERIB_TCI_WEB_TOTAL,
+  sum(case when op = 'TDI' and sc != '0' then cnt else 0 end) as ERIB_TDI_ALL_FAIL,
+  sum(case when op = 'TDI' and sc = '0' then cnt else 0 end) as ERIB_TDI_ALL_SUCC,
+  sum(case when op = 'TDI'  then cnt else 0 end) as ERIB_TDI_ALL_TOTAL,
+  sum(case when op = 'TDI' and ap = 'atm' and sc != '0' then cnt else 0 end) as ERIB_TDI_ATM_FAIL,
+  sum(case when op = 'TDI' and ap = 'atm' and sc = '0' then cnt else 0 end) as ERIB_TDI_ATM_SUCC,
+  sum(case when op = 'TDI' and ap = 'atm'  then cnt else 0 end) as ERIB_TDI_ATM_TOTAL,
+  sum(case when op = 'TDI' and ap = 'ermb' and sc != '0' then cnt else 0 end) as ERIB_TDI_ERMB_FAIL,
+  sum(case when op = 'TDI' and ap = 'ermb' and sc = '0' then cnt else 0 end) as ERIB_TDI_ERMB_SUCC,
+  sum(case when op = 'TDI' and ap = 'ermb'  then cnt else 0 end) as ERIB_TDI_ERMB_TOTAL,
+  sum(case when op = 'TDI' and ap = 'mp' and sc != '0' then cnt else 0 end) as ERIB_TDI_MP_FAIL,
+  sum(case when op = 'TDI' and ap = 'mp' and sc = '0' then cnt else 0 end) as ERIB_TDI_MP_SUCC,
+  sum(case when op = 'TDI' and ap = 'mp'  then cnt else 0 end) as ERIB_TDI_MP_TOTAL,
+  sum(case when op = 'TDI' and ap = 'web' and sc != '0' then cnt else 0 end) as ERIB_TDI_WEB_FAIL,
+  sum(case when op = 'TDI' and ap = 'web' and sc = '0' then cnt else 0 end) as ERIB_TDI_WEB_SUCC,
+  sum(case when op = 'TDI' and ap = 'web'  then cnt else 0 end) as ERIB_TDI_WEB_TOTAL,
+  sum(case when op = 'TIC' and sc != '0' then cnt else 0 end) as ERIB_TIC_ALL_FAIL,
+  sum(case when op = 'TIC' and sc = '0' then cnt else 0 end) as ERIB_TIC_ALL_SUCC,
+  sum(case when op = 'TIC'  then cnt else 0 end) as ERIB_TIC_ALL_TOTAL,
+  sum(case when op = 'TIC' and ap = 'atm' and sc != '0' then cnt else 0 end) as ERIB_TIC_ATM_FAIL,
+  sum(case when op = 'TIC' and ap = 'atm' and sc = '0' then cnt else 0 end) as ERIB_TIC_ATM_SUCC,
+  sum(case when op = 'TIC' and ap = 'atm'  then cnt else 0 end) as ERIB_TIC_ATM_TOTAL,
+  sum(case when op = 'TIC' and ap = 'ermb' and sc != '0' then cnt else 0 end) as ERIB_TIC_ERMB_FAIL,
+  sum(case when op = 'TIC' and ap = 'ermb' and sc = '0' then cnt else 0 end) as ERIB_TIC_ERMB_SUCC,
+  sum(case when op = 'TIC' and ap = 'ermb'  then cnt else 0 end) as ERIB_TIC_ERMB_TOTAL,
+  sum(case when op = 'TIC' and ap = 'mp' and sc != '0' then cnt else 0 end) as ERIB_TIC_MP_FAIL,
+  sum(case when op = 'TIC' and ap = 'mp' and sc = '0' then cnt else 0 end) as ERIB_TIC_MP_SUCC,
+  sum(case when op = 'TIC' and ap = 'mp'  then cnt else 0 end) as ERIB_TIC_MP_TOTAL,
+  sum(case when op = 'TIC' and ap = 'web' and sc != '0' then cnt else 0 end) as ERIB_TIC_WEB_FAIL,
+  sum(case when op = 'TIC' and ap = 'web' and sc = '0' then cnt else 0 end) as ERIB_TIC_WEB_SUCC,
+  sum(case when op = 'TIC' and ap = 'web'  then cnt else 0 end) as ERIB_TIC_WEB_TOTAL,
+  sum(case when op = 'TID' and sc != '0' then cnt else 0 end) as ERIB_TID_ALL_FAIL,
+  sum(case when op = 'TID' and sc = '0' then cnt else 0 end) as ERIB_TID_ALL_SUCC,
+  sum(case when op = 'TID'  then cnt else 0 end) as ERIB_TID_ALL_TOTAL,
+  sum(case when op = 'TID' and ap = 'atm' and sc != '0' then cnt else 0 end) as ERIB_TID_ATM_FAIL,
+  sum(case when op = 'TID' and ap = 'atm' and sc = '0' then cnt else 0 end) as ERIB_TID_ATM_SUCC,
+  sum(case when op = 'TID' and ap = 'atm'  then cnt else 0 end) as ERIB_TID_ATM_TOTAL,
+  sum(case when op = 'TID' and ap = 'ermb' and sc != '0' then cnt else 0 end) as ERIB_TID_ERMB_FAIL,
+  sum(case when op = 'TID' and ap = 'ermb' and sc = '0' then cnt else 0 end) as ERIB_TID_ERMB_SUCC,
+  sum(case when op = 'TID' and ap = 'ermb'  then cnt else 0 end) as ERIB_TID_ERMB_TOTAL,
+  sum(case when op = 'TID' and ap = 'mp' and sc != '0' then cnt else 0 end) as ERIB_TID_MP_FAIL,
+  sum(case when op = 'TID' and ap = 'mp' and sc = '0' then cnt else 0 end) as ERIB_TID_MP_SUCC,
+  sum(case when op = 'TID' and ap = 'mp'  then cnt else 0 end) as ERIB_TID_MP_TOTAL,
+  sum(case when op = 'TID' and ap = 'web' and sc != '0' then cnt else 0 end) as ERIB_TID_WEB_FAIL,
+  sum(case when op = 'TID' and ap = 'web' and sc = '0' then cnt else 0 end) as ERIB_TID_WEB_SUCC,
+  sum(case when op = 'TID' and ap = 'web'  then cnt else 0 end) as ERIB_TID_WEB_TOTAL
+from(
+  select 'ap' as ap,'op' as op,'sc' as sc, 0 as cnt from dual union all
+  select ap, op, sc, count(1) as cnt from (
+    select
+      case 
+        when mbo.APPLICATION in ('PhizIC', 'internet') then 'web'
+        when mbo.APPLICATION in ('sms') then 'ermb'
+        when mbo.APPLICATION like 'mobile%' then 'mp'
+        when mbo.APPLICATION in ('atm') then 'atm'
+      end as ap,
+      mbo.OPERATION_TYPE as op,
+      mbo.STATE_CODE as sc
+    from MONITORING_BUSINESS_OPERATION mbo
+    where 
+        mbo.START_DATE >= sysdate-1/1440
+    and mbo.OPERATION_TYPE in ('TCI', 'TDI', 'TIC', 'TID')
+  )
+  group by ap, op, sc
+);
+/
+
+

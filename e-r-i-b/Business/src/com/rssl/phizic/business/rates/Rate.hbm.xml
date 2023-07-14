@@ -1,0 +1,169 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <typedef name="CurrencyRateType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+       <param name="enumClass">com.rssl.phizic.common.types.CurrencyRateType</param>
+       <param name="identifierMethod">getId</param>
+       <param name="valueOfMethod">valueOf</param>
+    </typedef>
+
+
+    <typedef name="DynamicExchangeRate" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.common.types.DynamicExchangeRate</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.business.rates.Rate" table="RATE" batch-size="5">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_RATE</param>
+            </generator>
+        </id>
+
+        <many-to-one name="department" class="com.rssl.phizic.business.departments.Department" column="DEPARTMENT_ID" lazy="false" unique="true" not-null="false"/>
+        <property name="creationDate" type="calendar"  not-null="true" column="CREATION_DATE"/>
+        <property name="orderDate" type="calendar"  not-null="false" column="ORDER_DATE"/>
+        <property name="orderNumber" type="string"  not-null="false" column="ORDER_NUMBER"/>
+        <property name="effDate" type="calendar"  not-null="true" column="EFF_DATE"/>
+        <property name="fromValue" type="big_decimal"  not-null="true" column="FROM_VALUE"/>
+        <property name="toValue" type="big_decimal"  not-null="true" column="TO_VALUE"/>
+        <property name="currencyRateType" type="CurrencyRateType" not-null="true" column="RATE_TYPE"/>
+        <property name="dynamicValue" type="big_decimal" not-null="false" column="DYNAMIC_VALUE"/>
+        <property name="dynamicExchangeRate" type="DynamicExchangeRate" not-null="false" column="DYNAMIC_EXCHANGE"/>
+        <property name="tarifPlanCodeType" type="string" not-null="false" column="TARIF_PLAN_CODE"/>
+        <property name="expireDate" type="calendar" not-null="false" column="EXPIRE_DATE"/>
+
+        <property name="fromCurrency" type="currency" column="FROM_CURRENCY" not-null="true"/>
+        <property name="toCurrency" type="currency" column="TO_CURRENCY" not-null="true"/>
+   </class>
+    <!--Получение курса на дату по департаменту-->
+    <!--с учетом:-->
+    <!--1. обратных курсов-->
+    <!--2. департамент до ТБ-->
+    <!--3. тарифного плана клиента-->
+    <!--
+        Опорный объект: RATE
+        Предикаты доступа: fullscan
+        Кардинальность: равна количеству подходящих по условию записей
+    -->
+    <sql-query name="com.rssl.phizic.business.rates.BDCurrencyRateService.getListByData">
+        <return alias="rate" class="com.rssl.phizic.business.rates.Rate"/>
+        <![CDATA[
+            select {rate.*}
+              from (select rate.*,
+                           row_number() over(order by rate.eff_date desc) as rn
+                      from rate
+                     where :date > rate.eff_date
+                       and ((rate.from_Currency = :fromNumber and rate.to_Currency = :toNumber and rate.Rate_Type = :rateType) or
+                            (rate.from_Currency = :toNumber and rate.to_Currency = :fromNumber and rate.Rate_Type = :inverseRateType))
+                       and (((:tarifPlanCodeType = '0' or :tarifPlanCodeType = 'UNKNOWN') and rate.tarif_Plan_Code is null) or (:tarifPlanCodeType = rate.tarif_Plan_Code))
+                       and (rate.department_id = :department_id)
+                   ) rate
+             where rate.rn = 1
+           ]]>
+    </sql-query>
+
+    <!--Список актуальных на определенную дату курсов всех валют, по которым пришла информация.-->
+    <!--с учетом:-->
+    <!--1. обратных курсов-->
+    <!--2. ТБ-->
+    <!--3. тарифного плана клиента-->
+    <sql-query name="com.rssl.phizic.business.rates.BDCurrencyRateService.getActualCurrencyRatesListByParams">
+        <return alias="rate" class="com.rssl.phizic.business.rates.Rate"/>
+        <![CDATA[
+            select {rate.*}
+              from (select rate.*,
+                           row_number() over(partition by rate.from_currency, rate.to_currency, rate.rate_type, nvl(rate.tarif_plan_code, 'UNKNOWN') order by rate.eff_date desc) as rn
+                      from Rate
+                     where :to in (rate.from_Currency, rate.to_Currency)
+                       and rate.rate_type in (:rateType, :inverseRateType)
+                       and rate.department_id = :department_id
+                       and :actualDate > rate.eff_date
+                       and rate.from_currency not in (:dontShowCurrencies)
+                       and rate.to_currency not in (:dontShowCurrencies)
+                   ) rate
+             where rate.rn = 1
+           ]]>
+    </sql-query>
+
+    <!--
+        Опорный объект: RATE_IDX_EFF_DATE
+        Предикаты доступа: access("RATE"."EFF_DATE"=TO_TIMESTAMP(:DATE) AND "RATE"."FROM_CURRENCY"=:FROM
+                           AND "RATE"."TO_CURRENCY"=:TO AND "RATE"."DEPARTMENT_ID"=TO_NUMBER(:DEPARTMENT_ID)
+                           AND "RATE"."RATE_TYPE"=TO_NUMBER(:RATETYPE))
+        Кардинальность: равна количеству подходящих по условию записей
+    -->
+    <query name="com.rssl.phizic.business.rates.BDCurrencyRateService.getByUniqData">
+         select rate from com.rssl.phizic.business.rates.Rate rate
+         where rate.toCurrency = :to
+           and rate.fromCurrency = :from
+           and rate.effDate = :date
+           and rate.currencyRateType = :rateType
+           and rate.department.id = :department_id
+           and (
+                ((:tarifPlanCodeType = '0' or :tarifPlanCodeType = 'UNKNOWN')and rate.tarifPlanCodeType is null) or
+                (:tarifPlanCodeType = rate.tarifPlanCodeType)
+               )
+    </query>
+
+    <!-- Возвращает курсы за период по заданной валюте -->
+    <sql-query name="com.rssl.phizic.business.ips.MoneyExchanger.getRates">
+        <return alias="rate" class="com.rssl.phizic.business.rates.Rate"/>
+        <![CDATA[
+            with
+              CB_RATES as (
+                select * from RATE
+                where FROM_CURRENCY = :currencyFrom
+                  and TO_CURRENCY = :currencyTo
+                  and DEPARTMENT_ID = :departmentId
+                  and RATE_TYPE = :rateType
+                  and EFF_DATE <= :untilDate
+                order by EFF_DATE asc
+              )
+            select {rate.*} from CB_RATES rate
+            where EFF_DATE >= (select MAX(EFF_DATE) from CB_RATES where EFF_DATE <= :startDate)
+        ]]>
+    </sql-query>
+
+    <!--Возвращает список курсов валют по параметрам, за определённый период времени-->
+    <query name="com.rssl.phizic.business.rates.BDCurrencyRateService.geCurrencyRatePeriodOfTime">
+        <![CDATA[
+        select rate
+          from com.rssl.phizic.business.rates.Rate as rate
+         where rate.currencyRateType = :rateType
+           and rate.fromCurrency = :fromCurrency
+           and rate.effDate <= :minDate and rate.effDate < :maxDate
+           and rate.department.id = :departmentId
+        ]]>
+    </query>
+
+    <query name="com.rssl.phizic.business.rates.BDCurrencyRateService.rateExistByOrderNumber">
+        select 1
+        from com.rssl.phizic.business.rates.Rate as rate
+        where rate.orderNumber = :orderNumber
+            and rate.department.id = :departmentId
+            and year(rate.orderDate) = :year
+            and rate.tarifPlanCodeType = :tarifPlanCodeType
+    </query>
+
+    <!--Проверяет были ли в таблицу загружены курсы с указанной валютой
+        Опорный объект: DXREFERENCE_16, DXREFERENCE_18
+        Предикаты доступа: access("TO_CURRENCY"=:CURRENCY)
+                           access("FROM_CURRENCY"=:CURRENCY)
+        Кардинальность: 1 (при вызове запроса выполняется setMaxResults(1))
+    -->
+    <query name="com.rssl.phizic.business.rates.BDCurrencyRateService.rateExistByCurrency">
+        select 1
+        from com.rssl.phizic.business.rates.Rate as rate
+        where rate.fromCurrency = :currency
+            or rate.toCurrency = :currency
+    </query>
+
+    <query name="com.rssl.phizic.business.rates.BDCurrencyRateService.updateOldRates">
+        update com.rssl.phizic.business.rates.Rate rate
+            set rate.expireDate = :expDate
+            where rate.id in (:ids)
+    </query>
+
+</hibernate-mapping>

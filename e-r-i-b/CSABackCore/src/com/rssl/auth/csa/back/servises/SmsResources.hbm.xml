@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!--Опорный объект:INDEX_SMS_CHANNEL_KEY-->
+    <!--Предикаты доступа: access("RESOURCES"."KEY"=:EXTRA_KEY)-->
+    <!--Кардинальность: 1 -->
+    <sql-query name="com.rssl.auth.csa.back.messages.CSASmsResourcesOperation.getText">
+        <return-scalar column="text" type="string"/>
+            <![CDATA[
+                select resources.TEXT as text from SMS_RESOURCES resources where resources.KEY = :extra_key
+            ]]>
+    </sql-query>
+
+   <!--Опорный объект:INDEX_SMS_CHANNEL_KEY-->
+   <!--Предикаты доступа: access("RESOURCES"."KEY"=:EXTRA_KEY)-->
+   <!--Кардинальность: 1 -->
+
+    <sql-query name="com.rssl.auth.csa.back.messages.CSASmsResourcesOperation.getText.multilocale">
+        <return-scalar column="text" type="string"/>
+            <![CDATA[
+                select
+                    decode(srr.id, null, resources.text, srr.text) as text
+                from
+                    SMS_RESOURCES resources
+                left join
+                    SMS_RESOURCES_RES srr
+                on
+                    resources.id = srr.id and srr.LOCALE_ID = :extra_localeId
+                where
+                    resources.KEY = :extra_key
+            ]]>
+    </sql-query>
+</hibernate-mapping>

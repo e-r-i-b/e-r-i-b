@@ -1,0 +1,50 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="State" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.logging.confirm.ConfirmState</param>
+    </typedef>
+
+    <typedef name="Type" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.logging.confirm.ConfirmType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.logging.confirm.OperationConfirmLogEntry" table="OPERATION_CONFIRM_LOG">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_OPERATION_CONFIRM_LOG</param>
+            </generator>
+        </id>
+
+        <property name="date"           type="calendar" column="LOG_DATE" not-null="true"/>
+        <property name="state"          type="State"    column="STATE" not-null="false"/>
+        <property name="sessionId"      type="string"   column="SESSION_ID" not-null="true"/>
+        <property name="operationUID"   type="string"   column="OPERATION_UID" not-null="true"/>
+        <property name="recipient"      type="string"   column="RECIPIENT" />
+        <property name="message"        type="string"   column="MESSAGE" />
+        <property name="cardNumber"     type="string"   column="CARD_NUMBER" />
+        <property name="passwordNumber" type="string"   column="PASSW_NUMBER" />
+        <property name="type"           type="Type"     column="TYPE" not-null="true"/>
+        <property name="checkIMSI"      type="boolean"  column="IMSI_CHECK" not-null="true"/>
+        <property name="confirmCode"    type="string"    column="CONFIRM_CODE" not-null="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.logging.confirm.GuestOperationConfirmLogEntry" table="GUEST_OPERATION_CONFIRM_LOG">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_GUEST_OPERATION_CONFIRM_LOG</param>
+            </generator>
+        </id>
+
+        <property name="date"           type="calendar" column="LOG_DATE"       not-null="true"/>
+        <property name="state"          type="State"    column="STATE"          not-null="false"/>
+        <property name="sessionId"      type="string"   column="SESSION_ID"     not-null="true"/>
+        <property name="operationUID"   type="string"   column="OPERATION_UID"  not-null="true"/>
+        <property name="recipient"      type="string"   column="RECIPIENT"      not-null="false"/>
+        <property name="message"        type="string"   column="MESSAGE"        not-null="false"/>
+        <property name="confirmCode"    type="string"   column="CONFIRM_CODE"   not-null="false"/>
+    </class>
+
+</hibernate-mapping>

@@ -1,0 +1,205 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0">
+	<xsd:annotation>
+		<xsd:appinfo>
+		    <jxb:schemaBindings>
+				<jxb:package name="com.rssl.phizic.auth.modes.generated"/>
+		        <jxb:nameXmlTransform>
+			        <jxb:elementName suffix="Element"/>
+			        <jxb:typeName suffix="Descriptor"/>
+		        </jxb:nameXmlTransform>
+		    </jxb:schemaBindings>
+		</xsd:appinfo>
+	</xsd:annotation>
+
+	<xsd:element name="access-rules" type="AccessRules">
+	</xsd:element>
+	<xsd:complexType name="AccessRules">
+		<xsd:choice>
+			<xsd:sequence>
+				<xsd:element name="simple-rule" type="AccessRule" minOccurs="0"/>
+				<xsd:element name="secure-rule" type="AccessRule" minOccurs="0"/>
+				<xsd:element name="anonymous-rule" type="AccessRule" minOccurs="0"/>
+				<xsd:element name="smsBanking-rule" type="AccessRule" minOccurs="0"/>
+                <xsd:element name="mobileLimited-rule" type="AccessRule" minOccurs="0"/>
+                <xsd:element name="guest-rule" type="AccessRule" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:sequence>
+				<xsd:element name="employee-rule" type="AccessRule" minOccurs="1"/>
+			</xsd:sequence>
+		</xsd:choice>
+	</xsd:complexType>
+	<xsd:complexType name="AccessRule">
+		<xsd:sequence>
+			<xsd:element name="description" type="xsd:string"/>
+			<xsd:element minOccurs="0" name="authentication-mode" type="AuthenticationMode" maxOccurs="unbounded"/>
+			<xsd:element name="confirmation-mode" type="ConfirmationMode"/>
+			<xsd:element name="authentication-choice" type="AuthChoice" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="confirmation-choice" type="Choice" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="AuthenticationMode">
+		<xsd:annotation>
+			<xsd:documentation>Режим аутентификации</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="stage" maxOccurs="unbounded" type="AuthenticationStage" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Стадия аутентификации (проверка пароля, проверка по ЭЦП)</xsd:documentation>
+					<xsd:appinfo>
+						<jxb:property name="stages"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:choice>
+                <xsd:element name="on-complete-action" type="JavaClass"/>
+                <xsd:element name="on-complete" type="Composite"/>
+            </xsd:choice>			            			
+		</xsd:sequence>
+        <xsd:attribute name="user-visiting-mode" type="xsd:string" use="optional" default="basic">
+            <xsd:annotation>
+                <xsd:documentation>Режим работы пользователя. Используются константы UserVisitingMode в нижнем регистре</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="ConfirmationMode">
+		<xsd:sequence>
+			<xsd:element name="key-property" minOccurs="0" type="xsd:string"/>
+			<xsd:element name="strategy" maxOccurs="unbounded" type="ConfirmationStrategy">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="AuthenticationStage">
+		<xsd:annotation>
+			<xsd:documentation>разрешить struts action для стадии</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="key" type="xsd:string"/>
+			<xsd:element name="allow-action" maxOccurs="unbounded" type="xsd:string" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>разрешить struts action для стадии</xsd:documentation>
+					<xsd:appinfo>
+						<jxb:property name="allowedActions"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="allow-operation" maxOccurs="unbounded" minOccurs="0" type="AllowOperationType"/>
+			<xsd:element name="demand-if" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Выполнять стадию при условии</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="class" type="JavaClass">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<jxb:property name="clazz"/>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="parameter" maxOccurs="unbounded" minOccurs="0">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<jxb:property name="parameters"/>
+								</xsd:appinfo>
+							</xsd:annotation>
+
+							<xsd:complexType>
+								<xsd:sequence>
+									<xsd:element name="name" type="xsd:string"/>
+									<xsd:element name="value" type="xsd:string"/>
+								</xsd:sequence>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ConfirmationStrategy">
+		<xsd:sequence>
+			<xsd:element name="key" type="xsd:string"/>
+			<xsd:element name="class" type="JavaClass" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="clazz"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="compas" type="CompositeStrategy" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Choice">
+		<xsd:sequence>
+			<xsd:element name="property" type="xsd:string"/>
+			<xsd:element name="option" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="options"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="name" type="xsd:string"/>
+						<xsd:element name="value" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+    <xsd:complexType name="AuthChoice">
+		<xsd:sequence>
+			<xsd:element name="property" type="xsd:string"/>
+			<xsd:element name="option" maxOccurs="2">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jxb:property name="options"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="name" type="xsd:string"/>
+						<xsd:element name="value" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+    <xsd:complexType name="AllowOperationType">
+        <xsd:sequence>
+            <xsd:element name="service-key"  maxOccurs="1" minOccurs="0"  type="xsd:string">
+                 <xsd:annotation>
+                    <xsd:documentation>имя сервиса</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operation-class"  maxOccurs="1" minOccurs="1"  type="JavaClass">
+                 <xsd:annotation>
+                    <xsd:documentation>класс операции для стадии</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="allow-if"  maxOccurs="1" minOccurs="0"  type="JavaClass">
+                 <xsd:annotation>
+                    <xsd:documentation>класс условия разрешения операция для стадии</xsd:documentation>
+                 </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="Composite">
+        <xsd:choice>
+            <xsd:element name="action" type="JavaClass" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:choice>
+    </xsd:complexType>
+	<xsd:complexType name="CompositeStrategy">
+		<xsd:sequence>
+			<xsd:element name="default" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="strategy" type="JavaClass" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+    <xsd:simpleType name="JavaClass">
+		<xsd:annotation>
+			<xsd:documentation>FQN java класса</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

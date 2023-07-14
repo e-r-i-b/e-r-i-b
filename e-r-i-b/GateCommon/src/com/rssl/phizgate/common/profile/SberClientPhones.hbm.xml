@@ -1,0 +1,70 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizgate.common.profile.MBKPhoneCast" table="MBK_CAST">
+        <id name="phone" type="string" column="PHONE"/>
+    </class>
+
+    <class name="com.rssl.phizgate.common.profile.PhoneUpdate" table="PHONE_UPDATE_JURNAL">
+        <id name="updateDate" type="java.util.Calendar" column="UPDATE_DATE"/>
+
+        <property name="updateIndex" type="long" column="UPDATED_ID"/>
+        <property name="newItem" type="boolean" column="NEW_ITEM"/>
+    </class>
+
+    <!--
+        Номер телефона, если он есть.
+        Опорный объект: IDX_MBK_CAST_PHONE
+        Предикаты доступа: "PHONE"=:PHONE
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizgate.common.profile.MBKPhoneCast.getPhone">
+        <return-scalar column="NUM" type="integer"/>
+        <![CDATA[
+            select 1 as NUM from MBK_CAST phonecast
+            where PHONE = :phone and ROWNUM < 2
+        ]]>
+    </sql-query>
+
+    <!--
+        Удалить номер телефона.
+        Опорный объект: IDX_MBK_CAST_PHONE
+        Предикаты доступа: "PHONE"=:PHONE
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizgate.common.profile.MBKPhoneCast.deletePhone">
+        <![CDATA[
+            delete from MBK_CAST phonecast
+            where PHONE = :extra_phone
+        ]]>
+    </sql-query>
+
+    <!--
+        Последнее обновление базы номеров.
+        Опорный объект: PHONE_UPDATE_JURNAL
+        Предикаты доступа: нет. full scan в таблице 1 строка.
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizgate.common.profile.PhoneUpdate.lastUpdate">
+        <return alias="item" class="com.rssl.phizgate.common.profile.PhoneUpdate"/>
+        <![CDATA[
+            select {item.*} from PHONE_UPDATE_JURNAL item
+            where item.NEW_ITEM = '1'
+        ]]>
+    </sql-query>
+
+    <!--
+        Обновление данных о номере.
+        Опорный объект: PHONE_UPDATE_JURNAL
+        Предикаты доступа: нет. full scan в таблице 1 строка.
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizgate.common.profile.PhoneUpdate.setUpdate">
+        update com.rssl.phizgate.common.profile.PhoneUpdate phone
+        set phone.updateIndex = :updatedId, phone.newItem = false
+        where phone.newItem = true
+    </query>
+</hibernate-mapping>

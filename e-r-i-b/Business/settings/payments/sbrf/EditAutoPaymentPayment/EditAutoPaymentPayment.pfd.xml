@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="EditAutoPaymentPayment" description="Редактирование автоплатежа (регулярной операции)"
+              confirmDescription="Платеж успешно отправлен в банк. После его обработки регулярный платеж будет выполняться автоматически по заданным Вами параметрам. Спасибо, что Вы воспользовались «Сбербанк Онлайн»!"
+              detailedDescription="На данной странице Вы можете изменить параметры выполнения регулярного платежа."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.EditAutoPaymentImpl"/>
+	<statemachine name="EditOrRefuseAutoPaymentStateMachine"/>
+
+	<fields>
+
+        <field  name="cardNumber"
+                source="payer-account"
+                description="номер карты"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Источник списания средств: счет, карта"
+                type="resource">
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+        <field
+                name="fromResourceCurrency"
+                description="Валюта карты"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getCurrency().getCode()"/>
+
+        <field
+                name="cardName"
+                source="extra-parameters/parameter[@name='card-name']/@value"
+                description="имя карты"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getName()">
+        </field>
+
+        <field name="linkId"
+               source="extra-parameters/parameter[@name='auto-payment-link-id']/@value"
+               description="linkId"
+               type="string"
+               signable="true">
+        </field>
+
+        <field name="executionEventType"
+                source="extra-parameters/parameter[@name='long-offer-event-type']/@value"
+                description="Тип события исполнения автоплатежа"
+                type="string"
+                signable="true">
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="autoPaymentSumType"
+                source="ignored"
+                description="Тип суммы исполения автоплатежа"
+                type="string"
+                signable="true"
+                value="form.executionEventType=='BY_INVOICE'?'BY_BILLING':'FIXED_SUMMA'" />
+
+        <field name="sellAmount"
+               description="Сумма"
+               source="amount"
+               type="money"
+               signable="true"
+               enabled="form.executionEventType!='BY_INVOICE'">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+                    <message text="Пожалуйста, укажите сумму, которую необходимо перевести. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field name="recipient"
+               description="Идентифкатор поставщика услуг"
+               type="long"
+               source="recipient">
+             <validators>
+                <validator mode="long-offer|prepare-long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+         </field>
+
+        <field name="requisite"
+               description="Номер лицевого счета"
+               type="string"
+               source="extra-parameters/parameter[@name='requisite']/@value"
+               signable="true">
+        </field>
+
+        <field name="requisiteName"
+               source="extra-parameters/parameter[@name='requisite-name']/@value"
+               type="string"
+               description="Имя реквизита"/>
+
+        <field name="receiverName"
+               description="Наименование"
+               type="string"
+               source="receiver-name"
+               signable="true"/>
+
+        <field  name="isPeriodic"
+                description="Периодический автоплатеж (раз в месяц, ежеквартально, раз в год)"
+                source="ignored"
+                value="(form.executionEventType=='ONCE_IN_MONTH') || (form.executionEventType=='ONCE_IN_QUARTER') || (form.executionEventType=='ONCE_IN_YEAR')">
+        </field>
+
+
+        <field  name="autoPaymentStartDate"
+                source="concat(substring(extra-parameters/parameter[@name='long-offer-start-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='long-offer-start-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='long-offer-start-date']/@value,1,4))"
+                description="Дата начала действия автоплатежа"
+                type="date"
+                enabled="form.isPeriodic"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="firstPaymentDate"
+                source="concat(substring(extra-parameters/parameter[@name='long-offer-first-payment-date']/@value,9,2), '.', substring(extra-parameters/parameter[@name='long-offer-first-payment-date']/@value,6,2), '.' ,substring(extra-parameters/parameter[@name='long-offer-first-payment-date']/@value,1,4))"
+                description="Дата ближайшего платежа"
+                type="date"
+                enabled="form.isPeriodic"
+                signable="true">
+
+            <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.DateFieldValidator"/>
+            </validators>
+        </field>
+
+        <field  name="autoPaymentName"
+                source="extra-parameters/parameter[@name='auto-payment-friendly-name']/@value"
+                description="Название регулярного платежа"
+                type="string"
+                signable="true">
+             <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RegexpFieldValidator">
+                    <message   text="Название регулярной операции (автоплатежа) не должно превышать 60 символов. Пожалуйста, введите другое название."/>
+                    <parameter name="regexp">^.{0,60}$</parameter>
+                </validator>
+	            <validator class="com.rssl.common.forms.validators.IncorrectQuotesValidator"/>
+            </validators>
+        </field>
+
+        <field  name="autoPaymentFloorLimit"
+                source="extra-parameters/parameter[@name='auto-payment-decimal-floor-limit']/@value"
+                description="Пороговый лимит (для порогового регулярного платежа)"
+                type="money"
+                signable="true"
+                enabled="!form.isPeriodic">
+             <validators>
+                <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.executionEventType == 'REDUSE_OF_BALANCE'">
+                    <message text="Пожалуйста, укажите сумму минимального баланса, при достижении которой нужно пополнить счет. Например, 320,66"/>
+                 </validator>
+                 <validator mode="long-offer" class="com.rssl.common.forms.validators.RequiredFieldValidator" enabled="form.executionEventType == 'BY_INVOICE'">
+                     <message text="Пожалуйста, укажите максимальную сумму. Например, 320,66"/>
+                  </validator>
+                 <validator mode="long-offer"                            class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Пожалуйста, укажите сумму. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="autoPaymentFloorCurrency"
+                source="extra-parameters/parameter[@name='auto-payment-currency-floor-limit']/@value"
+                description="Валюта порогового лимита (для порогового регулярного платежа)"
+                type="string"
+                signable="true"
+                value="'RUB'">
+        </field>
+
+        <field  name="isStartDateChanged"
+                source="extra-parameters/parameter[@name='is-long-offer-start-date-changed']/@value"
+                description="Изменилась ли дата ближайшего платежа"
+                type="boolean"/>
+
+        <field  name="isAutoPaymentTotalAmountLimit"
+                source="extra-parameters/parameter[@name='is-autopay-total-amount-limit']/@value"
+                description="Флажок доступности ввода максимальной суммы по платежам в рамках автоплатежа"
+                signable="true"
+                value="xpath:phiz:document(concat('serviceProvider.xml?id=',$recipient))/entity-list/entity/field[@name = 'ThresholdAutoPayScheme#IsTotalMaxSumSupported']"/>
+        
+        <field  name="autoPaymentTotalAmountLimit"
+                source="extra-parameters/parameter[@name='autopay-client-total-amount-limit']/@value"
+                description="Максимальной сумма платежей"
+                type="money"
+                signable="true"
+                enabled="form.isAutoPaymentTotalAmountLimit == 'true'">
+             <validators>
+                 <validator mode="long-offer" class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Пожалуйста, укажите корректно укажите максимальную сумму. Например, 320,66"/>
+                    <parameter name="minValue">0.01</parameter>
+                    <parameter name="maxValue">999999999999999.99</parameter>
+                </validator>
+            </validators>
+        </field>
+
+        <field  name="autoPaymentTotalAmountCurrency"
+                source="extra-parameters/parameter[@name='autopay-client-total-amount-currency']/@value"
+                description="Валюта максимальной сумма платежей"
+                type="string"
+                signable="true"
+                value="'RUB'"/>
+
+        <field  name="autoPaymentTotalAmountPeriod"
+                source="extra-parameters/parameter[@name='autopay-total-amount-period']/@value"
+                description="Период в течении которого подсчитывается максимальная сумма платежей"
+                type="string"
+                enabled="form.isAutoPaymentTotalAmountLimit == 'true'"
+                signable="true"
+                value="xpath:phiz:document(concat('serviceProvider.xml?id=',$recipient))/entity-list/entity/field[@name = 'ThresholdAutoPayScheme#TotalMaxSumPeriod']"/>
+
+		<field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+        <field  name="reasonForAdditionalConfirm"
+                source="extra-parameters/parameter[@name='reason-for-additional-confirm']/@value"
+                description="Причина дополнительного подтверждения платежа в КЦ"
+                type="string">
+        </field>
+
+        <field  name="checkStatusCountResult"
+                source="extra-parameters/parameter[@name='check-status-count-result']/@value"
+                description="Признак превышения допустимого значения проверок статуса платежа во ВС"
+                type="boolean"/>
+    </fields>
+
+    <form-validators>
+        <form-validator mode="long-offer" class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+            <message text="Операция временно недоступна"/>
+            <field-ref name="parameterName">executionEventType</field-ref>
+            <parameter name="param1">REDUSE_OF_BALANCE</parameter>
+            <parameter name="param2">ONCE_IN_MONTH</parameter>
+            <parameter name="param3">ONCE_IN_QUARTER</parameter>
+            <parameter name="param4">ONCE_IN_YEAR</parameter>
+            <parameter name="param5">BY_INVOICE</parameter>
+		</form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.common.forms.validators.DateTimeCompareValidator" enabled="form.isPeriodic">
+            <message text="Дата начала действия автоплатежа не может быть меньше текущей даты. Укажите другую дату начала действия"/>
+            <field-ref name="from_date">autoPaymentStartDate</field-ref>
+            <field-ref name="from_time"/>
+            <field-ref name="to_date"/>
+            <field-ref name="to_time"/>
+            <parameter name="curDate">to_cleartime</parameter>
+            <parameter name="operator">ge</parameter>
+        </form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.common.forms.validators.DateTimeCompareValidator" enabled="form.isPeriodic">
+            <message text="Ближайшая дата начала действия автоплатежа не может быть меньше текущей даты. Укажите другую дату начала действия."/>
+            <field-ref name="from_date">firstPaymentDate</field-ref>
+            <field-ref name="from_time"/>
+            <field-ref name="to_date"/>
+            <field-ref name="to_time"/>
+            <parameter name="curDate">to_cleartime</parameter>
+            <parameter name="operator">ge</parameter>
+        </form-validator>
+
+        <form-validator mode="long-offer" class="com.rssl.common.forms.validators.CompareValidator" enabled="form.isPeriodic">
+            <message text="Дата начала действия автоплатежа не должна превышать ближайшую дату выполнения."/>
+            <field-ref name="obj1">firstPaymentDate</field-ref>
+            <field-ref name="obj2">autoPaymentStartDate</field-ref>
+            <parameter name="operator">ge</parameter>
+        </form-validator>
+
+        <!--Проверяет входит ли значение суммы регулярного автоплатежа в дипазон значений, введенный в админке-->
+        <form-validator mode="long-offer" class="com.rssl.phizic.business.payments.forms.validators.CheckValuesAlwaysAutoPayValidator" enabled="form.isPeriodic">
+            <field-ref name="recipient">recipient</field-ref>
+            <field-ref name="sellAmount">sellAmount</field-ref>
+        </form-validator>
+
+        <!--Валидатор проверяет входят ли значения суммы и порога для порогово автоплатежа в диапазон, указанный в поставщике-->
+        <form-validator mode="long-offer" class="com.rssl.phizic.business.payments.forms.validators.CheckValuesThresholdAutoPayValidator" enabled="form.executionEventType == 'REDUSE_OF_BALANCE'">
+            <field-ref name="recipient">recipient</field-ref>
+            <field-ref name="sellAmount">sellAmount</field-ref>
+            <field-ref name="floorLimit">autoPaymentFloorLimit</field-ref>
+            <field-ref name="totalAmountLimit">autoPaymentTotalAmountLimit</field-ref>
+        </form-validator>
+    </form-validators>
+</payment-form>

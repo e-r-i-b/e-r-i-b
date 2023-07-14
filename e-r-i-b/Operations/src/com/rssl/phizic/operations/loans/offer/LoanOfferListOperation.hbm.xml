@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="windows-1251"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <!--
+        Опорный объект:  CREDIT_CARD_CONDITIONS, CARD_AMOUT_STEP, PK_CARD_AMOUT_STEP, CREDIT_CARD_PRODUCTS,PK_CREDIT_CARD_PRODUCTS
+        Предикаты доступа:  2 - filter(:PRODUCTSTATE IS NULL OR "PRODUCTS"."IS_PUBLIC"=:PRODUCTSTATE)
+                            5 - filter(:CONDITIONID IS NULL OR "CONDITIONS"."ID"=TO_NUMBER(:CONDITIONID))
+                            6 - filter("MAX_STEP"."VALUE_CURRENCY"=:CURRENCY)
+                            7 - access("CONDITIONS"."MAX_CREDIT_LIMIT"="MAX_STEP"."ID")
+                            9 - access("CONDITIONS"."PRODUCT_ID"="PRODUCTS"."ID"(+))
+        Кардинальность: Условия с указанными диапазонами и связанные с условиями кредитные продукты.
+    -->
+    <sql-query name="com.rssl.phizic.operations.loans.offer.LoanOfferListOperation.cond_prod">
+        <return alias="conditions" class="com.rssl.phizic.business.creditcards.conditions.CreditCardCondition"/>
+        <return alias="products" class="com.rssl.phizic.business.creditcards.products.CreditCardProduct"/>
+        <![CDATA[
+                 select  {conditions.*}, {products.*} from CREDIT_CARD_CONDITIONS  conditions
+                 left join CARD_AMOUT_STEP max_step ON conditions.MAX_CREDIT_LIMIT = max_step.ID
+                 left join CARD_AMOUT_STEP min_step ON conditions.MIN_CREDIT_LIMIT = min_step.ID
+                 left join CREDIT_CARD_PRODUCTS products ON  conditions.PRODUCT_ID = products.ID
+                 where  max_step.VALUE_CURRENCY = :currency
+                 and ((:productState is null) or (:productState='') or (products.IS_PUBLIC = :productState))
+                 and ((:conditionId is null) or (conditions.id = :conditionId))
+                 and (:useForPreapprovedOffers = '0' or products.USE_FOR_PREAPPROVED = '1')
+                 order by  products.name
+                ]]>
+    </sql-query>
+
+    <!--
+       Опорный объект: CREDIT_CARD_CONDITIONS
+       Предикаты доступа: -
+       Кардинальность: кол-во условий по кредитам
+    -->
+
+    <sql-query name="com.rssl.phizic.operations.loans.offer.LoanOfferListOperation.card_product">
+        <return class="com.rssl.phizic.business.creditcards.products.PartCreditCardProduct">
+            <return-property name="id" column="pcid"/>
+            <return-property name="minCreditLimit" column="mincl"/>
+            <return-property name="minCreditLimitCurrency" column="minclc"/>
+            <return-property name="maxCreditLimit" column="maxcl"/>
+            <return-property name="maxCreditLimitCurrency" column="maxclc"/>
+            <return-property name="isMaxCreditLimitInclude" column="ismaxclinc"/>
+            <return-property name="offerInterestRate" column="oir"/>
+            <return-property name="firstYearPayment" column="fypa"/>
+            <return-property name="firstYearPaymentCurrency" column="fypac"/>
+            <return-property name="nextYearPayment" column="nypa"/>
+            <return-property name="nextYearPaymentCurrency" column="nypac"/>
+
+            <return-property name="changeDate" column="cd"/>
+            <return-property name="name" column="n"/>
+            <return-property name="allowGracePeriod" column="agp"/>
+            <return-property name="gracePeriodDuration" column="gpd"/>
+            <return-property name="gracePeriodInterestRate" column="gpir"/>
+            <return-property name="additionalTerms" column="ats"/>
+        </return>
+        <![CDATA[
+            select
+                product_condition.ID as pcid,
+                min_product_limit.VALUE_AMOUNT as mincl,
+                min_product_limit.VALUE_CURRENCY as minclc,
+                max_available_limit.VALUE_AMOUNT as maxcl,
+                max_available_limit.VALUE_CURRENCY as maxclc,
+                product_condition.IS_MAX_CREDIT_LIMIT_INCL as ismaxclinc,
+                product_condition.OFFER_INT_RATE as oir,
+                product_condition.FIRST_YEAR_PAY_AMOUNT as fypa,
+                product_condition.FIRST_YEAR_PAY_CURRENCY as fypac,
+                product_condition.NEXT_YEAR_PAY_AMOUNT as nypa,
+                product_condition.NEXT_YEAR_PAY_CURRENCY as nypac,
+
+                product.CHANGE_DATE as cd,
+                product.NAME as n,
+                product.ALLOW_GRACE_PERIOD as agp,
+                product.GP_DURATION as gpd,
+                product.GP_INT_RATE as gpir,
+                product.ADDITIONAL_TERMS as ats
+            from CREDIT_CARD_CONDITIONS product_condition
+            left join CREDIT_CARD_PRODUCTS product on product.ID = product_condition.PRODUCT_ID
+            left join INCOME_CONDITIONS income_condition on income_condition.CURRENCY = product_condition.CURRENCY
+            left join INCOME_LEVELS income_level on income_level.ID = income_condition.INCOME_ID
+            left join CARD_AMOUT_STEP max_available_limit on max_available_limit.ID = income_condition.MAX_CREDIT_LIMIT
+            left join CARD_AMOUT_STEP min_product_limit on min_product_limit.ID = product_condition.MIN_CREDIT_LIMIT
+            where product.IS_PUBLIC = 'PUBLISHED'
+                and (:extra_incomeLevelId is null
+                    or (income_level.ID = :extra_incomeLevelId
+                        and (
+                            (min_product_limit.VALUE_AMOUNT < max_available_limit.VALUE_AMOUNT and income_condition.IS_MAX_CREDIT_LIMIT_INCL = 0)
+                            or
+                            (min_product_limit.VALUE_AMOUNT <= max_available_limit.VALUE_AMOUNT and income_condition.IS_MAX_CREDIT_LIMIT_INCL = 1)
+                        )
+                    )
+                )
+                and product.USE_FOR_PREAPPROVED = 0
+            order by product.NAME, product_condition.CURRENCY
+        ]]>
+    </sql-query>
+
+    <!--
+     Опорный объект: CREDIT_CARD_CONDITIONS
+     Предикаты доступа: -
+     Кардинальность: кол-во условий по кредитам
+    -->
+    <sql-query name="com.rssl.phizic.operations.loans.offer.LoanOfferListOperation.card_product.multilocale">
+        <return class="com.rssl.phizic.business.creditcards.products.PartCreditCardProduct">
+            <return-property name="id" column="pcid"/>
+            <return-property name="minCreditLimit" column="mincl"/>
+            <return-property name="minCreditLimitCurrency" column="minclc"/>
+            <return-property name="maxCreditLimit" column="maxcl"/>
+            <return-property name="maxCreditLimitCurrency" column="maxclc"/>
+            <return-property name="isMaxCreditLimitInclude" column="ismaxclinc"/>
+            <return-property name="offerInterestRate" column="oir"/>
+            <return-property name="firstYearPayment" column="fypa"/>
+            <return-property name="firstYearPaymentCurrency" column="fypac"/>
+            <return-property name="nextYearPayment" column="nypa"/>
+            <return-property name="nextYearPaymentCurrency" column="nypac"/>
+
+            <return-property name="changeDate" column="cd"/>
+            <return-property name="name" column="n"/>
+            <return-property name="allowGracePeriod" column="agp"/>
+            <return-property name="gracePeriodDuration" column="gpd"/>
+            <return-property name="gracePeriodInterestRate" column="gpir"/>
+            <return-property name="additionalTerms" column="ats"/>
+        </return>
+        <![CDATA[
+            select
+                product_condition.ID as pcid,
+                min_product_limit.VALUE_AMOUNT as mincl,
+                min_product_limit.VALUE_CURRENCY as minclc,
+                max_available_limit.VALUE_AMOUNT as maxcl,
+                max_available_limit.VALUE_CURRENCY as maxclc,
+                product_condition.IS_MAX_CREDIT_LIMIT_INCL as ismaxclinc,
+                product_condition.OFFER_INT_RATE as oir,
+                product_condition.FIRST_YEAR_PAY_AMOUNT as fypa,
+                product_condition.FIRST_YEAR_PAY_CURRENCY as fypac,
+                product_condition.NEXT_YEAR_PAY_AMOUNT as nypa,
+                product_condition.NEXT_YEAR_PAY_CURRENCY as nypac,
+
+                product.CHANGE_DATE as cd,
+                decode(res.NAME, null, product.NAME, res.NAME) as n,
+                product.ALLOW_GRACE_PERIOD as agp,
+                product.GP_DURATION as gpd,
+                product.GP_INT_RATE as gpir,
+                decode(res.ADDITIONAL_TERMS, null, product.ADDITIONAL_TERMS, res.ADDITIONAL_TERMS) as ats
+            from CREDIT_CARD_CONDITIONS product_condition
+            left join CREDIT_CARD_PRODUCTS product on product.ID = product_condition.PRODUCT_ID
+            left join CREDIT_CARD_PRODUCTS_RES res on product.ID = res.ID and res.LOCALE_ID = :extra_localeId
+            left join INCOME_CONDITIONS income_condition on income_condition.CURRENCY = product_condition.CURRENCY
+            left join INCOME_LEVELS income_level on income_level.ID = income_condition.INCOME_ID
+            left join CARD_AMOUT_STEP max_available_limit on max_available_limit.ID = income_condition.MAX_CREDIT_LIMIT
+            left join CARD_AMOUT_STEP min_product_limit on min_product_limit.ID = product_condition.MIN_CREDIT_LIMIT
+            where product.IS_PUBLIC = 'PUBLISHED'
+                and (:extra_incomeLevelId is null
+                    or (income_level.ID = :extra_incomeLevelId
+                        and (
+                            (min_product_limit.VALUE_AMOUNT < max_available_limit.VALUE_AMOUNT and income_condition.IS_MAX_CREDIT_LIMIT_INCL = 0)
+                            or
+                            (min_product_limit.VALUE_AMOUNT <= max_available_limit.VALUE_AMOUNT and income_condition.IS_MAX_CREDIT_LIMIT_INCL = 1)
+                        )
+                    )
+                )
+                and product.USE_FOR_PREAPPROVED = 0
+            order by product.NAME, product_condition.CURRENCY
+        ]]>
+    </sql-query>
+
+    <!-- количество кредитных продуктов по id дохода -->
+    <sql-query name="com.rssl.phizic.operations.loans.offer.LoanOfferListOperation.findCountProductByIncome">
+        <return-scalar column="counter" type="long"/>
+        <![CDATA[
+            select count(*) counter
+            from CREDIT_CARD_CONDITIONS product_condition
+            left join CREDIT_CARD_PRODUCTS product on product.ID = product_condition.PRODUCT_ID
+            left join INCOME_CONDITIONS income_condition on income_condition.CURRENCY = product_condition.CURRENCY
+            left join INCOME_LEVELS income_level on income_level.ID = income_condition.INCOME_ID
+            left join CARD_AMOUT_STEP max_available_limit on max_available_limit.ID = income_condition.MAX_CREDIT_LIMIT
+            left join CARD_AMOUT_STEP min_product_limit on min_product_limit.ID = product_condition.MIN_CREDIT_LIMIT
+            where product.IS_PUBLIC = 'PUBLISHED'
+            and product.USE_FOR_PREAPPROVED = 0
+                and (:incomeId is null
+                    or (income_level.ID = :incomeId
+                        and (
+                            (min_product_limit.VALUE_AMOUNT < max_available_limit.VALUE_AMOUNT and income_condition.IS_MAX_CREDIT_LIMIT_INCL = 0)
+                            or
+                            (min_product_limit.VALUE_AMOUNT <= max_available_limit.VALUE_AMOUNT and income_condition.IS_MAX_CREDIT_LIMIT_INCL = 1)
+                        )
+                    )
+                )
+            order by product.NAME, product_condition.CURRENCY
+        ]]>
+    </sql-query>
+</hibernate-mapping>

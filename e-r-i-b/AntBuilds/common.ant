@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+
+<project name="common">
+
+    <taskdef resource="net/sf/antcontrib/antcontrib.properties" description="Библиотека условий Ant-Contrib Tasks">
+          <classpath>
+            <pathelement location="${basedir}/../Libraries/ForAnt/ant-contrib-1.0b3.jar"/>
+          </classpath>
+    </taskdef>
+
+    <taskdef classname="net.sf.antcontrib.logic.ForTask" name="for">
+          <classpath>
+            <pathelement location="${basedir}/../Libraries/ForAnt/ant-contrib-1.0b3.jar"/>
+          </classpath>
+    </taskdef>
+
+	<target name="start_logging">
+		<record name="install.log" loglevel="verbose"/>
+	</target>
+
+	<target name="setup_db_ms-sql" if="dbserver.type.ms-sql">
+		<echo level="info" message="Настройка свойств для БД-сервера MS-SQL"/>
+		<property name="dbserver.type" value="ms-sql"/>
+		<property name="dbserver.driver" value="net.sourceforge.jtds.jdbc.Driver"/>
+		<property name="dbserver.url.lite"
+		          value="jdbc:jtds:sqlserver://${dbserver.name}:${dbserver.port}"/>
+		<property name="dbserver.url.full" value="${dbserver.url.lite}/${dbserver.database}"/>
+		<property name="dbserver.table.username" value="${dbserver.admin.username}"/>
+		<property name="dbserver.table.password" value="${dbserver.admin.password}"/>
+
+        <property name="dbserver.csa.url.lite"
+		          value="jdbc:jtds:sqlserver://${dbserver.csa.name}:${dbserver.csa.port}"/>
+		<property name="dbserver.csa.url.full" value="${dbserver.csa.url.lite}/${dbserver.csa.database}"/>
+		<property name="dbserver.csa.table.username" value="${dbserver.csa.admin.username}"/>
+		<property name="dbserver.csa.table.password" value="${dbserver.csa.admin.password}"/>
+
+        <property name="dbserver.asyncsearch.url.lite"
+		          value="jdbc:jtds:sqlserver://${dbserver.asyncsearch.name}:${dbserver.asyncsearch.port}"/>
+		<property name="dbserver.asyncsearch.url.full" value="${dbserver.asyncsearch.url.lite}/${dbserver.asyncsearch.database}"/>
+		<property name="dbserver.asyncsearch.table.username" value="${dbserver.asyncsearch.admin.username}"/>
+		<property name="dbserver.asyncsearch.table.password" value="${dbserver.asyncsearch.admin.password}"/>
+
+        <property name="dbserver.push.url.lite"
+                  value="jdbc:jtds:sqlserver://${dbserver.push.name}:${dbserver.push.port}"/>
+        <property name="dbserver.push.url.full" value="${dbserver.push.url.lite}/${dbserver.push.database}"/>
+        <property name="dbserver.push.table.username" value="${dbserver.push.admin.username}"/>
+        <property name="dbserver.push.table.password" value="${dbserver.push.admin.password}"/>
+
+        <property name="dbserver.einvoicing.url.lite"
+                  value="jdbc:jtds:sqlserver://${dbserver.einvoicing.name}:${dbserver.einvoicing.port}"/>
+        <property name="dbserver.einvoicing.url.full" value="${dbserver.einvoicing.url.lite}/${dbserver.einvoicing.database}"/>
+        <property name="dbserver.einvoicing.table.username" value="${dbserver.einvoicing.admin.username}"/>
+        <property name="dbserver.einvoicing.table.password" value="${dbserver.einvoicing.admin.password}"/>
+
+		<filterset id="dbserver.filterset.2">
+			<filter token="dbserver.driver" value="${dbserver.driver}"/>
+			<filter token="dbserver.dsclass" value="net.sourceforge.jtds.jdbcx.JtdsDataSource"/>
+			<filter token="dbserver.dialect" value="org.hibernate.dialect.SQLServerDialect"/>
+			<filter token="dbserver.url" value="${dbserver.url.full}"/>
+			<filter token="dbserver.csa.url" value="${dbserver.csa.url.full}"/>
+            <filter token="dbserver.asyncsearch.url" value="${dbserver.asyncsearch.url.full}"/>
+            <filter token="dbserver.push.url" value="${dbserver.push.url.full}"/>
+            <filter token="dbserver.einvoicing.url" value="${dbserver.einvoicing.url.full}"/>
+			<filter token="quartz.driverDelegateClass" value="com.rssl.phizic.quartz.MSSQLDelegate"/>
+			<filter token="quartz.jndiURL.prefix" value="java:"/>
+		</filterset>
+	</target>
+
+	<target name="setup_db_oracle" if="dbserver.type.oracle">
+		<echo level="info" message="Настройка свойств для БД-сервера Oracle"/>
+		<property name="dbserver.type" value="oracle"/>
+		<property name="dbserver.driver" value="oracle.jdbc.driver.OracleDriver"/>
+		<property name="dbserver.url.lite"
+		          value="jdbc:oracle:thin:@${dbserver.name}:${dbserver.port}:${dbserver.database}"/>
+		<property name="dbserver.url.full" value="${dbserver.url.lite}"/>
+		<property name="dbserver.table.username" value="${dbserver.username}"/>
+		<property name="dbserver.table.password" value="${dbserver.password}"/>
+
+        <property name="dbserver.csa.url.lite"
+		          value="jdbc:oracle:thin:@${dbserver.csa.name}:${dbserver.csa.port}:${dbserver.csa.database}"/>
+		<property name="dbserver.csa.url.full" value="${dbserver.csa.url.lite}"/>
+		<property name="dbserver.csa.table.username" value="${dbserver.csa.username}"/>
+		<property name="dbserver.csa.table.password" value="${dbserver.csa.password}"/>
+
+        <property name="dbserver.csaadmin.url.lite"
+		          value="jdbc:oracle:thin:@${dbserver.csaadmin.name}:${dbserver.csaadmin.port}:${dbserver.csaadmin.database}"/>
+		<property name="dbserver.csaadmin.url.full" value="${dbserver.csaadmin.url.lite}"/>
+		<property name="dbserver.csaadmin.table.username" value="${dbserver.csaadmin.username}"/>
+		<property name="dbserver.csaadmin.table.password" value="${dbserver.csaadmin.password}"/>
+
+        <property name="dbserver.limits.url.lite"
+		          value="jdbc:oracle:thin:@${dbserver.limits.name}:${dbserver.limits.port}:${dbserver.limits.database}"/>
+		<property name="dbserver.limits.url.full" value="${dbserver.limits.url.lite}"/>
+		<property name="dbserver.limits.table.username" value="${dbserver.limits.username}"/>
+		<property name="dbserver.limits.table.password" value="${dbserver.limits.password}"/>
+
+        <property name="dbserver.asyncsearch.url.lite"
+		          value="jdbc:oracle:thin:@${dbserver.asyncsearch.name}:${dbserver.asyncsearch.port}:${dbserver.asyncsearch.database}"/>
+		<property name="dbserver.asyncsearch.url.full" value="${dbserver.asyncsearch.url.lite}"/>
+		<property name="dbserver.asyncsearch.table.username" value="${dbserver.asyncsearch.username}"/>
+		<property name="dbserver.asyncsearch.table.password" value="${dbserver.asyncsearch.password}"/>
+
+        <property name="dbserver.documents.offline.url.full"
+                  value="jdbc:oracle:thin:@${dbserver.documents.offline.name}:${dbserver.documents.offline.port}:${dbserver.documents.offline.database}"/>
+        <property name="dbserver.documents.offline.table.username" value="${dbserver.documents.offline.username}"/>
+        <property name="dbserver.documents.offline.table.password" value="${dbserver.documents.offline.password}"/>
+
+        <property name="dbserver.push.url.lite"
+                  value="jdbc:oracle:thin:@${dbserver.push.name}:${dbserver.push.port}:${dbserver.push.database}"/>
+        <property name="dbserver.push.url.full" value="${dbserver.push.url.lite}"/>
+        <property name="dbserver.push.table.username" value="${dbserver.push.username}"/>
+        <property name="dbserver.push.table.password" value="${dbserver.push.password}"/>
+
+        <property name="dbserver.einvoicing.url.lite"
+                  value="jdbc:oracle:thin:@${dbserver.einvoicing.name}:${dbserver.einvoicing.port}:${dbserver.einvoicing.database}"/>
+        <property name="dbserver.einvoicing.url.full" value="${dbserver.einvoicing.url.lite}"/>
+        <property name="dbserver.einvoicing.table.username" value="${dbserver.einvoicing.username}"/>
+        <property name="dbserver.einvoicing.table.password" value="${dbserver.einvoicing.password}"/>
+
+        <property name="dbserver.log.url.lite"
+                  value="jdbc:oracle:thin:@${dbserver.log.name}:${dbserver.log.port}:${dbserver.log.database}"/>
+        <property name="dbserver.log.url.full" value="${dbserver.log.url.lite}"/>
+        <property name="dbserver.log.table.username" value="${dbserver.log.username}"/>
+        <property name="dbserver.log.table.password" value="${dbserver.log.password}"/>
+
+        <property name="dbserver.usct.url.lite"
+                          value="jdbc:oracle:thin:@${dbserver.usct.name}:${dbserver.usct.port}:${dbserver.usct.database}"/>
+		<property name="dbserver.usct.url.full" value="${dbserver.usct.url.lite}"/>
+		<property name="dbserver.usct.table.username" value="${dbserver.usct.username}"/>
+		<property name="dbserver.usct.table.password" value="${dbserver.usct.password}"/>
+
+        <property name="dbserver.proxy.mbk.url.lite"
+                value="jdbc:oracle:thin:@${dbserver.proxy.mbk.name}:${dbserver.proxy.mbk.port}:${dbserver.proxy.mbk.database}"/>
+		<property name="dbserver.proxy.mbk.url.full" value="${dbserver.proxy.mbk.url.lite}"/>
+		<property name="dbserver.proxy.mbk.table.username" value="${dbserver.proxy.mbk.username}"/>
+		<property name="dbserver.proxy.mbk.table.password" value="${dbserver.proxy.mbk.password}"/>
+
+
+		<filterset id="dbserver.filterset.2">
+			<filter token="dbserver.driver" value="${dbserver.driver}"/>
+			<filter token="dbserver.dialect" value="com.rssl.phizic.dataaccess.hibernate.dialect.Oracle9SynonymDialect"/>
+			<filter token="dbserver.dsclass" value="oracle.jdbc.pool.OracleDataSource"/>
+			<filter token="dbserver.url" value="${dbserver.url.full}"/>
+			<filter token="dbserver.csa.url" value="${dbserver.csa.url.full}"/>
+            <filter token="dbserver.proxy.mbk.url" value="${dbserver.proxy.mbk.url.full}"/>
+            <filter token="dbserver.asyncsearch.url" value="${dbserver.asyncsearch.url.full}"/>
+            <filter token="dbserver.push.url" value="${dbserver.push.url.full}"/>
+            <filter token="dbserver.einvoicing.url" value="${dbserver.einvoicing.url.full}"/>
+            <filter token="dbserver.log.url" value="${dbserver.log.url.full}"/>
+			<filter token="quartz.driverDelegateClass"
+			        value="org.quartz.impl.jdbcjobstore.oracle.OracleDelegate"/>
+			<filter token="quartz.jndiURL.prefix" value=""/>
+		</filterset>
+	</target>
+
+	<target name="create_db_data" depends="setup_db_ms-sql,setup_db_oracle">
+		<filterset id="dbserver.filterset.1">
+			<filter token="dbserver.name" value="${dbserver.name}"/>
+			<filter token="dbserver.port" value="${dbserver.port}"/>
+			<filter token="dbserver.database" value="${dbserver.database}"/>
+			<filter token="dbserver.username" value="${dbserver.username}"/>
+			<filter token="dbserver.password" value="${dbserver.password}"/>
+            <filter token="dbserver.shadow.username" value="${dbserver.shadow.username}"/>
+			<filter token="dbserver.shadow.password" value="${dbserver.shadow.password}"/>
+
+            <filter token="dbserver.csa.name" value="${dbserver.csa.name}"/>
+			<filter token="dbserver.csa.port" value="${dbserver.csa.port}"/>
+			<filter token="dbserver.csa.database" value="${dbserver.csa.database}"/>
+			<filter token="dbserver.csa.username" value="${dbserver.csa.username}"/>
+			<filter token="dbserver.csa.password" value="${dbserver.csa.password}"/>
+
+            <filter token="dbserver.csaadmin.name" value="${dbserver.csaadmin.name}"/>
+			<filter token="dbserver.csaadmin.port" value="${dbserver.csaadmin.port}"/>
+			<filter token="dbserver.csaadmin.database" value="${dbserver.csaadmin.database}"/>
+			<filter token="dbserver.csaadmin.username" value="${dbserver.csaadmin.username}"/>
+			<filter token="dbserver.csaadmin.password" value="${dbserver.csaadmin.password}"/>
+
+            <filter token="dbserver.limits.name" value="${dbserver.limits.name}"/>
+			<filter token="dbserver.limits.port" value="${dbserver.limits.port}"/>
+			<filter token="dbserver.limits.database" value="${dbserver.limits.database}"/>
+			<filter token="dbserver.limits.username" value="${dbserver.limits.username}"/>
+			<filter token="dbserver.limits.password" value="${dbserver.limits.password}"/>
+
+            <filter token="dbserver.asyncsearch.name" value="${dbserver.asyncsearch.name}"/>
+			<filter token="dbserver.asyncsearch.port" value="${dbserver.asyncsearch.port}"/>
+			<filter token="dbserver.asyncsearch.database" value="${dbserver.asyncsearch.database}"/>
+			<filter token="dbserver.asyncsearch.username" value="${dbserver.asyncsearch.username}"/>
+			<filter token="dbserver.asyncsearch.password" value="${dbserver.asyncsearch.password}"/>
+
+            <filter token="dbserver.push.name" value="${dbserver.push.name}"/>
+            <filter token="dbserver.push.port" value="${dbserver.push.port}"/>
+            <filter token="dbserver.push.database" value="${dbserver.push.database}"/>
+            <filter token="dbserver.push.username" value="${dbserver.push.username}"/>
+            <filter token="dbserver.push.password" value="${dbserver.push.password}"/>
+
+            <filter token="dbserver.einvoicing.name" value="${dbserver.einvoicing.name}"/>
+            <filter token="dbserver.einvoicing.port" value="${dbserver.einvoicing.port}"/>
+            <filter token="dbserver.einvoicing.database" value="${dbserver.einvoicing.database}"/>
+            <filter token="dbserver.einvoicing.username" value="${dbserver.einvoicing.username}"/>
+            <filter token="dbserver.einvoicing.password" value="${dbserver.einvoicing.password}"/>
+            <filter token="dbserver.einvoicing.dblink.name" value="${dbserver.einvoicing.dblink.name}"/>
+
+            <filter token="dbserver.documents.offline.name" value="${dbserver.documents.offline.name}"/>
+            <filter token="dbserver.documents.offline.port" value="${dbserver.documents.offline.port}"/>
+            <filter token="dbserver.documents.offline.database" value="${dbserver.documents.offline.database}"/>
+            <filter token="dbserver.documents.offline.username" value="${dbserver.documents.offline.username}"/>
+            <filter token="dbserver.documents.offline.password" value="${dbserver.documents.offline.password}"/>
+
+            <filter token="dbserver.log.name" value="${dbserver.log.name}"/>
+            <filter token="dbserver.log.port" value="${dbserver.log.port}"/>
+            <filter token="dbserver.log.database" value="${dbserver.log.database}"/>
+            <filter token="dbserver.log.username" value="${dbserver.log.username}"/>
+            <filter token="dbserver.log.password" value="${dbserver.log.password}"/>
+
+            <filter token="dbserver.usct.name" value="${dbserver.usct.name}"/>
+			<filter token="dbserver.usct.port" value="${dbserver.usct.port}"/>
+			<filter token="dbserver.usct.database" value="${dbserver.usct.database}"/>
+			<filter token="dbserver.usct.username" value="${dbserver.usct.username}"/>
+			<filter token="dbserver.usct.password" value="${dbserver.usct.password}"/>
+
+            <filter token="dbserver.proxy.mbk.name" value="${dbserver.proxy.mbk.name}"/>
+			<filter token="dbserver.proxy.mbk.port" value="${dbserver.proxy.mbk.port}"/>
+			<filter token="dbserver.proxy.mbk.database" value="${dbserver.proxy.mbk.database}"/>
+			<filter token="dbserver.proxy.mbk.username" value="${dbserver.proxy.mbk.username}"/>
+			<filter token="dbserver.proxy.mbk.password" value="${dbserver.proxy.mbk.password}"/>
+
+		</filterset>
+		<filterset id="current.dbdata.filterset">
+			<filterset refid="dbserver.filterset.1"/>
+			<filterset refid="dbserver.filterset.2"/>
+		</filterset>
+		<echo message="dbserver.type     - ${dbserver.type}"/>
+		<echo message="dbserver.url.full - ${dbserver.url.full}"/>
+		<echo message="dbserver.database - ${dbserver.database}"/>
+		<echo message="dbserver.username - ${dbserver.username}"/>
+		<echo message="dbserver.password - ${dbserver.password}"/>
+
+		<echo message="dbserver.csa.url.full - ${dbserver.csa.url.full}"/>
+		<echo message="dbserver.csa.database - ${dbserver.csa.database}"/>
+		<echo message="dbserver.csa.username - ${dbserver.csa.username}"/>
+		<echo message="dbserver.csa.password - ${dbserver.csa.password}"/>
+
+		<echo message="dbserver.csaadmin.url.full - ${dbserver.csaadmin.url.full}"/>
+		<echo message="dbserver.csaadmin.database - ${dbserver.csaadmin.database}"/>
+		<echo message="dbserver.csaadmin.username - ${dbserver.csaadmin.username}"/>
+		<echo message="dbserver.csaadmin.password - ${dbserver.csaadmin.password}"/>
+
+		<echo message="dbserver.limits.url.full - ${dbserver.limits.url.full}"/>
+		<echo message="dbserver.limits.database - ${dbserver.limits.database}"/>
+		<echo message="dbserver.limits.username - ${dbserver.limits.username}"/>
+		<echo message="dbserver.limits.password - ${dbserver.limits.password}"/>
+
+        <echo message="dbserver.asyncsearch.url.full - ${dbserver.asyncsearch.url.full}"/>
+		<echo message="dbserver.asyncsearch.database - ${dbserver.asyncsearch.database}"/>
+		<echo message="dbserver.asyncsearch.username - ${dbserver.asyncsearch.username}"/>
+		<echo message="dbserver.asyncsearch.password - ${dbserver.asyncsearch.password}"/>
+
+        <echo message="dbserver.documents.offline.url.full - ${dbserver.documents.offline.url.full}"/>
+        <echo message="dbserver.documents.offline.database - ${dbserver.documents.offline.database}"/>
+        <echo message="dbserver.documents.offline.username - ${dbserver.documents.offline.username}"/>
+        <echo message="dbserver.documents.offline.password - ${dbserver.documents.offline.password}"/>
+
+        <echo message="dbserver.push.url.full - ${dbserver.push.url.full}"/>
+        <echo message="dbserver.push.database - ${dbserver.push.database}"/>
+        <echo message="dbserver.push.username - ${dbserver.push.username}"/>
+        <echo message="dbserver.push.password - ${dbserver.push.password}"/>
+
+        <echo message="dbserver.einvoicing.url.full - ${dbserver.einvoicing.url.full}"/>
+        <echo message="dbserver.einvoicing.database - ${dbserver.einvoicing.database}"/>
+        <echo message="dbserver.einvoicing.username - ${dbserver.einvoicing.username}"/>
+        <echo message="dbserver.einvoicing.password - ${dbserver.einvoicing.password}"/>
+
+        <echo message="dbserver.log.url.full - ${dbserver.log.url.full}"/>
+        <echo message="dbserver.log.database - ${dbserver.log.database}"/>
+        <echo message="dbserver.log.username - ${dbserver.log.username}"/>
+        <echo message="dbserver.log.password - ${dbserver.log.password}"/>
+
+        <echo message="dbserver.usct.url.full - ${dbserver.usct.url.full}"/>
+		<echo message="dbserver.usct.database - ${dbserver.usct.database}"/>
+		<echo message="dbserver.usct.username - ${dbserver.usct.username}"/>
+		<echo message="dbserver.usct.password - ${dbserver.usct.password}"/>
+
+        <echo message="dbserver.proxy.mbk.url.full - ${dbserver.proxy.mbk.url.full}"/>
+		<echo message="dbserver.proxy.mbk.database - ${dbserver.proxy.mbk.database}"/>
+		<echo message="dbserver.proxy.mbk.username - ${dbserver.proxy.mbk.username}"/>
+		<echo message="dbserver.proxy.mbk.password - ${dbserver.proxy.mbk.password}"/>
+	</target>
+</project>

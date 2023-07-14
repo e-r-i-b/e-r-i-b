@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.gate.owners.person.Profile" table="USER_PROFILES">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_USER_PROFILES</param>
+            </generator>
+        </id>
+
+        <property name="surName"    type="string"   column="SUR_NAME"   not-null="true"/>
+        <property name="firstName"  type="string"   column="FIRST_NAME" not-null="true"/>
+        <property name="patrName"   type="string"   column="PATR_NAME"  not-null="false"/>
+        <property name="birthDay"   type="calendar" column="BIRTHDAY"   not-null="true"/>
+        <property name="passport"   type="string"   column="PASSPORT"   not-null="true"/>
+        <property name="tb"         type="string"   column="TB"         not-null="true"/>
+    </class>
+
+    <!--поиск клиента по установочным данным-->
+    <!--
+        Опорный объект: IDX_USER_PROFILE_UNIQ
+        Предикаты доступа:
+            UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'()+',' ')))=UPPER(TRIM( REGEXP_REPLACE (:SURNAME||' '||:FIRSTNAME||' '||:PATRNAME,'( )+',' ')))
+            AND "PERSON"."BIRTHDAY"=TO_TIMESTAMP(:BIRTHDAY)
+            AND "PERSON"."TB"=:TB
+            AND REPLACE("PASSPORT",' ','')=REPLACE(:PASSPORT,' ',''))
+        Кардинальность: 0/1
+    -->
+    <sql-query name="com.rssl.phizic.gate.owners.person.ProfileService.findByIdentificationData">
+        <return alias="person" class="com.rssl.phizic.gate.owners.person.Profile"/>
+
+        <![CDATA[
+            SELECT {person.*} FROM USER_PROFILES person
+            WHERE (UPPER(TRIM(REGEXP_REPLACE(person.SUR_NAME||' '||person.FIRST_NAME||' '||person.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surName||' '||:firstName||' '||:patrName ,'( )+',' '))))
+                AND (REPLACE(person.PASSPORT,' ','') = REPLACE(:passport,' ',''))
+                AND (person.TB = :tb)
+                AND (person.BIRTHDAY = :birthDay)
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

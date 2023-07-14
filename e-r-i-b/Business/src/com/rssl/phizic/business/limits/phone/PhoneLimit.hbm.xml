@@ -1,0 +1,55 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="LimitType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizgate.sbnkd.limits.PhoneLimitType</param>
+    </typedef>
+
+    <class name="com.rssl.phizgate.sbnkd.limits.PhoneLimit" table="PHONE_LIMITS">
+
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_PHONE_LIMITS</param>
+            </generator>
+        </id>
+
+        <property name="phone"             type="string"       column="PHONE"             not-null="true"/>
+        <property name="type"              type="LimitType"    column="TYPE_LIMIT"        not-null="true"/>
+        <property name="count"             type="long"         column="COUNTER"       not-null="true"/>
+        <property name="lastDate"          type="calendar"     column="LAST_DATE"         not-null="true"/>
+    </class>
+
+    <!--Получить лимит
+        Опорный элемент: IDX_UNIQUE_PHONE_LIMITS
+        Предикаты доступа: "LIMIT"."PHONE"=:PHONE AND "LIMIT"."TYPE_LIMIT"=:TYPE
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.limits.phone.getLimit">
+        select limit.count, limit.lastDate from com.rssl.phizgate.sbnkd.limits.PhoneLimit limit
+        where limit.phone = :phone and limit.type = :typeLimit
+    </query>
+
+    <!--Получить лимит
+        Опорный элемент: IDX_UNIQUE_PHONE_LIMITS
+        Предикаты доступа: "LIMIT"."PHONE"=:PHONE AND "LIMIT"."TYPE_LIMIT"=:TYPE
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.limits.phone.incCounter">
+        update from com.rssl.phizgate.sbnkd.limits.PhoneLimit limit
+        set limit.count = limit.count + :add, limit.lastDate = :lastDate
+        where limit.phone = :phone and limit.type = :typeLimit
+    </query>
+
+    <!--Получить лимит
+        Опорный элемент: IDX_UNIQUE_PHONE_LIMITS
+        Предикаты доступа: "LIMIT"."PHONE"=:PHONE AND "LIMIT"."TYPE_LIMIT"=:TYPE
+        Кардинальность: 1
+    -->
+    <query name="com.rssl.phizic.business.limits.phone.clearCounter">
+        update from com.rssl.phizgate.sbnkd.limits.PhoneLimit limit
+        set limit.count = :add, limit.lastDate = :lastDate
+        where limit.phone = :phone and limit.type = :typeLimit
+    </query>
+</hibernate-mapping>

@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<access-rules xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./../../schemas/authenticationModes.xsd">
+	<simple-rule>
+		<description>Упрощенный доступ</description>
+	<authentication-mode>
+		<stage>
+				<key>lp</key>
+			<allow-action>/login.do</allow-action>
+		</stage>
+		<stage>
+				<key>otp</key>
+			<allow-action>/confirm/card.do</allow-action>
+			<allow-action>/private/activatecard.do</allow-action>
+			<allow-operation>LastPasswordOnCardOperation</allow-operation>
+				<demand-if>
+					<class>com.rssl.phizic.auth.modes.KeyStageVerifier</class>
+					<parameter>
+						<name>property</name>
+						<value>simple-auth-choice</value>
+					</parameter>
+				</demand-if>
+		</stage>
+			<on-complete-action>com.rssl.phizic.business.security.auth.ClientAthenticationCompleteAction</on-complete-action>
+	</authentication-mode>
+
+		<confirmation-mode>
+			<key-property>simple-confirm-choice</key-property>
+	
+			<strategy>
+				<key>otp</key>
+				<class>com.rssl.phizic.auth.modes.PasswordCardConfirmStrategy</class>
+			</strategy>
+
+			<strategy>
+				<key>not</key>
+				<class>com.rssl.phizic.auth.modes.NotConfirmStrategy</class>
+			</strategy>
+		</confirmation-mode>
+		
+		<authentication-choice>
+			<property>simple-auth-choice</property>
+			<option>
+				<name>Без подтверждения</name>
+				<value>not</value>
+			</option>
+			<option>
+				<name>Одноразовый пароль</name>
+				<value>otp</value>
+			</option>
+		</authentication-choice>
+
+		<confirmation-choice>
+			<property>simple-confirm-choice</property>
+			<option>
+				<name>Без подтверждения</name>
+				<value>not</value>
+			</option>
+			<option>
+				<name>Одноразовый пароль</name>
+				<value>otp</value>
+			</option>
+		</confirmation-choice>
+
+	</simple-rule>
+	<secure-rule>
+		<description>Защищенный доступ</description>
+	<authentication-mode>
+		<stage>
+				<key>lp</key>
+			<allow-action>/login.do</allow-action>
+		</stage>
+		<stage>
+			<key>crypto</key>
+			<allow-action>/confirm/crypto.do</allow-action>
+			<allow-action>/private/cryptoSoftware.do</allow-action>
+			<allow-action>/private/agavaSoftware.do</allow-action>
+			<allow-action>/private/instalDemand.do</allow-action>
+			<allow-action>/private/certification/list.do</allow-action>
+			<allow-action>/private/certification/edit.do</allow-action>
+			<allow-action>/private/certification/view.do</allow-action>
+			<allow-action>/private/certification/confirm.do</allow-action>
+			<allow-operation>EditCertDemandCertificationOperation</allow-operation>
+			<allow-operation>GetCertDemandListOperation</allow-operation>
+			<allow-operation>ConfirmCertDemandClientOperation</allow-operation>
+			<allow-operation>ViewCertDemandClientOperation</allow-operation>
+		</stage>
+			<on-complete-action>com.rssl.phizic.business.security.auth.ClientAthenticationCompleteAction</on-complete-action>
+	</authentication-mode>
+
+		<confirmation-mode>
+			<key-property>secure-confirm-choice</key-property>
+			<strategy>
+				<key>crypto</key>
+				<class>com.rssl.phizic.auth.modes.CryptoConfirmStrategy</class>
+			</strategy>
+		</confirmation-mode>
+
+		<authentication-choice>
+			<property>secure-auth-choice</property>
+			<option>
+				<name>ЭЦП</name>
+				<value>crypto</value>
+			</option>
+		</authentication-choice>
+
+		<confirmation-choice>
+			<property>secure-confirm-choice</property>
+			<option>
+				<name>ЭЦП</name>
+				<value>crypto</value>
+			</option>
+		</confirmation-choice>
+	</secure-rule>
+</access-rules>

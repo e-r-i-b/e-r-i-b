@@ -1,0 +1,50 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="Important" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.phizic.business.news.Important</param>
+    </typedef>
+
+	<class name="com.rssl.auth.csa.front.business.news.News" table="NEWS">
+
+		<id name="id" type="long" column="ID"/>
+
+        <property name="newsDate"               type="calendar"     column="NEWS_DATE"          not-null="true"/>
+        <property name="title"                  type="string"       column="TITLE"              not-null="true"/>
+        <property name="text"                   type="string"       column="TEXT"               not-null="true" />
+        <property name="shortText"              type="string"       column="SHORT_TEXT"         not-null="true"/>
+        <property name="important"              type="Important"    column="IMPORTANT"          not-null="true"/>
+
+    </class>
+
+    <sql-query name="com.rssl.auth.csa.front.business.news.News.getListNews">
+        <return alias="news" class="com.rssl.auth.csa.front.business.news.News"/>
+        select
+            {news.*}
+        from
+            NEWS news
+        where
+            news.ID in ( select news_dep.NEWS_ID from NEWS_DEPARTMENT news_dep where :regionTB is null or news_dep.TB = :regionTB)
+         and
+            news.type = 'LOGIN_PAGE'
+         and
+            current_date > news.START_PUBLISH_DATE and (news.END_PUBLISH_DATE is null or news.END_PUBLISH_DATE > current_date)
+        order by news.NEWS_DATE desc
+    </sql-query>
+
+    <sql-query name="com.rssl.auth.csa.front.business.news.News.getNewsById">
+        <return alias="news" class="com.rssl.auth.csa.front.business.news.News"/>
+            select
+                {news.*}
+            from
+                NEWS news
+            where
+                news.ID = :news_id
+             and
+                news.type = 'LOGIN_PAGE'
+             and
+                current_date > news.START_PUBLISH_DATE and (news.END_PUBLISH_DATE is null or news.END_PUBLISH_DATE > current_date)
+    </sql-query>
+</hibernate-mapping>

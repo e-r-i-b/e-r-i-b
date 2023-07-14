@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="PurchaseSaleCurrencyPayment" description="Покупка/продажа иностранной валюты" detailedDescription="Покупка и продажа иностранной валюты за рубли"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.InternalTransfer"/>
+	<statemachine name="PaymentStateMachine"/>
+	<withdraw-options>
+	   <form name="RecallPayment"/>
+	   <check class="com.rssl.phizic.business.documents.metadata.checkers.DocumentStateChecker">
+		   <parameter name="state">dispatched</parameter>
+	   </check>
+	</withdraw-options>
+
+	<fields>
+		<field
+				name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"
+				signable="true">
+		</field>
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+			   type="string"/>
+		<field
+			   name="stateDescription"
+		       source="state-description"
+		       description="Описание статуса"
+			   type="string"/>
+		<field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+				<validator mode="document" class="com.rssl.common.forms.validators.DatePeriodFieldValidator">
+					<message text="Дата документа должна быть не раньше текущей и не позже 10 дней – срока действия документа."/>
+					<parameter name="after">10</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="admissionDate"
+		       source="admission-date"
+			   type="date"
+		       description="Дата приема плaтежа банком">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.DateFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="fromAccountSelect"
+				description="Счет списания"
+				type="account"
+				source="payer-account"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="toAccountSelect"
+				description="Счет зачисления"
+				type="account"
+				source="receiver-account"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="chargeOffAmount"
+				description="Сумма"
+				source="amount"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message
+							text="Значение суммы в иностранной валюте должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="foreignCurrency"
+				description="Иностранная валюта"
+				source="extra-parameters/parameter[@name='foreign-currency']/@value"
+				type="string"
+				signable="true"/>
+		<field
+				name="rurCurrency"
+				description="RUB"
+				source="extra-parameters/parameter[@name='rur-currency']/@value"
+				type="string"
+				signable="true"/>
+
+
+        <!--заполнил ли пользователь сумму списания (type='SALE') или сумму зачисления (type='BUY') в форме конверсии валюты
+        эквивалентно: покупке валюты пользователем, если type='BUY', и продаже валюты пользователем, если type='SALE'-->
+		<field name="type"
+		       source="extra-parameters/parameter[@name='type']/@value"
+		       description="тип заполняемого поля"
+			   type="string"/>
+
+        <field name="recalculatedAmountChanged"
+            source="extra-parameters/parameter[@name='recalculated-amount-changed']/@value"
+            description="Изменилась ли пересчитываемая сумма"
+            type="string"/>
+
+		<field
+				name="destinationAmount"
+				description="Сумма"
+				source="extra-parameters/parameter[@name='buy-amount']/@value"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message
+							text="Значение суммы в иностранной валюте должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="currencyRate"
+				description="Курс покупки/продажи"
+				source="extra-parameters/parameter[@name='course']/@value"
+				signable="true"/>
+		<field
+				name="fromAccountType"
+				description="Тип счета"
+				source="extra-parameters/parameter[@name='payer-account-type']/@value"
+				type="string"
+				signable="true"/>
+
+		<field
+				name="fromAccountCurrency"
+				description="Валюта счета списания"
+				source="extra-parameters/parameter[@name='payer-account-currency']/@value"
+				type="string"
+				signable="true"/>
+
+		<field
+				name="toAccountType"
+				description="Тип счета"
+				source="extra-parameters/parameter[@name='receiver-account-type']/@value"
+				type="string"
+				signable="true"/>
+
+		<field
+				name="toAccountCurrency"
+				description="Валюта счета зачисления"
+				source="extra-parameters/parameter[@name='buy-amount-currency']/@value"
+				type="string"
+				signable="true"/>
+
+        <field name="tarifPlanCodeType"
+               description="Тарифный план валюты"
+               source="extra-parameters/parameter[@name='tarif-plan-code-type']/@value"
+               type="string"
+               value="xpath:phiz:document('currentPerson.xml')//field[@name='tarifPlanCodeType']"/>
+	</fields>
+
+	<form-validators>
+		<form-validator
+				class="com.rssl.phizic.business.payments.forms.validators.ForeignAccountCurrencyPerfectValidator">
+			<message text="Валюта счета не совпадает с выбранным видом валюты"/>
+			<field-ref name="payerAccount">fromAccountSelect</field-ref>
+			<field-ref name="receiverAccount">toAccountSelect</field-ref>
+			<field-ref name="foreignCurrency">foreignCurrency</field-ref>
+			<field-ref name="type">type</field-ref>
+		</form-validator>
+
+		<form-validator mode="document" class="com.rssl.phizic.business.claims.forms.validators.EqualToOneFromParametersValidator">
+			<message text="Указана неверная валюта для покупки/продажи"/>
+			<field-ref name="parameterName">foreignCurrency</field-ref>
+			<parameter name="param1">USD</parameter>
+			<parameter name="param2">EUR</parameter>
+		</form-validator>
+
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.claims.forms.validators.RequiredMultiFieldValidator">
+			<message text="Необходимо указать либо сумму списания, либо cумму зачисления на счет"/>
+			<field-ref name="ptr1">chargeOffAmount</field-ref>
+			<field-ref name="ptr2">destinationAmount</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

@@ -1,0 +1,48 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.dictionaries.security.Security" table="SECURITY">
+        <id name="id" type="long" column="ID">
+            <generator class="native">
+                <param name="sequence">S_SECURITY</param>
+            </generator>
+        </id>
+
+        <property name="issuer"             type="string"      column="ISSUER"               not-null="true"/>
+        <property name="name"               type="string"      column="SECURITY_NAME"                 not-null="true"/>
+        <property name="registrationNumber" type="string"      column="SECURITY_NUMBER"  not-null="false"/>
+        <property name="type"               type="string"      column="SECURITY_TYPE"                 not-null="true"/>
+        <property name="nominal" type="not-rounded-money">
+            <column name="NOMINAL_AMOUNT"/>
+            <column name="NOMINAL_CURRENCY"/>
+        </property>
+        <property name="insideCode"         type="string"      column="INSIDE_CODE"          not-null="true"/>
+        <property name="isDelete"           type="boolean"     column="IS_DELETE"          not-null="true"/>
+
+    </class>
+    
+    <query name="com.rssl.phizic.business.dictionaries.security.SecurityService.getSecurityTypes">
+        select distinct security.type from com.rssl.phizic.business.dictionaries.security.Security security
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.security.SecurityService.getOpenSecurityTypes">
+        select distinct security.type from com.rssl.phizic.business.dictionaries.security.Security security
+        where upper(security.type) not like '%ВЕКСЕЛЬ%' and upper(security.type) not like '%СЕРТИФИКАТ%'
+        and upper(security.type) not like '%ЗАКЛАДНАЯ%'
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.security.SecurityService.findByInsideCode">
+        select security from com.rssl.phizic.business.dictionaries.security.Security security where security.insideCode = :insideCode
+    </query>
+    
+    <query name="com.rssl.phizic.business.dictionaries.security.SecurityService.findIdByInsideCode">
+        select security.id from com.rssl.phizic.business.dictionaries.security.Security security where security.insideCode = :insideCode
+    </query>
+
+    <query name="com.rssl.phizic.business.dictionaries.security.SecurityService.getSecuritiesByCodes">
+        select security from com.rssl.phizic.business.dictionaries.security.Security security
+        where security.insideCode in (:insideCodes)
+    </query>
+</hibernate-mapping>

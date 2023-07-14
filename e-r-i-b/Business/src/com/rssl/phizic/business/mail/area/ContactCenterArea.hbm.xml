@@ -1,0 +1,46 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.business.mail.area.ContactCenterArea" table="CONTACT_CENTER_AREAS">
+        <id name="id" column="ID" type="long">
+            <generator class="native">
+                <param name="sequence">S_CONTACT_CENTER_AREAS</param>
+            </generator>
+        </id>
+
+        <property name="uuid"   type="string"   column="UUID"        not-null="true"/>
+        <property name="name"   type="string"   column="AREA_NAME"   not-null="true"/>
+
+        <set name="departments" table="C_CENTER_AREAS_DEPARTMENTS" lazy="false" fetch="subselect">
+            <key column="C_C_AREA_ID"/>
+            <element column="TB" type="string" not-null="true"/>
+        </set>
+
+    </class>
+
+    <sql-query name="com.rssl.phizic.business.mail.area.ContactCenterArea.findTRBWithCCA">
+       <return-scalar column="NAME" type="string"/>
+        <![CDATA[
+            SELECT 
+                department.NAME
+            FROM
+                DEPARTMENTS department
+            JOIN
+                C_CENTER_AREAS_DEPARTMENTS area_department ON department.TB = area_department.TB  
+                AND nvl(department.OSB, 'NULL') = 'NULL'
+                AND nvl(department.OFFICE, 'NULL') = 'NULL'
+        ]]>
+    </sql-query>
+    <sql-query name="com.rssl.phizic.business.mail.area.ContactCenterArea.findAreaBiTbIds">
+        <return alias="area" class="com.rssl.phizic.business.mail.area.ContactCenterArea"/>
+        <![CDATA[
+            SELECT {area.*}
+            FROM
+                 CONTACT_CENTER_AREAS area
+            WHERE
+                area.ID in (select area_department.C_C_AREA_ID from C_CENTER_AREAS_DEPARTMENTS area_department where area_department.TB in(:ids))
+        ]]>
+    </sql-query>
+</hibernate-mapping>

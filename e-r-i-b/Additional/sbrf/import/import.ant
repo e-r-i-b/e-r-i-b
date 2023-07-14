@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="Windows-1251"?>
+
+<project name="import">
+
+	<import id="configs" file="configs.ant"/>
+	<import id="common"  file="common.ant" />
+	<import id="install"  file="install.ant" />
+
+	<target name="importClients" description="Импорт клиентов" depends="init_current_config,create_db_data">
+		<echo level="info" message="Импорт клиентов"/>
+
+		<path id="jdbc.classpath">
+			<fileset dir="${basedir}/../Libraries/JDBC" includes="*.jar"/>
+		</path>
+
+		<property name="dbserver.sql.delimiter.string" value="go"/>
+		<property name="dbserver.sql.delimiter.type"   value="row"/>
+
+		<echo level="info" message="Создание подразделений"/>
+
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.url.full}"
+		     userid="${dbserver.table.username}" password="${dbserver.table.password}" onerror="continue"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+			<fileset dir="${basedir}/db-data"
+			         includes="createDepartment-${dbserver.type}.sql"/>
+		</sql>
+		
+		<echo level="info" message="Создание пин-конвертов"/>
+
+		<antcall target="_CreatePIN">
+			<param name="isAll" value="true"/>
+			<param name="number" value="10"/>
+		</antcall>
+
+		<echo level="info" message="Создание клиентов"/>
+
+		<sql classpathref="jdbc.classpath" driver="${dbserver.driver}" url="${dbserver.url.full}"
+		     userid="${dbserver.table.username}" password="${dbserver.table.password}" onerror="continue"
+		     delimiter="${dbserver.sql.delimiter.string}" delimitertype="${dbserver.sql.delimiter.type}">
+			<fileset dir="${basedir}/db-data"
+			         includes="createUsers-${dbserver.type}.sql"/>
+		</sql>		
+
+		<echo level="info" message="Импорт клиентов завершен"/>
+	</target>
+</project>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.rssl.phizicgate.rsretailV6r4.clients" catalog="rsretailV6r4">
+    <class name="ClientDocumentImpl">
+        <composite-id name="longId" class="com.rssl.phizicgate.rsretailV6r4.clients.ClientId">
+	        <key-property name="personId"  column="kPersonId" />
+		    <key-property name="paperKind" column="kPaperKind"/>
+	    </composite-id>
+	    <property name="personId" column="kPersonId" insert="false" update="false"/>
+        <property name="paperKind" column="kPaperKind" insert="false" update="false"/>
+        <property name="docNumber"/>
+        <property name="docSeries"/>
+        <property name="docIssueDate"/>
+        <property name="docIssueBy"/>
+	    <property name="documentType" type="com.rssl.phizicgate.rsretailV6r4.clients.ClientDocumentTypeWrapper"/>
+	    <property name="docTypeName"/>
+	    <property name="docIssueByCode"/>
+	    <property name="docIdentify"/>
+    </class>
+
+	<!-- pkind.t_codedocum in (11,13) - это
+	 "Свидетельство о регистрации ходатайства иммигранта о признании его беженцем" и "Удостоверение беженца в РФ" - не удостоверяют личность -->
+	<sql-query name="GetClientDocuments">
+	    <return alias="documents" class="com.rssl.phizicgate.rsretailV6r4.clients.ClientDocumentImpl">
+	        <return-property name="docNumber"    column="docNumber"/>
+	        <return-property name="docSeries"    column="docSeries"/>
+	        <return-property name="docIssueDate" column="docIssueDate"/>
+	        <return-property name="docIssueBy"   column="docIssueBy"/>
+		    <return-property name="documentType" column="docType"/>
+		    <return-property name="docTypeName"  column="docName"/>
+		    <return-property name="docIssueByCode" column="docIssueByCode"/>
+		    <return-property name="docIdentify" column="docIdentify"/>
+	    </return>
+		SELECT
+		        idc.t_PersonID                         AS kPersonId,
+	            idc.t_PaperKind                        AS kPaperKind,
+		        REPLACE(idc.t_papernumber, CHR(1),'')  AS docNumber,
+		        idc.t_paperseries                      AS docSeries,
+		        to_char(to_date(idc.t_paperissueddate, 'DD.MM.RRRR HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS docIssueDate, <!-- перевод к to_char нужен для корректной обработки дат 01.04.1982|1983|1984   -->
+	            REPLACE(idc.t_paperissuer, CHR(1),'')  AS docIssueBy,
+	            pkind.t_name                           AS docType,
+	            pkind.t_definition                     AS docName,
+				REPLACE(idc.t_paperissuercode, CHR(1),'')AS docIssueByCode,
+		        case when (pkind.t_codedocum  = 11 OR pkind.t_codedocum = 13)
+                    then 0
+                    else 1
+                end
+                AS docIdentify
+		FROM
+	        dpersn_dbt person
+	        INNER JOIN dparty_dbt party ON person.t_PersonID = party.t_PartyID AND party.t_LegalForm = 2
+	       ,dpersnidc_dbt idc
+	       ,dpaprkind_dbt pkind
+		WHERE
+	        person.t_PersonID = :clientId
+		AND person.t_personid = idc.t_personid
+		AND idc.t_paperkind = pkind.t_paperkind
+	</sql-query>
+
+	<sql-query name="GetPensionNumber">
+	    <return alias="documents" class="com.rssl.phizicgate.rsretailV6r4.clients.ClientDocumentImpl">
+	        <return-property name="docNumber"    column="docNumber"/>
+	        <return-property name="docSeries"    column="docSeries"/>
+	        <return-property name="docIssueDate" column="docIssueDate"/>
+	        <return-property name="docIssueBy"   column="docIssueBy"/>
+		    <return-property name="documentType" column="docType"/>
+		    <return-property name="docTypeName"  column="docName"/>
+		    <return-property name="docIssueByCode" column="docIssueByCode"/>
+		    <return-property name="docIdentify" column="docIdentify"/>
+	    </return>
+		SELECT
+		        person.t_PersonID                            AS kPersonId,
+	            99                                           AS kPaperKind,
+		        REPLACE(person.t_penscardnumber, CHR(1),'')  AS docNumber,
+		        ''                                           AS docSeries,
+		        ''                                           AS docIssueDate,
+	            ''                                           AS docIssueBy,
+	            'Пенсионное удостоверение'                   AS docType,
+	            ''                                           AS docName,
+				''                                           AS docIssueByCode,
+		        0                                            AS docIdentify
+		FROM
+	        dpersn_dbt person
+		WHERE
+	        person.t_PersonID = :clientId
+	</sql-query>
+
+</hibernate-mapping>

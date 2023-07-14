@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="RurPayment"
+              description="Перевод физическому лицу"
+              detailedDescription="Перечисление денежных средств с вашего счета или карты на счет физического лица."
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.RurPayment"/>
+	<statemachine name="PaymentStateMachine"/>
+	<withdraw-options>
+	   <form name="RecallPayment"/>
+	   <check class="com.rssl.phizic.business.documents.metadata.checkers.DocumentStateChecker">
+		   <parameter name="state">dispatched</parameter>
+	   </check>
+	</withdraw-options>
+
+	<fields>
+		<field
+				name="documentNumber"
+				description="Номер документа"
+				type="string"
+				source="document-number"
+				signable="true">
+		</field>
+		<field
+				name="documentDate"
+				description="Дата документа"
+				type="date"
+				source="document-date"
+				signable="true"/>
+		<field
+				name="payerAccountSelect"
+				description="Счет списания"
+				type="account"
+				source="payer-account"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountIsOpenValidator"/>
+			</validators>
+		</field>
+
+		<field
+			name="payerAccountSelectType"
+			description="Тип счета списания"
+			type="string"
+			source="extra-parameters/parameter[@name='payer-account-type']/@value"			
+			signable="true"
+			value="form.payerAccountSelect==null?null:form.payerAccountSelect.getDescription()">
+		</field>
+
+		<field
+			name="amountCurrency"
+			description="Валюта"
+			source="amount-currency"
+			type="string"
+			signable="true"
+			value="form.payerAccountSelect==null?null:form.payerAccountSelect.getCurrency().getCode()">
+		</field>
+
+		<!-- Тип получателя платежа(из справочника или другой) -->
+		<field
+				name="receivPayType"
+				description="Тип получателя платежа"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-pay-type']/@value">
+		</field>
+
+		<field
+				name="receivPaySelect"
+				description="Получатель"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-alias']/@value"
+				signable="true">
+
+			<!--todo: разобраться для чего это?-->
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverName"
+				description="Наименование (ФИО)"
+				type="string"
+				source="receiver-name"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message
+							text="Наименование (ФИО) не должно превышать 250 символов. Введите более короткое наименование"/>
+					<parameter name="regexp">^.{0,50}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="receiverAccount"
+				description="Счет зачисления"
+				type="string"
+				source="receiver-account"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Длина счёта зачисления должена быть от 20-ти до 25-ти цифр."/>
+					<parameter name="regexp">^\d{20,25}$</parameter>
+				</validator>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.AccountCurrencyValidator">
+					<message text="Валюта счета получателя отсутствует в справочнике валют. Обновите справочник и повторите попытку."/>
+				</validator>
+			</validators>
+		</field>
+
+		<field name="bank"
+			   source="extra-parameters/parameter[@name='bank']/@value"		       
+		       description="Наименование банка"
+			   type="string">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+			</validators>
+		</field>
+
+		<field
+				name="receiverBIC"
+				description="БИК"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-bic']/@value"
+				signable="true">
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.phizic.business.payments.forms.validators.BICFieldValidator">
+					<message text="БИК банка получателя не найден в справочнике банков"/>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="БИК должен состоять из 9 цифр"/>
+					<parameter name="regexp">^\d{9}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="receiverCorAccount"
+				description="Кор.Счет"
+				type="string"
+				source="extra-parameters/parameter[@name='receiver-cor-account']/@value"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Кор.Счет должен состоять из 20 цифр"/>
+					<parameter name="regexp">^\d{20}$</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+				name="admissionDate"
+				description="Плановая дата исполнения платежа"
+				source="admission-date"
+				type="date"
+				signable="true"/>
+		
+		<field
+				name="amount"
+				description="Сумма"
+				source="amount"
+				type="money"
+				signable="true">
+
+			<validators>
+				<validator mode="document" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+				<validator class="com.rssl.common.forms.validators.MoneyFieldValidator">
+					<message text="Значение суммы должно быть в диапазоне 0,01 - 999999999,99"/>
+				</validator>
+				<validator class="com.rssl.common.forms.validators.NumericRangeValidator">
+					<message text="Значение суммы должно быть в диапазоне 0,01 - 999999999,99"/>
+					<parameter name="minValue">0.01</parameter>
+					<parameter name="maxValue">999999999.99</parameter>
+				</validator>
+			</validators>
+		</field>
+
+		<field
+			  name="operationCode"
+			  description="Код валютной операции"
+			  source="extra-parameters/parameter[@name='operation-code']/@value"
+			  type="string"
+			  signable="true">
+				<validators>
+					<validator  mode="document"
+					            enabled="xpath:(boolean(phiz:document('currentPerson.xml')/entity-list/entity/field[@name='isResident' and text() = 'false'])) or (substring($receiverAccount, 1, 5) = '40807' or substring($receiverAccount, 1, 5) = '40820' or substring($receiverAccount, 1, 3) = '426')"
+								class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+
+					<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+						<message text="Код валютной операции должен быть вида: {VOкод}, где код - 5 цифр."/>
+						<parameter name="regexp">\{VO\d{5}\}</parameter>
+					</validator>
+				</validators>
+	  </field>
+	   <field
+				name="commission"
+				description="Сумма коммисии"
+				source="commission"
+				type="money"
+				signable="true"/>
+		<field
+				name="ground"
+				description="Назначение платежа"
+				source="ground"
+				type="string"
+				signable="true">
+			<validators>
+				<validator class="com.rssl.common.forms.validators.RequiredFieldValidator" mode="document"/>
+				<validator class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Назначение платежа не должно превышать 200 символов"/>
+					<parameter name="regexp">^(.|\s){1,200}$</parameter>
+				</validator>
+
+				<validator enabled="form.operationCode.length > 0"
+								class="com.rssl.common.forms.validators.RegexpFieldValidator">
+					<message text="Назначение платежа должно заканчиваться кодом вида валютной операции: {VOкод}, где код - 5 цифр."/>
+					<parameter name="regexp">.*\{VO\d{5}\}</parameter>
+				</validator>
+
+			</validators>
+
+		</field>
+
+		<field name="state"
+		       source="state"
+		       description="Статус платежа"
+			   type="string"/>
+	</fields>
+
+	<form-validators>
+		<form-validator mode="document"
+		                class="com.rssl.phizic.business.payments.forms.validators.AccountAmountValidator">
+			<field-ref name="account">payerAccountSelect</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountMaxSumWriteValidator">
+			<message text="Сумма платежа больше непревышаемого остатка"/>
+			<field-ref name="account">payerAccountSelect</field-ref>
+			<field-ref name="amount">amount</field-ref>
+		</form-validator>
+		<form-validator class="com.rssl.phizic.business.payments.forms.validators.AccountKeyValidator">
+			<message text="Неверный ключ счета получателя"/>
+			<field-ref name="receiverBIC">receiverBIC</field-ref>
+			<field-ref name="receiverAccount">receiverAccount</field-ref>
+		</form-validator>
+	</form-validators>
+</payment-form>

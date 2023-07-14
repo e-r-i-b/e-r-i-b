@@ -1,0 +1,122 @@
+/**********************************************************************\
+|  Макрос автопроводки отложенных платежей ИКФЛ                        |
+|                                                                      |
+|  27.11.2007                                                          |
+|  Данилов А.А.                                                        |
+|  Департамент систем электронного банковского обслуживания            |
+|  R-Style Softlab                                                     |
+\**********************************************************************/
+
+import DeposInter, CommonInter,"autoCarryBase.mac";
+
+private const IKFL_OPER = 9999;          // операционист платежей ИКФЛ
+private const IKFL_APPLICATION_KIND = 5; // для отложенных платежей
+
+//функция проверки, не является ли платеж проводимым вручную
+macro checkPay(pay)
+
+  return true;
+end;
+
+class SimplePayment(pkind_, pkey_, branch_, iscur_)
+  var pkind = pkind_;
+  var pkey  = pkey_;
+  var branch = branch_;
+  var iscur = iscur_;
+end;
+
+macro selectIkflPayments()
+
+  var payments = TArray();
+  var f_psdepdoc = TBFile( "psdepdoc.dbt", "rw", 8, NULL, "sbbank.def" ),
+      f_listfdep = TBFile( "listfdep.dbt", "r",  0, NULL, "sbbank.def" ),
+      stat_listfdep, stat_psdepdoc;
+
+  macro checkPsdepdoc()
+    var retval = true;
+
+    //проверяем, не был ли документ сторнированным, если был - удаляем его
+    if( ( f_psdepdoc.rec.iApplicationKind != IKFL_APPLICATION_KIND ) or
+        ( ( f_psdepdoc.rec.DepDate_Document != date(0,0,0) ) and 
+          ( f_psdepdoc.rec.IsControl        != "" ) and
+          ( f_psdepdoc.rec.OrderNum         != 0  ) and
+          ( f_psdepdoc.rec.Flags            != 0  ) )
+      )
+      f_psdepdoc.delete();
+
+      return false;
+    end;
+
+    //проверяем, не является ли платеж проводимым вручную
+    record pay("psdepdoc.dbt", "sbbank.def");
+    copy(pay,f_psdepdoc);
+    if(not checkPay(pay))
+      return false;
+    end;
+
+    return true;
+  end;
+
+  var IsCur = 0;
+  if( OpenDepFiles() )
+    while(IsCur <= 1)
+      f_listfdep.clear();
+      f_listfdep.rec.FNCash = 0;
+      stat_listfdep = f_listfdep.getGE();
+      while ( stat_listfdep)
+        f_psdepdoc.clear();
+        f_psdepdoc.rec.IsCur = IsCur;
+        f_psdepdoc.rec.FNCash = f_listfdep.rec.FNCash;
+        f_psdepdoc.rec.Oper = IKFL_OPER;
+        f_psdepdoc.rec.NPack = 0;
+        f_psdepdoc.rec.NDoc = 0;
+      
+        stat_psdepdoc = f_psdepdoc.getEQ();
+        while ( stat_psdepdoc )
+          if(checkPsdepdoc())
+            payments[payments.size] = SimplePayment( f_psdepdoc.rec.iApplicationKind, f_psdepdoc.rec.ApplicationKey, f_psdepdoc.rec.FNCash, f_psdepdoc.rec.IsCur );
+          end;
+
+          stat_psdepdoc = f_psdepdoc.next();
+        end;
+
+        stat_listfdep = f_listfdep.next();
+      end;
+      IsCur = IsCur + 1;
+    end;
+  end;
+ 
+  CloseDepFiles();
+ 
+  return payments;
+end;
+
+macro entryPoint()
+  var payments = selectIkflPayments();
+  var i = 0, err = 0;
+  var f_psdepdoc = TBFile( "psdepdoc.dbt", "w", 4, NULL, "sbbank.def" );
+
+  if(OpenDepFiles())
+setoutput("out.txt", true);
+    while( i < payments.size )
+      if (not CheckClosedDayInBank(payments[i].branch, payments[i].iscur))
+println ("CarryPsDoc "+payments[i].pkey);
+         err = CarryPsDoc(payments[i].pkind,payments[i].pkey); 
+         if (err > 0)
+println ("CarryPsDoc delete "+payments[i].pkey+" ("+err+")");
+            f_psdepdoc.clear();
+            f_psdepdoc.rec.iApplicationKind = payments[i].pkind;
+            f_psdepdoc.rec.ApplicationKey = payments[i].pkey;
+            if (f_psdepdoc.getEQ)
+               f_psdepdoc.delete;
+            end;
+         end;
+      end;
+      i = i + 1;
+    end;
+setoutput(null, true);
+  end;
+  CloseDepFiles();
+end;
+
+entryPoint();

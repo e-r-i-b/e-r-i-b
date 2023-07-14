@@ -1,0 +1,1075 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<quartz xmlns="http://www.opensymphony.com/quartz/JobSchedulingData"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.opensymphony.com/quartz/JobSchedulingData http://www.opensymphony.com/quartz/xml/job_scheduling_data_1_5.xsd"
+		version="1.5">
+
+	<!--Сообщение о приеме документа к исполнению-->
+	<job>
+		<job-detail>
+			<name>NotificationHandler</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.jobs.NotificationHandlingJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>NotificationHandlerTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>NotificationHandlerJob</job-name>
+				<job-group>DEFAULT</job-group>
+	<!-- repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!--Оповещение клиентов о входе с нестандартного IP-->
+    <job>
+		<job-detail>
+			<name>UnusualIPNotificationJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.notification.ip.unusual.UnusualIPNotificationJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>UnusualIPNotificationTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>UnusualIPNotificationJob</job-name>
+				<job-group>DEFAULT</job-group>
+                <!-- периодичность 5 минут -->
+                <repeat-count>-1</repeat-count>
+				<repeat-interval>300000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+	<!-- проводка платежей в Город-->
+	<job>
+		<job-detail>
+			<name>GorodPaymentExecuteJob</name>
+			<group>DEFAULT</group>
+            <!-- Раскоментировать при подключении города к ЦОД
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.gorod.GorodPaymentsCarryJob
+            </job-class>
+            -->
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.gorod.sevb.GorodPaymentsCarryJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>GorodPaymentExecuteTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>GorodPaymentExecuteJob</job-name>
+				<job-group>DEFAULT</job-group>
+	<!-- repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+	<!--Взимание ежемесячной платы-->
+    <job>
+		<job-detail>
+			<name>ChargeOffPaymentsJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.business.chargeoff.job.ChargeOffPaymentsJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			  <cron>
+				<name>ChargeOffPaymentsTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ChargeOffPaymentsJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<cron-expression>0 0 12 * * ?</cron-expression>
+			  </cron>
+		</trigger>
+	</job>
+
+    <!--Отправка документов со статусом 'Ожидание обработки' во внешнюю систему-->
+	<job>
+    	<job-detail>
+			<name>SendPaymentsJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.business.payments.job.SendDelayedPaymentsJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>SendPaymentsTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>SendPaymentsJob</job-name>
+				<job-group>DEFAULT</job-group>
+	 <!--repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!--Автодокат биллинговых платежей в шину из статуса UNKNOW-->
+	<job>
+    	<job-detail>
+			<name>ResendESBPaymentJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.business.payments.job.ResendESBPaymentJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>ResendESBPaymentTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ResendESBPaymentJob</job-name>
+				<job-group>DEFAULT</job-group>
+	 <!--repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!-- Обработка отчетов-->
+	<job>
+		<job-detail>
+			<name>ExecuteReportsJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.jobs.ExecuteReportsJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>ExecuteReportsTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ExecuteReportsJob</job-name>
+				<job-group>DEFAULT</job-group>
+	<!-- repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <job>
+        <!-- автоматическое снятие информационных сообщений с публикации -->
+        <job-detail>
+            <name>InformMessagesDeletingJob</name>
+            <group>DAFAULT</group>
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.InformMessagesDeletingJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>InformMessagesDeletingTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>InformMessagesDeletingJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!-- repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <job-detail>
+            <name>ExecMockEribRatesJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizicgate.esberibgate.mock.rate.MockEribRatesJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>MockEribRatesTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>ExecMockEribRatesJob</job-name>
+                <job-group>DEFAULT</job-group>
+    <!-- repeat indefinitely every 10 minutes -->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>600000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+  		 <!-- Отправка оповещений об оплаченных заказах (ОЗОН)-->
+  		<job-detail>
+  			<name>UECNotifyJob</name>
+  			<group>DEFAULT</group>
+  			<job-class>
+  				com.rssl.phizic.scheduler.jobs.UECNotifyJob
+  			</job-class>
+  		</job-detail>
+
+  		<trigger>
+  			<simple>
+  				<name>UECNotifyTrigger</name>
+  				<group>DEFAULT</group>
+  				<job-name>UECNotifyJob</job-name>
+  				<job-group>DEFAULT</job-group>
+  				 <!--repeat indefinitely every 50 seconds-->
+  				<repeat-count>-1</repeat-count>
+  				<repeat-interval>50000</repeat-interval>
+  			</simple>
+  		</trigger>
+  	</job>
+
+    <job>
+		<!-- Очистка заказов старше указанной в настройках даты, с которыми не связаны платежи (использовать при работе einvoicing в одноблочном режиме)-->
+		<job-detail>
+			<name>ClearOldOrdersJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.einvoicing.sheduler.ClearOldOrdersJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<cron>
+				<name>ClearOldOrdersTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ClearOldOrdersJob</job-name>
+				<job-group>DEFAULT</job-group>
+				 <!-- запуск в 12pm каждый день -->
+				<cron-expression>0 0 12 * * ?</cron-expression>
+			</cron>
+		</trigger>
+	</job>
+
+   	<!-- Джоб для выемки выписок -->
+	<job>
+		<job-detail>
+			<name>PFRStatementJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.business.payments.job.PFRStatementJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>PFRStatementTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>PFRStatementJob</job-name>
+				<job-group>DEFAULT</job-group>
+	<!-- repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!--Дополнительная проверка статуса платежа в биллинге-->
+    <job>
+        <job-detail>
+            <name>CheckPaymentExecutionJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.business.payments.job.CheckPaymentExecutionJob
+            </job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>CheckPaymentExecutionTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>CheckPaymentExecutionJob</job-name>
+                <job-group>DEFAULT</job-group>
+     <!--repeat indefinitely every 30 minutes -->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>1800000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <!-- Подгрузка карточных операций (из ипс) -->
+    <job>
+		<job-detail>
+			<name>LoadCardOperationsJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.business.ips.LoadCardOperationsJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+            <simple>
+                <name>LoadCardOperationsTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>LoadCardOperationsJob</job-name>
+                <job-group>DEFAULT</job-group>
+<!-- каждые 30 минут -->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>1800000</repeat-interval>
+            </simple>
+		</trigger>
+	</job>
+
+    <!-- Многопоточная подгрузка карточных операций (из ипс) -->
+    <job>
+        <job-detail>
+            <name>MultiThreadLoadCardOperationsJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.cardoperations.LoadCardOperationsJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>MultiThreadLoadCardOperationsTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>MultiThreadLoadCardOperationsJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>1800000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+		<job-detail>
+			<name>ProvidersPerformBackgroundTasksJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.jobs.ServiceProvidersPerformBackgroundTasksJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>ProvidersPerformBackgroundTasksTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>ProvidersPerformBackgroundTasksJob</job-name>
+				<job-group>DEFAULT</job-group>
+	<!-- repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <job>
+		<job-detail>
+			<name>DepartmentsPerformBackgroundTasksJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.scheduler.jobs.DepartmentsPerformBackgroundTasksJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>DepartmentsPerformBackgroundTasksTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>DepartmentsPerformBackgroundTasksJob</job-name>
+				<job-group>DEFAULT</job-group>
+                <!-- repeat indefinitely every 60 seconds -->
+                <repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!--удаление старых сиквенсов-->
+    <job>
+		<job-detail>
+			<name>RemoveOldSequencesJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.business.payments.job.RemoveOldSequencesJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<cron>
+				<name>RemoveOldSequencesJobTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>RemoveOldSequencesJob</job-name>
+				<job-group>DEFAULT</job-group>
+				 <!-- запуск в 02:00 каждый день -->
+				<cron-expression>0 0 2 * * ?</cron-expression>
+			</cron>
+		</trigger>
+	</job>
+
+    <!-- джоб для повторной оправки документов -->
+    <job>
+		<job-detail>
+			<name>RepeatSendDocumentJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.business.payments.job.RepeatSendDocumentJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>RepeatSendDocumentTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>RepeatSendDocumentJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!-- джоб для повторной оправки заявок по открытию вкладов, ОМС и операциям с ОМС-->
+    <job>
+		<job-detail>
+			<name>RepeatSendRequestDocumentJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.business.payments.job.RepeatSendRequestDocumentJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>RepeatSendRequestDocumentTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>RepeatSendRequestDocumentJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <!--Проверка на недоступность внешних систем-->
+    <job>
+        <job-detail>
+            <name>CheckOfflineExternalSystemsJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.CheckOfflineExternalSystemsJob
+            </job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>CheckOfflineExternalSystemsTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>CheckOfflineExternalSystemsJob</job-name>
+                <job-group>DEFAULT</job-group>
+     <!--repeat indefinitely every 30 seconds -->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>30000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <!--Отправка отложенных из-за недоступности внешних систем документов-->
+    <job>
+        <job-detail>
+            <name>SendOfflineDelayedPaymentsJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.business.payments.job.SendOfflineDelayedPaymentsJob
+            </job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>SendOfflineDelayedPaymentsTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>SendOfflineDelayedPaymentsJob</job-name>
+                <job-group>DEFAULT</job-group>
+     <!--repeat indefinitely every 60 seconds -->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <!-- джоб для обновления информации в БД "живого" поиска-->
+    <job>
+		<job-detail>
+			<name>AsynchSearchDictionariesLoaderJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.business.dictionaries.asyncSearch.job.AsynchSearchDictionariesLoaderJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<simple>
+				<name>AsynchSearchDictionariesLoaderTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>AsynchSearchDictionariesLoaderJob</job-name>
+				<job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <job>
+        <!-- автоматическое удаление тех. перерывов -->
+        <job-detail>
+            <name>TechnoBreakJob</name>
+            <group>DAFAULT</group>
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.TechnoBreakJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>TechnoBreakJob</name>
+                <group>DEFAULT</group>
+                <job-name>TechnoBreakJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!-- repeat indefinitely every 60 seconds -->
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+
+    <job>
+        <!-- автоматическая архивация отчетов об ошибках -->
+        <job-detail>
+            <name>ArchivingExceptionReportJob</name>
+            <group>DAFAULT</group>
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.ArchivingExceptionReportJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <cron>
+                <name>ArchivingExceptionReportJob</name>
+                <group>DEFAULT</group>
+                <job-name>ArchivingExceptionReportJob</job-name>
+                <job-group>DEFAULT</job-group>
+                 <!-- запуск в 00:00 1 числа каждого месяца -->
+                <cron-expression>0 0 0 1 * ?</cron-expression>
+            </cron>
+        </trigger>
+    </job>
+
+    <!--Джоб отправки тестовых сообщений для проверки канала взаимодействия ериб и инфобанка на работоспособность-->
+       <job>
+           <job-detail>
+               <name>InfobankMonitoringJob</name>
+               <group>DEFAULT</group>
+               <job-class>
+                   com.rssl.phizic.scheduler.jobs.infobank.InfobankMonitoringJob
+               </job-class>
+           </job-detail>
+
+           <trigger>
+               <simple>
+                   <name>InfobankMonitoringTrigger</name>
+                   <group>DEFAULT</group>
+                   <job-name>InfobankMonitoringJob</job-name>
+                   <job-group>DEFAULT</job-group>
+                    <!--repeat indefinitely every 60 seconds-->
+                   <repeat-count>-1</repeat-count>
+                   <repeat-interval>30000</repeat-interval>
+               </simple>
+           </trigger>
+       </job>
+
+    <!--Джоб для мониторинга устройств, для которых требуется отключить Push-уведомления-->
+    <job>
+        <job-detail>
+            <name>PushNotificationsRemoveJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.PushNotificationsRemoveJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>PushNotificationsRemoveTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>PushNotificationsRemoveJob</job-name>
+                <job-group>DEFAULT</job-group>
+                 <!--repeat indefinitely every 60 seconds-->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>3600000</repeat-interval>
+            </simple>
+        </trigger>
+   </job>
+
+    <job>
+        <!-- Джоб для актуализации справочника приватных телефонов -->
+        <job-detail>
+            <name>UpdateIncognitoPhonesJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.UpdateIncognitoPhonesJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>UpdateIncognitoPhonesTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>UpdateIncognitoPhonesJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!--repeat indefinitely every 60 seconds-->
+               <repeat-count>-1</repeat-count>
+               <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!-- Джоб для актуализации списка аватаров клиентов -->
+        <job-detail>
+            <name>UpdateAvatarsJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.scheduler.jobs.UpdateAvatarsJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>UpdateAvatarsTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>UpdateAvatarsJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!--repeat indefinitely every 60 seconds-->
+               <repeat-count>-1</repeat-count>
+               <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+    <!--Джоб для проверки наличия подтвержденных оферт по заказам интернет-магазинов в МБ и отправки документов оплаты заказов в биллинг-->
+    <job>
+        <job-detail>
+            <name>OrderMobileCheckoutCheckJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.einvoicing.sheduler.OrderMobileCheckoutCheckJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>OrderMobileCheckoutCheckTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>OrderMobileCheckoutCheckJob</job-name>
+                <job-group>DEFAULT</job-group>
+                 <!--repeat indefinitely every 60 seconds-->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <!-- джоб актуализирующий заявки на загрузку карточных операций -->
+    <job>
+		<job-detail>
+			<name>UpdateCardOperationClaimsJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.scheduler.jobs.UpdateCardOperationClaimsJob
+			</job-class>
+		</job-detail>
+
+		<trigger>
+			<cron>
+				<name>UpdateCardOperationClaimsJobTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>UpdateCardOperationClaimsJob</job-name>
+				<job-group>DEFAULT</job-group>
+                <!-- запуск в 01:00 каждый день -->
+                <cron-expression>0 0 1 * * ?</cron-expression>
+			</cron>
+		</trigger>
+	</job>
+
+    <job>
+        <!-- синхронизация справочников в многоблочном режиме -->
+        <job-detail>
+            <name>DictionarySynchronizationJob</name>
+            <group>DAFAULT</group>
+            <job-class>com.rssl.phizic.scheduler.jobs.DictionarySynchronizationJob</job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>DictionarySynchronizationJob</name>
+                <group>DEFAULT</group>
+                <job-name>DictionarySynchronizationJob</job-name>
+                <job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!--Джоб получения списка билетов из модуля einvoicing для документа оплаты брони аэрофлота-->
+        <job-detail>
+            <name>AirlineReservationPaymentTicketsJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.business.payments.job.AirlineReservationPaymentTicketsJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>AirlineReservationPaymentTicketsTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>AirlineReservationPaymentTicketsJob</job-name>
+                <job-group>DEFAULT</job-group>
+                 <!--repeat indefinitely every 1 hour-->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>3600000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!--Джоб рассылки оповещений по изменению статусов заказов (использовать при работе einvoicing в одноблочном режиме)-->
+        <job-detail>
+            <name>ShopNotificationJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.einvoicing.sheduler.ShopNotificationJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>ShopNotificationTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>ShopNotificationJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!--repeat indefinitely every 60 seconds-->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!-- Уточнение статусов старых заказов/отмен платежей/возвратов (использовать при работе einvoicing в одноблочном режиме)-->
+        <job-detail>
+            <name>EinvoicingCheckStateJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.einvoicing.sheduler.EinvoicingCheckStateJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <cron>
+                <name>EinvoicingCheckStateTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>EinvoicingCheckStateJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!-- запуск в 12pm каждый день -->
+                <cron-expression>0 0 12 * * ?</cron-expression>
+            </cron>
+        </trigger>
+    </job>
+
+    <job>
+		<job-detail>
+			<name>SendGeneratedInvoiceSubJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.business.payments.job.SendGeneratedInvoiceSubJob
+			</job-class>
+		</job-detail>
+        <trigger>
+            <cron>
+                <name>SendGeneratedInvoiceSubTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>SendGeneratedInvoiceSubJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!-- запуск в 01:00 каждый день -->
+                <cron-expression>0 0 1 * * ?</cron-expression>
+            </cron>
+        </trigger>
+	</job>
+
+    <job>
+		<job-detail>
+			<name>ProcessDelayInvoiceSubJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.business.payments.job.ProcessDelayInvoiceSubJob
+			</job-class>
+		</job-detail>
+        <trigger>
+            <simple>
+                <name>ProcessDelayInvoiceSubJobTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>ProcessDelayInvoiceSubJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!--repeat indefinitely every 60 seconds-->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+	</job>
+
+    <job>
+        <!--Джоб выгрузки справочника ПУ с разбивкой по категориям-->
+        <job-detail>
+            <name>PaymentServicesUnloadingJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.business.dictionaries.payment.services.job.PaymentServicesUnloadingJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <cron>
+                <name>PaymentServicesUnloadingTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>PaymentServicesUnloadingJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!-- запуск в 02:00 каждый день -->
+                <cron-expression>0 0 2 * * ?</cron-expression>
+            </cron>
+        </trigger>
+    </job>
+
+    <job>
+        <!--Джоб актуализации признака клиент сбербанка-->
+        <job-detail>
+            <name>ActualizeSberClientJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizgate.sheduler.ActualizeSberbankClientOptionJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>ActualizeSberClientTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>ActualizeSberClientJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <!-- repeat indefinitely every 60 seconds -->
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <!--уточнение статусов документов в АС "ЦОД"-->
+    <job>
+		<job-detail>
+			<name>DepoCodPaymentsExecutionJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+				com.rssl.phizic.business.payments.job.DepoCodPaymentsExecutionJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>DepoCodPaymentsExecutionTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>DepoCodPaymentsExecutionJob</job-name>
+				<job-group>DEFAULT</job-group>
+                <!-- repeat indefinitely every 10 minutes -->
+                <repeat-count>-1</repeat-count>
+				<repeat-interval>600000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <job>
+        <!-- Джоб миграции клиентов из резервного блока -->
+        <job-detail>
+            <name>MigrateTemporaryNodeClientsJob</name>
+            <group>DEFAULT</group>
+            <job-class>com.rssl.phizic.business.migration.MigrateTemporaryNodeClientsJob</job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>MigrateTemporaryNodeClientsJob</name>
+                <group>DEFAULT</group>
+                <job-name>MigrateTemporaryNodeClientsJob</job-name>
+                <job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!--Джоб отправки запросов на проверку кредитной истории-->
+        <job-detail>
+            <name>ConnectCreditProfileJob</name>
+            <group>DEFAULT</group>
+            <job-class>com.rssl.phizic.business.bki.job.BKIJob</job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>ConnectCreditProfileTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>ConnectCreditProfileJob</job-name>
+                <job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!--каждые полминуты -->
+				<repeat-interval>30000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!--Джоб агрегации каталога услуг-->
+        <job-detail>
+            <name>CatalogAggregationJob</name>
+            <group>DEFAULT</group>
+            <job-class>
+                com.rssl.phizic.business.dictionaries.providers.aggr.CatalogAggregationJob
+            </job-class>
+        </job-detail>
+
+        <trigger>
+            <simple>
+                <name>CatalogAggregationTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>CatalogAggregationJob</job-name>
+                <job-group>DEFAULT</job-group>
+				<repeat-count>-1</repeat-count>
+                <!-- repeat indefinitely every 30 minutes -->
+                <repeat-interval>1800000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <!--убирает операцию из расчетов АЛФ если время жизни операции вышло-->
+    <job>
+		<job-detail>
+			<name>CardOperationLifeTimeJob</name>
+			<group>DEFAULT</group>
+			<job-class>
+                com.rssl.phizic.scheduler.jobs.cardoperations.CardOperationLifeTimeJob
+			</job-class>
+		</job-detail>
+		<trigger>
+			<simple>
+				<name>CardOperationLifeTimeTrigger</name>
+				<group>DEFAULT</group>
+				<job-name>CardOperationLifeTimeJob</job-name>
+				<job-group>DEFAULT</job-group>
+                <!-- repeat indefinitely every 60 seconds -->
+                <repeat-count>-1</repeat-count>
+				<repeat-interval>60000</repeat-interval>
+			</simple>
+		</trigger>
+	</job>
+
+    <job>
+        <!-- Шедулер, оповещающий блоки отправителей денег о новом запросе на сбор средств -->
+        <job-detail>
+            <name>CreateRequestJob</name>
+            <group>DEFAULT</group>
+            <job-class>com.rssl.phizic.scheduler.jobs.fund.CreateRequestJob</job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>CreateRequestJob</name>
+                <group>DEFAULT</group>
+                <job-name>CreateRequestJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>900000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!-- Шедулер, оповещающий блоки отправителей денег о закрытии запроса на сбор средств -->
+        <job-detail>
+            <name>CloseRequestJob</name>
+            <group>DEFAULT</group>
+            <job-class>com.rssl.phizic.scheduler.jobs.fund.CloseRequestJob</job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>CloseRequestJob</name>
+                <group>DEFAULT</group>
+                <job-name>CloseRequestJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>900000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!-- Шедулер, передающий сообщения об отказах от изменения кредитных лимитов
+         и сообщения о подтверждении по СМС заявки в МБК-->
+        <job-detail>
+            <name>CardOfferRefusesJob</name>
+            <group>DEFAULT</group>
+            <job-class>com.rssl.phizic.scheduler.jobs.CardOfferRefusesJob</job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>CardOfferRefusesTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>CardOfferRefusesJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>5000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <job>
+        <!-- Шедулер, передающий сообщения об отказах от изменения кредитных лимитов -->
+        <job-detail>
+            <name>SendCardOfferRefusesJob</name>
+            <group>DEFAULT</group>
+            <job-class>com.rssl.phizic.scheduler.jobs.SendCardOfferRefusesJob</job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>SendCardOfferRefusesTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>SendCardOfferRefusesJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+
+    <!--Джоб отправки фрод-сообщений в систему фрод-мониторинга-->
+    <job>
+        <job-detail>
+            <name>FraudNotificationJob</name>
+            <group>DEFAULT</group>
+            <job-class>com.rssl.phizic.scheduler.jobs.FraudNotificationJob</job-class>
+        </job-detail>
+        <trigger>
+            <simple>
+                <name>FraudNotificationTrigger</name>
+                <group>DEFAULT</group>
+                <job-name>FraudNotificationJob</job-name>
+                <job-group>DEFAULT</job-group>
+                <repeat-count>-1</repeat-count>
+                <repeat-interval>60000</repeat-interval>
+            </simple>
+        </trigger>
+    </job>
+</quartz>

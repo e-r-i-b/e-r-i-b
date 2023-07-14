@@ -1,0 +1,44 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.dictionaries.tariffPlan.locale.TariffPlanConfigResources" table="TARIF_PLAN_CONFIGS_RES">
+        <composite-id>
+            <key-property name="id"        column="ID"            type="long"/>
+            <key-property name="localeId"  column="LOCALE_ID"     type="string"/>
+        </composite-id>
+
+        <property name="privilegedRateMessage"  type="string"       column="PRIVILEGED_RATE_MESSAGE"/>
+
+    </class>
+
+    <class name="com.rssl.phizic.business.dictionaries.tariffPlan.locale.LocaledTariffPlanConfig" table="TARIF_PLAN_CONFIGS" mutable="false">
+
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_TARIF_PLAN_CONFIGS</param>
+            </generator>
+        </id>
+
+        <property name="code"                   type="string"       column="TARIF_PLAN_CODE"        not-null="true"/>
+        <property name="name"                   type="string"       column="NAME"                   not-null="true"/>
+        <property name="dateBegin"              type="calendar"     column="DATE_BEGIN"             not-null="true"/>
+        <property name="dateEnd"                type="calendar"     column="DATE_END"               not-null="false"/>
+        <property name="state"                  type="boolean"      column="STATE"                  not-null="true"/>
+        <property name="needShowStandartRate"   type="boolean"      column="NEED_SHOW_STANDART_RATE"/>
+        <property name="privilegedRateMessage"  type="string"       column="PRIVILEGED_RATE_MESSAGE"/>
+
+        <set name="resources" fetch="join" lazy="false" access="field">
+            <key column="ID" not-null="false"/>
+            <one-to-many class="com.rssl.phizic.business.dictionaries.tariffPlan.locale.TariffPlanConfigResources"/>
+            <filter name="localeIdFilter"/>
+        </set>
+    </class>
+
+
+    <filter-def name="localeIdFilter" condition="LOCALE_ID = :localeId">
+        <filter-param name="localeId" type="string"/>
+    </filter-def>
+</hibernate-mapping>

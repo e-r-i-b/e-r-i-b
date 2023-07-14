@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+    <class name="com.rssl.phizic.business.ima.IMAProduct" table="IMAPRODUCT" abstract="false" polymorphism="explicit">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_IMAPRODUCT</param>
+            </generator>
+        </id>
+        <property name="uuid" type="string" column="UUID" not-null="true"/>
+        <property name="type" type="long" column="TYPE" not-null="true"/>
+        <property name="subType" type="long" column="SUBTYPE" not-null="true"/>
+        <property name="name" type="string" column="NAME" not-null="true"/>
+        <property name="contractTemplate" type="string" column="CONTRACT_TEMPLATE" not-null="true"/>
+        <property name="currency" type="currency" column="CURRENCY" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.business.ima.IMAProductPart" table="IMAPRODUCT" abstract="false">
+        <id name="id"               type="long"     column="ID"/>
+        <property name="type"       type="long"     column="TYPE"       not-null="true"/>
+        <property name="subType"    type="long"     column="SUBTYPE"    not-null="true"/>
+        <property name="name"       type="string"   column="NAME"       not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.ima.IMAProduct.getAll">
+        select imaProduct
+        from com.rssl.phizic.business.ima.IMAProduct as imaProduct
+        order by imaProduct.type, imaProduct.subType
+    </query>
+</hibernate-mapping>

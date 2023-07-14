@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<payment-form name="FNSPayment" description="Оплата с сайта ФНС"
+              detailedDescription="Для продолжения совершения платежа заполните поля данной формы и нажмите на кнопку «Оплатить»."
+              confirmDescription="Ваш платеж успешно отправлен в банк! Денежные средства поступят в ФНС в течение нескольких дней, и Вы сможете посмотреть обновленную информацию о задолженности на сайте ФНС"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../PaymentForm.xsd">
+	<implementation class="com.rssl.phizic.business.documents.payments.JurPayment"/>
+	<statemachine name="PaymentStateMachine"/>
+    <extended-metadata-loader
+            class="com.rssl.phizic.business.payments.forms.meta.externalPayments.FnsMetadataLoader"/>
+
+    <fields>
+         <field name="documentNumber"
+               description="Номер документа"
+               type="string"
+               source="document-number"
+               signable="true">
+		</field>
+
+		<field name="documentDate"
+               description="Дата документа"
+               type="date"
+               source="document-date"
+               signable="true"/>
+
+        <!--Данные получателя-->
+        <field name="recipient"
+               description="Идентифкатор поставщика услуг"
+               type="string"
+               source="recipient">
+        </field>
+
+        <field name="receiverId"
+               description="Идентифкатор поставщика услуг"
+               type="string"
+               source="receiverId">
+        </field>
+
+        <field name="receiverName"
+               description="Наименование получателя"
+               type="string"
+               source="receiver-name">
+        </field>
+
+        <field name="receiverCorAccount"
+               description="Кор. счет"
+               type="string"
+               source="extra-parameters/parameter[@name='receiverCorAccount']/@value">
+        </field>
+
+        <!-- Источник списания -->
+        <field
+                name="fromResource"
+                source="extra-parameters/parameter[@name='from-resource']/@value"
+                description="Источник списания средств: счет, карта"
+                type="resource">
+            <validators>
+                <validator mode="document|mobile" class="com.rssl.common.forms.validators.RequiredFieldValidator"/>
+            </validators>
+        </field>
+
+        <field
+                name="fromResourceType"
+                source="extra-parameters/parameter[@name='from-resource-type']/@value"
+                description="Тип источника списания средств: счет, карта"
+                type="string"
+                value="form.fromResource==null?null:form.fromResource.getClass().getName()">
+        </field>
+
+		<field
+                name="fromAccountSelect"
+                description="Счет/карта списания"
+                type="string"
+                source="payer-account"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getNumber()">
+		</field>
+
+        <field
+                name="fromAccountType"
+                source="extra-parameters/parameter[@name='from-account-type']/@value"
+                description="Тип (описание) источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getValue().getDescription()">
+        </field>
+
+        <field
+                name="fromAccountName"
+                source="extra-parameters/parameter[@name='from-account-name']/@value"
+                description="Наименование источника списания"
+                type="string"
+                signable="true"
+                value="form.fromResource==null?null:form.fromResource.getName()">
+        </field>
+
+        <field
+                name="fromResourceCurrency"
+                description="Валюта"
+                source="extra-parameters/parameter[@name='from-resource-currency']/@value"
+                type="string"
+                value="form.fromAccountSelect==null?null:form.fromResource.getCurrency().getCode()"
+                signable="true">          
+        </field>
+
+        <!-- Налоговые поля-->
+        <field
+                name="taxGround"
+                source="extra-parameters/parameter[@name='taxGround']/@value"
+                description="Основание налогового платежа"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="taxPeriod"
+                source="extra-parameters/parameter[@name='taxPeriod']/@value"
+                description="Налоговый период"
+                type="string"
+                signable="true">
+        </field>
+
+        <field
+                name="taxType"
+                source="extra-parameters/parameter[@name='taxType']/@value"
+                description="Тип налогового документа"
+                type="string"
+                signable="true">
+        </field>
+
+        <!-- оплата -->
+        <field
+                name="amount"
+                source="destination-amount"
+                description="Сумма"
+                type="money"
+                signable="true">
+        </field>
+
+        <field
+                name="currency"
+                source="destination-amount-currency"
+                description="Валюта"
+                type="string"
+                signable="true">
+        </field>
+
+        <field name="exactAmount"
+               source="exact-amount"
+               description="«Сумма» («Сумма зачисления»)"
+               type="string">
+        </field>
+
+        <field
+                name="groundByKBK"
+                source="extra-parameters/parameter[@name='groundByKBK']/@value"
+                description="Назначение платежа"
+                type="string"
+                signable="true">
+        </field>
+
+		<field name="operationDate"
+               source="operation-date-short-year"
+               description="Дата отправки платежа"
+               type="string"/>
+
+        <field name="operationTime"
+			source="operation-time"
+			description="Время отправки платежа"
+			type="string"/>
+
+		<field name="state"
+               source="state"
+               description="Статус платежа"
+               type="string"/>
+
+         <field
+                name="authorizeCode"
+                description="Код авторизации"
+                type="string"
+                source="extra-parameters/parameter[@name='AUTHORIZE_CODE']/@value">
+        </field>
+
+        <field  name="personINN"
+                description="ИНН клиента"
+                type="string"
+                source="ignored"
+                value="xpath:phiz:document('currentPersonData.xml')//field[@name='inn']">
+        </field>
+
+        <field  name="currentDepartmentId"
+                description="Департамент клиента"
+                type="string"
+                source="ignored"
+                value="xpath:phiz:document('currentPersonData.xml')//field[@name='currentDepartmentId']">
+        </field>        
+
+        <field name="promoCode"
+           source="promoCode"
+           description="Промо-код"
+           type="string"/>
+
+        <field  name="checkStatusCountResult"
+                source="extra-parameters/parameter[@name='check-status-count-result']/@value"
+                description="Признак превышения допустимого значения проверок статуса платежа во ВС"
+                type="boolean"/>
+    </fields>
+
+	<form-validators>
+        <form-validator mode="document|mobile" class="com.rssl.phizic.business.payments.forms.validators.PayerINNValidator">
+            <message text="Вы не можете произвести оплату налога за другое физическое лицо!"/>
+            <field-ref name="payerInn">payerInn</field-ref>
+            <field-ref name="personInn">personINN</field-ref>
+        </form-validator>
+        
+        <form-validator mode="document|mobile"
+                        class="com.rssl.phizic.business.payments.forms.validators.UserResourceAmountCurrencyValidator">
+            <message text="Вы ввели сумму, превышающую остаток средств на Вашем счете. Пожалуйста, введите другую сумму."/>
+            <field-ref name="resource">fromResource</field-ref>
+            <field-ref name="amount">amount</field-ref>
+            <field-ref name="currency">currency</field-ref>
+            <field-ref name="currentDepartmentId">currentDepartmentId</field-ref>
+        </form-validator>
+    </form-validators>
+
+</payment-form>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <typedef name="TransformType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.business.payments.forms.meta.TransformType</param>
+	</typedef>
+
+    <class name="com.rssl.phizic.business.payments.forms.meta.PaymentFormTransformation" table="PAYMENT_FORM_TRANSFORMATIONS">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_PAYMENT_FORM_TRANSFORMATIONS</param>
+            </generator>
+        </id>
+
+        <many-to-one name="form" class="com.rssl.phizic.business.payments.forms.meta.MetadataBean" column="FORM_ID" not-null="true" lazy="false"/>
+        <property name="type" type="TransformType" column="TYPE" not-null="true"/>
+        <property name="transformation" type="string" column="TRANSFORMATION" not-null="true"/>
+    </class>
+
+    <query name="com.rssl.phizic.business.payments.forms.meta.PaymentFormTransformation.getTransformationsByFormName">
+        select transformation from PaymentFormTransformation transformation where transformation.form.name = :name
+    </query>
+    
+</hibernate-mapping>

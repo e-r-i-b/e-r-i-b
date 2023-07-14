@@ -1,0 +1,179 @@
+<?xml version="1.0"?><!DOCTYPE hibernate-mapping PUBLIC
+		"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.rssl.phizic.logging.monitoring.MonitoringLogEntry" table="MONITORING_BUSINESS_OPERATION">
+        <composite-id>
+            <key-property name="startDate" type="java.util.Calendar" column="START_DATE"/>
+            <key-property name="documentType" type="java.lang.String" column="OPERATION_TYPE"/>
+            <key-property name="nodeId" type="java.lang.Long" column="NODE_ID" />
+        </composite-id>
+
+        <property name="providerUuid" type="java.lang.String" column="PROVIDER_UUID" not-null="false"/>
+        <property name="accountType" type="java.lang.String" column="ACCOUNT_TYPE" not-null="false"/>
+        <property name="application" type="java.lang.String" column="APPLICATION" not-null="true"/>
+        <property name="tb" type="java.lang.String" column="TB" not-null="false"/>
+        <property name="platform" type="java.lang.String" column="PLATFORM" not-null="false"/>
+        <property name="stateCode" type="java.lang.String" column="STATE_CODE" not-null="true"/>
+        <property name="amount" type="java.math.BigDecimal" column="AMOUNT" not-null="false"/>
+        <property name="amountCurrency" type="java.lang.String" column="AMOUNT_CUR" not-null="false"/>
+        <property name="creationDate" type="java.util.Calendar" column="CREATION_DATE" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.logging.monitoring.AgregateMonitoringLogEntry" table="AGREGATE_BUS_DOC_MONITORING">
+        <composite-id>
+            <key-property name="startDate" type="java.util.Calendar" column="REPORT_DATE"/>
+            <key-property name="documentType" type="java.lang.String" column="DOCUMENT_TYPE"/>
+            <key-property name="nodeId" type="java.lang.Long" column="NODE_ID" />
+        </composite-id>
+
+        <property name="providerUuid" type="java.lang.String" column="PROVIDER_UUID" not-null="false"/>
+        <property name="accountType" type="java.lang.String" column="ACCOUNT_TYPE" not-null="false"/>
+        <property name="application" type="java.lang.String" column="APPLICATION" not-null="true"/>
+        <property name="tb" type="java.lang.String" column="TB" not-null="false"/>
+        <property name="platform" type="java.lang.String" column="PLATFORM" not-null="false"/>
+        <property name="stateCode" type="java.lang.String" column="STATE_CODE" not-null="true"/>
+        <property name="amount" type="java.math.BigDecimal" column="AMOUNT" not-null="false"/>
+        <property name="amountCurrency" type="java.lang.String" column="AMOUNT_CUR" not-null="false"/>
+        <property name="count" type="long" column="COUNT" not-null="true"/>
+    </class>
+
+    <class name="com.rssl.phizic.logging.monitoring.MonitoringUserLoginEntry" table="MONITORING_USER_LOGIN">
+        <composite-id>
+            <key-property name="startDate" type="java.util.Calendar" column="START_DATE"/>
+            <key-property name="nodeId" type="java.lang.Long" column="NODE_ID" />
+        </composite-id>
+
+        <property name="application" type="java.lang.String" column="APPLICATION" not-null="true"/>
+        <property name="tb" type="java.lang.String" column="TB" not-null="false"/>
+        <property name="platform" type="java.lang.String" column="PLATFORM" not-null="false"/>
+    </class>
+
+    <class name="com.rssl.phizic.logging.monitoring.AgregateMonitoringDocumentState" table="BUS_DOCUMENTS_MONITORING_STATE">
+        <id type="java.util.Calendar" column="REPORT_DATE" name="reportDate"/>
+
+        <property name="state" type="java.lang.String" column="STATE" not-null="true"/>
+        <property name="stateDescription" type="java.lang.String" column="STATE_DESCR" not-null="false"/>
+    </class>
+
+
+
+   <!--
+        Опорный объект: I_AGREGATE_BUS_DOC_MONITORING
+        Предикаты доступа: access(("DOCUMENT_TYPE"='AA' OR "DOCUMENT_TYPE"='AC' OR "DOCUMENT_TYPE"='CA' OR "DOCUMENT_TYPE"='CAOB' OR
+              "DOCUMENT_TYPE"='CAOTB' OR "DOCUMENT_TYPE"='CCNS' OR "DOCUMENT_TYPE"='CCS') AND "REPORT_DATE">=TO_TIMESTAMP(:FROMDATE) AND
+              "REPORT_DATE"<=TO_TIMESTAMP(:TODATE))
+        Кардинальность: ~68000 (18(кол-во тербанков)*7(кол-во типов платежей)*60(max кол-во дней)*3(кол-во блоков)*3(кол-во каналов))
+   -->
+    <sql-query name="com.rssl.phizic.logging.monitoring.getReportForTransferPayment">
+         <return-scalar column="TB" type="string"/>
+         <return-scalar column="DOCUMENT_TYPE" type="string"/>
+         <return-scalar column="PAYMENT_COUNT" type="string"/>
+         <return-scalar column="PAYMENT_SUM" type="string"/>
+        <![CDATA[
+            SELECT
+                TB,
+                DOCUMENT_TYPE,
+                sum(count) PAYMENT_COUNT,
+                sum(amount) PAYMENT_SUM
+            FROM
+                AGREGATE_BUS_DOC_MONITORING
+            WHERE
+            DOCUMENT_TYPE in ('CCS', 'CA', 'AC', 'AA', 'CAOTB', 'CAOB', 'CCNS')
+            and REPORT_DATE between (:fromDate) and (:toDate)
+            and (:blockNumber = -1 or NODE_ID = :blockNumber)
+            and (:channel = 'all' or PLATFORM = :channel )
+            GROUP BY DOCUMENT_TYPE, TB
+            ORDER BY DOCUMENT_TYPE, TB
+        ]]>
+    </sql-query>
+
+    <!--
+        Опорный объект: I_AGREGATE_BUS_DOC_MONITORING
+        Предикаты доступа: access(("DOCUMENT_TYPE"='AOC' OR "DOCUMENT_TYPE"='AOC_ALF') AND "REPORT_DATE">=TO_TIMESTAMP(:FROMDATE) AND
+              "REPORT_DATE"<=TO_TIMESTAMP(:TODATE))
+        Кардинальность: ~300 000 (18(кол-во тербанков)*60(max кол-во дней)*3(кол-во блоков)*3(кол-во каналов)*31(количество типов вкладов))
+
+   -->
+    <sql-query name="com.rssl.phizic.logging.monitoring.getAccountOpeningClaim">
+         <return-scalar column="ACCOUNT_TYPE" type="string"/>
+         <return-scalar column="TB" type="string"/>
+         <return-scalar column="DOCUMENT_TYPE" type="string"/>
+         <return-scalar column="PAYMENT_COUNT" type="string"/>
+        <![CDATA[
+            SELECT
+                ACCOUNT_TYPE,
+                TB,
+                DOCUMENT_TYPE,
+                sum(count) PAYMENT_COUNT
+            FROM
+                AGREGATE_BUS_DOC_MONITORING
+            WHERE
+            DOCUMENT_TYPE in ('AOC', 'AOC_ALF')
+            and REPORT_DATE between (:fromDate) and (:toDate)
+            and (:blockNumber = -1 or NODE_ID = :blockNumber)
+            and (:channel = 'all' or PLATFORM = :channel )
+            GROUP BY ACCOUNT_TYPE, DOCUMENT_TYPE, TB
+            ORDER BY ACCOUNT_TYPE, DOCUMENT_TYPE, TB
+        ]]>
+    </sql-query>
+
+
+    <!--
+        Опорный объект: I_AGREGATE_BUS_DOC_MONITORING
+        Предикаты доступа: access(("DOCUMENT_TYPE"='SPAP' OR "DOCUMENT_TYPE"='SPP' OR "DOCUMENT_TYPE"='SPPBR' OR "DOCUMENT_TYPE"='SPPBT' OR
+              "DOCUMENT_TYPE"='SPT') AND "REPORT_DATE">=TO_TIMESTAMP(:FROMDATE) AND "REPORT_DATE"<=TO_TIMESTAMP(:TODATE))
+
+        Кардинальность: ~ 135000 (60(max кол-во дней)*3(кол-во блоков)*3(кол-во каналов)*50(количество поставщиков)*5(кол-во типов поставщиков))
+   -->
+    <sql-query name="com.rssl.phizic.logging.monitoring.findServicePayment">
+         <return-scalar column="PROVIDER_UUID" type="string"/>
+         <return-scalar column="DOCUMENT_TYPE" type="string"/>
+         <return-scalar column="PAYMENT_COUNT" type="string"/>
+        <![CDATA[
+            SELECT
+                PROVIDER_UUID,
+                DOCUMENT_TYPE,
+                count(count) PAYMENT_COUNT
+            FROM
+                AGREGATE_BUS_DOC_MONITORING
+            WHERE
+                DOCUMENT_TYPE in ('SPP', 'SPAP', 'SPT', 'SPPBT', 'SPPBR')
+                and PROVIDER_UUID in (:providers)
+                and REPORT_DATE between (:fromDate) and (:toDate)
+                and (:blockNumber = -1 or NODE_ID = :blockNumber)
+                and (:channel = 'all' or PLATFORM = :channel )
+            GROUP BY PROVIDER_UUID, DOCUMENT_TYPE
+            ORDER BY PROVIDER_UUID, DOCUMENT_TYPE
+        ]]>
+    </sql-query>
+
+    <!--
+        Опорный объект: BUS_DOCUMENTS_MONITORING_STATE
+        Предикаты доступа: fullscan
+        Кардинальность: 1
+    -->
+    <sql-query name="com.rssl.phizic.logging.monitoring.getMetricCount">
+        <![CDATA[
+            SELECT count(1) FROM BUS_DOCUMENTS_MONITORING_STATE
+            WHERE STATE='SUCCESS' and REPORT_DATE between (:toDate - 61) and (:toDate-1)
+        ]]>
+    </sql-query>
+
+    <!--
+        Опорный объект: BUS_DOCUMENTS_MONITORING_STATE
+        Предикаты доступа: fullscan
+        Кардинальность: 60(max кол-во дней)
+    -->
+    <sql-query name="com.rssl.phizic.logging.monitoring.getMissingDate">
+        <![CDATA[
+            SELECT TO_CHAR(:fromDate - 1 + level, 'DD.MM')
+                FROM dual CONNECT BY level <= :period
+            minus
+            SELECT TO_CHAR(REPORT_DATE - 1, 'DD.MM' ) from BUS_DOCUMENTS_MONITORING_STATE
+                WHERE STATE='SUCCESS' and REPORT_DATE between :fromDate and (:toDate + 1)
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

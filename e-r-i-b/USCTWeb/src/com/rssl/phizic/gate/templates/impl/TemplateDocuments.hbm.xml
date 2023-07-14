@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+    <typedef name="CreationType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+        <param name="enumClass">com.rssl.common.forms.doc.CreationType</param>
+        <param name="identifierMethod">toValue</param>
+        <param name="valueOfMethod">fromValue</param>
+    </typedef>
+
+    <typedef name="InputSumType" class="com.rssl.phizic.dataaccess.hibernate.EnumType">
+		<param name="enumClass">com.rssl.phizic.gate.documents.InputSumType</param>
+		<param name="identifierMethod">toValue</param>
+		<param name="valueOfMethod">fromValue</param>
+	</typedef>
+
+    <typedef class="com.rssl.phizic.dataaccess.hibernate.EnumType" name="ReminderType">
+        <param name="enumClass">com.rssl.phizic.gate.reminder.ReminderType</param>
+    </typedef>
+
+    <class name="com.rssl.phizic.gate.templates.attributable.ExtendedAttributeBase" table="PAYMENTS_DOCUMENTS_EXT"
+           abstract="true" entity-name="TemplateExtendedAttributes">
+
+		<id name="id" type="long" column="ID">
+			<generator class="native">
+				<param name="sequence">S_PAYMENTS_DOCUMENTS_EXT</param>
+			</generator>
+		</id>
+
+		<discriminator type="string" column="KIND"/>
+
+		<property name="name"           type="string"           not-null="true"     column="NAME"  insert="false" update="false"/>
+        <property name="stringValue"    type="string"           not-null="false"    column="VALUE"/>
+        <property name="changed"        type="boolean"          not-null="true"     column="CHANGED"/>
+
+		<subclass name="com.rssl.phizic.gate.templates.attributable.StringAttribute"      discriminator-value="string"/>
+		<subclass name="com.rssl.phizic.gate.templates.attributable.IntegerAttribute"     discriminator-value="int"/>
+		<subclass name="com.rssl.phizic.gate.templates.attributable.DateAttribute"        discriminator-value="date"/>
+        <subclass name="com.rssl.phizic.gate.templates.attributable.DateTimeAttribute"    discriminator-value="dateTime"/>
+		<subclass name="com.rssl.phizic.gate.templates.attributable.BooleanAttribute"     discriminator-value="boolean"/>
+        <subclass name="com.rssl.phizic.gate.templates.attributable.DecimalAttribute"     discriminator-value="decimal"/>
+        <subclass name="com.rssl.phizic.gate.templates.attributable.LongAttribute"        discriminator-value="long"/>
+	</class>
+
+    <class name="com.rssl.phizic.gate.templates.impl.PaymentTemplateBase" table="PAYMENTS_DOCUMENTS" abstract="true">
+
+        <id name="id" type="long" column="ID">
+            <generator class="com.rssl.phizic.dataaccess.common.counters.AssignedOrSequenceGenerator">
+                <param name="sequence">S_PAYMENTS_DOCUMENTS</param>
+            </generator>
+        </id>
+
+        <discriminator column="KIND"    type="string"/>
+        <timestamp name="changed"       column="CHANGED"/>
+
+        <property name="externalId"                 type="string"           not-null="false"    column="EXTERNAL_ID"/>
+        <property name="documentNumber"             type="string"           not-null="true"     column="DOCUMENT_NUMBER"/>
+        <property name="clientCreationDate"         type="calendar"         not-null="true"     column="CLIENT_CREATION_DATE"/>
+        <property name="clientCreationChannel"      type="CreationType"     not-null="true"     column="CLIENT_CREATION_CHANNEL"/>
+        <property name="clientOperationDate"        type="calendar"         not-null="false"    column="CLIENT_OPERATION_DATE"/>
+        <property name="clientOperationChannel"     type="CreationType"     not-null="false"    column="CLIENT_OPERATION_CHANNEL"/>
+        <property name="additionalOperationDate"    type="calendar"         not-null="false"    column="EMPLOYEE_OPERATION_DATE"/>
+        <property name="additionalOperationChannel" type="CreationType"     not-null="false"    column="EMPLOYEE_OPERATION_CHANNEL"/>
+
+        <many-to-one name="profile" class="com.rssl.phizic.gate.owners.person.Profile" column="USER_PROFILE_ID" not-null="true" lazy="false"/>
+
+        <component name="createdEmployeeInfo" class="com.rssl.phizic.gate.owners.employee.EmployeeInfoImpl">
+            <property name="guid"   type="string"   not-null="false"    column="CREATED_EMPLOYEE_GUID"/>
+            <component name="personName" class="com.rssl.phizic.gate.owners.person.PersonNameImpl">
+                <property name="fullName"   type="string"       not-null="false"    column="CREATED_EMPLOYEE_FULL_NAME"/>
+            </component>
+        </component>
+
+        <component name="confirmedEmployeeInfo" class="com.rssl.phizic.gate.owners.employee.EmployeeInfoImpl">
+            <property name="guid"   type="string"   not-null="false"     column="CONFIRMED_EMPLOYEE_GUID"/>
+            <component name="personName" class="com.rssl.phizic.gate.owners.person.PersonNameImpl">
+                <property name="fullName"   type="string"       not-null="false"    column="CONFIRMED_EMPLOYEE_FULL_NAME"/>
+            </component>
+        </component>
+
+        <property name="operationUID"               type="string"           not-null="false"    column="OPERATION_UID"/>
+
+        <component name="state" class="com.rssl.phizic.common.types.documents.State">
+            <property name="code"           type="string"       not-null="true"     column="STATE_CODE"/>
+            <property name="description"    type="string"       not-null="false"    column="STATE_DESCRIPTION"/>
+        </component>
+
+        <component name="office" class="com.rssl.phizic.gate.office.ExtendedOfficeImpl">
+            <component name="code" class="com.rssl.phizic.gate.office.ExtendedCodeImpl">
+                <property name="region"         type="string"       not-null="true"     column="REGION"/>
+                <property name="branch"         type="string"       not-null="false"    column="BRANCH"/>
+                <property name="office"         type="string"       not-null="false"    column="OFFICE"/>
+            </component>
+        </component>
+
+        <component name="templateInfo" class="com.rssl.phizic.gate.templates.impl.TemplateInfoImpl">
+            <property name="name"           type="string"          not-null="true"     column="TEMPLATE_NAME"/>
+            <property name="useInMAPI"      type="boolean"         not-null="true"     column="TEMPLATE_USE_IN_MAPI"/>
+            <property name="useInATM"       type="boolean"         not-null="true"     column="TEMPLATE_USE_IN_ATM"/>
+            <property name="useInERMB"      type="boolean"         not-null="true"     column="TEMPLATE_USE_IN_ERMB"/>
+            <property name="useInERIB"      type="boolean"         not-null="true"     column="TEMPLATE_USE_IN_ERIB"/>
+            <property name="orderInd"       type="integer"         not-null="true"     column="TEMPLATE_ORDER_IND"/>
+            <property name="visible"        type="boolean"         not-null="true"     column="TEMPLATE_IS_VISIBLE"/>
+
+            <component name="state" class="com.rssl.phizic.common.types.documents.State">
+                <property name="code"           type="string"       not-null="true"     column="TEMPLATE_STATE_CODE"/>
+                <property name="description"    type="string"       not-null="false"    column="TEMPLATE_STATE_DESCRIPTION"/>
+            </component>
+        </component>
+
+        <component name="reminderInfo" class="com.rssl.phizic.gate.templates.impl.ReminderInfoImpl">
+            <property name="type"               type="ReminderType"     not-null="false"    column="REMINDER_TYPE"/>
+            <property name="onceDate"           type="calendar"         not-null="false"    column="REMINDER_ONCE_DATE"/>
+            <property name="dayOfMonth"         type="integer"          not-null="false"    column="REMINDER_DAY_OF_MONTH"/>
+            <property name="monthOfQuarter"     type="integer"          not-null="false"    column="REMINDER_MONTH_OF_QUARTER"/>
+            <property name="createdDate"        type="calendar"         not-null="false"    column="REMINDER_CREATED_DATE"/>
+        </component>
+
+        <map name="HExtendedAttributes" table="PAYMENTS_DOCUMENTS_EXT" cascade="all-delete-orphan"    lazy="false"    batch-size="5">
+            <key column="PAYMENT_ID"    not-null="true"/>
+            <map-key column="NAME"      type="string"/>
+            <one-to-many entity-name="TemplateExtendedAttributes"/>
+        </map>
+    </class>
+
+    <subclass name="com.rssl.phizic.gate.templates.impl.TransferTemplateBase"
+              extends="com.rssl.phizic.gate.templates.impl.PaymentTemplateBase"
+              abstract="true">
+
+        <property name="chargeOffResource"          type="string"           not-null="false"    column="CHARGEOFF_RESOURCE"/>
+        <property name="destinationResource"        type="string"           not-null="false"    column="DESTINATION_RESOURCE"/>
+        <property name="ground"                     type="string"           not-null="false"    column="GROUND"/>
+
+        <property name="chargeOffAmount"    type="money">
+            <column name="CHARGEOFF_AMOUNT"        not-null="false"/>
+            <column name="CHARGEOFF_CURRENCY"      not-null="false"/>
+        </property>
+
+        <property name="destinationAmount"  type="money">
+            <column name="DESTINATION_AMOUNT"       not-null="false"/>
+            <column name="DESTINATION_CURRENCY"     not-null="false"/>
+        </property>
+
+        <property name="inputSumType"               type="InputSumType"     not-null="false"    column="SUMM_TYPE"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.gate.templates.impl.InternalTransferTemplate"
+              extends="com.rssl.phizic.gate.templates.impl.TransferTemplateBase"
+              discriminator-value="A">
+
+    </subclass>
+
+    <subclass name="com.rssl.phizic.gate.templates.impl.ExternalTransferTemplate"
+              extends="com.rssl.phizic.gate.templates.impl.TransferTemplateBase"
+              abstract="true">
+
+        <property name="receiverName"               type="string"   not-null="false"        column="RECEIVER_NAME"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.gate.templates.impl.IndividualTransferTemplate"
+              extends="com.rssl.phizic.gate.templates.impl.ExternalTransferTemplate"
+              discriminator-value="B">
+
+    </subclass>
+
+    <subclass name="com.rssl.phizic.gate.templates.impl.PaymentSystemTransferTemplate"
+              extends="com.rssl.phizic.gate.templates.impl.ExternalTransferTemplate"
+              discriminator-value="C">
+
+        <property name="receiverPointCode"              type="string"           not-null="false"    column="RECEIVER_POINT_CODE"/>
+        <property name="multiBlockReceiverPointCode"    type="string"           not-null="false"    column="MULTI_BLOCK_RECEIVER_CODE"/>
+        <property name="extendedFieldsAsString"         type="text"             not-null="false"    column="EXTENDED_FIELDS"/>
+    </subclass>
+
+    <subclass name="com.rssl.phizic.gate.templates.impl.LoanTransferTemplate"
+              extends="com.rssl.phizic.gate.templates.impl.TransferTemplateBase"
+              discriminator-value="D">
+
+    </subclass>
+
+    <subclass name="com.rssl.phizic.gate.templates.impl.SecuritiesTransferTemplate"
+              extends="com.rssl.phizic.gate.templates.impl.TransferTemplateBase"
+              discriminator-value="E">
+
+    </subclass>
+
+    <subclass name="com.rssl.phizic.gate.templates.impl.IMATransferTemplate"
+              extends="com.rssl.phizic.gate.templates.impl.InternalTransferTemplate"
+              discriminator-value="F">
+
+    </subclass>
+
+    <subclass name="com.rssl.phizic.gate.templates.impl.ConvertCurrencyTransferTemplate"
+              extends="com.rssl.phizic.gate.templates.impl.InternalTransferTemplate"
+              discriminator-value="G">
+
+    </subclass>
+
+    <!--поиск дублей клиента по установочным данным в синонимах к ТБ клиента-->
+    <!--
+        Опорный объект: IDX_USER_PROFILE_UNIQ
+        Предикаты доступа:
+        UPPER(TRIM( REGEXP_REPLACE ("SUR_NAME"||' '||"FIRST_NAME"||' '||"PATR_NAME",'( )+',' ')))=UPPER(TRIM( REGEXP_REPLACE (:SURNAME||' '||:FIRSTNAME||' '||:PATRNAME,'( )+',' ')))
+        AND "PERSON"."BIRTHDAY"=TO_TIMESTAMP(:BIRTHDAY)
+        AND "PERSON"."TB"=:TB AND REPLACE("PASSPORT",' ','')=REPLACE(:PASSPORT,' ',''))
+        Кардинальность: ограничивается количеством синонимов ТБ
+    -->
+    <sql-query name="com.rssl.phizic.gate.templates.services.TemplateDocumentService.findAllBySynonyms">
+        <return alias="template" class="com.rssl.phizic.gate.templates.impl.PaymentTemplateBase"/>
+
+        <![CDATA[
+            SELECT {template.*} FROM PAYMENTS_DOCUMENTS template
+            WHERE template.USER_PROFILE_ID IN
+            (
+                SELECT person.ID FROM USER_PROFILES person
+                WHERE (UPPER(TRIM(REGEXP_REPLACE(person.SUR_NAME||' '||person.FIRST_NAME||' '||person.PATR_NAME,'( )+',' '))) = UPPER(TRIM(REGEXP_REPLACE(:surName||' '||:firstName||' '||:patrName ,'( )+',' '))))
+                    AND (REPLACE(person.PASSPORT,' ','') = REPLACE(:passport,' ',''))
+                    AND (person.TB IN (:tb))
+                    AND (person.BIRTHDAY = :birthDay)
+            )
+            ORDER BY template.TEMPLATE_ORDER_IND DESC
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>

@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibility" table="DEPOSITS_VISIBILITY">
+        <id name="id" type="long">
+            <generator class="native">
+                <param name="sequence">S_DEPOSITS_VISIBILITY</param>
+            </generator>
+        </id>
+
+        <property name="depositType"        type="long"         column="TYPE"                   not-null="true"/>
+        <property name="name"               type="string"       column="NAME"                   not-null="true"/>
+        <property name="availableOnline"    type="boolean"      column="AVAILABLE_ONLINE"       not-null="true"/>
+
+        <bag name="depositSubTypes" table="DEPOSITS_SUBTYPES_VISIBILITY" lazy="false" fetch="subselect">
+            <key column="DEPOSIT_ID"/>
+            <element column="SUBTYPE" type="long" not-null="true"/>
+        </bag>
+
+        <bag name="allowedDepartments" table="DEPOSITS_DEPARTMENTS" lazy="false" fetch="subselect">
+            <key column="DEPOSIT_ID"/>
+            <element column="TB" type="string" not-null="true"/>
+        </bag>
+    </class>
+
+    <class name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibilityInfo" mutable="false">
+        <id name="id"                               type="long"         column="ID"/>
+        <property name="type"                       type="long"         column="DEPOSIT_TYPE"/>
+        <property name="group"                      type="long"         column="GROUP_CODE"/>
+        <property name="subType"                    type="long"         column="DEPOSIT_SUB_TYPE"/>
+        <property name="name"                       type="string"       column="GROUP_NAME"/>
+        <property name="period"                     type="string"       column="PERIOD"/>
+    </class>
+
+    <!--
+        Хибернейт разбивает запрос на 3:
+        1. Выборка из таблицы DEPOSITS_VISIBILITY:
+            Опорный объект: IDX_D_VISIBILITY
+            Предикаты доступа: access("DEPOSITENT0_"."TYPE"=TO_NUMBER(:TYPE))
+            Кардинальность: 1
+        2. Выборка из таблицы DEPOSITS_DEPARTMENTS:
+            Опорный объект: IDX_D_DEPARTMENTS ( IDX_D_DEPARTMENTS_DEPOSITS оракл использовать не захотел, даже при выполнении запроса с  хинтом)
+            Предикаты доступа: "ALLOWEDDEP0_"."DEPOSIT_ID"=TO_NUMBER(:ID)
+            Кардинальность: количество тербанков, в которых вклад может быть доступен для открытия
+        3. Выборка из таблицы DEPOSITS_SUBTYPES_VISIBILITY:
+            Опорный объект: IDX_D_SUBTYPES
+            Предикаты доступа: "DEPOSITSUB0_"."DEPOSIT_ID"=TO_NUMBER(:ID)
+            Кардинальность: количество подвидов вклада, которые могут быть доступны для открытия. Максимально возможно - 65 на тестируемом справочнике
+    -->
+    <query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibility.getAvailSubTypes">
+        select visibility
+        from com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibility as visibility
+        where visibility.depositType = :type
+    </query>
+
+    <!--
+        Получение видов вкладов, доступных для открытия (с учетом тербанка)
+        Опорный объект: IDX_D_DEPARTMENTS
+        Предикаты доступа: "DEPS"."TB"=:TB AND "VIS"."ID"="DEPS"."DEPOSIT_ID"
+        Кардинальность: теоретически максимальная -  86
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibility.getAllowedTypes">
+        <return-scalar column="TYPE" type="long"/>
+        <![CDATA[
+        SELECT
+            distinct vis.TYPE as TYPE
+        FROM
+            DEPOSITS_VISIBILITY vis
+            JOIN DEPOSITS_DEPARTMENTS deps on vis.ID = deps.DEPOSIT_ID
+        WHERE
+            deps.tb = :tb AND
+            vis.AVAILABLE_ONLINE = 1
+        ]]>
+    </sql-query>
+
+    <!--
+        Получение подвидов вклада в рамках вида вклада и группы, доступных для открытия (с учетом тербанка)
+        Опорный объект: DEPOSITS_QVB
+        Предикаты доступа: ("VIS"."TYPE"=TO_NUMBER(:TYPE)) AND ("DEPS"."TB"=:TB AND "VIS"."ID"="DEPS"."DEPOSIT_ID") AND ("QVB"."QDTN1"=TO_NUMBER(:TYPE)) AND ("VIS"."ID"="SUB"."DEPOSIT_ID" AND "SUB"."SUBTYPE"="QVB"."QDTSUB")
+        Кардинальность: максимально – 65
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibility.getAllowedSubTypes">
+        <return-scalar column="SUB_TYPE" type="long"/>
+        <![CDATA[
+        SELECT
+            distinct qvb.QDTSUB as SUB_TYPE
+        FROM
+            DEPOSITS_QVB qvb
+            JOIN DEPOSITS_VISIBILITY vis on qvb.QDTN1 = vis.TYPE
+            JOIN DEPOSITS_DEPARTMENTS deps on vis.ID = deps.DEPOSIT_ID and deps.TB = :tb
+            JOIN DEPOSITS_SUBTYPES_VISIBILITY sub on vis.ID = sub.DEPOSIT_ID
+        WHERE
+            qvb.QDTN1 = :type AND
+            vis.AVAILABLE_ONLINE = 1 AND
+            qvb.Q_GROUP = :groupCode AND
+            sub.SUBTYPE = qvb.QDTSUB
+        ]]>
+    </sql-query>
+
+    <!--
+        Получение всех возможных видов вкладов (без учета видимости в ТБ, на основании выборок из таблиц ЦАС НСИ)
+        Опорный объект: IDX_D_BCH_BUX_TYPE_SUBTYPE
+        Предикаты доступа: "QVB"."QDTN1"="BUX"."BCH_VKL" AND "QVB"."QDTN1"="VAL"."QVKL_T_QDTN1"
+        Кардинальность: мксимальная кардинальность - 86
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibility.getAllTypes">
+        <return-scalar column="TYPE" type="long"/>
+        <![CDATA[
+        SELECT
+            distinct qvb.QDTN1 as TYPE
+        FROM
+            DEPOSITS_QVB qvb
+            JOIN DEPOSITS_BCH_BUX bux on qvb.QDTN1 = bux.BCH_VKL
+            JOIN DEPOSITS_QVKL_VAL val on qvb.QDTN1 = val.QVKL_T_QDTN1
+
+        ]]>
+    </sql-query>
+
+    <!--
+        Получение всех подвидов вкладного продукта по типу вклада и коду группы (без учета видимости в ТБ, на основании выборок из таблиц ЦАС НСИ)
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: "QVB"."QDTN1"=TO_NUMBER(:TYPE)
+        Кардинальность: максимальная кардинальность - 65 (максимально найденное количество подвидов вкладов в разрезе видов и групп)
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibility.getAllSubTypes">
+        <return-scalar column="SUBTYPE" type="long"/>
+        <![CDATA[
+        SELECT
+            qvb.QDTSUB as SUBTYPE
+        FROM
+            DEPOSITS_QVB qvb
+        WHERE
+            qvb.QDTN1 = :type AND
+            qvb.Q_GROUP = :groupCode
+        ]]>
+    </sql-query>
+
+    <!--
+        Получить краткую информацию о всех подвидах вклада (для настройки видимости)
+        Опорный объект: IDX_D_QVB_TYPE_SUBTYPE
+        Предикаты доступа: "QVB"."QDTN1"=TO_NUMBER(:TYPE)
+        Кардинальность: максимально - 65 (максимально найденное количество подвидов в одном виде вклада)
+    -->
+    <sql-query name="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibilityInfo.getInfoList">
+        <return class="com.rssl.phizic.business.ext.sbrf.deposits.entities.DepositEntityVisibilityInfo">
+            <return-property name="id"                  column="ID"/>
+            <return-property name="type"                column="TYPE"/>
+            <return-property name="group"               column="GROUP_CODE"/>
+            <return-property name="subType"             column="SUBTYPE"/>
+            <return-property name="name"                column="NAME"/>
+            <return-property name="period"              column="SROK"/>
+        </return>
+        <![CDATA[
+        SELECT distinct
+            qvb.ID                                                  as ID,
+            qvb.QDTN1                                               as TYPE,
+            qvb.Q_GROUP                                             as GROUP_CODE,
+            qvb.QDTSUB                                              as SUBTYPE,
+            qvb.QDN                                                 as NAME,
+            qvb.Q_SROK                                              as SROK
+        FROM
+            DEPOSITS_QVB qvb
+        WHERE
+            qvb.QDTN1 = :type
+        ORDER BY
+            qvb.QDTSUB
+        ]]>
+    </sql-query>
+
+</hibernate-mapping>
